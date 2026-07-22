@@ -1,0 +1,66 @@
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: blueprintos-sqlserver
+
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD}
+
+    ports:
+      - "1433:1433"
+
+    volumes:
+      - blueprintos_sql:/var/opt/mssql
+
+    restart: unless-stopped
+
+    networks:
+      - blueprintos-network
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/opt/mssql-tools18/bin/sqlcmd",
+          "-S",
+          "localhost",
+          "-U",
+          "sa",
+          "-P",
+          "${SA_PASSWORD}",
+          "-C",
+          "-Q",
+          "SELECT 1"
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  api:
+    image: blueprintos/api:dev
+    container_name: blueprintos-api
+
+    build:
+      context: ../../
+      dockerfile: backend/src/BlueprintOS.Api/Dockerfile
+
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+
+    networks:
+      - blueprintos-network
+
+networks:
+  blueprintos-network:
+
+volumes:
+  blueprintos_sql:

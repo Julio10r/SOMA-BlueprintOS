@@ -91,3 +91,5 @@ kubeconfig
 # ==========================================================
 .AppleDouble
 .LSOverride
+# Docker
+infrastructure/docker/.env.docker

@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\BlueprintOS.Application\BlueprintOS.Application.csproj" />
+    <ProjectReference Include="..\BlueprintOS.Domain\BlueprintOS.Domain.csproj" />
+    <ProjectReference Include="..\BlueprintOS.Shared\BlueprintOS.Shared.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
