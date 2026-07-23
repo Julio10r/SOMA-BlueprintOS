@@ -39,4 +39,11 @@ public sealed class DocumentationOptions
     /// futuramente pelos Publishers.
     /// </summary>
     public string AssetsRootPath { get; set; } = "docs/assets";
+
+    /// <summary>
+    /// Diretório raiz, relativo ou absoluto, do Design System oficial da plataforma (AZZAS 2154
+    /// - GDT Design System), consumido pelo Publication Engine como única fonte de cores,
+    /// tipografia e demais tokens visuais.
+    /// </summary>
+    public string DesignSystemRootPath { get; set; } = "docs/design-system";
 }

@@ -70,6 +70,7 @@ public sealed class ClientPublisher : IReportPublisher
             Template,
             contentFiles.Select(f => (f.FileName, f.Content)).ToList(),
             dynamicSections,
+            Array.Empty<DocumentDiagram>(),
             _assetsManager,
             metrics,
             DateTimeOffset.UtcNow,

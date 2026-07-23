@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Core.Publication.Models;
 using BlueprintOS.Core.Publication.Models.Assets;
@@ -10,31 +11,31 @@ namespace BlueprintOS.Infrastructure.Publication.Assets;
 /// <summary>
 /// Implementação de <see cref="IDocumentationAssetsManager"/>: centraliza logo, ícones,
 /// QR Codes, diagramas/Mermaid, capa, rodapé, cores e fontes usados pelos três Publishers de
-/// relatório. Nenhum outro tipo do projeto constrói <see cref="PublicationAssets"/>,
-/// <see cref="PublicationTheme"/> ou chama <see cref="QrCodeImageGenerator"/> diretamente.
+/// relatório. Cores e tipografia vêm sempre de <see cref="IDocumentThemeProvider"/> (Design
+/// System oficial) — nenhum valor é hardcoded aqui. Nenhum outro tipo do projeto constrói
+/// <see cref="PublicationAssets"/>, <see cref="PublicationTheme"/> ou chama
+/// <see cref="QrCodeImageGenerator"/> diretamente.
 /// </summary>
 public sealed class DocumentationAssetsManager : IDocumentationAssetsManager
 {
     private const string RepositoryUrl = "https://github.com/Julio10r/SOMA-BlueprintOS";
 
-    /// <summary>
-    /// Fonte de corpo padrão dos documentos publicados (hoje aplicada apenas pelo
-    /// <c>PdfRenderer</c>) — centralizada aqui como referência única de tipografia da
-    /// plataforma, ponto de extensão para temas por categoria de documento.
-    /// </summary>
-    public const string BodyFontFamily = "Helvetica";
+    private static readonly Regex FencedBlockPattern = new(
+        @"```(?:mermaid)?\s*\n([\s\S]*?)```", RegexOptions.Compiled);
 
-    /// <summary>Fonte monoespaçada padrão para blocos de código.</summary>
-    public const string MonospaceFontFamily = "Courier";
+    private readonly IDocumentThemeProvider _themeProvider;
+
+    public DocumentationAssetsManager(IDocumentThemeProvider themeProvider)
+    {
+        _themeProvider = themeProvider;
+    }
 
     /// <inheritdoc />
-    public PublicationTheme GetTheme(PublicationDocumentClass documentClass) => documentClass switch
-    {
-        PublicationDocumentClass.Executive => PublicationTheme.ForExecutive(),
-        PublicationDocumentClass.Client => PublicationTheme.ForClient(),
-        PublicationDocumentClass.Engineering => PublicationTheme.ForEngineering(),
-        _ => throw new ArgumentOutOfRangeException(nameof(documentClass), documentClass, "Categoria de documento desconhecida."),
-    };
+    public PublicationTheme GetTheme(PublicationDocumentClass documentClass) => new(
+        documentClass,
+        _themeProvider.GetPalette(),
+        _themeProvider.GetTypography(),
+        _themeProvider.GetStylesheet());
 
     /// <inheritdoc />
     public PublicationAssets BuildStandardAssets(QualityMetrics metrics)
@@ -89,11 +90,24 @@ public sealed class DocumentationAssetsManager : IDocumentationAssetsManager
     }
 
     /// <inheritdoc />
-    public async Task<string> BuildDiagramMarkdownAsync(
+    public async Task<DocumentDiagram> RenderDiagramAsync(
+        string title,
+        string assetId,
         Func<CancellationToken, Task<string>> mermaidSource,
         CancellationToken cancellationToken = default)
     {
         var raw = await mermaidSource(cancellationToken);
-        return ReportPublishingHelper.StripFirstHeadingLine(raw);
+        var stripped = ReportPublishingHelper.StripFirstHeadingLine(raw);
+
+        var fenceMatch = FencedBlockPattern.Match(stripped);
+        var definition = fenceMatch.Success ? fenceMatch.Groups[1].Value.Trim() : stripped.Trim();
+
+        var svgBytes = SimpleMermaidSvgRenderer.Render(definition, _themeProvider.GetPalette());
+        var asset = new MermaidAsset(assetId, title, definition, svgBytes, "image/svg+xml");
+        var section = new PublicationSection(
+            title,
+            new[] { ContentBlock.Image(assetId, "Diagrama gerado automaticamente a partir da definição Mermaid.") });
+
+        return new DocumentDiagram(section, asset);
     }
 }

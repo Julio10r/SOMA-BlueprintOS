@@ -131,6 +131,7 @@ public static class ServiceCollectionExtensions
         // Publication Engine (Sprint A9)
         services.Configure<PublicationOptions>(configuration.GetSection(PublicationOptions.SectionName));
         services.AddSingleton<IQualityMetricsProvider, QualityMetricsProvider>();
+        services.AddSingleton<IDocumentThemeProvider, DocumentThemeProvider>();
         services.AddSingleton<IDocumentationAssetsManager, DocumentationAssetsManager>();
         services.AddSingleton<IContentRenderer, MarkdownRenderer>();
         services.AddSingleton<IContentRenderer, HtmlRenderer>();

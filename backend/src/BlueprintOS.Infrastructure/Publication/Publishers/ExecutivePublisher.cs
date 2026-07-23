@@ -11,11 +11,11 @@ namespace BlueprintOS.Infrastructure.Publication.Publishers;
 /// (<c>dist/executive/ExecutiveReport.*</c>). O conteúdo estratégico (visão, problema de
 /// negócio, capacidades, benefícios, roadmap narrativo, estado atual e próximos passos) é
 /// autorado como Markdown em <c>.ai/content/executive/</c> e carregado via
-/// <see cref="IExecutiveContentLoader"/>; a montagem do documento (capa, índice, tema, selos,
-/// QR Code, apêndice e rodapé) é delegada ao <see cref="DocumentAssembler"/> e ao
-/// <see cref="IDocumentationAssetsManager"/> — este publisher não acessa nenhum asset
-/// diretamente. Só define o <see cref="DocumentTemplate"/> e as seções dinâmicas específicas
-/// (roadmap automático e diagrama de arquitetura).
+/// <see cref="IExecutiveContentLoader"/>; a montagem do documento (capa, resumo executivo,
+/// índice, tema, selos, QR Code, apêndice e rodapé) é delegada ao <see cref="DocumentAssembler"/>
+/// e ao <see cref="IDocumentationAssetsManager"/> — este publisher não acessa nenhum asset
+/// diretamente. Só define o <see cref="DocumentTemplate"/>, o roadmap automático e o diagrama de
+/// arquitetura (renderizado para imagem, nunca publicado como código Mermaid).
 /// </summary>
 public sealed class ExecutivePublisher : IReportPublisher
 {
@@ -68,15 +68,16 @@ public sealed class ExecutivePublisher : IReportPublisher
         var dynamicSections = new[]
         {
             new DocumentSection("Roadmap Automático", _roadmapGenerator.GenerateAsync),
-            new DocumentSection(
-                "Visão de Arquitetura",
-                ct => _assetsManager.BuildDiagramMarkdownAsync(_mermaidGenerator.GenerateAsync, ct)),
         };
+
+        var diagram = await _assetsManager.RenderDiagramAsync(
+            "Visão de Arquitetura", "diagram-architecture", _mermaidGenerator.GenerateAsync, cancellationToken);
 
         return await DocumentAssembler.AssembleAsync(
             Template,
             contentFiles.Select(f => (f.FileName, f.Content)).ToList(),
             dynamicSections,
+            new[] { diagram },
             _assetsManager,
             metrics,
             DateTimeOffset.UtcNow,

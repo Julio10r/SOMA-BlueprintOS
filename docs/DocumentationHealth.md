@@ -11,9 +11,9 @@
 
 | Documento | Status | Palavras |
 |---|---|---|
-| executive/ExecutiveReport.md | ✅ Saudável | 1421 |
-| client/ClientGuide.md | ✅ Saudável | 1380 |
-| engineering/EngineeringGuide.md | ✅ Saudável | 2427 |
+| executive/ExecutiveReport.md | ✅ Saudável | 1481 |
+| client/ClientGuide.md | ✅ Saudável | 1449 |
+| engineering/EngineeringGuide.md | ✅ Saudável | 2500 |
 
 ## Estrutura e Links
 

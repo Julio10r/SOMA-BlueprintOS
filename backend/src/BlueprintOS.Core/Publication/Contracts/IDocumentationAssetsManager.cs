@@ -30,11 +30,14 @@ public interface IDocumentationAssetsManager
     IReadOnlyList<PublicationSection> BuildStandardAppendix(PublicationMetadata metadata);
 
     /// <summary>
-    /// Obtém o Markdown de um diagrama Mermaid a partir de uma fonte de conteúdo (ex.: um
-    /// gerador de documentação), removendo o título que a fonte já inclui — único ponto de
-    /// empacotamento de diagramas para uso como seção de documento.
+    /// Renderiza um diagrama Mermaid (obtido de uma fonte de conteúdo, ex.: um gerador de
+    /// documentação) para uma imagem — nunca publica o código Mermaid bruto no documento. Sem um
+    /// motor de renderização Mermaid real disponível no backend, gera automaticamente um SVG
+    /// simples (caixas e setas) a partir da definição do grafo.
     /// </summary>
-    Task<string> BuildDiagramMarkdownAsync(
+    Task<DocumentDiagram> RenderDiagramAsync(
+        string title,
+        string assetId,
         Func<CancellationToken, Task<string>> mermaidSource,
         CancellationToken cancellationToken = default);
 }

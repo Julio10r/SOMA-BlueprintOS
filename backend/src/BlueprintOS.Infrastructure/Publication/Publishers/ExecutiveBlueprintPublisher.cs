@@ -20,6 +20,7 @@ public static class ExecutiveBlueprintPublisher
     public static async Task PublishAsync(
         string repositoryRoot,
         IEnumerable<IContentRenderer> renderers,
+        IDocumentThemeProvider themeProvider,
         CancellationToken cancellationToken = default)
     {
         var directory = Path.Combine(repositoryRoot, "docs", "executive");
@@ -45,7 +46,11 @@ public static class ExecutiveBlueprintPublisher
             Sections: sections,
             Assets: PublicationAssets.Empty,
             Appendix: Array.Empty<PublicationSection>(),
-            Theme: PublicationTheme.ForExecutive());
+            Theme: new PublicationTheme(
+                PublicationDocumentClass.Executive,
+                themeProvider.GetPalette(),
+                themeProvider.GetTypography(),
+                themeProvider.GetStylesheet()));
 
         foreach (var renderer in renderers.Where(renderer => renderer.Format != PublicationFormat.Markdown))
         {

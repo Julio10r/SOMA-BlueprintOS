@@ -26,7 +26,7 @@ internal static class HtmlDocumentTemplate
         builder.AppendLine("<meta charset=\"utf-8\" />");
         builder.AppendLine("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />");
         builder.AppendLine($"<title>{Encode(document.Metadata.Title)}</title>");
-        builder.AppendLine($"<style>{BuildCss(theme)}</style>");
+        builder.AppendLine($"<style>{theme.Stylesheet}</style>");
         builder.AppendLine("</head>");
         builder.AppendLine("<body>");
 
@@ -156,110 +156,4 @@ internal static class HtmlDocumentTemplate
     }
 
     private static string Encode(string text) => WebUtility.HtmlEncode(text);
-
-    private static string BuildCss(PublicationTheme theme) => $$"""
-        :root {
-            color-scheme: light dark;
-            --ink: #1c2530;
-            --muted: #{{theme.MutedColorHex}};
-            --accent: #{{theme.AccentColorHex}};
-            --primary: #{{theme.PrimaryColorHex}};
-            --border: #{{theme.BorderColorHex}};
-            --surface: #ffffff;
-            --surface-alt: #f6f8fa;
-            font-synthesis: none;
-        }
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-            color: var(--ink);
-            background: var(--surface-alt);
-            line-height: 1.6;
-        }
-        .cover {
-            min-height: 60vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-start;
-            gap: 0.75rem;
-            padding: 4rem clamp(1.5rem, 6vw, 6rem);
-            background: linear-gradient(135deg, var(--accent), var(--primary));
-            color: #fff;
-        }
-        .cover-brand { font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; }
-        .cover-logo { max-height: 3rem; max-width: 12rem; object-fit: contain; }
-        .cover h1 { font-size: clamp(2rem, 4vw, 3rem); margin: 0; }
-        .cover-subtitle { font-size: 1.15rem; opacity: 0.9; max-width: 42rem; }
-        .cover-meta { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 1rem; font-size: 0.95rem; opacity: 0.85; }
-        .cover-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
-        .badge {
-            display: inline-flex; overflow: hidden; border-radius: 0.3rem; font-size: 0.8rem; font-weight: 600;
-        }
-        .badge-label, .badge-value { padding: 0.2rem 0.5rem; }
-        .badge-label { background: rgba(255,255,255,0.15); }
-        .badge-value { color: #fff; }
-        .badge-success .badge-value { background: #1f8a4c; }
-        .badge-warning .badge-value { background: #b8860b; }
-        .badge-failure .badge-value { background: #b8341f; }
-        .badge-neutral .badge-value { background: #4a5568; }
-        .page-header {
-            position: sticky; top: 0; z-index: 10;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0.9rem clamp(1.5rem, 6vw, 6rem);
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-        }
-        .page-header-brand { font-weight: 700; color: var(--accent); }
-        .page-header-title { color: var(--muted); font-size: 0.95rem; }
-        .content { max-width: 60rem; margin: 0 auto; padding: 2rem clamp(1rem, 6vw, 6rem) 4rem; }
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .toc ol { padding-left: 1.25rem; }
-        .toc a { color: var(--accent); text-decoration: none; }
-        .toc a:hover { text-decoration: underline; }
-        .section { margin-bottom: 2.5rem; }
-        .section h2, .section h3 {
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 0.5rem;
-            color: var(--accent);
-        }
-        .appendix-divider { margin: 3rem 0 1.5rem; }
-        .appendix-divider h2 { color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
-        .section-body table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-        .section-body th, .section-body td {
-            border: 1px solid var(--border);
-            padding: 0.5rem 0.75rem;
-            text-align: left;
-        }
-        .section-body th { background: var(--surface-alt); }
-        .section-body code { background: var(--surface-alt); padding: 0.1rem 0.35rem; border-radius: 0.25rem; }
-        .section-body pre { background: #10151c; color: #e8edf3; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
-        .section-body figure { margin: 1rem 0; }
-        .section-body figure img { max-width: 100%; border-radius: 0.5rem; border: 1px solid var(--border); }
-        .section-body figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 0.35rem; }
-        .page-footer {
-            display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
-            padding: 1.25rem clamp(1.5rem, 6vw, 6rem);
-            color: var(--muted); font-size: 0.85rem;
-            border-top: 1px solid var(--border);
-        }
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --ink: #e8edf3; --border: #2a3644;
-                --surface: #141a22; --surface-alt: #0f1319;
-            }
-            .section-body pre { background: #05070a; }
-        }
-        @media (max-width: 40rem) {
-            .cover { padding: 3rem 1.25rem; }
-            .page-header { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
-        }
-        """;
 }

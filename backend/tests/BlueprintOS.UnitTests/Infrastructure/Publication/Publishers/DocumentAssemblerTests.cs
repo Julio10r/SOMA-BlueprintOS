@@ -1,6 +1,7 @@
 using System.Text;
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Core.Publication.Models;
+using BlueprintOS.Core.Publication.Models.Assets;
 using BlueprintOS.Infrastructure.Publication.Publishers;
 
 namespace BlueprintOS.UnitTests.Infrastructure.Publication.Publishers;
@@ -8,6 +9,11 @@ namespace BlueprintOS.UnitTests.Infrastructure.Publication.Publishers;
 public class DocumentAssemblerTests : IDisposable
 {
     private readonly string _distRoot = Path.Combine(Path.GetTempPath(), $"document-assembler-tests-{Guid.NewGuid():N}");
+
+    private static readonly DocumentPalette DummyPalette = new(
+        "#111111", "#222222", "#333333", "#444444", "#555555", "#666666", "#777777", "#888888", "#999999", "#aaaaaa");
+
+    private static readonly DocumentTypography DummyTypography = new("Display Font", "Body Font", "Mono Font");
 
     private sealed class CapturingRenderer : IContentRenderer
     {
@@ -38,18 +44,16 @@ public class DocumentAssemblerTests : IDisposable
         public PublicationTheme GetTheme(PublicationDocumentClass documentClass)
         {
             ThemeRequests.Add(documentClass);
-            return documentClass switch
-            {
-                PublicationDocumentClass.Client => PublicationTheme.ForClient(),
-                PublicationDocumentClass.Engineering => PublicationTheme.ForEngineering(),
-                _ => PublicationTheme.ForExecutive(),
-            };
+            return new PublicationTheme(documentClass, DummyPalette, DummyTypography, "/* css */");
         }
 
         public PublicationAssets BuildStandardAssets(QualityMetrics metrics)
         {
             BuildStandardAssetsCallCount++;
-            return PublicationAssets.Empty;
+            return PublicationAssets.Empty with
+            {
+                Badges = new[] { new BadgeAsset("badge-build", "Build", "passing", BadgeStatus.Success) },
+            };
         }
 
         public IReadOnlyList<PublicationSection> BuildStandardAppendix(PublicationMetadata metadata)
@@ -58,9 +62,13 @@ public class DocumentAssemblerTests : IDisposable
             return new[] { new PublicationSection("Apêndice de Teste", Array.Empty<ContentBlock>()) };
         }
 
-        public Task<string> BuildDiagramMarkdownAsync(
-            Func<CancellationToken, Task<string>> mermaidSource, CancellationToken cancellationToken = default) =>
-            mermaidSource(cancellationToken);
+        public Task<DocumentDiagram> RenderDiagramAsync(
+            string title, string assetId, Func<CancellationToken, Task<string>> mermaidSource, CancellationToken cancellationToken = default)
+        {
+            var section = new PublicationSection(title, new[] { ContentBlock.Image(assetId) });
+            var asset = new MermaidAsset(assetId, title, "graph TD", new byte[] { 1, 2, 3 }, "image/svg+xml");
+            return Task.FromResult(new DocumentDiagram(section, asset));
+        }
     }
 
     private static DocumentTemplate CreateTemplate(PublicationDocumentClass documentClass = PublicationDocumentClass.Executive) => new(
@@ -79,25 +87,39 @@ public class DocumentAssemblerTests : IDisposable
         TestCount: 42,
         Summary: "ok");
 
-    [Fact]
-    public async Task AssembleAsync_Should_Produce_Empty_Document_When_No_Content_And_No_Dynamic_Sections()
-    {
-        var renderer = new CapturingRenderer();
-
-        await DocumentAssembler.AssembleAsync(
-            CreateTemplate(),
-            Array.Empty<(string FileName, string Content)>(),
-            Array.Empty<DocumentSection>(),
-            new FakeAssetsManager(),
+    private static Task<IReadOnlyList<PublishedArtifact>> Assemble(
+        CapturingRenderer renderer,
+        string distRoot,
+        DocumentTemplate? template = null,
+        IReadOnlyList<(string FileName, string Content)>? contentFiles = null,
+        IReadOnlyList<DocumentSection>? dynamicSections = null,
+        IReadOnlyList<DocumentDiagram>? diagrams = null,
+        IDocumentationAssetsManager? assetsManager = null,
+        DateTimeOffset? generatedAt = null,
+        string projectVersion = "1.0.0") =>
+        DocumentAssembler.AssembleAsync(
+            template ?? CreateTemplate(),
+            contentFiles ?? Array.Empty<(string FileName, string Content)>(),
+            dynamicSections ?? Array.Empty<DocumentSection>(),
+            diagrams ?? Array.Empty<DocumentDiagram>(),
+            assetsManager ?? new FakeAssetsManager(),
             CreateMetrics(),
-            new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero),
-            "1.0.0",
-            _distRoot,
+            generatedAt ?? DateTimeOffset.UtcNow,
+            projectVersion,
+            distRoot,
             new[] { renderer },
             CancellationToken.None);
 
-        Assert.NotNull(renderer.LastDocument);
-        Assert.Empty(renderer.LastDocument!.Sections);
+    [Fact]
+    public async Task AssembleAsync_Should_Produce_Only_Executive_Summary_When_No_Content_And_No_Dynamic_Sections()
+    {
+        var renderer = new CapturingRenderer();
+
+        await Assemble(renderer, _distRoot, generatedAt: new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
+
+        var sections = renderer.LastDocument!.Sections;
+        Assert.Single(sections);
+        Assert.Equal("Resumo Executivo", sections[0].Heading);
     }
 
     [Fact]
@@ -110,22 +132,30 @@ public class DocumentAssemblerTests : IDisposable
             ("02-b.md", "# Segunda Seção\n\nCorpo da segunda."),
         };
 
-        await DocumentAssembler.AssembleAsync(
-            CreateTemplate(),
-            contentFiles,
-            Array.Empty<DocumentSection>(),
-            new FakeAssetsManager(),
-            CreateMetrics(),
-            DateTimeOffset.UtcNow,
-            "1.0.0",
-            _distRoot,
-            new[] { renderer },
-            CancellationToken.None);
+        await Assemble(renderer, _distRoot, contentFiles: contentFiles);
 
         var sections = renderer.LastDocument!.Sections;
-        Assert.Equal(2, sections.Count);
-        Assert.Equal("Primeira Seção", sections[0].Heading);
-        Assert.Equal("Segunda Seção", sections[1].Heading);
+        Assert.Equal(3, sections.Count);
+        Assert.Equal("Resumo Executivo", sections[0].Heading);
+        Assert.Equal("Primeira Seção", sections[1].Heading);
+        Assert.Equal("Segunda Seção", sections[2].Heading);
+    }
+
+    [Fact]
+    public async Task AssembleAsync_Should_Condense_Roadmap_In_Body_And_Move_Full_Roadmap_To_Appendix()
+    {
+        var renderer = new CapturingRenderer();
+        var fullRoadmap = "### Fase 0 - Fundação\n\nObjetivo: base.\n\n### Fase 1 - Core\n\nObjetivo: módulos.";
+        var dynamicSections = new[] { new DocumentSection("Roadmap Automático", _ => Task.FromResult(fullRoadmap)) };
+
+        await Assemble(renderer, _distRoot, dynamicSections: dynamicSections);
+
+        var sections = renderer.LastDocument!.Sections;
+        Assert.Contains(sections, s => s.Heading == "Linha do Tempo");
+        Assert.DoesNotContain(sections, s => s.Heading == "Roadmap Automático");
+
+        var appendix = renderer.LastDocument!.Appendix;
+        Assert.Contains(appendix, s => s.Heading == "Roadmap Completo");
     }
 
     [Fact]
@@ -135,24 +165,41 @@ public class DocumentAssemblerTests : IDisposable
         var contentFiles = new[] { ("01-a.md", "# Conteúdo Autoral\n\nCorpo.") };
         var dynamicSections = new[]
         {
-            new DocumentSection("Roadmap Automático", _ => Task.FromResult("Corpo do roadmap.")),
+            new DocumentSection("Roadmap Automático", _ => Task.FromResult("### Fase 0\n\nObjetivo: x.")),
             new DocumentSection("Indicadores", _ => Task.FromResult("Corpo dos indicadores.")),
         };
 
-        await DocumentAssembler.AssembleAsync(
-            CreateTemplate(),
-            contentFiles,
-            dynamicSections,
-            new FakeAssetsManager(),
-            CreateMetrics(),
-            DateTimeOffset.UtcNow,
-            "1.0.0",
-            _distRoot,
-            new[] { renderer },
-            CancellationToken.None);
+        await Assemble(renderer, _distRoot, contentFiles: contentFiles, dynamicSections: dynamicSections);
 
         var headings = renderer.LastDocument!.Sections.Select(s => s.Heading).ToArray();
-        Assert.Equal(new[] { "Conteúdo Autoral", "Roadmap Automático", "Indicadores" }, headings);
+        Assert.Equal(new[] { "Resumo Executivo", "Conteúdo Autoral", "Linha do Tempo", "Indicadores" }, headings);
+    }
+
+    [Fact]
+    public async Task AssembleAsync_Should_Merge_Rendered_Diagrams_Into_Sections_And_Mermaid_Assets()
+    {
+        var renderer = new CapturingRenderer();
+        var diagram = await new FakeAssetsManager().RenderDiagramAsync("Visão de Arquitetura", "diagram-1", _ => Task.FromResult("graph TD"));
+
+        await Assemble(renderer, _distRoot, diagrams: new[] { diagram });
+
+        Assert.Contains(renderer.LastDocument!.Sections, s => s.Heading == "Visão de Arquitetura");
+        Assert.Single(renderer.LastDocument!.Assets.Mermaid);
+        Assert.Equal("diagram-1", renderer.LastDocument!.Assets.Mermaid[0].Id);
+    }
+
+    [Fact]
+    public async Task AssembleAsync_Should_Add_Version_Documents_And_Status_Badges_On_Top_Of_Standard_Badges()
+    {
+        var renderer = new CapturingRenderer();
+
+        await Assemble(renderer, _distRoot, projectVersion: "3.2.1");
+
+        var badges = renderer.LastDocument!.Assets.Badges;
+        Assert.Contains(badges, b => b.Id == "badge-build"); // vindo do IDocumentationAssetsManager
+        Assert.Contains(badges, b => b.Id == "badge-version" && b.Value == "3.2.1");
+        Assert.Contains(badges, b => b.Id == "badge-sections");
+        Assert.Contains(badges, b => b.Id == "badge-status" && b.Value == "Operacional");
     }
 
     [Fact]
@@ -161,17 +208,7 @@ public class DocumentAssemblerTests : IDisposable
         var renderer = new CapturingRenderer();
         var generatedAt = new DateTimeOffset(2026, 3, 15, 12, 0, 0, TimeSpan.Zero);
 
-        await DocumentAssembler.AssembleAsync(
-            CreateTemplate(),
-            Array.Empty<(string FileName, string Content)>(),
-            Array.Empty<DocumentSection>(),
-            new FakeAssetsManager(),
-            CreateMetrics(),
-            generatedAt,
-            "2.5.0",
-            _distRoot,
-            new[] { renderer },
-            CancellationToken.None);
+        await Assemble(renderer, _distRoot, generatedAt: generatedAt, projectVersion: "2.5.0");
 
         var metadata = renderer.LastDocument!.Metadata;
         Assert.Equal("Documento de Teste", metadata.Title);
@@ -187,17 +224,7 @@ public class DocumentAssemblerTests : IDisposable
     {
         var renderer = new CapturingRenderer();
 
-        var artifacts = await DocumentAssembler.AssembleAsync(
-            CreateTemplate(),
-            Array.Empty<(string FileName, string Content)>(),
-            Array.Empty<DocumentSection>(),
-            new FakeAssetsManager(),
-            CreateMetrics(),
-            DateTimeOffset.UtcNow,
-            "1.0.0",
-            _distRoot,
-            new[] { renderer },
-            CancellationToken.None);
+        var artifacts = await Assemble(renderer, _distRoot);
 
         Assert.Single(artifacts);
         var filePath = Path.Combine(_distRoot, "test", "TestDoc.md");
@@ -211,23 +238,13 @@ public class DocumentAssemblerTests : IDisposable
         var renderer = new CapturingRenderer();
         var assetsManager = new FakeAssetsManager();
 
-        await DocumentAssembler.AssembleAsync(
-            CreateTemplate(PublicationDocumentClass.Engineering),
-            Array.Empty<(string FileName, string Content)>(),
-            Array.Empty<DocumentSection>(),
-            assetsManager,
-            CreateMetrics(),
-            DateTimeOffset.UtcNow,
-            "1.0.0",
-            _distRoot,
-            new[] { renderer },
-            CancellationToken.None);
+        await Assemble(renderer, _distRoot, template: CreateTemplate(PublicationDocumentClass.Engineering), assetsManager: assetsManager);
 
         Assert.Equal(new[] { PublicationDocumentClass.Engineering }, assetsManager.ThemeRequests);
         Assert.Equal(1, assetsManager.BuildStandardAssetsCallCount);
         Assert.Equal(1, assetsManager.BuildStandardAppendixCallCount);
         Assert.Equal(PublicationDocumentClass.Engineering, renderer.LastDocument!.Theme.DocumentClass);
-        Assert.Equal("Apêndice de Teste", renderer.LastDocument!.Appendix[0].Heading);
+        Assert.Contains(renderer.LastDocument!.Appendix, s => s.Heading == "Apêndice de Teste");
     }
 
     public void Dispose()

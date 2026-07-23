@@ -148,7 +148,8 @@ static async Task<int> RunExecutiveBlueprintAsync()
 
     await ExecutiveBlueprintPublisher.PublishAsync(
         repoRoot,
-        provider.GetRequiredService<IEnumerable<IContentRenderer>>());
+        provider.GetRequiredService<IEnumerable<IContentRenderer>>(),
+        provider.GetRequiredService<IDocumentThemeProvider>());
     Console.WriteLine("Executive Blueprint: HTML e PDF publicados em docs/executive/.");
     return 0;
 }

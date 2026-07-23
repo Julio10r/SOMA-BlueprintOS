@@ -8,6 +8,11 @@ namespace BlueprintOS.UnitTests.Infrastructure.Publication;
 /// </summary>
 internal static class PublicationDocumentTestBuilder
 {
+    private static readonly DocumentPalette TestPalette = new(
+        "#111111", "#222222", "#333333", "#444444", "#555555", "#666666", "#777777", "#888888", "#999999", "#aaaaaa");
+
+    private static readonly DocumentTypography TestTypography = new("Display Font", "Body Font", "Mono Font");
+
     public static PublicationDocument Create(
         string slug,
         string title,
@@ -27,5 +32,5 @@ internal static class PublicationDocumentTestBuilder
         Sections: sections,
         Assets: assets ?? PublicationAssets.Empty,
         Appendix: appendix ?? Array.Empty<PublicationSection>(),
-        Theme: PublicationTheme.ForExecutive());
+        Theme: new PublicationTheme(PublicationDocumentClass.Executive, TestPalette, TestTypography, "/* css de teste */"));
 }
