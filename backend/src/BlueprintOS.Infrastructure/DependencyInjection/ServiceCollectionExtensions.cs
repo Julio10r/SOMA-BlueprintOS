@@ -1,9 +1,13 @@
 using System.Net.Http.Headers;
 using BlueprintOS.Core.AI.Contracts;
+using BlueprintOS.Core.AI.Memory;
+using BlueprintOS.Core.AI.Memory.Contracts;
+using BlueprintOS.Core.AI.Memory.Models;
 using BlueprintOS.Core.Agents;
 using BlueprintOS.Core.Knowledge.Contracts;
 using BlueprintOS.Infrastructure.Integrations.OpenAI;
 using BlueprintOS.Infrastructure.Knowledge;
+using BlueprintOS.Infrastructure.Memory;
 using BlueprintOS.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +38,12 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IKnowledgeService, KnowledgeService>();
 
         services.AddSingleton<AgentFactory>();
+
+        services.Configure<NegotiationScoreOptions>(configuration.GetSection(NegotiationScoreOptions.SectionName));
+        services.AddSingleton<INegotiationMemoryStore, InMemoryNegotiationMemoryStore>();
+        services.AddSingleton<INegotiationMemory>(provider => new NegotiationMemory(
+            provider.GetRequiredService<INegotiationMemoryStore>(),
+            provider.GetRequiredService<IOptions<NegotiationScoreOptions>>().Value));
 
         return services;
     }
