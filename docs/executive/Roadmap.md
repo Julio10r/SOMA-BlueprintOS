@@ -3,7 +3,7 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-23 14:53:48 UTC
+- **Gerado em:** 2026-07-23 14:57:11 UTC
 - **Última atualização:** 2026-07-23
 
 ---

@@ -45,8 +45,6 @@ public sealed class DashboardGenerator : IDashboardGenerator
         }
 
         var builder = new StringBuilder();
-        builder.AppendLine("## Resumo executivo");
-        builder.AppendLine();
         builder.AppendLine($"- **Sprints concluídas:** {sprintCount}");
         builder.AppendLine($"- **Última sprint concluída:** {lastSprintTitle ?? "Nenhuma sprint concluída registrada."}");
         builder.AppendLine($"- **Dívidas técnicas em aberto (known_issues.md):** {knownIssueCount}");
