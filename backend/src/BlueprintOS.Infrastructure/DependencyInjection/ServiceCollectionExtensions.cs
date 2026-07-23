@@ -109,6 +109,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IApiDocumentationGenerator, ApiDocumentationGenerator>();
         services.AddSingleton<IChangelogGenerator, ChangelogGenerator>();
         services.AddSingleton<IFaqGenerator, FaqGenerator>();
+        services.AddSingleton<IClientContentLoader, ClientContentLoader>();
 
         services.AddSingleton<IArchitectureGenerator, ArchitectureGenerator>();
         services.AddSingleton<IDatabaseGenerator, DatabaseGenerator>();

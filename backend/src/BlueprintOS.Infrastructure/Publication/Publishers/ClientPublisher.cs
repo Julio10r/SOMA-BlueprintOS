@@ -1,49 +1,46 @@
+using System.Text;
 using BlueprintOS.Core.Documentation.Contracts.Client;
 using BlueprintOS.Core.Documentation.Contracts.Executive;
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Core.Publication.Models;
-using BlueprintOS.Infrastructure.Documentation;
+using BlueprintOS.Core.Publication.Models.Assets;
+using BlueprintOS.Infrastructure.Publication.Content;
 using Microsoft.Extensions.Options;
 
 namespace BlueprintOS.Infrastructure.Publication.Publishers;
 
 /// <summary>
 /// Implementação de <see cref="IReportPublisher"/> para o Guia do Cliente
-/// (<c>dist/client/ClientGuide.*</c>): conteúdo funcional para clientes — visão geral,
-/// funcionalidades, fluxo do processo, benefícios, casos de uso e roadmap funcional —, sem
-/// nenhum detalhe de arquitetura, APIs, banco de dados ou componentes internos.
+/// (<c>dist/client/ClientGuide.*</c>). O conteúdo estratégico (visão geral, valor de negócio,
+/// plataforma, módulos, implantação, segurança, suporte, roadmap e próximos passos) é autorado
+/// como Markdown em <c>.ai/content/client/</c> e carregado via <see cref="IClientContentLoader"/>;
+/// este publisher é responsável apenas por acrescentar informações dinâmicas (versão, data de
+/// geração, roadmap automático, métricas, anexos, QR Code, índice, capa e rodapé).
 /// </summary>
 public sealed class ClientPublisher : IReportPublisher
 {
-    private readonly IProductOverviewGenerator _productOverviewGenerator;
-    private readonly IFunctionalGuideGenerator _functionalGuideGenerator;
-    private readonly IUserGuideGenerator _userGuideGenerator;
+    private const string RepositoryUrl = "https://github.com/Julio10r/SOMA-BlueprintOS";
+
+    private readonly IClientContentLoader _contentLoader;
     private readonly IRoadmapGenerator _roadmapGenerator;
-    private readonly IFaqGenerator _faqGenerator;
+    private readonly IQualityMetricsProvider _qualityMetricsProvider;
     private readonly IReadOnlyList<IContentRenderer> _renderers;
     private readonly string _distRootPath;
     private readonly string _projectVersion;
-    private readonly string _aiRootPath;
 
     public ClientPublisher(
-        IProductOverviewGenerator productOverviewGenerator,
-        IFunctionalGuideGenerator functionalGuideGenerator,
-        IUserGuideGenerator userGuideGenerator,
+        IClientContentLoader contentLoader,
         IRoadmapGenerator roadmapGenerator,
-        IFaqGenerator faqGenerator,
+        IQualityMetricsProvider qualityMetricsProvider,
         IEnumerable<IContentRenderer> renderers,
-        IOptions<PublicationOptions> publicationOptions,
-        IOptions<DocumentationOptions> documentationOptions)
+        IOptions<PublicationOptions> publicationOptions)
     {
-        _productOverviewGenerator = productOverviewGenerator;
-        _functionalGuideGenerator = functionalGuideGenerator;
-        _userGuideGenerator = userGuideGenerator;
+        _contentLoader = contentLoader;
         _roadmapGenerator = roadmapGenerator;
-        _faqGenerator = faqGenerator;
+        _qualityMetricsProvider = qualityMetricsProvider;
         _renderers = renderers.ToList();
         _distRootPath = publicationOptions.Value.DistRootPath;
         _projectVersion = publicationOptions.Value.ProjectVersion;
-        _aiRootPath = documentationOptions.Value.AiRootPath;
     }
 
     /// <inheritdoc />
@@ -52,31 +49,27 @@ public sealed class ClientPublisher : IReportPublisher
     /// <inheritdoc />
     public async Task<IReadOnlyList<PublishedArtifact>> PublishAsync(CancellationToken cancellationToken = default)
     {
-        var sections = new List<PublicationSection>
+        var metrics = await _qualityMetricsProvider.GetMetricsAsync(cancellationToken);
+        var generatedAt = DateTimeOffset.UtcNow;
+
+        var contentFiles = await _contentLoader.LoadAsync(cancellationToken);
+        var sections = new List<PublicationSection>(contentFiles.Count + 1);
+        foreach (var file in contentFiles)
         {
-            ReportPublishingHelper.BuildSection("Visão Geral", await _productOverviewGenerator.GenerateAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection("Funcionalidades", await _functionalGuideGenerator.GenerateAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection("Módulos", BuildModulesMarkdown()),
-            ReportPublishingHelper.BuildSection("Fluxo do Processo", BuildProcessFlowMarkdown()),
-            ReportPublishingHelper.BuildSection(
-                "Benefícios",
-                await ReportPublishingHelper.BuildExpectedBenefitsMarkdownAsync(_aiRootPath, cancellationToken)),
-            ReportPublishingHelper.BuildSection("Casos de Uso", await _userGuideGenerator.GenerateAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection("Integrações", BuildIntegrationsMarkdown()),
-            ReportPublishingHelper.BuildSection("Segurança", BuildSecurityMarkdown()),
-            ReportPublishingHelper.BuildSection("Implantação", BuildDeploymentMarkdown()),
-            ReportPublishingHelper.BuildSection(
-                "FAQ",
-                ReportPublishingHelper.StripFirstHeadingLine(await _faqGenerator.GenerateAsync(cancellationToken))),
-            ReportPublishingHelper.BuildSection("Roadmap Funcional", await _roadmapGenerator.GenerateAsync(cancellationToken)),
-        };
+            var (heading, body) = ReportPublishingHelper.SplitHeading(file.Content);
+            sections.Add(ReportPublishingHelper.BuildSection(heading, body));
+        }
+
+        sections.Add(ReportPublishingHelper.BuildSection(
+            "Roadmap Automático",
+            await _roadmapGenerator.GenerateAsync(cancellationToken)));
 
         var metadata = PublicationMetadata.Create(
             title: "Guia do Cliente — BlueprintOS",
-            subtitle: "Visão funcional do produto, fluxo do processo e roadmap para clientes",
+            subtitle: "Visão de negócio, plataforma, módulos e roadmap para clientes",
             audience: "Clientes",
             version: _projectVersion,
-            generatedAt: DateTimeOffset.UtcNow,
+            generatedAt: generatedAt,
             tags: new[] { "cliente", "produto", "guia" });
 
         var document = new PublicationDocument(
@@ -84,49 +77,60 @@ public sealed class ClientPublisher : IReportPublisher
             Category: Category,
             Metadata: metadata,
             Sections: sections,
-            Assets: PublicationAssets.Empty,
-            Appendix: Array.Empty<PublicationSection>(),
+            Assets: BuildAssets(metrics),
+            Appendix: BuildAppendix(metadata),
             Theme: PublicationTheme.ForClient());
 
         return await ReportPublishingHelper.WriteAllFormatsAsync(document, Category, _distRootPath, _renderers, cancellationToken);
     }
 
-    /// <summary>
-    /// Descreve, em linguagem funcional (sem arquitetura ou nomes de classes), a ordem em que
-    /// as capacidades reais dos módulos do BlueprintOS se encadeiam num processo de negócio.
-    /// </summary>
-    private static string BuildProcessFlowMarkdown() =>
-        """
-        O processo de negócio percorre as capacidades atuais do BlueprintOS nesta ordem:
+    private static PublicationAssets BuildAssets(QualityMetrics metrics)
+    {
+        var badges = new List<BadgeAsset>
+        {
+            new(
+                "badge-build",
+                "Build",
+                metrics.BuildSucceeded ? "passing" : "failing",
+                metrics.BuildSucceeded ? BadgeStatus.Success : BadgeStatus.Failure),
+            new(
+                "badge-tests",
+                "Testes",
+                metrics.TestCount.ToString(),
+                metrics.TestCount > 0 ? BadgeStatus.Success : BadgeStatus.Neutral),
+        };
 
-        - **1. Conhecimento** — o conteúdo organizacional é ingerido e indexado para consulta.
-        - **2. Documentação viva** — a documentação do próprio produto é gerada e mantida automaticamente a partir do estado real do projeto.
-        - **3. Agentes de IA** — agentes especializados consultam o conhecimento indexado para apoiar decisões e responder perguntas.
-        - **4. Negociação assistida** — para o processo de compras, um agente aplica estratégia de negociação com base em regras de negócio.
-        """;
+        var qrCode = new QrCodeAsset(
+            "qr-repository",
+            RepositoryUrl,
+            "Repositório no GitHub",
+            QrCodeImageGenerator.GeneratePng(RepositoryUrl));
 
-    /// <summary>
-    /// Lista os módulos de negócio já entregues, em linguagem funcional (sem nomes de
-    /// classes ou detalhes de implementação).
-    /// </summary>
-    private static string BuildModulesMarkdown() =>
-        """
-        Módulos atualmente entregues na plataforma:
+        return PublicationAssets.Empty with { Badges = badges, QrCodes = new[] { qrCode } };
+    }
 
-        - **Documentação** — geração e manutenção automática da documentação do produto.
-        - **Conhecimento** — ingestão e consulta de conhecimento organizacional.
-        - **Agentes de IA** — agentes especializados para apoio a decisões e respostas.
-        - **Negociação** — apoio ao processo de compras com estratégia de negociação automatizada.
+    private static IReadOnlyList<PublicationSection> BuildAppendix(PublicationMetadata metadata)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("| Versão | Data | Autor | Resumo |");
+        builder.AppendLine("|---|---|---|---|");
+        foreach (var revision in metadata.RevisionHistory)
+        {
+            builder.AppendLine($"| {revision.Version} | {revision.Date:yyyy-MM-dd} | {revision.Author} | {revision.Summary} |");
+        }
 
-        Novos módulos serão adicionados conforme o roadmap funcional avança.
-        """;
+        var repositorySection = new PublicationSection(
+            "Repositório",
+            new[]
+            {
+                ContentBlock.Paragraph($"Código-fonte do BlueprintOS: {RepositoryUrl}"),
+                ContentBlock.Image("qr-repository", "Acesse o repositório escaneando o QR Code."),
+            });
 
-    private static string BuildIntegrationsMarkdown() =>
-        "Esta seção será detalhada conforme evolução do produto.";
-
-    private static string BuildSecurityMarkdown() =>
-        "Esta seção será detalhada conforme evolução do produto.";
-
-    private static string BuildDeploymentMarkdown() =>
-        "Esta seção será detalhada conforme evolução do produto.";
+        return new[]
+        {
+            ReportPublishingHelper.BuildSection("Histórico de Versões", builder.ToString()),
+            repositorySection,
+        };
+    }
 }

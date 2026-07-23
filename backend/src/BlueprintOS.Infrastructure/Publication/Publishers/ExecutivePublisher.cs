@@ -60,7 +60,7 @@ public sealed class ExecutivePublisher : IReportPublisher
         var sections = new List<PublicationSection>(contentFiles.Count + 2);
         foreach (var file in contentFiles)
         {
-            var (heading, body) = SplitHeading(file.Content);
+            var (heading, body) = ReportPublishingHelper.SplitHeading(file.Content);
             sections.Add(ReportPublishingHelper.BuildSection(heading, body));
         }
 
@@ -89,24 +89,6 @@ public sealed class ExecutivePublisher : IReportPublisher
             Theme: PublicationTheme.ForExecutive());
 
         return await ReportPublishingHelper.WriteAllFormatsAsync(document, Category, _distRootPath, _renderers, cancellationToken);
-    }
-
-    /// <summary>
-    /// Separa a primeira linha de título (<c>#</c>) de um arquivo de conteúdo estratégico,
-    /// usando-a como título da <see cref="PublicationSection"/> — preservando o título definido
-    /// por quem autora o conteúdo em <c>.ai/content/executive/</c>, em vez de fixá-lo no código.
-    /// </summary>
-    private static (string Heading, string Body) SplitHeading(string markdown)
-    {
-        var normalized = markdown.Replace("\r\n", "\n").TrimStart('\n');
-        var firstLineBreak = normalized.IndexOf('\n');
-        var firstLine = firstLineBreak >= 0 ? normalized[..firstLineBreak] : normalized;
-
-        var heading = firstLine.TrimStart().StartsWith('#')
-            ? firstLine.TrimStart('#', ' ').Trim()
-            : "Seção";
-
-        return (heading, ReportPublishingHelper.StripFirstHeadingLine(normalized));
     }
 
     private static PublicationAssets BuildAssets(QualityMetrics metrics)
