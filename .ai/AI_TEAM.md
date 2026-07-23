@@ -363,6 +363,18 @@ Sem essa estrutura o agente não poderá ser registrado.
 
 ---
 
+## Apresentações
+
+Antes de criar qualquer apresentação:
+
+1. Consultar `.ai/PRESENTATION_WORKFLOW.md`.
+2. Consultar `docs/design-system/` (templates, masters, ícones, fontes).
+3. Reutilizar o Template Master (`docs/design-system/templates/powerpoint/`).
+
+Nunca iniciar apresentações do zero.
+
+---
+
 # Regras
 
 Um agente nunca deve:

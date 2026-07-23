@@ -25,3 +25,15 @@ Both surfaces import from `colors_and_type.css` and share the same `--text-prima
 - Text color is `#1A1916` (quase-preto), NOT `#000000`. Shadows are derived from that color (`rgba(26,25,22,x)`).
 - Icons are Lucide-style SVG line-art, stroke 2px, currentColor.
 - The "2154" mark and "RUMO A 2154" are core brand expressions — feel free to use them as large watermarks on covers.
+
+### Presentation assets — always reuse, never rebuild
+
+For any PowerPoint/apresentação work, always reuse the official Presentation Assets Framework instead of recreating slide masters, icons, or structure from scratch:
+
+- **Template Master**: `templates/powerpoint/AZZAS-2154-Template.pptx` (all 6 masters in one file) and individual masters `templates/powerpoint/Master-{Cover,Section,Content,Timeline,Architecture,Closing}.pptx`.
+- **Masters**: copy the relevant master slide(s) and populate placeholders — never rebuild a master's layout, colors, or fonts.
+- **Icons**: Lucide only, per `icons/README.md` — never invent a new icon family.
+- **Fonts**: Inter Tight, DM Sans, DM Mono, per `fonts/README.md`.
+- **Full workflow**: `.ai/PRESENTATION_WORKFLOW.md` — follow all 9 steps (Conteúdo → Executive Review → Storyboard → Design Mapping → Geração PowerPoint → Exportação PDF → QA → Git → Publicação).
+
+Never start a new presentation from a blank PowerPoint file.
