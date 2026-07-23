@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using BlueprintOS.Core.AI.Contracts;
+using BlueprintOS.Core.Agents;
 using BlueprintOS.Infrastructure.Integrations.OpenAI;
 using BlueprintOS.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
@@ -25,6 +26,7 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddSingleton<IAIRuntime, AIRuntime>();
+        services.AddSingleton<AgentFactory>();
 
         return services;
     }
