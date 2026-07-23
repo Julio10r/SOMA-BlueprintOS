@@ -12,7 +12,12 @@ public class PdfRendererTests
         Category: "engineering",
         Sections: new List<PublicationSection>
         {
-            new("Arquitetura", "Texto de exemplo.\n\n- item a\n- item b\n\n| Coluna | Valor |\n|---|---|\n| A | 1 |"),
+            new("Arquitetura", new[]
+            {
+                ContentBlock.Paragraph("Texto de exemplo."),
+                ContentBlock.BulletList(new[] { "item a", "item b" }),
+                ContentBlock.Table(new[] { "Coluna", "Valor" }, new IReadOnlyList<string>[] { new[] { "A", "1" } }),
+            }),
         },
         ProjectVersion: "1.0.0",
         GeneratedAt: new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));

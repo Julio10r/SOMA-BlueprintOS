@@ -71,15 +71,15 @@ public sealed class EngineeringPublisher : IReportPublisher
     {
         var sections = new List<PublicationSection>
         {
-            new("Arquitetura", await _architectureGenerator.GenerateAsync(cancellationToken)),
-            new("Estrutura da Solução, Projetos e Dependências", await BuildSolutionStructureSectionAsync(cancellationToken)),
-            new("Diagramas Mermaid e Fluxos", await _mermaidGenerator.GenerateAsync(cancellationToken)),
-            new("Banco de Dados", await _databaseGenerator.GenerateAsync(cancellationToken)),
-            new("APIs", await _apiGenerator.GenerateAsync(cancellationToken)),
-            new("Agentes", await _agentsGenerator.GenerateAsync(cancellationToken)),
-            new("ADRs (Decisões Arquiteturais)", await _decisionsGenerator.GenerateAsync(cancellationToken)),
-            new("Deploy", await _deployGenerator.GenerateAsync(cancellationToken)),
-            new("Observabilidade e Testes (Runbook)", await _runbookGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Arquitetura", await _architectureGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Estrutura da Solução, Projetos e Dependências", await BuildSolutionStructureSectionAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Diagramas Mermaid e Fluxos", await _mermaidGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Banco de Dados", await _databaseGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("APIs", await _apiGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Agentes", await _agentsGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("ADRs (Decisões Arquiteturais)", await _decisionsGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Deploy", await _deployGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Observabilidade e Testes (Runbook)", await _runbookGenerator.GenerateAsync(cancellationToken)),
         };
 
         var document = new PublicationDocument(

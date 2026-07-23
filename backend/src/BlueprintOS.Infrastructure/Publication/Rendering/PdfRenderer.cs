@@ -1,5 +1,6 @@
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Core.Publication.Models;
+using BlueprintOS.Infrastructure.Publication.Content;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -7,10 +8,12 @@ using QuestPDF.Infrastructure;
 namespace BlueprintOS.Infrastructure.Publication.Rendering;
 
 /// <summary>
-/// Implementação de <see cref="IContentRenderer"/> que produz um PDF pronto para impressão a
-/// partir do mesmo <see cref="PublicationDocument"/> usado pelos demais formatos, preservando
-/// capa, cabeçalho, rodapé, índice, seções, listas e tabelas. Usa QuestPDF (biblioteca .NET
-/// pura, sem dependência de navegador/Chromium) em vez de converter o HTML diretamente.
+/// Implementação de <see cref="IContentRenderer"/> que produz um PDF pronto para impressão
+/// diretamente a partir do mesmo modelo estruturado (<see cref="ContentBlock"/>) consumido
+/// pelo <see cref="HtmlRenderer"/> — nenhum dos dois deriva do outro, e não há conversão de
+/// HTML para PDF em nenhum momento. Usa QuestPDF (biblioteca .NET pura, sem dependência de
+/// navegador/Chromium) para desenhar capa, cabeçalho, rodapé, índice, seções, listas e
+/// tabelas com a mesma identidade visual do HTML.
 /// </summary>
 public sealed class PdfRenderer : IContentRenderer
 {
@@ -109,92 +112,90 @@ public sealed class PdfRenderer : IContentRenderer
             column.Item().Text(section.Heading).FontColor(AccentColor).Bold().FontSize(15);
             column.Item().PaddingBottom(6).LineHorizontal(1).LineColor(BorderColor);
 
-            var blocks = MarkdownBlockParser.Parse(section.MarkdownBody);
-            IReadOnlyList<string>? headerCells = null;
-            var tableRows = new List<IReadOnlyList<string>>();
-
-            void FlushTable()
+            foreach (var block in section.Blocks)
             {
-                if (headerCells is null || tableRows.Count == 0)
-                {
-                    headerCells = null;
-                    tableRows.Clear();
-                    return;
-                }
-
-                var columnCount = headerCells.Count;
-                column.Item().PaddingVertical(6).Table(table =>
-                {
-                    table.ColumnsDefinition(columns =>
-                    {
-                        for (var i = 0; i < columnCount; i++)
-                        {
-                            columns.RelativeColumn();
-                        }
-                    });
-
-                    foreach (var header in headerCells)
-                    {
-                        table.Cell().Background(Color.FromHex("#F6F8FA")).Border(1).BorderColor(BorderColor)
-                            .Padding(4).Text(header).Bold().FontSize(9);
-                    }
-
-                    foreach (var row in tableRows)
-                    {
-                        foreach (var cell in row)
-                        {
-                            table.Cell().Border(1).BorderColor(BorderColor).Padding(4).Text(cell).FontSize(9);
-                        }
-                    }
-                });
-
-                headerCells = null;
-                tableRows.Clear();
-            }
-
-            foreach (var block in blocks)
-            {
-                if (block.Kind != MarkdownBlockKind.TableRow)
-                {
-                    FlushTable();
-                }
-
                 switch (block.Kind)
                 {
-                    case MarkdownBlockKind.Heading:
-                        column.Item().PaddingTop(8).Text(block.Text).Bold().FontSize(block.Level <= 2 ? 12 : 10.5f);
+                    case ContentBlockKind.Heading:
+                        column.Item().PaddingTop(8).Text(block.Text).Bold().FontSize(block.Level <= 3 ? 12 : 10.5f);
                         break;
-                    case MarkdownBlockKind.Paragraph:
-                        column.Item().PaddingTop(4).Text(StripEmphasis(block.Text)).FontSize(10);
+                    case ContentBlockKind.Paragraph:
+                        column.Item().PaddingTop(4).Text(text => ComposeInline(text, block.Text ?? string.Empty, 10));
                         break;
-                    case MarkdownBlockKind.BulletItem:
-                        column.Item().PaddingTop(2).Row(row =>
+                    case ContentBlockKind.BulletList:
+                        foreach (var item in block.Items ?? Array.Empty<string>())
                         {
-                            row.ConstantItem(12).Text("•");
-                            row.RelativeItem().Text(StripEmphasis(block.Text)).FontSize(10);
-                        });
+                            column.Item().PaddingTop(2).Row(row =>
+                            {
+                                row.ConstantItem(12).Text("•");
+                                row.RelativeItem().Text(text => ComposeInline(text, item, 10));
+                            });
+                        }
+
                         break;
-                    case MarkdownBlockKind.CodeBlock:
+                    case ContentBlockKind.Table:
+                        ComposeTable(column, block);
+                        break;
+                    case ContentBlockKind.CodeBlock:
                         column.Item().PaddingTop(4).Background(Color.FromHex("#10151C")).Padding(8)
                             .Text(block.Text).FontColor(Colors.White).FontFamily("Courier").FontSize(8.5f);
                         break;
-                    case MarkdownBlockKind.TableRow:
-                        if (block.IsTableHeader)
-                        {
-                            headerCells = block.Cells;
-                        }
-                        else
-                        {
-                            tableRows.Add(block.Cells ?? Array.Empty<string>());
-                        }
-
-                        break;
                 }
             }
-
-            FlushTable();
         });
     }
 
-    private static string StripEmphasis(string text) => text.Replace("**", string.Empty).Replace("__", string.Empty);
+    private static void ComposeTable(ColumnDescriptor column, ContentBlock block)
+    {
+        var header = block.TableHeader ?? Array.Empty<string>();
+        var rows = block.TableRows ?? Array.Empty<IReadOnlyList<string>>();
+        var columnCount = header.Count;
+        if (columnCount == 0)
+        {
+            return;
+        }
+
+        column.Item().PaddingVertical(6).Table(table =>
+        {
+            table.ColumnsDefinition(columns =>
+            {
+                for (var i = 0; i < columnCount; i++)
+                {
+                    columns.RelativeColumn();
+                }
+            });
+
+            foreach (var headerCell in header)
+            {
+                table.Cell().Background(Color.FromHex("#F6F8FA")).Border(1).BorderColor(BorderColor)
+                    .Padding(4).Text(text => ComposeInline(text, headerCell, 9, bold: true));
+            }
+
+            foreach (var row in rows)
+            {
+                foreach (var cell in row)
+                {
+                    table.Cell().Border(1).BorderColor(BorderColor).Padding(4)
+                        .Text(text => ComposeInline(text, cell, 9));
+                }
+            }
+        });
+    }
+
+    private static void ComposeInline(TextDescriptor text, string content, float fontSize, bool bold = false)
+    {
+        foreach (var span in InlineSpanParser.Parse(content))
+        {
+            var textSpan = text.Span(span.Text).FontSize(fontSize);
+            if (bold || span.Kind == InlineSpanKind.Bold)
+            {
+                textSpan.Bold();
+            }
+
+            if (span.Kind == InlineSpanKind.Code)
+            {
+                textSpan.FontFamily("Courier");
+            }
+        }
+    }
 }

@@ -13,7 +13,11 @@ public class HtmlRendererTests
         Category: "client",
         Sections: new List<PublicationSection>
         {
-            new("Sobre o BlueprintOS", "Texto **em negrito** e uma lista:\n\n- item a\n- item b"),
+            new("Sobre o BlueprintOS", new[]
+            {
+                ContentBlock.Paragraph("Texto **em negrito** e uma lista:"),
+                ContentBlock.BulletList(new[] { "item a", "item b" }),
+            }),
         },
         ProjectVersion: "1.0.0",
         GeneratedAt: new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));

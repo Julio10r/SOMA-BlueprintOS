@@ -1,21 +1,18 @@
 using System.Net;
 using System.Text;
 using BlueprintOS.Core.Publication.Models;
-using Markdig;
 
 namespace BlueprintOS.Infrastructure.Publication.Rendering;
 
 /// <summary>
 /// Monta o HTML completo de um <see cref="PublicationDocument"/>: capa, cabeçalho, índice,
-/// seções (convertidas de Markdown para HTML via Markdig) e rodapé, com CSS embutido (sem
-/// frameworks), layout limpo e responsivo.
+/// seções e rodapé, com CSS embutido (sem frameworks), layout limpo e responsivo. As seções
+/// são escritas diretamente a partir dos mesmos <see cref="ContentBlock"/> consumidos pelo
+/// <see cref="PdfRenderer"/> (via <see cref="ContentBlockHtmlWriter"/>) — não há conversão de
+/// Markdown para HTML; ambos os formatos derivam do mesmo modelo estruturado.
 /// </summary>
 internal static class HtmlDocumentTemplate
 {
-    private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder()
-        .UseAdvancedExtensions()
-        .Build();
-
     public static string Render(PublicationDocument document)
     {
         var builder = new StringBuilder();
@@ -39,7 +36,7 @@ internal static class HtmlDocumentTemplate
             builder.AppendLine($"<section id=\"{MarkdownRenderer.Slugify(section.Heading)}\" class=\"section\">");
             builder.AppendLine($"<h2>{Encode(section.Heading)}</h2>");
             builder.AppendLine("<div class=\"section-body\">");
-            builder.AppendLine(Markdown.ToHtml(section.MarkdownBody, Pipeline));
+            ContentBlockHtmlWriter.Write(builder, section.Blocks);
             builder.AppendLine("</div>");
             builder.AppendLine("</section>");
         }

@@ -59,14 +59,14 @@ public sealed class ClientPublisher : IReportPublisher
     {
         var sections = new List<PublicationSection>
         {
-            new("Sobre o BlueprintOS, Objetivos e Benefícios", await _productOverviewGenerator.GenerateAsync(cancellationToken)),
-            new("Funcionalidades Disponíveis", await _functionalGuideGenerator.GenerateAsync(cancellationToken)),
-            new("Arquitetura em Alto Nível", await _architectureGenerator.GenerateAsync(cancellationToken)),
-            new("Casos de Uso", await _userGuideGenerator.GenerateAsync(cancellationToken)),
-            new("APIs Públicas", await _apiDocumentationGenerator.GenerateAsync(cancellationToken)),
-            new("Roadmap", await _roadmapGenerator.GenerateAsync(cancellationToken)),
-            new("Perguntas Frequentes (FAQ)", await _faqGenerator.GenerateAsync(cancellationToken)),
-            new("Changelog", await _changelogGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Sobre o BlueprintOS, Objetivos e Benefícios", await _productOverviewGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Funcionalidades Disponíveis", await _functionalGuideGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Arquitetura em Alto Nível", await _architectureGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Casos de Uso", await _userGuideGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("APIs Públicas", await _apiDocumentationGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Roadmap", await _roadmapGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Perguntas Frequentes (FAQ)", await _faqGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Changelog", await _changelogGenerator.GenerateAsync(cancellationToken)),
         };
 
         var document = new PublicationDocument(

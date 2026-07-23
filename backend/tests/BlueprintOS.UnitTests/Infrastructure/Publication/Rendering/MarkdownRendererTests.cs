@@ -13,8 +13,8 @@ public class MarkdownRendererTests
         Category: "executive",
         Sections: new List<PublicationSection>
         {
-            new("Resumo Executivo", "Corpo do resumo."),
-            new("Roadmap", "Corpo do roadmap."),
+            new("Resumo Executivo", new[] { ContentBlock.Paragraph("Corpo do resumo.") }),
+            new("Roadmap", new[] { ContentBlock.Paragraph("Corpo do roadmap.") }),
         },
         ProjectVersion: "1.0.0",
         GeneratedAt: new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));

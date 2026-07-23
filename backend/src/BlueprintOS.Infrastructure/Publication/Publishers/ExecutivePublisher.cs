@@ -65,14 +65,14 @@ public sealed class ExecutivePublisher : IReportPublisher
 
         var sections = new List<PublicationSection>
         {
-            new("Resumo Executivo", await _dashboardGenerator.GenerateAsync(cancellationToken)),
-            new("Status do Projeto (Build, Testes e Qualidade)", BuildProjectStatusSection(metrics)),
-            new("Roadmap", await _roadmapGenerator.GenerateAsync(cancellationToken)),
-            new("Sprint Atual", await _sprintStatusGenerator.GenerateAsync(cancellationToken)),
-            new("Sprints Concluídas", await _releaseGenerator.GenerateAsync(cancellationToken)),
-            new("Módulos Implementados", await _architectureGenerator.GenerateAsync(cancellationToken)),
-            new("Dívidas Técnicas", await BuildKnownIssuesSectionAsync(cancellationToken)),
-            new("Próximos Passos", await BuildNextStepsSectionAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Resumo Executivo", await _dashboardGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Status do Projeto (Build, Testes e Qualidade)", BuildProjectStatusSection(metrics)),
+            ReportPublishingHelper.BuildSection("Roadmap", await _roadmapGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Sprint Atual", await _sprintStatusGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Sprints Concluídas", await _releaseGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Módulos Implementados", await _architectureGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Dívidas Técnicas", await BuildKnownIssuesSectionAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Próximos Passos", await BuildNextStepsSectionAsync(cancellationToken)),
         };
 
         var document = new PublicationDocument(

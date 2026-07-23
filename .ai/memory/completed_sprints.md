@@ -43,11 +43,12 @@
 **Escopo:** Implementação do Publication Engine: geração automática de três documentos profissionais para apresentação (Relatório Executivo, Guia do Cliente, Guia de Engenharia), cada um em Markdown, HTML e PDF, publicados em `dist/{executive,client,engineering}/`. O conteúdo reaproveita integralmente os 19 geradores de documentação da Sprint A8 (nenhum dado fabricado); o Relatório Executivo acrescenta indicadores reais de build/testes coletados em tempo real (`dotnet build` + contagem de `[Fact]`/`[Theory]`) e dívidas técnicas/próximos passos extraídos diretamente de `.ai/memory/known_issues.md` e `.ai/ROADMAP.md`.
 
 **Entregas:**
-- Módulo `Publication` em `backend/src/BlueprintOS.Core/Publication/` (Contracts + Models) e `backend/src/BlueprintOS.Infrastructure/Publication/` (Rendering + Publishers + orquestrador), seguindo o mesmo padrão dos módulos `Documentation`/`Knowledge`.
-- Três renderizadores (`MarkdownRenderer`, `HtmlRenderer` via `Markdig`, `PdfRenderer` via `QuestPDF`) e três publicadores de relatório (`ExecutivePublisher`, `ClientPublisher`, `EngineeringPublisher`), orquestrados por `PublicationService`.
+- Módulo `Publication` em `backend/src/BlueprintOS.Core/Publication/` (Contracts + Models, incluindo o modelo comum `ContentBlock`/`InlineSpan`) e `backend/src/BlueprintOS.Infrastructure/Publication/` (Content + Rendering + Publishers + orquestrador), seguindo o mesmo padrão dos módulos `Documentation`/`Knowledge`.
+- Modelo comum (ViewModel) único por documento: Markdown bruto dos geradores é convertido uma única vez em `ContentBlock`s (`MarkdownContentParser`); os três renderizadores (`MarkdownRenderer`, `HtmlRenderer`, `PdfRenderer` via `QuestPDF`) consomem exatamente os mesmos blocos, sem duplicar lógica de interpretação — nenhum deriva HTML→PDF.
+- Três publicadores de relatório (`ExecutivePublisher`, `ClientPublisher`, `EngineeringPublisher`), orquestrados por `PublicationService`; novos formatos (Word, PowerPoint, site estático) podem ser adicionados implementando apenas `IContentRenderer`, sem alterar os publicadores.
 - `QualityMetricsProvider`, que coleta build status, warnings, erros e quantidade de testes em tempo real (sem valores fabricados).
 - Ponto único de entrada `dotnet run -- publish` em `backend/src/BlueprintOS.Api/Program.cs`, que resolve a raiz do repositório via `.git` para funcionar independente do diretório de execução.
 - ADR-0007 registrada em `.ai/DECISIONS.md`. `dist/` adicionado ao `.gitignore` (artefato gerado, não versionado).
-- Suíte de testes unitários (xUnit, fakes manuais) cobrindo renderizadores, o parser de blocos Markdown, o orquestrador e a coleta de indicadores.
+- Suíte de testes unitários (xUnit, fakes manuais) cobrindo o parser de conteúdo, o parser de ênfase inline, os três renderizadores, o orquestrador e a coleta de indicadores.
 
-**Resultado da validação:** `dotnet build` sem erros/warnings; `dotnet test` com 100% dos testes passando (155 testes unitários + 1 teste de integração); `dotnet run -- publish` executado com sucesso, gerando os 9 arquivos esperados em `dist/`.
+**Resultado da validação:** `dotnet build` sem erros/warnings; `dotnet test` com 100% dos testes passando (158 testes unitários + 1 teste de integração); `dotnet run -- publish` executado com sucesso, gerando os 9 arquivos esperados em `dist/`.
