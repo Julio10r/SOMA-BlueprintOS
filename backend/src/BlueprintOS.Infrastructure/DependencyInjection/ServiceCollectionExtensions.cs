@@ -13,6 +13,7 @@ using BlueprintOS.Core.Documentation.Contracts.Client;
 using BlueprintOS.Core.Documentation.Contracts.Engineering;
 using BlueprintOS.Core.Documentation.Contracts.Executive;
 using BlueprintOS.Core.Knowledge.Contracts;
+using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Infrastructure.Documentation;
 using BlueprintOS.Infrastructure.Documentation.Generators.Client;
 using BlueprintOS.Infrastructure.Documentation.Generators.Engineering;
@@ -21,6 +22,9 @@ using BlueprintOS.Infrastructure.Documentation.Publishing;
 using BlueprintOS.Infrastructure.Integrations.OpenAI;
 using BlueprintOS.Infrastructure.Knowledge;
 using BlueprintOS.Infrastructure.Memory;
+using BlueprintOS.Infrastructure.Publication;
+using BlueprintOS.Infrastructure.Publication.Publishers;
+using BlueprintOS.Infrastructure.Publication.Rendering;
 using BlueprintOS.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -112,6 +116,17 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IDecisionsGenerator, DecisionsGenerator>();
 
         services.AddSingleton<IDocumentationPublishService, DocumentationPublishService>();
+
+        // Publication Engine (Sprint A9)
+        services.Configure<PublicationOptions>(configuration.GetSection(PublicationOptions.SectionName));
+        services.AddSingleton<IQualityMetricsProvider, QualityMetricsProvider>();
+        services.AddSingleton<IContentRenderer, MarkdownRenderer>();
+        services.AddSingleton<IContentRenderer, HtmlRenderer>();
+        services.AddSingleton<IContentRenderer, PdfRenderer>();
+        services.AddSingleton<IReportPublisher, ExecutivePublisher>();
+        services.AddSingleton<IReportPublisher, ClientPublisher>();
+        services.AddSingleton<IReportPublisher, EngineeringPublisher>();
+        services.AddSingleton<IPublicationService, PublicationService>();
 
         return services;
     }

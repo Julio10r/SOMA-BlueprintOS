@@ -42,6 +42,9 @@ Desktop.ini
 publish/
 artifacts/
 
+# Publication Engine (dist/ é gerado sob demanda por `dotnet run -- publish`)
+/dist/
+
 # User settings
 *.user
 *.suo
