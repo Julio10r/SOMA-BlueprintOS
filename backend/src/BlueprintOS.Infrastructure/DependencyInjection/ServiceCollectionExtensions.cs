@@ -119,6 +119,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IRunbookGenerator, RunbookGenerator>();
         services.AddSingleton<IMermaidGenerator, MermaidGenerator>();
         services.AddSingleton<IDecisionsGenerator, DecisionsGenerator>();
+        services.AddSingleton<IEngineeringContentLoader, EngineeringContentLoader>();
 
         // Asset Generator (Sprint A7.3)
         services.AddSingleton<IDocumentationAssetGenerator, DocumentationAssetGenerator>();

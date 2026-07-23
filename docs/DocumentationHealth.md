@@ -13,7 +13,7 @@
 |---|---|---|
 | executive/ExecutiveReport.md | ✅ Saudável | 1421 |
 | client/ClientGuide.md | ✅ Saudável | 1380 |
-| engineering/EngineeringGuide.md | ✅ Saudável | 781 |
+| engineering/EngineeringGuide.md | ✅ Saudável | 2427 |
 
 ## Estrutura e Links
 

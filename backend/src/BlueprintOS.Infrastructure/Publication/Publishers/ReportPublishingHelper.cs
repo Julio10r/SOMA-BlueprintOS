@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Core.Publication.Models;
+using BlueprintOS.Core.Publication.Models.Assets;
 using BlueprintOS.Infrastructure.Publication.Content;
 
 namespace BlueprintOS.Infrastructure.Publication.Publishers;
@@ -13,6 +14,8 @@ namespace BlueprintOS.Infrastructure.Publication.Publishers;
 /// </summary>
 internal static class ReportPublishingHelper
 {
+    private const string RepositoryUrl = "https://github.com/Julio10r/SOMA-BlueprintOS";
+
     private static readonly Regex PhaseObjectivePattern = new(
         @"^##\s+(Fase [^\n]+)\r?\n\r?\nObjetivo:\s*(.+)$",
         RegexOptions.Multiline | RegexOptions.Compiled);
@@ -87,6 +90,64 @@ internal static class ReportPublishingHelper
         }
 
         return builder.ToString();
+    }
+
+    /// <summary>
+    /// Constrói os selos de qualidade (build/testes) e o QR Code do repositório, reaproveitados
+    /// de forma idêntica pelos três publicadores de relatório.
+    /// </summary>
+    public static PublicationAssets BuildStandardAssets(QualityMetrics metrics)
+    {
+        var badges = new List<BadgeAsset>
+        {
+            new(
+                "badge-build",
+                "Build",
+                metrics.BuildSucceeded ? "passing" : "failing",
+                metrics.BuildSucceeded ? BadgeStatus.Success : BadgeStatus.Failure),
+            new(
+                "badge-tests",
+                "Testes",
+                metrics.TestCount.ToString(),
+                metrics.TestCount > 0 ? BadgeStatus.Success : BadgeStatus.Neutral),
+        };
+
+        var qrCode = new QrCodeAsset(
+            "qr-repository",
+            RepositoryUrl,
+            "Repositório no GitHub",
+            QrCodeImageGenerator.GeneratePng(RepositoryUrl));
+
+        return PublicationAssets.Empty with { Badges = badges, QrCodes = new[] { qrCode } };
+    }
+
+    /// <summary>
+    /// Constrói o apêndice padrão (histórico de versões e link do repositório com QR Code),
+    /// reaproveitado de forma idêntica pelos três publicadores de relatório.
+    /// </summary>
+    public static IReadOnlyList<PublicationSection> BuildStandardAppendix(PublicationMetadata metadata)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("| Versão | Data | Autor | Resumo |");
+        builder.AppendLine("|---|---|---|---|");
+        foreach (var revision in metadata.RevisionHistory)
+        {
+            builder.AppendLine($"| {revision.Version} | {revision.Date:yyyy-MM-dd} | {revision.Author} | {revision.Summary} |");
+        }
+
+        var repositorySection = new PublicationSection(
+            "Repositório",
+            new[]
+            {
+                ContentBlock.Paragraph($"Código-fonte do BlueprintOS: {RepositoryUrl}"),
+                ContentBlock.Image("qr-repository", "Acesse o repositório escaneando o QR Code."),
+            });
+
+        return new[]
+        {
+            BuildSection("Histórico de Versões", builder.ToString()),
+            repositorySection,
+        };
     }
 
     public static async Task<IReadOnlyList<PublishedArtifact>> WriteAllFormatsAsync(

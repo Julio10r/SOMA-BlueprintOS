@@ -1,10 +1,7 @@
-using System.Text;
 using BlueprintOS.Core.Documentation.Contracts.Engineering;
 using BlueprintOS.Core.Documentation.Contracts.Executive;
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Core.Publication.Models;
-using BlueprintOS.Core.Publication.Models.Assets;
-using BlueprintOS.Infrastructure.Publication.Content;
 using Microsoft.Extensions.Options;
 
 namespace BlueprintOS.Infrastructure.Publication.Publishers;
@@ -20,8 +17,6 @@ namespace BlueprintOS.Infrastructure.Publication.Publishers;
 /// </summary>
 public sealed class ExecutivePublisher : IReportPublisher
 {
-    private const string RepositoryUrl = "https://github.com/Julio10r/SOMA-BlueprintOS";
-
     private readonly IExecutiveContentLoader _contentLoader;
     private readonly IRoadmapGenerator _roadmapGenerator;
     private readonly IMermaidGenerator _mermaidGenerator;
@@ -84,60 +79,10 @@ public sealed class ExecutivePublisher : IReportPublisher
             Category: Category,
             Metadata: metadata,
             Sections: sections,
-            Assets: BuildAssets(metrics),
-            Appendix: BuildAppendix(metadata),
+            Assets: ReportPublishingHelper.BuildStandardAssets(metrics),
+            Appendix: ReportPublishingHelper.BuildStandardAppendix(metadata),
             Theme: PublicationTheme.ForExecutive());
 
         return await ReportPublishingHelper.WriteAllFormatsAsync(document, Category, _distRootPath, _renderers, cancellationToken);
-    }
-
-    private static PublicationAssets BuildAssets(QualityMetrics metrics)
-    {
-        var badges = new List<BadgeAsset>
-        {
-            new(
-                "badge-build",
-                "Build",
-                metrics.BuildSucceeded ? "passing" : "failing",
-                metrics.BuildSucceeded ? BadgeStatus.Success : BadgeStatus.Failure),
-            new(
-                "badge-tests",
-                "Testes",
-                metrics.TestCount.ToString(),
-                metrics.TestCount > 0 ? BadgeStatus.Success : BadgeStatus.Neutral),
-        };
-
-        var qrCode = new QrCodeAsset(
-            "qr-repository",
-            RepositoryUrl,
-            "Repositório no GitHub",
-            QrCodeImageGenerator.GeneratePng(RepositoryUrl));
-
-        return PublicationAssets.Empty with { Badges = badges, QrCodes = new[] { qrCode } };
-    }
-
-    private static IReadOnlyList<PublicationSection> BuildAppendix(PublicationMetadata metadata)
-    {
-        var builder = new StringBuilder();
-        builder.AppendLine("| Versão | Data | Autor | Resumo |");
-        builder.AppendLine("|---|---|---|---|");
-        foreach (var revision in metadata.RevisionHistory)
-        {
-            builder.AppendLine($"| {revision.Version} | {revision.Date:yyyy-MM-dd} | {revision.Author} | {revision.Summary} |");
-        }
-
-        var repositorySection = new PublicationSection(
-            "Repositório",
-            new[]
-            {
-                ContentBlock.Paragraph($"Código-fonte do BlueprintOS: {RepositoryUrl}"),
-                ContentBlock.Image("qr-repository", "Acesse o repositório escaneando o QR Code."),
-            });
-
-        return new[]
-        {
-            ReportPublishingHelper.BuildSection("Histórico de Versões", builder.ToString()),
-            repositorySection,
-        };
     }
 }
