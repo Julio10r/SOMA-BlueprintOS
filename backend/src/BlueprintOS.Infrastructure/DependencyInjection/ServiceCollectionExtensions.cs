@@ -23,6 +23,7 @@ using BlueprintOS.Infrastructure.Integrations.OpenAI;
 using BlueprintOS.Infrastructure.Knowledge;
 using BlueprintOS.Infrastructure.Memory;
 using BlueprintOS.Infrastructure.Publication;
+using BlueprintOS.Infrastructure.Publication.Health;
 using BlueprintOS.Infrastructure.Publication.Publishers;
 using BlueprintOS.Infrastructure.Publication.Rendering;
 using BlueprintOS.Infrastructure.Services;
@@ -127,6 +128,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IReportPublisher, ClientPublisher>();
         services.AddSingleton<IReportPublisher, EngineeringPublisher>();
         services.AddSingleton<IPublicationService, PublicationService>();
+
+        // Documentation Health Report (Sprint A7.2)
+        services.Configure<DocumentationHealthOptions>(configuration.GetSection(DocumentationHealthOptions.SectionName));
+        services.AddSingleton<IDocumentationHealthService, DocumentationHealthService>();
 
         return services;
     }

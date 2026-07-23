@@ -72,6 +72,13 @@ static async Task<int> RunPublicationEngineAsync(string[] args)
         Console.WriteLine($"  - {artifact.RelativePath}");
     }
 
+    var healthService = provider.GetRequiredService<IDocumentationHealthService>();
+    var healthReport = await healthService.AnalyzeAsync(artifacts);
+    var healthReportPath = await healthService.WriteReportAsync(healthReport);
+
+    Console.WriteLine(
+        $"Documentation Health: {healthReport.HealthyCount} saudável(is), {healthReport.WarningCount} aviso(s), {healthReport.ErrorCount} erro(s). Relatório em {healthReportPath}.");
+
     return 0;
 }
 
