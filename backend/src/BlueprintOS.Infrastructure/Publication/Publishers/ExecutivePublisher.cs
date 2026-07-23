@@ -141,7 +141,19 @@ public sealed class ExecutivePublisher : IReportPublisher
             builder.AppendLine($"| {revision.Version} | {revision.Date:yyyy-MM-dd} | {revision.Author} | {revision.Summary} |");
         }
 
-        return new[] { ReportPublishingHelper.BuildSection("Histórico de Versões", builder.ToString()) };
+        var repositorySection = new PublicationSection(
+            "Repositório",
+            new[]
+            {
+                ContentBlock.Paragraph($"Código-fonte do BlueprintOS: {RepositoryUrl}"),
+                ContentBlock.Image("qr-repository", "Acesse o repositório escaneando o QR Code."),
+            });
+
+        return new[]
+        {
+            ReportPublishingHelper.BuildSection("Histórico de Versões", builder.ToString()),
+            repositorySection,
+        };
     }
 
     private static string BuildProjectStatusSection(QualityMetrics metrics)
