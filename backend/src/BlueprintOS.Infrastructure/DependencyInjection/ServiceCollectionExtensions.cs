@@ -8,7 +8,9 @@ using BlueprintOS.Core.AI.Negotiation.Contracts;
 using BlueprintOS.Core.AI.Negotiation.Models;
 using BlueprintOS.Core.AI.Negotiation.Rules;
 using BlueprintOS.Core.Agents;
+using BlueprintOS.Core.Documentation.Contracts;
 using BlueprintOS.Core.Knowledge.Contracts;
+using BlueprintOS.Infrastructure.Documentation;
 using BlueprintOS.Infrastructure.Integrations.OpenAI;
 using BlueprintOS.Infrastructure.Knowledge;
 using BlueprintOS.Infrastructure.Memory;
@@ -60,6 +62,21 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<INegotiationStrategy>(provider => new NegotiationStrategy(
             provider.GetRequiredService<IEnumerable<INegotiationStrategyRule>>(),
             provider.GetRequiredService<IOptions<NegotiationStrategyOptions>>().Value));
+
+        services.Configure<DocumentationOptions>(configuration.GetSection(DocumentationOptions.SectionName));
+        services.AddSingleton<IDocumentationRepository, InMemoryDocumentationRepository>();
+        services.AddSingleton<IDocumentVersioningService, DocumentVersioningService>();
+        services.AddSingleton<IChangeLogService, ChangeLogService>();
+        services.AddSingleton<IAdrService, MarkdownAdrService>();
+        services.AddSingleton<ITechnicalDocumentationGenerator, TechnicalDocumentationGenerator>();
+        services.AddSingleton<IFunctionalDocumentationGenerator, FunctionalDocumentationGenerator>();
+        services.AddSingleton<IAiDocumentationGenerator, AiDocumentationGenerator>();
+        services.AddSingleton<IDeveloperDocumentationGenerator, DeveloperDocumentationGenerator>();
+        services.AddSingleton<IMermaidDiagramGenerator, MermaidDiagramGenerator>();
+        services.AddSingleton<IDocumentationSyncService, DocumentationSyncService>();
+        services.AddSingleton<IStaleDocumentationDetector, StaleDocumentationDetector>();
+        services.AddSingleton<IGitLogReader, GitCliDocumentationService>();
+        services.AddSingleton<IDocumentationMemoryNotifier, NoOpDocumentationMemoryNotifier>();
 
         return services;
     }

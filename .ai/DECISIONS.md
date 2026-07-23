@@ -86,3 +86,19 @@ Formato de cada ADR:
 - Módulos podem evoluir e até ser extraídos para serviços separados sem quebrar consumidores.
 - Contracts tornam-se superfície pública estável, exigindo cuidado ao alterá-los.
 - Pode exigir duplicação controlada de DTOs entre módulos para evitar acoplamento.
+
+---
+
+## ADR-0006: Módulo Documentation implementado sobre a estrutura Core/Infrastructure atual, com pontos de extensão não disruptivos para a arquitetura alvo
+
+**Status:** Aceito
+
+**Contexto:** A Sprint A7 exige um sistema de documentação do BlueprintOS (estrutura de documentos, versionamento, changelog, ADRs, geração de documentação técnica/funcional/IA/desenvolvedor, diagramas Mermaid, sincronização/detecção de documentação desatualizada, integração com Git e um ponto de extensão para memória). Por decisão explícita do Product Owner, esta sprint não deve migrar o backend para a estrutura `Modules/` descrita em ARCHITECTURE.md (ainda não adotada por nenhum módulo existente), nem implementar frontend.
+
+**Decisão:** Implementar o módulo `Documentation` seguindo exatamente o padrão já estabelecido pelo módulo `Knowledge` (`BlueprintOS.Core/Documentation/{Contracts,Models}` + `BlueprintOS.Infrastructure/Documentation/...`, registrado via `AddInfrastructure` em `ServiceCollectionExtensions.cs`, com `IOptions<DocumentationOptions>` para as configurações de persistência de ADRs). Como ponto de extensão pensando na futura migração para a arquitetura alvo (`Modules/Documentation/{Domain,Application,Infrastructure,Api}`), todos os contratos foram desenhados como interfaces coesas e de responsabilidade única em `Core.Documentation.Contracts`, sem dependência de tipos concretos de Infrastructure, de forma que possam ser realocados para `Modules/Documentation/Application` e `Modules/Documentation/Domain` sem alteração de assinatura quando a migração ocorrer. A integração com um módulo de Memória genérico foi deixada como ponto de extensão explícito via `IDocumentationMemoryNotifier`, com implementação no-op/log (`NoOpDocumentationMemoryNotifier`), já que hoje o BlueprintOS possui apenas memória específica de negociação (`INegotiationMemory`).
+
+**Consequências:**
+- O módulo Documentation fica imediatamente consistente com o restante do backend (mesmo padrão do Knowledge), sem exigir revisão arquitetural adicional nesta sprint.
+- A migração futura para `Modules/` (ADR futura, quando ocorrer) poderá mover os arquivos de `Core.Documentation`/`Infrastructure.Documentation` com baixo retrabalho, pois os contratos já são desacoplados de detalhes de Infrastructure.
+- A integração com Memória permanece incompleta (apenas no-op/log) até que um módulo de Memória genérico exista — registrado como dívida técnica em `.ai/memory/known_issues.md`.
+- A persistência de `DocumentationEntry`, versões e changelog permanece em memória (não durável), adequado ao escopo desta sprint; persistência durável (arquivo ou banco) pode ser tratada em sprint futura sem alterar os contratos públicos.
