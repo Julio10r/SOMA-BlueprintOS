@@ -11,9 +11,10 @@ namespace BlueprintOS.Infrastructure.Publication.Publishers;
 /// (<c>dist/executive/ExecutiveReport.*</c>). O conteúdo estratégico (visão, problema de
 /// negócio, capacidades, benefícios, roadmap narrativo, estado atual e próximos passos) é
 /// autorado como Markdown em <c>.ai/content/executive/</c> e carregado via
-/// <see cref="IExecutiveContentLoader"/>; a montagem do documento (capa, índice, selos,
-/// métricas, QR Code, apêndice e rodapé) é delegada ao <see cref="DocumentAssembler"/>. Este
-/// publisher só define o <see cref="DocumentTemplate"/> e as seções dinâmicas específicas
+/// <see cref="IExecutiveContentLoader"/>; a montagem do documento (capa, índice, tema, selos,
+/// QR Code, apêndice e rodapé) é delegada ao <see cref="DocumentAssembler"/> e ao
+/// <see cref="IDocumentationAssetsManager"/> — este publisher não acessa nenhum asset
+/// diretamente. Só define o <see cref="DocumentTemplate"/> e as seções dinâmicas específicas
 /// (roadmap automático e diagrama de arquitetura).
 /// </summary>
 public sealed class ExecutivePublisher : IReportPublisher
@@ -25,12 +26,13 @@ public sealed class ExecutivePublisher : IReportPublisher
         Subtitle: "Visão estratégica de negócio, capacidades e roadmap para a diretoria",
         Audience: "Diretoria",
         Tags: new[] { "executivo", "estratégia", "roadmap" },
-        Theme: PublicationTheme.ForExecutive());
+        DocumentClass: PublicationDocumentClass.Executive);
 
     private readonly IExecutiveContentLoader _contentLoader;
     private readonly IRoadmapGenerator _roadmapGenerator;
     private readonly IMermaidGenerator _mermaidGenerator;
     private readonly IQualityMetricsProvider _qualityMetricsProvider;
+    private readonly IDocumentationAssetsManager _assetsManager;
     private readonly IReadOnlyList<IContentRenderer> _renderers;
     private readonly string _distRootPath;
     private readonly string _projectVersion;
@@ -40,6 +42,7 @@ public sealed class ExecutivePublisher : IReportPublisher
         IRoadmapGenerator roadmapGenerator,
         IMermaidGenerator mermaidGenerator,
         IQualityMetricsProvider qualityMetricsProvider,
+        IDocumentationAssetsManager assetsManager,
         IEnumerable<IContentRenderer> renderers,
         IOptions<PublicationOptions> publicationOptions)
     {
@@ -47,6 +50,7 @@ public sealed class ExecutivePublisher : IReportPublisher
         _roadmapGenerator = roadmapGenerator;
         _mermaidGenerator = mermaidGenerator;
         _qualityMetricsProvider = qualityMetricsProvider;
+        _assetsManager = assetsManager;
         _renderers = renderers.ToList();
         _distRootPath = publicationOptions.Value.DistRootPath;
         _projectVersion = publicationOptions.Value.ProjectVersion;
@@ -66,13 +70,14 @@ public sealed class ExecutivePublisher : IReportPublisher
             new DocumentSection("Roadmap Automático", _roadmapGenerator.GenerateAsync),
             new DocumentSection(
                 "Visão de Arquitetura",
-                async ct => ReportPublishingHelper.StripFirstHeadingLine(await _mermaidGenerator.GenerateAsync(ct))),
+                ct => _assetsManager.BuildDiagramMarkdownAsync(_mermaidGenerator.GenerateAsync, ct)),
         };
 
         return await DocumentAssembler.AssembleAsync(
             Template,
             contentFiles.Select(f => (f.FileName, f.Content)).ToList(),
             dynamicSections,
+            _assetsManager,
             metrics,
             DateTimeOffset.UtcNow,
             _projectVersion,

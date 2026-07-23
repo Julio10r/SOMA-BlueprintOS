@@ -22,14 +22,55 @@ public class DocumentAssemblerTests : IDisposable
         }
     }
 
-    private static DocumentTemplate CreateTemplate() => new(
+    /// <summary>
+    /// Dublê de <see cref="IDocumentationAssetsManager"/> que registra as chamadas recebidas,
+    /// permitindo verificar que o assembler nunca constrói tema/assets/apêndice por conta
+    /// própria — sempre delega ao serviço injetado.
+    /// </summary>
+    private sealed class FakeAssetsManager : IDocumentationAssetsManager
+    {
+        public List<PublicationDocumentClass> ThemeRequests { get; } = new();
+
+        public int BuildStandardAssetsCallCount { get; private set; }
+
+        public int BuildStandardAppendixCallCount { get; private set; }
+
+        public PublicationTheme GetTheme(PublicationDocumentClass documentClass)
+        {
+            ThemeRequests.Add(documentClass);
+            return documentClass switch
+            {
+                PublicationDocumentClass.Client => PublicationTheme.ForClient(),
+                PublicationDocumentClass.Engineering => PublicationTheme.ForEngineering(),
+                _ => PublicationTheme.ForExecutive(),
+            };
+        }
+
+        public PublicationAssets BuildStandardAssets(QualityMetrics metrics)
+        {
+            BuildStandardAssetsCallCount++;
+            return PublicationAssets.Empty;
+        }
+
+        public IReadOnlyList<PublicationSection> BuildStandardAppendix(PublicationMetadata metadata)
+        {
+            BuildStandardAppendixCallCount++;
+            return new[] { new PublicationSection("Apêndice de Teste", Array.Empty<ContentBlock>()) };
+        }
+
+        public Task<string> BuildDiagramMarkdownAsync(
+            Func<CancellationToken, Task<string>> mermaidSource, CancellationToken cancellationToken = default) =>
+            mermaidSource(cancellationToken);
+    }
+
+    private static DocumentTemplate CreateTemplate(PublicationDocumentClass documentClass = PublicationDocumentClass.Executive) => new(
         Slug: "TestDoc",
         Category: "test",
         Title: "Documento de Teste",
         Subtitle: "Subtítulo de teste",
         Audience: "Testadores",
         Tags: new[] { "teste" },
-        Theme: PublicationTheme.ForExecutive());
+        DocumentClass: documentClass);
 
     private static QualityMetrics CreateMetrics() => new(
         BuildSucceeded: true,
@@ -47,6 +88,7 @@ public class DocumentAssemblerTests : IDisposable
             CreateTemplate(),
             Array.Empty<(string FileName, string Content)>(),
             Array.Empty<DocumentSection>(),
+            new FakeAssetsManager(),
             CreateMetrics(),
             new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero),
             "1.0.0",
@@ -72,6 +114,7 @@ public class DocumentAssemblerTests : IDisposable
             CreateTemplate(),
             contentFiles,
             Array.Empty<DocumentSection>(),
+            new FakeAssetsManager(),
             CreateMetrics(),
             DateTimeOffset.UtcNow,
             "1.0.0",
@@ -100,6 +143,7 @@ public class DocumentAssemblerTests : IDisposable
             CreateTemplate(),
             contentFiles,
             dynamicSections,
+            new FakeAssetsManager(),
             CreateMetrics(),
             DateTimeOffset.UtcNow,
             "1.0.0",
@@ -121,6 +165,7 @@ public class DocumentAssemblerTests : IDisposable
             CreateTemplate(),
             Array.Empty<(string FileName, string Content)>(),
             Array.Empty<DocumentSection>(),
+            new FakeAssetsManager(),
             CreateMetrics(),
             generatedAt,
             "2.5.0",
@@ -146,6 +191,7 @@ public class DocumentAssemblerTests : IDisposable
             CreateTemplate(),
             Array.Empty<(string FileName, string Content)>(),
             Array.Empty<DocumentSection>(),
+            new FakeAssetsManager(),
             CreateMetrics(),
             DateTimeOffset.UtcNow,
             "1.0.0",
@@ -157,6 +203,31 @@ public class DocumentAssemblerTests : IDisposable
         var filePath = Path.Combine(_distRoot, "test", "TestDoc.md");
         Assert.True(File.Exists(filePath));
         Assert.Equal("markdown:TestDoc", await File.ReadAllTextAsync(filePath));
+    }
+
+    [Fact]
+    public async Task AssembleAsync_Should_Never_Build_Theme_Assets_Or_Appendix_Itself()
+    {
+        var renderer = new CapturingRenderer();
+        var assetsManager = new FakeAssetsManager();
+
+        await DocumentAssembler.AssembleAsync(
+            CreateTemplate(PublicationDocumentClass.Engineering),
+            Array.Empty<(string FileName, string Content)>(),
+            Array.Empty<DocumentSection>(),
+            assetsManager,
+            CreateMetrics(),
+            DateTimeOffset.UtcNow,
+            "1.0.0",
+            _distRoot,
+            new[] { renderer },
+            CancellationToken.None);
+
+        Assert.Equal(new[] { PublicationDocumentClass.Engineering }, assetsManager.ThemeRequests);
+        Assert.Equal(1, assetsManager.BuildStandardAssetsCallCount);
+        Assert.Equal(1, assetsManager.BuildStandardAppendixCallCount);
+        Assert.Equal(PublicationDocumentClass.Engineering, renderer.LastDocument!.Theme.DocumentClass);
+        Assert.Equal("Apêndice de Teste", renderer.LastDocument!.Appendix[0].Heading);
     }
 
     public void Dispose()

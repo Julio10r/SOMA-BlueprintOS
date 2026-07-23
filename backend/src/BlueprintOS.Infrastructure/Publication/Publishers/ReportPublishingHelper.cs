@@ -1,20 +1,17 @@
-using System.Text;
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Core.Publication.Models;
-using BlueprintOS.Core.Publication.Models.Assets;
 using BlueprintOS.Infrastructure.Publication.Content;
 
 namespace BlueprintOS.Infrastructure.Publication.Publishers;
 
 /// <summary>
 /// Escreve um <see cref="PublicationDocument"/> em disco em todos os formatos suportados
-/// (Markdown, HTML, PDF), sob <c>dist/{Category}/{Slug}.{extensão}</c>. Compartilhado pelos
-/// três publicadores de relatório para evitar duplicação da lógica de escrita em disco.
+/// (Markdown, HTML, PDF), sob <c>dist/{Category}/{Slug}.{extensão}</c>, e monta seções a partir
+/// de Markdown bruto. Ativos gráficos (logo, ícones, QR Codes, cores, apêndice padrão) são
+/// responsabilidade do <c>DocumentationAssetsManager</c>, não deste helper.
 /// </summary>
 internal static class ReportPublishingHelper
 {
-    private const string RepositoryUrl = "https://github.com/Julio10r/SOMA-BlueprintOS";
-
     /// <summary>
     /// Constrói uma <see cref="PublicationSection"/> a partir do Markdown bruto retornado por
     /// um gerador de documentação existente, convertendo-o uma única vez para o modelo comum
@@ -56,64 +53,6 @@ internal static class ReportPublishingHelper
             : "Seção";
 
         return (heading, StripFirstHeadingLine(normalized));
-    }
-
-    /// <summary>
-    /// Constrói os selos de qualidade (build/testes) e o QR Code do repositório, reaproveitados
-    /// de forma idêntica pelos três publicadores de relatório.
-    /// </summary>
-    public static PublicationAssets BuildStandardAssets(QualityMetrics metrics)
-    {
-        var badges = new List<BadgeAsset>
-        {
-            new(
-                "badge-build",
-                "Build",
-                metrics.BuildSucceeded ? "passing" : "failing",
-                metrics.BuildSucceeded ? BadgeStatus.Success : BadgeStatus.Failure),
-            new(
-                "badge-tests",
-                "Testes",
-                metrics.TestCount.ToString(),
-                metrics.TestCount > 0 ? BadgeStatus.Success : BadgeStatus.Neutral),
-        };
-
-        var qrCode = new QrCodeAsset(
-            "qr-repository",
-            RepositoryUrl,
-            "Repositório no GitHub",
-            QrCodeImageGenerator.GeneratePng(RepositoryUrl));
-
-        return PublicationAssets.Empty with { Badges = badges, QrCodes = new[] { qrCode } };
-    }
-
-    /// <summary>
-    /// Constrói o apêndice padrão (histórico de versões e link do repositório com QR Code),
-    /// reaproveitado de forma idêntica pelos três publicadores de relatório.
-    /// </summary>
-    public static IReadOnlyList<PublicationSection> BuildStandardAppendix(PublicationMetadata metadata)
-    {
-        var builder = new StringBuilder();
-        builder.AppendLine("| Versão | Data | Autor | Resumo |");
-        builder.AppendLine("|---|---|---|---|");
-        foreach (var revision in metadata.RevisionHistory)
-        {
-            builder.AppendLine($"| {revision.Version} | {revision.Date:yyyy-MM-dd} | {revision.Author} | {revision.Summary} |");
-        }
-
-        var repositorySection = new PublicationSection(
-            "Repositório",
-            new[]
-            {
-                ContentBlock.Paragraph($"Código-fonte do BlueprintOS: {RepositoryUrl}"),
-                ContentBlock.Image("qr-repository", "Acesse o repositório escaneando o QR Code."),
-            });
-
-        return new[]
-        {
-            BuildSection("Histórico de Versões", builder.ToString()),
-            repositorySection,
-        };
     }
 
     public static async Task<IReadOnlyList<PublishedArtifact>> WriteAllFormatsAsync(

@@ -12,9 +12,10 @@ namespace BlueprintOS.Infrastructure.Publication.Publishers;
 /// componentes, runtime de IA, memória, conhecimento, desenvolvimento, DevOps, testes, segurança,
 /// roadmap técnico e próximos passos) é autorado como Markdown em
 /// <c>.ai/content/engineering/</c> e carregado via <see cref="IEngineeringContentLoader"/>; a
-/// montagem do documento (capa, índice, selos, métricas, QR Code, apêndice e rodapé) é delegada
-/// ao <see cref="DocumentAssembler"/>. Este publisher só define o <see cref="DocumentTemplate"/>
-/// e a única seção dinâmica específica (roadmap automático).
+/// montagem do documento (capa, índice, tema, selos, QR Code, apêndice e rodapé) é delegada ao
+/// <see cref="DocumentAssembler"/> e ao <see cref="IDocumentationAssetsManager"/> — este
+/// publisher não acessa nenhum asset diretamente. Só define o <see cref="DocumentTemplate"/> e a
+/// única seção dinâmica específica (roadmap automático).
 /// </summary>
 public sealed class EngineeringPublisher : IReportPublisher
 {
@@ -25,11 +26,12 @@ public sealed class EngineeringPublisher : IReportPublisher
         Subtitle: "Visão técnica, arquitetura, componentes e roadmap técnico da plataforma",
         Audience: "Equipe de Engenharia",
         Tags: new[] { "engenharia", "arquitetura", "técnico" },
-        Theme: PublicationTheme.ForEngineering());
+        DocumentClass: PublicationDocumentClass.Engineering);
 
     private readonly IEngineeringContentLoader _contentLoader;
     private readonly IRoadmapGenerator _roadmapGenerator;
     private readonly IQualityMetricsProvider _qualityMetricsProvider;
+    private readonly IDocumentationAssetsManager _assetsManager;
     private readonly IReadOnlyList<IContentRenderer> _renderers;
     private readonly string _distRootPath;
     private readonly string _projectVersion;
@@ -38,12 +40,14 @@ public sealed class EngineeringPublisher : IReportPublisher
         IEngineeringContentLoader contentLoader,
         IRoadmapGenerator roadmapGenerator,
         IQualityMetricsProvider qualityMetricsProvider,
+        IDocumentationAssetsManager assetsManager,
         IEnumerable<IContentRenderer> renderers,
         IOptions<PublicationOptions> publicationOptions)
     {
         _contentLoader = contentLoader;
         _roadmapGenerator = roadmapGenerator;
         _qualityMetricsProvider = qualityMetricsProvider;
+        _assetsManager = assetsManager;
         _renderers = renderers.ToList();
         _distRootPath = publicationOptions.Value.DistRootPath;
         _projectVersion = publicationOptions.Value.ProjectVersion;
@@ -67,6 +71,7 @@ public sealed class EngineeringPublisher : IReportPublisher
             Template,
             contentFiles.Select(f => (f.FileName, f.Content)).ToList(),
             dynamicSections,
+            _assetsManager,
             metrics,
             DateTimeOffset.UtcNow,
             _projectVersion,

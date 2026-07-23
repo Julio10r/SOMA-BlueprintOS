@@ -25,6 +25,7 @@ using BlueprintOS.Infrastructure.Integrations.OpenAI;
 using BlueprintOS.Infrastructure.Knowledge;
 using BlueprintOS.Infrastructure.Memory;
 using BlueprintOS.Infrastructure.Publication;
+using BlueprintOS.Infrastructure.Publication.Assets;
 using BlueprintOS.Infrastructure.Publication.Health;
 using BlueprintOS.Infrastructure.Publication.Publishers;
 using BlueprintOS.Infrastructure.Publication.Rendering;
@@ -130,6 +131,7 @@ public static class ServiceCollectionExtensions
         // Publication Engine (Sprint A9)
         services.Configure<PublicationOptions>(configuration.GetSection(PublicationOptions.SectionName));
         services.AddSingleton<IQualityMetricsProvider, QualityMetricsProvider>();
+        services.AddSingleton<IDocumentationAssetsManager, DocumentationAssetsManager>();
         services.AddSingleton<IContentRenderer, MarkdownRenderer>();
         services.AddSingleton<IContentRenderer, HtmlRenderer>();
         services.AddSingleton<IContentRenderer, PdfRenderer>();
