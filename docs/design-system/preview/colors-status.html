@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Colors · Status (sempre em pares)" subtitle="Cor + bg pastel — novo, avaliação, aprovado, rejeitado…" viewport="700x240" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Status colors</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin-bottom:12px; }
+  .row { display:grid; grid-template-columns: repeat(7, 1fr); gap:10px; }
+  .tile { display:flex; flex-direction:column; gap:4px; }
+  .pair { display:flex; height:44px; border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--border); }
+  .pair .pastel { flex:1; }
+  .pair .solid { width:24px; }
+  .name { font-size:11px; font-weight:500; color:var(--text-primary); }
+  .hex { font-family:var(--mono); font-size:9px; color:var(--text-muted); }
+  .badge {
+    display:inline-flex; align-items:center; gap:5px;
+    padding:3px 10px; border-radius:100px;
+    font-family:var(--font); font-size:11px; font-weight:500; white-space:nowrap;
+  }
+  .badges { display:flex; flex-wrap:wrap; gap:6px; margin-top:14px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Cor + background pastel — sempre em pares</div>
+  <div class="row">
+    <div class="tile"><div class="pair"><div class="pastel" style="background:#EBF3FB"></div><div class="solid" style="background:#4A90D9"></div></div><div class="name">Novo</div><div class="hex">#4A90D9</div></div>
+    <div class="tile"><div class="pair"><div class="pastel" style="background:#FDF3E3"></div><div class="solid" style="background:#E09B3D"></div></div><div class="name">Avaliação</div><div class="hex">#E09B3D</div></div>
+    <div class="tile"><div class="pair"><div class="pastel" style="background:#D8F3DC"></div><div class="solid" style="background:#2D6A4F"></div></div><div class="name">Aprovado</div><div class="hex">#2D6A4F</div></div>
+    <div class="tile"><div class="pair"><div class="pastel" style="background:#FAE5E3"></div><div class="solid" style="background:#C0392B"></div></div><div class="name">Rejeitado</div><div class="hex">#C0392B</div></div>
+    <div class="tile"><div class="pair"><div class="pastel" style="background:#F3EBF9"></div><div class="solid" style="background:#9B6CC8"></div></div><div class="name">Aguardando</div><div class="hex">#9B6CC8</div></div>
+    <div class="tile"><div class="pair"><div class="pastel" style="background:#EBF3FB"></div><div class="solid" style="background:#4A90D9"></div></div><div class="name">Em Execução</div><div class="hex">#4A90D9</div></div>
+    <div class="tile"><div class="pair"><div class="pastel" style="background:#DDEEFF"></div><div class="solid" style="background:#1A6FB5"></div></div><div class="name">Concluída</div><div class="hex">#1A6FB5</div></div>
+  </div>
+  <div class="badges">
+    <span class="badge" style="background:#EBF3FB;color:#4A90D9">Novo</span>
+    <span class="badge" style="background:#FDF3E3;color:#E09B3D">Em Avaliação</span>
+    <span class="badge" style="background:#D8F3DC;color:#2D6A4F">Aprovado</span>
+    <span class="badge" style="background:#FAE5E3;color:#C0392B">Rejeitado</span>
+    <span class="badge" style="background:#F3EBF9;color:#9B6CC8">Aguardando</span>
+    <span class="badge" style="background:#EBF3FB;color:#4A90D9">Em Execução</span>
+    <span class="badge" style="background:#DDEEFF;color:#1A6FB5">Concluída</span>
+  </div>
+</div>
+</body></html>

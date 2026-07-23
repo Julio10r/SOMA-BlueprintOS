@@ -1,0 +1,96 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Method-param + calculated field" subtitle="Cards de parâmetro + campo derivado (border dashed)" viewport="700x380" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Method-param + calculated field</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:14px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+
+  /* Method-meta bar (header da metodologia: versão + vigência + autor) */
+  .meta {
+    background:#fff; border:1px solid var(--border); border-radius:12px;
+    padding:14px 18px;
+    display:flex; align-items:center; gap:32px; flex-wrap:wrap;
+  }
+  .meta-item { display:flex; flex-direction:column; gap:2px; }
+  .m-l { font-family:var(--mono); font-size:10px; font-weight:500; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .m-v { font-family:var(--font); font-size:13px; font-weight:500; color:var(--text-primary); }
+
+  /* Method-param grid (4 cards de parâmetro) */
+  .grid { display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; }
+  .param {
+    background:#fff; border:1px solid var(--border); border-radius:12px;
+    padding:14px 16px;
+  }
+  .p-lbl {
+    font-family:var(--mono); font-size:10px; font-weight:500;
+    text-transform:uppercase; letter-spacing:.07em;
+    color:var(--text-muted); margin-bottom:5px;
+  }
+  .p-val { font-family:var(--font); font-size:18px; font-weight:600; letter-spacing:-0.02em; line-height:1; color:var(--text-primary); }
+  .p-desc { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); margin-top:4px; line-height:1.45; }
+
+  /* Calculated field (modal de edição da metodologia) */
+  .calc-block {
+    background:#fff; border:1px solid var(--border); border-radius:12px;
+    padding:16px 18px;
+  }
+  .f { display:flex; flex-direction:column; gap:6px; }
+  .f label { font-family:var(--font); font-size:12px; font-weight:500; color:var(--text-secondary); }
+  .calc {
+    font-family:var(--mono); font-size:14px; font-weight:500;
+    padding:9px 12px; border-radius:8px;
+    background:var(--bg); border:1px dashed var(--border);
+    color:var(--text-primary);
+  }
+  .hint { font-family:var(--font); font-size:11px; color:var(--text-muted); font-style:italic; margin-top:2px; }
+
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; }
+  .note code { font-family:var(--mono); font-size:11px; color:var(--text-primary); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Method-meta + params · aba "Metodologia" do portal-admin</div>
+
+  <div class="meta">
+    <div class="meta-item"><span class="m-l">Versão</span><span class="m-v">v4.2</span></div>
+    <div class="meta-item"><span class="m-l">Vigente desde</span><span class="m-v">14/04/2026</span></div>
+    <div class="meta-item"><span class="m-l">Criado por</span><span class="m-v">bruno.afonso</span></div>
+  </div>
+
+  <div class="grid">
+    <div class="param">
+      <div class="p-lbl">Salário base de referência</div>
+      <div class="p-val">R$ 8.500,00</div>
+      <div class="p-desc">Salário médio mensal usado como base para o cálculo de custo FTE.</div>
+    </div>
+    <div class="param">
+      <div class="p-lbl">Multiplicador de encargos</div>
+      <div class="p-val">1.85</div>
+      <div class="p-desc">Fator aplicado sobre o salário base para refletir encargos e benefícios.</div>
+    </div>
+    <div class="param">
+      <div class="p-lbl">Horas/mês de referência</div>
+      <div class="p-val">160</div>
+      <div class="p-desc">Carga horária mensal padrão usada para conversão FTE ↔ horas.</div>
+    </div>
+    <div class="param">
+      <div class="p-lbl">Dias úteis no mês</div>
+      <div class="p-val">21</div>
+      <div class="p-desc">Base de dias úteis para conversão de prazos em FTE-dia.</div>
+    </div>
+  </div>
+
+  <div class="calc-block">
+    <div class="f">
+      <label>Custo mensal FTE <span style="color:var(--text-muted);font-weight:400">(calculado automaticamente)</span></label>
+      <div class="calc">R$ 15.725,00</div>
+      <span class="hint">salário base × multiplicador de encargos = 8.500 × 1.85</span>
+    </div>
+  </div>
+
+  <p class="note">
+    <b>Origem:</b> <code>portal-admin.html</code> → sidebar "Metodologia". Cada <code>.method-param</code> é um card de parâmetro editável (4 ao todo). O <code>.calculated-field</code> aparece no modal de edição com <code>border: 1px dashed</code> — sinaliza que o valor é derivado dos outros, não editável.
+  </p>
+</div>
+</body></html>

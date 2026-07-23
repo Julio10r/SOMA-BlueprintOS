@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Colors · Aliases semânticos" subtitle="–ok / –info / –crit / –done · mapeiam para os canonicals" viewport="700x280" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Aliases semânticos</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:10px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  table { border-collapse:collapse; width:100%; font-family:var(--font); font-size:12.5px; }
+  th { text-align:left; padding:8px 10px; font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); font-weight:500; border-bottom:1px solid var(--border); background:var(--bg); }
+  td { padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:middle; color:var(--text-primary); }
+  tr:last-child td { border-bottom:none; }
+  td.alias { font-family:var(--mono); font-weight:500; color:var(--text-primary); }
+  td.canon { font-family:var(--mono); color:var(--text-secondary); }
+  td.swatch { width:36px; }
+  td.swatch .pair { display:inline-flex; gap:4px; }
+  td.swatch .chip { width:18px; height:18px; border-radius:4px; border:1px solid var(--border); }
+  td.use { color:var(--text-secondary); font-size:11.5px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Aliases — sinônimos que mapeiam para os semantics oficiais</div>
+  <table>
+    <thead><tr><th>Alias</th><th>→ canônico</th><th></th><th>Uso típico</th></tr></thead>
+    <tbody>
+      <tr><td class="alias">--ok / --ok-bg</td><td class="canon">--aprovado</td>
+        <td class="swatch"><span class="pair"><span class="chip" style="background:#D8F3DC"></span><span class="chip" style="background:#2D6A4F"></span></span></td>
+        <td class="use">esteira · "On track", concluídas</td></tr>
+      <tr><td class="alias">--info / --info-bg</td><td class="canon">--novo</td>
+        <td class="swatch"><span class="pair"><span class="chip" style="background:#EBF3FB"></span><span class="chip" style="background:#4A90D9"></span></span></td>
+        <td class="use">esteira · "Em execução"</td></tr>
+      <tr><td class="alias">--crit / --crit-bg</td><td class="canon">--rejeitado</td>
+        <td class="swatch"><span class="pair"><span class="chip" style="background:#FAE5E3"></span><span class="chip" style="background:#C0392B"></span></span></td>
+        <td class="use">esteira · alertas críticos de SLA</td></tr>
+      <tr><td class="alias">--done / --done-bg</td><td class="canon">--concluida</td>
+        <td class="swatch"><span class="pair"><span class="chip" style="background:#DDEEFF"></span><span class="chip" style="background:#1A6FB5"></span></span></td>
+        <td class="use">esteira · valor · "Entregue"</td></tr>
+      <tr><td class="alias">--aprovado-jira / -bg</td><td class="canon">--concluida</td>
+        <td class="swatch"><span class="pair"><span class="chip" style="background:#DDEEFF"></span><span class="chip" style="background:#1A6FB5"></span></span></td>
+        <td class="use">avaliacao · pós-handoff p/ Jira</td></tr>
+      <tr><td class="alias">--nao-priorizada / -bg</td><td class="canon">--rejeitado</td>
+        <td class="swatch"><span class="pair"><span class="chip" style="background:#FAE5E3"></span><span class="chip" style="background:#C0392B"></span></span></td>
+        <td class="use">acompanhamento · etapa "skipped"</td></tr>
+    </tbody>
+  </table>
+</div>
+</body></html>

@@ -1,0 +1,41 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Colors · Brand principais" subtitle="Ink, paper, quase-preto, bege portal" viewport="700x220" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Brand colors — principais</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; gap:14px; }
+  .tile { flex:1; display:flex; flex-direction:column; gap:6px; }
+  .chip { height:96px; border-radius:var(--radius-sm); border:1px solid var(--border); position:relative; overflow:hidden; }
+  .chip .corner { position:absolute; top:8px; left:8px; font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:.07em; }
+  .name { font-size:12px; font-weight:500; color:var(--text-primary); }
+  .hex { font-family:var(--mono); font-size:10px; color:var(--text-muted); }
+  .role { font-size:10px; font-family:var(--mono); text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="tile">
+    <div class="chip" style="background:#000000"><span class="corner" style="color:#fff">Ink</span></div>
+    <div class="name">Brand Ink</div>
+    <div class="hex">#000000</div>
+    <div class="role">Logo · títulos editoriais</div>
+  </div>
+  <div class="tile">
+    <div class="chip" style="background:#FFFFFF"><span class="corner" style="color:var(--text-muted)">Paper</span></div>
+    <div class="name">Brand Paper</div>
+    <div class="hex">#FFFFFF</div>
+    <div class="role">Fundo editorial principal</div>
+  </div>
+  <div class="tile">
+    <div class="chip" style="background:#1A1916"><span class="corner" style="color:#fff">Text</span></div>
+    <div class="name">Text Primary</div>
+    <div class="hex">#1A1916</div>
+    <div class="role">Quase-preto · base de sombras</div>
+  </div>
+  <div class="tile">
+    <div class="chip" style="background:#F7F6F3"><span class="corner" style="color:var(--text-muted)">Bege</span></div>
+    <div class="name">Portal BG</div>
+    <div class="hex">#F7F6F3</div>
+    <div class="role">Fundo geral dos portais GDT</div>
+  </div>
+</div>
+</body></html>

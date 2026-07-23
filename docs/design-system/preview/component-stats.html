@@ -1,0 +1,51 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Stat cards & grupos" subtitle="KPIs simples + pipeline executivo agrupado" viewport="700x260" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Stat cards · KPIs</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin-bottom:10px; }
+  .row { display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-bottom:12px; }
+  .stat {
+    background:#fff; border:1px solid #E2E0DB; border-radius:8px; padding:14px 16px;
+  }
+  .stat.left-novo { border-left:3px solid #4A90D9; }
+  .stat.left-apr  { border-left:3px solid #2D6A4F; }
+  .stat.left-rej  { border-left:3px solid #C0392B; }
+  .val { font-family:var(--mono); font-size:26px; font-weight:600; letter-spacing:-0.02em; line-height:1; margin-bottom:5px; color:#1A1916; }
+  .val.novo { color:#4A90D9; }
+  .val.apr  { color:#2D6A4F; }
+  .val.rej  { color:#C0392B; }
+  .lbl { font-family:var(--font); font-size:12px; color:#9B9890; }
+
+  .group {
+    background:#fff; border:1px solid #E2E0DB; border-radius:12px; overflow:hidden;
+  }
+  .group-title {
+    font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.08em;
+    text-transform:uppercase; color:#9B9890;
+    padding:9px 18px; border-bottom:1px solid #E2E0DB; background:#F7F6F3;
+  }
+  .group-row { display:grid; grid-template-columns: repeat(3, 1fr); }
+  .group-row .stat { border:none; border-right:1px solid #E2E0DB; border-radius:0; }
+  .group-row .stat:last-child { border-right:none; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="row">
+    <div class="stat"><div class="val">42</div><div class="lbl">Total</div></div>
+    <div class="stat left-novo"><div class="val novo">12</div><div class="lbl">Novas</div></div>
+    <div class="stat left-apr"><div class="val apr">24</div><div class="lbl">Aprovadas</div></div>
+    <div class="stat left-rej"><div class="val rej">6</div><div class="lbl">Rejeitadas</div></div>
+  </div>
+  <div class="group">
+    <div class="group-title">Pipeline executivo</div>
+    <div class="group-row">
+      <div class="stat"><div class="val">18</div><div class="lbl">Em avaliação</div></div>
+      <div class="stat"><div class="val apr">R$ 2.4M</div><div class="lbl">Saving projetado</div></div>
+      <div class="stat"><div class="val">34.2</div><div class="lbl">FTEs estimados</div></div>
+    </div>
+  </div>
+</div>
+</body></html>

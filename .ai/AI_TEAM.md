@@ -353,6 +353,16 @@ Sem essa estrutura o agente não poderá ser registrado.
 
 ---
 
+## Design System
+
+- Antes de criar apresentações, dashboards, interfaces, mockups, wireframes ou qualquer documentação visual, consulte obrigatoriamente `docs/design-system/SKILL.md`.
+- Utilize exclusivamente os componentes, estilos e diretrizes definidos no Design System oficial.
+- Não invente novas cores, tipografia, componentes ou padrões visuais.
+- Sempre reutilize os tokens e assets disponíveis em `docs/design-system`.
+- Em caso de dúvida, priorize a documentação oficial em vez de criar novas convenções.
+
+---
+
 # Regras
 
 Um agente nunca deve:

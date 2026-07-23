@@ -1,0 +1,98 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Filas SLA em uso" subtitle="As 4 filas A/B/C/D com cards reais e empty state" viewport="700x540" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Filas SLA em uso</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); display:flex; flex-direction:column; gap:14px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+
+  .fila { border-radius:8px; overflow:hidden; }
+  .fila-h {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:9px 14px; border:1px solid; border-radius:8px 8px 0 0;
+  }
+  .fila-h-l { display:flex; align-items:center; gap:10px; }
+  .tag {
+    font-family:var(--mono); font-size:9.5px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.07em; color:#fff;
+    padding:2px 7px; border-radius:4px;
+  }
+  .name { font-family:var(--font); font-size:12.5px; font-weight:500; color:var(--text-primary); }
+  .sla { font-family:var(--mono); font-size:10.5px; color:var(--text-muted); }
+  .count { font-family:var(--mono); font-size:10.5px; color:var(--text-muted); }
+  .fila-b { border:1px solid; border-top:none; border-radius:0 0 8px 8px; background:#fff; }
+  .item {
+    display:flex; align-items:center; gap:12px;
+    padding:9px 14px; border-bottom:1px solid var(--border);
+    font-family:var(--font); font-size:12.5px;
+  }
+  .item:last-child { border-bottom:none; }
+  .item .id { font-family:var(--mono); font-size:10.5px; color:var(--text-muted); flex-shrink:0; }
+  .item .nm { flex:1; color:var(--text-primary); }
+  .item .area { font-size:11px; color:var(--text-muted); }
+  .empty { padding:12px 14px; font-family:var(--font); font-size:12px; color:var(--text-muted); font-style:italic; }
+
+  .a { } .a .fila-h { background:#FDF2F0; border-color:#F1948A; }
+  .a .tag { background:var(--rejeitado); }
+  .a .fila-b { border-color:#F1948A; }
+  .b .fila-h { background:#FEF9E7; border-color:#F9E79F; }
+  .b .tag { background:var(--avaliacao); }
+  .b .fila-b { border-color:#F9E79F; }
+  .c .fila-h { background:#EBF5FB; border-color:#AED6F1; }
+  .c .tag { background:#1A5276; }
+  .c .fila-b { border-color:#AED6F1; }
+  .d .fila-h { background:#F4F4F4; border-color:#CCCCCC; }
+  .d .tag { background:#6B6860; }
+  .d .fila-b { border-color:#CCCCCC; }
+
+  .sla.estourado { color:var(--rejeitado); font-weight:600; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Filas SLA · cards reais agrupados por urgência</div>
+
+  <div class="fila a">
+    <div class="fila-h">
+      <div class="fila-h-l"><span class="tag">A</span><span class="name">Urgente</span><span class="sla estourado">SLA: 1d · 2 estouradas</span></div>
+      <span class="count">3 itens</span>
+    </div>
+    <div class="fila-b">
+      <div class="item"><span class="id">GDT-042</span><span class="nm">Automação de relatórios financeiros</span><span class="area">Financeiro</span></div>
+      <div class="item"><span class="id">GDT-040</span><span class="nm">Bloqueio fiscal · folha</span><span class="area">RH</span></div>
+      <div class="item"><span class="id">GDT-038</span><span class="nm">Recall de SKU</span><span class="area">Supply</span></div>
+    </div>
+  </div>
+
+  <div class="fila b">
+    <div class="fila-h">
+      <div class="fila-h-l"><span class="tag">B</span><span class="name">Rápida</span><span class="sla">SLA: 2d</span></div>
+      <span class="count">2 itens</span>
+    </div>
+    <div class="fila-b">
+      <div class="item"><span class="id">GDT-041</span><span class="nm">Pricing dinâmico — Outlet</span><span class="area">Comercial</span></div>
+      <div class="item"><span class="id">GDT-037</span><span class="nm">Curadoria de imagens via IA</span><span class="area">Marketing</span></div>
+    </div>
+  </div>
+
+  <div class="fila c">
+    <div class="fila-h">
+      <div class="fila-h-l"><span class="tag">C</span><span class="name">Analítica</span><span class="sla">SLA: 5d</span></div>
+      <span class="count">1 item</span>
+    </div>
+    <div class="fila-b">
+      <div class="item"><span class="id">GDT-030</span><span class="nm">Previsão de demanda por SKU</span><span class="area">Comercial</span></div>
+    </div>
+  </div>
+
+  <div class="fila d">
+    <div class="fila-h">
+      <div class="fila-h-l"><span class="tag">D</span><span class="name">Aguardando</span><span class="sla">SLA: pausado</span></div>
+      <span class="count">0 itens</span>
+    </div>
+    <div class="fila-b">
+      <div class="empty">Nenhuma demanda em espera externa no momento.</div>
+    </div>
+  </div>
+</div>
+</body></html>

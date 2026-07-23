@@ -1,0 +1,58 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Step progress + tabs" subtitle="Barra 3px no topo + step tabs (done/active/pending)" viewport="700x240" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Step progress + tabs</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:18px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+
+  /* Progress bar */
+  .progress {
+    height:3px; background:var(--border); border-radius:0 2px 2px 0;
+    position:relative; margin:0 -28px;
+  }
+  .progress .fill { position:absolute; left:0; top:0; height:100%; background:var(--accent); border-radius:0 2px 2px 0; transition:width 400ms cubic-bezier(0.4,0,0.2,1); }
+
+  /* Step tabs */
+  .steps {
+    display:flex; align-items:center;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:4px;
+  }
+  .step {
+    flex:1; display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:9px 12px; border-radius:9px;
+    font-family:var(--font); font-size:13px; font-weight:500;
+    color:var(--text-muted);
+  }
+  .step.active { background:var(--accent); color:#fff; }
+  .step.done   { color:var(--aprovado); }
+  .step .num {
+    width:20px; height:20px; border-radius:50%; background:#EEECEA;
+    display:grid; place-items:center;
+    font-family:var(--mono); font-size:11px; font-weight:500;
+  }
+  .step.active .num { background:rgba(255,255,255,0.2); color:#fff; }
+  .step.done .num   { background:var(--aprovado-bg); color:var(--aprovado); }
+  .step.done .num svg { width:11px; height:11px; }
+
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; }
+  .note code { font-family:var(--mono); font-size:11px; color:var(--text-primary); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Progress bar fixa (topo) + step tabs (form multi-step)</div>
+  <div>
+    <div class="progress"><div class="fill" style="width:40%"></div></div>
+  </div>
+  <div class="steps">
+    <div class="step done"><span class="num"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Tipo</div>
+    <div class="step active"><span class="num">2</span>Detalhes</div>
+    <div class="step"><span class="num">3</span>Avaliação</div>
+    <div class="step"><span class="num">4</span>Revisar</div>
+  </div>
+  <p class="note">
+    A barra de 3px no topo (<code>position:fixed</code> abaixo do header) reflete o progresso geral; as tabs dentro do main mostram quem é a etapa <b>current</b> (preto sólido) e quais já foram <b>done</b> (texto verde + check pastel). Transição 400ms <code>cubic-bezier(0.4,0,0.2,1)</code>.
+  </p>
+</div>
+</body></html>

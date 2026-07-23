@@ -1,0 +1,51 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Form inputs" subtitle="Input, select, focus + erro" viewport="700x240" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Form inputs</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:grid; grid-template-columns: 1fr 1fr; gap:16px 20px; }
+  label { display:block; font-family:var(--font); font-size:13px; font-weight:500; margin-bottom:6px; color:var(--text-primary); }
+  .field { display:flex; flex-direction:column; }
+  .input {
+    width:100%; font-family:var(--font); font-size:14px; color:var(--text-primary);
+    background:var(--bg); border:1px solid var(--border); border-radius:8px;
+    padding:10px 14px; outline:none;
+  }
+  .input::placeholder { color:var(--text-muted); font-weight:300; }
+  .input.focused { border-color:#1A1916; background:#fff; box-shadow:0 0 0 3px rgba(26,25,22,0.06); }
+  .input.error { border-color:#C0392B; background:#FFF5F5; }
+  .hint { font-size:11px; color:var(--text-muted); margin-top:4px; }
+  .err {
+    font-family:var(--font); font-size:12px; color:#C0392B;
+    background:#FAE5E3; border:1px solid #EAB8B3; border-radius:8px;
+    padding:6px 10px; margin-top:6px;
+  }
+  .select {
+    width:100%; font-family:var(--font); font-size:13px; color:var(--text-primary);
+    background:#fff; border:1px solid var(--border); border-radius:8px; padding:8px 12px; outline:none;
+    appearance:none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B9890' stroke-width='2' stroke-linecap='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat:no-repeat; background-position:right 12px center; padding-right:32px;
+  }
+</style></head>
+<body>
+<div class="frame">
+  <div class="field">
+    <label>Nome da demanda</label>
+    <input class="input" placeholder="Ex: Automação de relatórios">
+  </div>
+  <div class="field">
+    <label>Área solicitante</label>
+    <select class="select"><option>Financeiro</option></select>
+    <div class="hint">Selecione a área que originou a demanda</div>
+  </div>
+  <div class="field">
+    <label>Responsável (focus)</label>
+    <input class="input focused" value="bruno.afonso@somagrupo.com.br">
+  </div>
+  <div class="field">
+    <label>E-mail (erro)</label>
+    <input class="input error" value="invalido">
+    <div class="err">E-mail inválido. Verifique o formato.</div>
+  </div>
+</div>
+</body></html>

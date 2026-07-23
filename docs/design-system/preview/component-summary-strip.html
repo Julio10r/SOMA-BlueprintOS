@@ -1,0 +1,47 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Summary strip" subtitle="Faixa horizontal 5-cell · cores opcionais por estado (info/ok/done)" viewport="700x200" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Summary strip</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); display:flex; flex-direction:column; gap:10px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+
+  .strip { display:flex; background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .cell {
+    flex:1; padding:14px 16px; border-right:1px solid var(--border-soft);
+    display:flex; flex-direction:column; gap:3px;
+  }
+  .cell:last-child { border-right:none; }
+  .lbl {
+    font-family:var(--mono); font-size:9.5px; font-weight:500;
+    text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted);
+  }
+  .val {
+    font-family:var(--mono); font-size:20px; font-weight:600;
+    letter-spacing:-0.02em; line-height:1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .sub { font-family:var(--mono); font-size:11px; color:var(--text-secondary); font-variant-numeric: tabular-nums; }
+
+  .cell.info .val { color:var(--novo); }
+  .cell.ok   .val { color:var(--aprovado); }
+  .cell.done .val { color:var(--concluida); }
+
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Summary strip · resumo em uma linha (esteira / valor)</div>
+  <div class="strip">
+    <div class="cell"><span class="lbl">No funil</span><span class="val">42</span><span class="sub">demandas Q2</span></div>
+    <div class="cell info"><span class="lbl">Em execução</span><span class="val">14</span><span class="sub">+3 esta semana</span></div>
+    <div class="cell ok"><span class="lbl">Aprovadas</span><span class="val">24</span><span class="sub">aguardando exec</span></div>
+    <div class="cell done"><span class="lbl">Concluídas</span><span class="val">11</span><span class="sub">2026 ytd</span></div>
+    <div class="cell"><span class="lbl">SLA médio</span><span class="val">6d</span><span class="sub">meta: 4d</span></div>
+  </div>
+  <p class="note">
+    Faixa horizontal compacta (1 linha) com 4-6 cells divididas por <code style="font-family:var(--mono);font-size:11px">border-right: 1px solid var(--border-soft)</code>. Cada cell: label mono uppercase tiny + valor mono 20/600 + sub line 11px. Cores opcionais por estado: <code>.info</code>, <code>.ok</code>, <code>.done</code>.
+  </p>
+</div>
+</body></html>

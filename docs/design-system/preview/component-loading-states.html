@@ -1,0 +1,72 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Loading slow + error retry" subtitle="Fast · slow (msg-slow após 3s) · error com botão tentar" viewport="700x240" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Loading slow-message + retry</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  .box {
+    background:#fff; border:1px solid var(--border); border-radius:12px;
+    padding:32px 16px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:10px; text-align:center; min-height:180px;
+  }
+  .spin {
+    width:26px; height:26px; border:2px solid var(--border);
+    border-top-color:var(--accent); border-radius:50%;
+    animation:spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .msg-p { font-family:var(--font); font-size:13px; font-weight:500; color:var(--text-secondary); margin:0; }
+  .msg-s { font-family:var(--font); font-size:11.5px; color:var(--text-muted); font-weight:300; margin:0; }
+  .msg-slow { font-family:var(--font); font-size:11.5px; color:var(--text-muted); font-style:italic; margin:0; }
+
+  .err-icon {
+    width:32px; height:32px; border-radius:8px;
+    background:var(--rejeitado-bg); color:var(--rejeitado);
+    display:grid; place-items:center;
+  }
+  .err-icon svg { width:18px; height:18px; }
+  .err-t { font-family:var(--font); font-size:13px; font-weight:600; color:var(--text-primary); margin:0; }
+  .err-s { font-family:var(--font); font-size:11.5px; color:var(--text-muted); line-height:1.45; max-width:200px; margin:0; }
+  .btn-retry {
+    margin-top:4px; padding:7px 16px; border-radius:8px;
+    background:var(--surface); border:1px solid var(--border);
+    font-family:var(--font); font-size:12px; font-weight:500;
+    color:var(--text-primary); cursor:pointer;
+  }
+  .btn-retry:hover { border-color:var(--border-hover); }
+
+  .tag {
+    position:absolute; top:10px; left:12px;
+    font-family:var(--mono); font-size:9px; font-weight:500;
+    text-transform:uppercase; letter-spacing:.07em;
+    color:var(--text-muted);
+  }
+  .pos { position:relative; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="box pos">
+    <span class="tag">Fast (< 1.5s)</span>
+    <div class="spin"></div>
+    <p class="msg-p">Carregando fila...</p>
+    <p class="msg-s">Conectando ao sistema</p>
+  </div>
+  <div class="box pos">
+    <span class="tag">Slow (> 3s)</span>
+    <div class="spin"></div>
+    <p class="msg-p">Ainda processando...</p>
+    <p class="msg-s">Conectando ao sistema</p>
+    <p class="msg-slow">A primeira carga após deploy pode levar 10–15s.</p>
+  </div>
+  <div class="box pos">
+    <span class="tag">Error</span>
+    <div class="err-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+    </div>
+    <p class="err-t">Erro ao carregar</p>
+    <p class="err-s">Não foi possível conectar. Verifique a conexão.</p>
+    <button class="btn-retry">Tentar novamente</button>
+  </div>
+</div>
+</body></html>

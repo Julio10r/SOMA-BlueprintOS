@@ -1,0 +1,62 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Status stepper" subtitle="6 etapas · done/current(halo)/next/skipped · com sub-label opcional" viewport="700x260" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Status stepper</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); display:flex; flex-direction:column; gap:14px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+
+  .stepper { background:#fff; border:1px solid var(--border); border-radius:12px; padding:22px 26px; }
+  .track { display:flex; align-items:flex-start; gap:0; position:relative; }
+  .step  { flex:1; display:flex; flex-direction:column; align-items:center; position:relative; z-index:1; }
+  .line  { position:absolute; top:13px; left:50%; right:-50%; height:2px; background:var(--border); z-index:0; }
+  .step:last-child .line { display:none; }
+  .step.done .line, .step.current .line { background:var(--accent); }
+
+  .dot {
+    width:28px; height:28px; border-radius:50%;
+    border:2px solid var(--border); background:#fff;
+    display:grid; place-items:center; flex-shrink:0;
+    font-family:var(--mono); font-size:11px; font-weight:600; color:var(--text-muted);
+    z-index:2; position:relative;
+  }
+  .step.done .dot { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .step.done .dot svg { width:12px; height:12px; }
+  .step.current .dot {
+    background:var(--accent); border-color:var(--accent); color:#fff;
+    box-shadow:0 0 0 3px #fff, 0 0 0 5px var(--aprovado);
+  }
+  .step.next .dot {
+    background:#fff; border-color:var(--accent); color:var(--accent);
+    box-shadow:0 0 0 3px rgba(26,25,22,0.06);
+  }
+  .step.skipped .dot { background:var(--rejeitado-bg); border-color:var(--rejeitado); color:var(--rejeitado); }
+
+  .lbl { font-family:var(--font); font-size:11px; color:var(--text-muted); margin-top:8px; text-align:center; line-height:1.3; max-width:80px; }
+  .step.current .lbl { color:var(--text-primary); font-weight:600; }
+  .step.next .lbl    { color:var(--text-primary); font-weight:500; }
+  .step.done .lbl    { color:var(--text-secondary); }
+  .sub { font-family:var(--mono); font-size:9.5px; color:var(--text-muted); margin-top:2px; text-align:center; font-style:italic; max-width:80px; line-height:1.2; }
+
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; }
+  .note code { font-family:var(--mono); font-size:11px; color:var(--text-primary); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Status stepper · 6 etapas com halo verde no current</div>
+  <div class="stepper">
+    <div class="track">
+      <div class="step done"><div class="line"></div><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span class="lbl">Registrada</span><span class="sub">12/04</span></div>
+      <div class="step done"><div class="line"></div><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span class="lbl">Curada</span><span class="sub">14/04</span></div>
+      <div class="step current"><div class="line"></div><div class="dot">3</div><span class="lbl">Em avaliação</span><span class="sub">hoje</span></div>
+      <div class="step next"><div class="line"></div><div class="dot">4</div><span class="lbl">Aprovada</span></div>
+      <div class="step"><div class="line"></div><div class="dot">5</div><span class="lbl">Em execução</span></div>
+      <div class="step"><div class="dot">6</div><span class="lbl">Concluída</span></div>
+    </div>
+  </div>
+  <p class="note">
+    Estados: <b>done</b> (preenchido preto + check) · <b>current</b> (preto + halo verde) · <b>next</b> (branco c/ borda preta + sombra leve) · <b>skipped</b> (vermelho pastel). Linhas conectoras viram pretas para done/current. Label embaixo (12px) + sub mono opcional (9.5px) com data.
+  </p>
+</div>
+</body></html>

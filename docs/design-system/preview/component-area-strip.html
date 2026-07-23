@@ -1,0 +1,100 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Area strip + chips" subtitle="Strip com 3px left-color por área + chips de filtro coloridos" viewport="700x260" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Area strip + chips</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); display:flex; flex-direction:column; gap:14px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+
+  /* ──────────────────────────────────────────────────────────
+     PADRÃO: o nome da área NUNCA recebe a cor da área.
+     A cor entra apenas via (a) 3px left-border, (b) dot do chip,
+     e (c) tint sutil de background no item active.
+     Isso evita o "desconexo" de um item parecer diferente dos outros.
+     ────────────────────────────────────────────────────────── */
+
+  /* Area strip */
+  .strip { display:flex; background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .cell {
+    flex:1; min-width:0; padding:12px 14px;
+    border-right:1px solid var(--border-soft);
+    display:flex; flex-direction:column; gap:5px;
+    position:relative; cursor:pointer;
+    transition:background 120ms ease;
+  }
+  .cell:last-child { border-right:none; }
+  .cell::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--c, var(--text-muted)); }
+  .cell:hover { background:rgba(0,0,0,0.025); }
+  .cell.active { background:color-mix(in srgb, var(--c) 7%, transparent); }
+
+  /* nome sempre na MESMA cor — não muda no active */
+  .name {
+    font-family:var(--mono); font-size:9.5px; font-weight:600;
+    text-transform:uppercase; letter-spacing:.06em; color:var(--text-secondary);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .hero { display:flex; align-items:baseline; gap:5px; padding-bottom:5px; border-bottom:1px solid var(--border-soft); }
+  .hero-v { font-family:var(--mono); font-size:18px; font-weight:700; letter-spacing:-0.02em; color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  .hero-l { font-family:var(--font); font-size:10.5px; color:var(--text-secondary); font-weight:500; }
+  .metric { display:flex; justify-content:space-between; font-size:10.5px; line-height:1.4; }
+  .metric .l { font-family:var(--mono); font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; }
+  .metric .v { font-family:var(--mono); font-weight:600; color:var(--text-primary); font-variant-numeric:tabular-nums; }
+
+  /* Area chips */
+  .chips { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .chip-lbl { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-right:4px; }
+  .chip {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:4px 11px; border-radius:100px;
+    font-family:var(--font); font-size:11.5px; font-weight:500;
+    background:#fff; color:var(--text-secondary);
+    border:1px solid var(--border);
+    cursor:pointer; transition:all 120ms ease;
+  }
+  .chip:hover { border-color:var(--border-hover); color:var(--text-primary); }
+  .chip .dot { width:7px; height:7px; border-radius:50%; background:var(--c, var(--text-muted)); }
+  .chip .n { font-family:var(--mono); font-size:10.5px; color:var(--text-muted); }
+
+  /* active: texto e count seguem o MESMO padrão pra todos —
+     primary, sem mudar de cor. Borda fica na cor da área, bg recebe tint sutil. */
+  .chip.active {
+    background:color-mix(in srgb, var(--c) 8%, transparent);
+    border-color:var(--c);
+    color:var(--text-primary);
+  }
+  .chip.active .n { color:var(--text-secondary); }
+
+  .chip.all.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .chip.all.active .dot { background:#fff; }
+  .chip.all.active .n { color:rgba(255,255,255,0.7); }
+
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; margin-top:4px; }
+  .note code { font-family:var(--mono); font-size:11px; color:var(--text-primary); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Area strip · 5 áreas com 3px left-color (esfera)</div>
+  <div class="strip">
+    <div class="cell" style="--c:#2D6A4F"><span class="name">Financeiro</span><div class="hero"><span class="hero-v">17</span><span class="hero-l">abertas</span></div><div class="metric"><span class="l">saving</span><span class="v">R$ 2.4M</span></div></div>
+    <div class="cell active" style="--c:#4A90D9"><span class="name">Tecnologia</span><div class="hero"><span class="hero-v">13</span><span class="hero-l">abertas</span></div><div class="metric"><span class="l">saving</span><span class="v">R$ 1.8M</span></div></div>
+    <div class="cell" style="--c:#E09B3D"><span class="name">Comercial</span><div class="hero"><span class="hero-v">8</span><span class="hero-l">abertas</span></div><div class="metric"><span class="l">saving</span><span class="v">R$ 980K</span></div></div>
+    <div class="cell" style="--c:#9B6CC8"><span class="name">Supply</span><div class="hero"><span class="hero-v">4</span><span class="hero-l">abertas</span></div><div class="metric"><span class="l">saving</span><span class="v">R$ 420K</span></div></div>
+    <div class="cell" style="--c:#539193"><span class="name">RH</span><div class="hero"><span class="hero-v">2</span><span class="hero-l">abertas</span></div><div class="metric"><span class="l">saving</span><span class="v">R$ 120K</span></div></div>
+  </div>
+
+  <div class="chips">
+    <span class="chip-lbl">Filtrar por área</span>
+    <span class="chip all active"><span class="dot"></span>Todas <span class="n">42</span></span>
+    <span class="chip" style="--c:#2D6A4F"><span class="dot"></span>Financeiro <span class="n">17</span></span>
+    <span class="chip active" style="--c:#4A90D9"><span class="dot"></span>Tecnologia <span class="n">13</span></span>
+    <span class="chip" style="--c:#E09B3D"><span class="dot"></span>Comercial <span class="n">8</span></span>
+    <span class="chip" style="--c:#9B6CC8"><span class="dot"></span>Supply <span class="n">4</span></span>
+    <span class="chip" style="--c:#539193"><span class="dot"></span>RH <span class="n">2</span></span>
+  </div>
+
+  <p class="note">
+    <b>Regra padronizada:</b> o <i>nome da área</i> nunca recebe a cor da área — fica sempre em <code>--text-secondary</code> (strip) ou <code>--text-primary</code> (chip). A cor entra somente via <b>3px left-border</b>, <b>dot do chip</b> e <b>tint sutil de background</b> (8% da cor) no item ativo. Isso mantém todas as áreas visualmente equivalentes.
+  </p>
+</div>
+</body></html>

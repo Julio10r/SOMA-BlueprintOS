@@ -1,0 +1,62 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Complexity / Nível / SLA" subtitle="Badges meta — DM Mono, três famílias" viewport="700x200" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Complexity, nivel & SLA badges</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:12px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .complexity {
+    display:inline-flex; align-items:center; gap:5px;
+    font-family:var(--mono); font-size:11px; font-weight:500;
+    padding:3px 10px; border-radius:100px; letter-spacing:.04em;
+  }
+  .c-simples       { background:#E8F5E9; color:#2E7D32; }
+  .c-intermediario { background:#FFF8E1; color:#F57F17; }
+  .c-complexo      { background:#FCE4EC; color:#C62828; }
+
+  .nivel {
+    display:inline-flex; align-items:center; gap:4px;
+    padding:2px 8px; border-radius:4px;
+    font-family:var(--mono); font-size:10px; font-weight:600;
+    text-transform:uppercase; letter-spacing:.04em;
+  }
+  .n-1  { background:#FDEDEC; color:#C0392B; border:1px solid #F5B7B1; }
+  .n-2a { background:#FEF9E7; color:#9A6B00; border:1px solid #F9E79F; }
+  .n-2b { background:#FFF8E1; color:#7B5800; border:1px solid #FFE082; }
+  .n-3  { background:#EBF5FB; color:#1A5276; border:1px solid #AED6F1; }
+  .n-4  { background:#F4F4F4; color:#555;    border:1px solid #CCC; }
+
+  .sla {
+    display:inline-flex; align-items:center; gap:4px;
+    font-family:var(--mono); font-size:10px;
+    padding:2px 7px; border-radius:4px;
+  }
+  .sla-ok { background:#EAF5EE; color:#1A6B3C; }
+  .sla-atencao { background:#FEF9E7; color:#9A6B00; }
+  .sla-estourado { background:#FDEDEC; color:#C0392B; font-weight:700; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Complexidade</div>
+  <div class="row">
+    <span class="complexity c-simples">Simples</span>
+    <span class="complexity c-intermediario">Intermediário</span>
+    <span class="complexity c-complexo">Complexo</span>
+  </div>
+  <div class="head">Nível de prioridade</div>
+  <div class="row">
+    <span class="nivel n-1">N1 Crítico</span>
+    <span class="nivel n-2a">N2a Alto</span>
+    <span class="nivel n-2b">N2b Médio-Alto</span>
+    <span class="nivel n-3">N3 Médio</span>
+    <span class="nivel n-4">N4 Baixo</span>
+  </div>
+  <div class="head">SLA</div>
+  <div class="row">
+    <span class="sla sla-ok">SLA OK · 4d</span>
+    <span class="sla sla-atencao">SLA Atenção · 1d</span>
+    <span class="sla sla-estourado">SLA Estourado · −2d</span>
+  </div>
+</div>
+</body></html>

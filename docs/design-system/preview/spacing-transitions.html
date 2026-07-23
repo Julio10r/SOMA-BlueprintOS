@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Spacing · Transitions" subtitle="Durações + easings · hover, modal, progress" viewport="700x220" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Transitions & easing</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:14px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .row { display:grid; grid-template-columns: 140px 96px 1fr 64px; align-items:center; gap:14px; }
+  .name { font-family:var(--mono); font-size:11px; font-weight:500; color:var(--text-primary); }
+  .time { font-family:var(--mono); font-size:10px; color:var(--text-muted); }
+  .use  { font-size:11px; color:var(--text-secondary); }
+  .track { height:6px; background:var(--bg); border-radius:100px; position:relative; overflow:hidden; }
+  .track .fill { position:absolute; left:0; top:0; height:100%; background:var(--text-primary); border-radius:100px; animation-iteration-count: infinite; }
+  @keyframes runOut   { 0% { width:0 } 70%{ width:100% } 100% { width:100% } }
+  @keyframes runSnap  { 0% { width:0 } 60%{ width:108% } 75%{ width:96% } 100% { width:100% } }
+  .out  { animation: runOut 1.6s cubic-bezier(0.4,0,0.2,1); }
+  .snap { animation: runSnap 1.6s cubic-bezier(0.34,1.56,0.64,1); }
+  .ease { animation: runOut 1.6s ease; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Curvas e durações</div>
+  <div class="row">
+    <span class="name">--t-base</span><span class="time">150ms ease</span>
+    <div class="track"><div class="fill ease" style="animation-duration:1s"></div></div>
+    <span class="use">Hover</span>
+  </div>
+  <div class="row">
+    <span class="name">--t-slow</span><span class="time">300ms ease-out</span>
+    <div class="track"><div class="fill out" style="animation-duration:1.4s"></div></div>
+    <span class="use">Estados</span>
+  </div>
+  <div class="row">
+    <span class="name">--t-progress</span><span class="time">600ms out</span>
+    <div class="track"><div class="fill out" style="animation-duration:2s"></div></div>
+    <span class="use">Bar fills</span>
+  </div>
+  <div class="row">
+    <span class="name">--ease-snap</span><span class="time">200ms snap</span>
+    <div class="track"><div class="fill snap" style="animation-duration:1.6s"></div></div>
+    <span class="use">Modal / toast</span>
+  </div>
+</div>
+</body></html>

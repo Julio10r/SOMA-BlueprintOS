@@ -1,0 +1,51 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · SLA alert row" subtitle="Linha de chamado atrasado com border-left vermelho" viewport="700x240" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>SLA alert row</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); display:flex; flex-direction:column; gap:0; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin-bottom:8px; }
+  .wrap { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .alert {
+    display:grid; grid-template-columns: 110px 1fr auto auto;
+    gap:14px; align-items:center;
+    padding:11px 14px;
+    border-bottom:1px solid var(--border-soft, #EDEBE6);
+    border-left:3px solid var(--rejeitado);
+  }
+  .alert:last-child { border-bottom:none; }
+  .alert:hover { background:#fafaf8; }
+  .id { font-family:var(--mono); font-size:11.5px; color:var(--novo); font-weight:500; }
+  .meta { font-family:var(--mono); font-size:10.5px; color:var(--text-muted); margin-top:2px; }
+  .title { font-family:var(--font); font-size:13px; color:var(--text-primary); font-weight:500; }
+  .days { font-family:var(--mono); font-size:11px; font-weight:600; color:var(--rejeitado); background:var(--rejeitado-bg); padding:3px 9px; border-radius:100px; }
+  .action { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); }
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; margin-top:10px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Alert row · linha de SLA estourado (border-left vermelho)</div>
+  <div class="wrap">
+    <div class="alert">
+      <div><div class="id">#23218</div><div class="meta">Daniel Barros</div></div>
+      <div><div class="title">Análise contratual — Locação Iguatemi Brasília</div><div class="meta">Aberto há 14 dias · SLA expirado em 8 dias</div></div>
+      <span class="days">−8d</span>
+      <span class="action">Escalar pro gestor →</span>
+    </div>
+    <div class="alert">
+      <div><div class="id">#23241</div><div class="meta">Beatriz Leão</div></div>
+      <div><div class="title">Aditivo — Locação BH Shopping</div><div class="meta">Aberto há 11 dias · SLA expirado em 6 dias</div></div>
+      <span class="days">−6d</span>
+      <span class="action">Cobrar resposta →</span>
+    </div>
+    <div class="alert">
+      <div><div class="id">#23267</div><div class="meta">Ana Karolina</div></div>
+      <div><div class="title">NDA — Fornecedor de packshot</div><div class="meta">Aberto há 9 dias · SLA expirado em 4 dias</div></div>
+      <span class="days">−4d</span>
+      <span class="action">Escalar pro gestor →</span>
+    </div>
+  </div>
+  <p class="note">Grid 4-col: ID+autor · título+meta · dias estourados em pill vermelho · ação sugerida em texto link. Border-left 3px <b>--rejeitado</b> reforça gravidade sem precisar de ícone.</p>
+</div>
+</body></html>

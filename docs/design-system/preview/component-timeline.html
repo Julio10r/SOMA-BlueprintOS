@@ -1,0 +1,56 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Timeline / audit" subtitle="Histórico de ações com avatar + comentário" viewport="700x260" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Timeline / audit trail</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); }
+  .wrap { background:#fff; border:1px solid #E2E0DB; border-radius:12px; padding:18px 22px; }
+  .title { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:#9B9890; margin-bottom:8px; }
+  .item { display:flex; gap:12px; padding:10px 0; border-top:1px solid #E2E0DB; }
+  .item:first-of-type { border-top:none; padding-top:6px; }
+  .avatar {
+    width:28px; height:28px; border-radius:50%;
+    background:#F7F6F3; border:1px solid #E2E0DB;
+    display:grid; place-items:center;
+    font-family:var(--font); font-size:11px; font-weight:600; color:#6B6860;
+    flex-shrink:0;
+  }
+  .content { flex:1; }
+  .action { font-family:var(--font); font-size:13px; font-weight:500; margin-bottom:2px; color:#1A1916; }
+  .meta { font-family:var(--mono); font-size:11px; color:#9B9890; }
+  .comment {
+    font-family:var(--font); font-size:12px; color:#6B6860; font-style:italic;
+    margin-top:6px; padding:6px 10px; background:#F7F6F3;
+    border-radius:4px; border-left:2px solid #E2E0DB;
+  }
+</style></head>
+<body>
+<div class="frame">
+  <div class="wrap">
+    <div class="title">Histórico de ações · GDT-042</div>
+    <div class="item">
+      <div class="avatar">BA</div>
+      <div class="content">
+        <div class="action">Aprovou a demanda</div>
+        <div class="meta">bruno.afonso — 15/04/2026 14:32</div>
+        <div class="comment">Aprovado para sprint de maio. Prioridade alta.</div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="avatar">MS</div>
+      <div class="content">
+        <div class="action">Enviou para avaliação</div>
+        <div class="meta">maria.silva — 14/04/2026 09:15</div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="avatar">MS</div>
+      <div class="content">
+        <div class="action">Criou a demanda</div>
+        <div class="meta">maria.silva — 12/04/2026 16:45</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

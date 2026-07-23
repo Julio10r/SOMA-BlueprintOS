@@ -1,0 +1,27 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Spacing · Scale (base 4px)" subtitle="space-1 a space-10 · com uso real" viewport="700x300" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Spacing scale</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:8px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin-bottom:6px; }
+  .row { display:flex; align-items:center; gap:14px; }
+  .lbl { font-family:var(--mono); font-size:11px; color:var(--text-secondary); width:60px; flex-shrink:0; }
+  .val { font-family:var(--mono); font-size:10px; color:var(--text-muted); width:48px; flex-shrink:0; }
+  .bar { background:var(--text-primary); height:12px; border-radius:2px; }
+  .use { font-size:11px; color:var(--text-muted); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Base 4px · espaçamento</div>
+  <div class="row"><span class="lbl">space-1</span><span class="val">4px</span><div class="bar" style="width:4px"></div><span class="use">gaps mínimos</span></div>
+  <div class="row"><span class="lbl">space-2</span><span class="val">8px</span><div class="bar" style="width:8px"></div><span class="use">badges, chips internos</span></div>
+  <div class="row"><span class="lbl">space-3</span><span class="val">12px</span><div class="bar" style="width:12px"></div><span class="use">gap entre controles</span></div>
+  <div class="row"><span class="lbl">space-4</span><span class="val">16px</span><div class="bar" style="width:16px"></div><span class="use">padding de sidebar nav</span></div>
+  <div class="row"><span class="lbl">space-5</span><span class="val">20px</span><div class="bar" style="width:20px"></div><span class="use">card interno</span></div>
+  <div class="row"><span class="lbl">space-6</span><span class="val">24px</span><div class="bar" style="width:24px"></div><span class="use">header padding</span></div>
+  <div class="row"><span class="lbl">space-7</span><span class="val">32px</span><div class="bar" style="width:32px"></div><span class="use">main padding</span></div>
+  <div class="row"><span class="lbl">space-8</span><span class="val">40px</span><div class="bar" style="width:40px"></div><span class="use">modal padding</span></div>
+  <div class="row"><span class="lbl">space-10</span><span class="val">80px</span><div class="bar" style="width:80px"></div><span class="use">empty/loading state</span></div>
+</div>
+</body></html>

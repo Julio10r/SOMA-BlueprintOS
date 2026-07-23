@@ -1,0 +1,88 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Ranking table sortable" subtitle="Headers ordenavéis, perf-badge, delta-tag, detail row expandida" viewport="700x320" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Ranking table sortable</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin-bottom:10px; }
+
+  .card { background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  table { width:100%; border-collapse:collapse; table-layout:fixed; }
+  th {
+    font-family:var(--mono); font-size:9.5px; font-weight:600; text-transform:uppercase;
+    letter-spacing:.06em; color:var(--text-muted);
+    padding:9px 12px; border-bottom:1px solid var(--border);
+    text-align:left; background:#fcfcfd; cursor:pointer;
+  }
+  th.active { color:var(--accent); }
+  th:nth-child(n+4), td:nth-child(n+4) { text-align:right; }
+  td {
+    padding:11px 12px; border-bottom:1px solid var(--border);
+    font-family:var(--font); font-size:12px; vertical-align:middle;
+  }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:#fafafa; }
+  td.num { font-family:var(--mono); font-size:11px; color:var(--text-muted); }
+  td.nm  { font-weight:500; color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  td.area { font-size:10.5px; color:var(--text-muted); margin-top:1px; }
+  td.real { font-family:var(--mono); font-size:13px; font-weight:700; letter-spacing:-0.02em; }
+  td.est  { font-family:var(--mono); font-size:11.5px; color:var(--text-muted); }
+  .delta-tag {
+    display:inline-flex; align-items:center; gap:2px;
+    font-family:var(--mono); font-size:10.5px; font-weight:500;
+    padding:2px 7px; border-radius:100px;
+  }
+  .delta-pos { background:var(--aprovado-bg); color:var(--aprovado); }
+  .delta-neg { background:var(--rejeitado-bg); color:var(--rejeitado); }
+  .perf {
+    display:inline-flex; font-family:var(--mono); font-size:10.5px; font-weight:500;
+    padding:2px 7px; border-radius:100px;
+  }
+  .perf-superou { background:#EAF5EE; color:#1A6B3C; }
+  .perf-dentro  { background:#FEF9EC; color:#B06000; }
+  .perf-abaixo  { background:#FDF2F0; color:var(--rejeitado); }
+
+  /* Detail expand row */
+  tr.detail td { padding:0; background:var(--bg); }
+  .detail-inner {
+    display:grid; grid-template-columns:repeat(4, 1fr);
+    padding:12px 16px; gap:0;
+  }
+  .di-item { display:flex; flex-direction:column; gap:2px; padding:0 16px 0 0; border-right:1px solid var(--border); }
+  .di-item:last-child { border-right:none; }
+  .di-l { font-family:var(--mono); font-size:9.5px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); }
+  .di-v { font-family:var(--mono); font-size:12px; font-weight:600; color:var(--text-primary); }
+
+  .col-num   { width:5%; }
+  .col-name  { width:35%; }
+  .col-perf  { width:14%; }
+  .col-est   { width:14%; }
+  .col-real  { width:14%; }
+  .col-delta { width:18%; }
+  .sort-arr { color:var(--accent); margin-left:3px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Ranking table · headers ordenáveis + linha de detalhe expandida</div>
+  <div class="card">
+    <table>
+      <colgroup><col class="col-num"><col class="col-name"><col class="col-perf"><col class="col-est"><col class="col-real"><col class="col-delta"></colgroup>
+      <thead>
+        <tr><th>#</th><th>Iniciativa</th><th>Performance</th><th>Estimado</th><th class="active">Realizado <span class="sort-arr">↓</span></th><th>Δ vs. estimado</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="num">01</td><td><div class="nm">Previsão de demanda — Hering</div><div class="area">Comercial</div></td><td><span class="perf perf-superou">Superou</span></td><td class="est">R$ 280K</td><td class="real">R$ 313K</td><td><span class="delta-tag delta-pos">+11.8%</span></td></tr>
+        <tr class="detail"><td colspan="6"><div class="detail-inner">
+          <div class="di-item"><span class="di-l">FTE realocado</span><span class="di-v">3.2</span></div>
+          <div class="di-item"><span class="di-l">Início execução</span><span class="di-v">22/03</span></div>
+          <div class="di-item"><span class="di-l">Marca pilot</span><span class="di-v">Hering</span></div>
+          <div class="di-item"><span class="di-l">Sponsor</span><span class="di-v">Maria Silva</span></div>
+        </div></td></tr>
+        <tr><td class="num">02</td><td><div class="nm">Automação de relatórios financeiros</div><div class="area">Financeiro</div></td><td><span class="perf perf-dentro">No prazo</span></td><td class="est">R$ 340K</td><td class="real">R$ 299K</td><td><span class="delta-tag delta-neg">−12.1%</span></td></tr>
+        <tr><td class="num">03</td><td><div class="nm">Integração SAP × E-commerce</div><div class="area">Tecnologia</div></td><td><span class="perf perf-abaixo">Abaixo</span></td><td class="est">R$ 2.4M</td><td class="real">R$ 1.64M</td><td><span class="delta-tag delta-neg">−31.7%</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body></html>

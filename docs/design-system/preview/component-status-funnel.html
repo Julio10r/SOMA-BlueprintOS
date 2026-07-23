@@ -1,0 +1,33 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Status funnel" subtitle="Conversão entre etapas com barras coloridas por status" viewport="700x240" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Status funnel</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:14px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .funnel { display:flex; flex-direction:column; gap:10px; }
+  .step { display:grid; grid-template-columns: 130px 1fr 70px; gap:14px; align-items:center; }
+  .lbl { font-family:var(--font); font-size:12.5px; color:var(--text-primary); font-weight:500; }
+  .bar { height:30px; border-radius:6px; display:flex; align-items:center; padding:0 12px; font-family:var(--mono); font-size:11px; font-weight:600; }
+  .bar.c-novo       { background:var(--novo-bg);      color:var(--novo); }
+  .bar.c-em-atend   { background:var(--avaliacao-bg); color:var(--avaliacao); }
+  .bar.c-em-homolog { background:var(--aguardando-bg); color:var(--aguardando); }
+  .bar.c-concluido  { background:var(--aprovado-bg);  color:var(--aprovado); }
+  .conv { font-family:var(--mono); font-size:10.5px; font-weight:500; color:var(--text-muted); text-align:right; }
+  .conv.drop { color:var(--rejeitado); }
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Status funnel · conversão entre etapas</div>
+  <div class="funnel">
+    <div class="step"><span class="lbl">Novo</span><div class="bar c-novo" style="width:100%">847</div><span class="conv">100%</span></div>
+    <div class="step"><span class="lbl">Em atendimento</span><div class="bar c-em-atend" style="width:83%">703</div><span class="conv">−17%</span></div>
+    <div class="step"><span class="lbl">Em homologação</span><div class="bar c-em-homolog" style="width:54%">458</div><span class="conv drop">−35%</span></div>
+    <div class="step"><span class="lbl">Concluído</span><div class="bar c-concluido" style="width:41%">347</div><span class="conv">−24%</span></div>
+  </div>
+  <p class="note">
+    Grid de 3 colunas: label · barra proporcional (cor do status) · % de conversão à direita. Drops &gt;30% sinalizados em <b>--rejeitado</b> para chamar atenção do leitor.
+  </p>
+</div>
+</body></html>

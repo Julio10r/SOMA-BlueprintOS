@@ -1,0 +1,72 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Hbar comparison (estimado × real)" subtitle="Bar chart com 2 tracks sobrepostos + tooltip dark" viewport="700x380" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Hbar comparison (estimado × real)</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); display:flex; flex-direction:column; gap:10px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin-bottom:2px; }
+
+  .card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:18px 22px; }
+  .ct { font-family:var(--font); font-size:13px; font-weight:500; margin:0 0 3px; }
+  .cs { font-family:var(--font); font-size:11.5px; color:var(--text-muted); font-weight:300; margin:0 0 14px; }
+
+  .legend { display:flex; gap:14px; margin-bottom:12px; }
+  .lg { display:flex; align-items:center; gap:6px; font-family:var(--font); font-size:10.5px; color:var(--text-muted); }
+  .lg .d { width:8px; height:8px; border-radius:2px; }
+  .lg.est .d  { background:var(--border-strong); }
+  .lg.real .d { background:#3F3D38; }
+
+  .chart { display:flex; flex-direction:column; gap:13px; }
+  .row { display:flex; flex-direction:column; gap:4px; }
+  .rh { display:flex; justify-content:space-between; align-items:baseline; }
+  .nm { font-family:var(--font); font-size:12px; color:var(--text-secondary); }
+  .vv { font-family:var(--mono); font-size:11.5px; font-weight:500; font-variant-numeric:tabular-nums; }
+  .tracks { display:flex; flex-direction:column; gap:3px; }
+  .tr { height:6px; background:var(--bg); border-radius:100px; overflow:hidden; }
+  .fl { height:100%; border-radius:100px; }
+  .fl.est  { background:var(--border-strong); }
+  .fl.real { background:#3F3D38; }
+
+  /* Tooltip preview — full-width bar: título à esquerda, valores à direita */
+  .ttp {
+    background:#1A1916; color:#fff;
+    padding:11px 18px; border-radius:8px;
+    font-family:var(--mono); font-size:11px; line-height:1.5;
+    box-shadow:0 4px 16px rgba(0,0,0,0.25);
+    margin-top:6px;
+    display:flex; align-items:center; justify-content:space-between; gap:24px;
+  }
+  .ttp .tl { font-family:var(--font); font-size:12px; color:#fff; font-weight:400; }
+  .ttp .vals { display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .ttp .row { display:grid; grid-template-columns: auto auto; gap:16px; align-items:baseline; }
+  .ttp .lbl { font-family:var(--font); font-size:11px; }
+  .ttp .lbl.e { color:rgba(255,255,255,0.5); }
+  .ttp .lbl.r { color:rgba(255,255,255,0.85); font-weight:500; }
+  .ttp .val { font-family:var(--mono); font-size:11px; text-align:right; }
+  .ttp .val.e { color:rgba(255,255,255,0.65); }
+  .ttp .val.r { color:#fff; font-weight:600; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Hbar comparison · estimado × real, com tooltip</div>
+  <div class="card">
+    <p class="ct">Saving realizado por iniciativa</p>
+    <p class="cs">Comparativo entre projeção e valor efetivamente realizado em 2026.</p>
+    <div class="legend"><span class="lg est"><span class="d"></span>Estimado</span><span class="lg real"><span class="d"></span>Realizado</span></div>
+    <div class="chart">
+      <div class="row"><div class="rh"><span class="nm">Previsão de demanda — Hering</span><span class="vv">112% atingido</span></div><div class="tracks"><div class="tr"><div class="fl est" style="width:75%"></div></div><div class="tr"><div class="fl real" style="width:84%"></div></div></div></div>
+      <div class="row"><div class="rh"><span class="nm">Automação de relatórios financeiros</span><span class="vv">88% atingido</span></div><div class="tracks"><div class="tr"><div class="fl est" style="width:60%"></div></div><div class="tr"><div class="fl real" style="width:53%"></div></div></div></div>
+      <div class="row"><div class="rh"><span class="nm">Integração SAP × E-commerce</span><span class="vv">68% atingido</span></div><div class="tracks"><div class="tr"><div class="fl est" style="width:90%"></div></div><div class="tr"><div class="fl real" style="width:61%"></div></div></div></div>
+      <div class="row"><div class="rh"><span class="nm">Curadoria de imagens via IA</span><span class="vv">42% atingido</span></div><div class="tracks"><div class="tr"><div class="fl est" style="width:50%"></div></div><div class="tr"><div class="fl real" style="width:21%"></div></div></div></div>
+    </div>
+    <div class="ttp">
+      <div class="tl">Hering · previsão de demanda</div>
+      <div class="vals">
+        <div class="row"><span class="lbl e">Estimado</span><span class="val e">R$ 280K</span></div>
+        <div class="row"><span class="lbl r">Realizado</span><span class="val r">R$ 313K</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

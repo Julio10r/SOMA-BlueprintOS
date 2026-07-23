@@ -1,0 +1,72 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Info card colapsável" subtitle="Header mono uppercase + chevron · expand/collapse · 3 variantes de conteúdo" viewport="700x360" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Info card collapsible</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); display:flex; flex-direction:column; gap:10px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin-bottom:2px; }
+
+  .info-card { background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .info-h { display:flex; align-items:center; justify-content:space-between; padding:13px 18px; cursor:pointer; }
+  .info-h:hover { background:var(--bg); }
+  .info-t {
+    font-family:var(--mono); font-size:10.5px; font-weight:500;
+    text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted);
+  }
+  .chev { color:var(--text-muted); transition:transform 200ms ease; }
+  .info-card.open .chev { transform:rotate(180deg); }
+  .info-b { padding:0 18px 16px; }
+  .info-card:not(.open) .info-b { display:none; }
+
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .row { display:flex; flex-direction:column; gap:2px; }
+  .row .l { font-family:var(--font); font-size:11px; color:var(--text-muted); }
+  .row .v { font-family:var(--font); font-size:13px; font-weight:500; color:var(--text-primary); }
+  .row .v.mono { font-family:var(--mono); }
+  .row .v.big { font-family:var(--mono); font-size:20px; font-weight:600; line-height:1; }
+
+  .text {
+    font-family:var(--font); font-size:12.5px; color:var(--text-secondary);
+    line-height:1.65; font-weight:300;
+    background:var(--bg); border-radius:8px; padding:12px 14px;
+  }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Info card colapsável · expand/collapse via chevron</div>
+
+  <div class="info-card open">
+    <div class="info-h">
+      <span class="info-t">Informações gerais</span>
+      <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="info-b">
+      <div class="grid">
+        <div class="row"><span class="l">Área</span><span class="v">Financeiro</span></div>
+        <div class="row"><span class="l">Solicitante</span><span class="v">Maria Silva</span></div>
+        <div class="row"><span class="l">Criada em</span><span class="v">12/04/2026</span></div>
+        <div class="row"><span class="l">FTE estimado</span><span class="v mono">2.5</span></div>
+        <div class="row"><span class="l">Saving anual</span><span class="v big" style="color:var(--aprovado)">R$ 340K</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-h">
+      <span class="info-t">Descrição</span>
+      <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="info-b">
+      <div class="text">Automatizar a consolidação mensal dos relatórios de fechamento contábil das marcas do grupo. Hoje o time gasta ~40h/mês em consolidação manual.</div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-h">
+      <span class="info-t">Histórico</span>
+      <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+</div>
+</body></html>

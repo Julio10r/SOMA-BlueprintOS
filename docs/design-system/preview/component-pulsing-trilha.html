@@ -1,0 +1,75 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Pulsing dot + Trilha banner" subtitle="Trilha agora com ícone colorido pelo tipo de frente (padrão categoria-grid)" viewport="700x260" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Pulsing dot + Trilha banner</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:18px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+
+  /* Pulsing live indicator */
+  .hero-tag {
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:var(--mono); font-size:10px; font-weight:500;
+    letter-spacing:.08em; text-transform:uppercase;
+    color:var(--text-muted); background:#EEECEA;
+    padding:4px 10px; border-radius:100px;
+  }
+  .hero-tag::before {
+    content:""; width:6px; height:6px; border-radius:50%;
+    background:var(--aprovado);
+    animation:pulse 2s ease infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+  /* Trilha banner */
+  .trilha {
+    display:flex; align-items:center; gap:12px;
+    padding:11px 16px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px;
+    font-family:var(--font); font-size:13px;
+  }
+  .trilha-icon {
+    width:32px; height:32px; flex-shrink:0;
+    background:var(--aprovado-bg); color:var(--aprovado);
+    border-radius:8px; display:grid; place-items:center;
+  }
+  .trilha-icon svg { width:16px; height:16px; }
+  .trilha-body { flex:1; min-width:0; }
+  .trilha-nome { font-weight:600; color:var(--text-primary); }
+  .trilha-desc { font-size:12px; color:var(--text-muted); font-weight:300; }
+  .trilha-change {
+    font-size:12px; color:var(--text-muted);
+    cursor:pointer; text-decoration:underline;
+  }
+  .trilha-change:hover { color:var(--text-primary); }
+
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; }
+  .note code { font-family:var(--mono); font-size:11px; color:var(--text-primary); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Live indicator · pulsing dot 2s + trilha ativa banner</div>
+  <div style="display:flex; align-items:center; gap:24px;">
+    <span class="hero-tag">Sistema ativo</span>
+    <span class="hero-tag">Live · 12 demandas hoje</span>
+    <p class="note" style="margin:0;flex:1;">
+      <b>Pulsing dot:</b> opacity 1↔0.4 em 2s ease infinite, dot 6px. Uso restrito a hero-tags que indicam "estado vivo". Não aplicar em badges normais.
+    </p>
+  </div>
+
+  <div class="trilha">
+    <div class="trilha-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
+    </div>
+    <div class="trilha-body">
+      <div class="trilha-nome">Trilha: Geração de receita</div>
+      <div class="trilha-desc">Capturar oportunidade comercial nova · 14 perguntas restantes</div>
+    </div>
+    <span class="trilha-change">Alterar</span>
+  </div>
+  <p class="note">
+    <b>Trilha banner:</b> mostra o caminho ativo num form multi-step, sticky abaixo do step-progress. O ícone segue o padrão das categorias — bg pastel + ícone sólido na cor da frente (aqui <code>--aprovado</code> para "Receita"). Nome bold, sub 12px muted e link "Alterar" sublinhado à direita.
+  </p>
+</div>
+</body></html>

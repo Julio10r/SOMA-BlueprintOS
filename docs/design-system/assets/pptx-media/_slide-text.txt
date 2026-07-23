@@ -1,0 +1,93 @@
+
+=== ppt/slides/slide1.xml ===
+Baixe este arquivo para editá-lo no seu computador. Não edite o slide online. | Essa apresentação foi feita com família Arial, uma fonte do pacote Office |  Priorize as cores oficiais | Cores principais | Cores de apoio | #E8E8E8 | #6EB6E4 | #FFFFFF | #000000 | #274566 | #539193 | #B7A696 | #A0C6ED | #3B80D9 | #7A8FE4
+
+=== ppt/slides/slide2.xml ===
+CAPA DE APRESENTAÇÃO
+
+=== ppt/slides/slide3.xml ===
+Título da apresentação | em 2 linhas aqui | Subtítulo | agosto24
+
+=== ppt/slides/slide4.xml ===
+Título da apresentação | em 2 linhas aqui | Subtítulo
+
+=== ppt/slides/slide5.xml ===
+Título da apresentação | em 2 linhas aqui | Subtítulo
+
+=== ppt/slides/slide6.xml ===
+Título da apresentação | em 2 linhas aqui | Subtítulo | agosto24
+
+=== ppt/slides/slide7.xml ===
+ÍNDICE
+
+=== ppt/slides/slide8.xml ===
+ÍNDICE | 01 |  Nome do capítulo aqui | 02 |  Nome do capítulo aqui | 03 |  Nome do capítulo aqui | 04 |  Nome do capítulo aqui | 05 |  Nome do capítulo aqui
+
+=== ppt/slides/slide9.xml ===
+CAPA DE CAPÍTULO
+
+=== ppt/slides/slide10.xml ===
+01 | CONCEITO DA CAMPANHA
+
+=== ppt/slides/slide11.xml ===
+SUB-CAPÍTULO
+
+=== ppt/slides/slide12.xml ===
+OUTRAS OPÇÕES DE CAMPANHA APRESENTADOS | 01.2
+
+=== ppt/slides/slide13.xml ===
+TEXTO DE ABERTURA  | DE CAPÍTULO
+
+=== ppt/slides/slide14.xml ===
+VISÃO GERAL DA CAMPANHA | A campanha "Elegância Sustentável" da Arezzo é uma celebração da moda consciente e sofisticada. Lançada em 08 de 2025, a campanha visa destacar nosso compromisso com a sustentabilidade sem comprometer o estilo e a elegância.
+
+=== ppt/slides/slide15.xml ===
+BLOCO DE TEXTO 1
+
+=== ppt/slides/slide16.xml ===
+1º FASE DA CAMPANHA  | O principal objetivo da campanha é aumentar a consciência sobre a importância da moda sustentável, engajando nossos clientes e incentivando-os a fazer escolhas mais conscientes.  | Também buscamos expandir nosso mercado, alcançando novos segmentos preocupados com a sustentabilidade, e fortalecer a imagem da Arezzo como uma líder inovadora no setor.   | A campanha "Elegância Sustentável" apresenta uma coleção exclusiva de roupas feitas com materiais reciclados e orgânicos. Cada peça é projetada com elegância e atemporalidade em mente, destacando a habilidade artesanal e nosso compromisso com a qualidade.  | Além da coleção, estamos compartilhando histórias de sustentabilidade através de vídeos e artigos que detalham nosso processo de produção sustentável e as histórias das comunidades impactadas positivamente por nossas práticas responsáveis.
+
+=== ppt/slides/slide17.xml ===
+TEXTO 2 COLUNAS
+
+=== ppt/slides/slide18.xml ===
+O principal objetivo da campanha é aumentar a consciência sobre a importância da moda sustentável, engajando nossos clientes e incentivando-os a fazer escolhas mais conscientes.  | Também buscamos expandir nosso mercado, alcançando novos segmentos preocupados com a sustentabilidade, e fortalecer a imagem da Arezzo como uma líder inovadora no setor.   | A campanha "Elegância Sustentável" apresenta uma coleção exclusiva de roupas feitas com materiais reciclados e orgânicos. Cada peça é projetada com elegância e atemporalidade em mente, destacando a habilidade artesanal e nosso compromisso com a qualidade.  | O principal objetivo da campanha é aumentar a consciência sobre a importância da moda sustentável, engajando nossos clientes e incentivando-os a fazer escolhas mais conscientes.  | Também buscamos expandir nosso mercado, alcançando novos segmentos preocupados com a sustentabilidade, e fortalecer a imagem da Arezzo como uma líder inovadora no setor.   | A campanha "Elegância Sustentável" apresenta uma coleção exclusiva de roupas feitas com materiais reciclados e orgânicos. Cada peça é projetada com elegância e atemporalidade em mente, destacando a habilidade artesanal e nosso compromisso com a qualidade.
+
+=== ppt/slides/slide19.xml ===
+TEXTO + FOTOS
+
+=== ppt/slides/slide20.xml ===
+1º FASE DA CAMPANHA  | O principal objetivo da campanha é aumentar a consciência sobre a importância da moda sustentável, engajando nossos clientes e incentivando-os a fazer escolhas mais conscientes.
+
+=== ppt/slides/slide21.xml ===
+O principal objetivo da campanha é aumentar a consciência sobre a importância da moda sustentável, engajando nossos clientes e incentivando-os a fazer escolhas mais conscientes.  | Também buscamos expandir nosso mercado, alcançando novos segmentos preocupados com a sustentabilidade, e fortalecer a imagem da Arezzo como uma líder inovadora no setor.   | A campanha "Elegância Sustentável" apresenta uma coleção exclusiva de roupas feitas com materiais reciclados e orgânicos. Cada peça é projetada com elegância e atemporalidade em mente, destacando a habilidade artesanal e nosso compromisso com a qualidade. 
+
+=== ppt/slides/slide22.xml ===
+O principal objetivo da campanha é aumentar a consciência sobre a importância da moda sustentável, engajando nossos clientes e incentivando-os a fazer escolhas mais conscientes. | O principal objetivo da campanha é aumentar a consciência sobre a importância da moda sustentável, engajando nossos clientes e incentivando-os a fazer escolhas mais conscientes.
+
+=== ppt/slides/slide23.xml ===
+O principal objetivo da campanha é aumentar a consciência sobre a importância da moda sustentável, engajando nossos clientes e incentivando-os a fazer escolhas mais conscientes.
+
+=== ppt/slides/slide24.xml ===
+
+
+=== ppt/slides/slide25.xml ===
+PÁGINA PARA GRÁFICOS
+
+=== ppt/slides/slide26.xml ===
+DADOS DA CAMPANHA  | LOREM IPSUM DUIS AUTEM  | LOREM IPSUM DUIS AUTEM  | Categoria | Categoria | Categoria | Categoria | Categoria | Categoria | Categoria | Categoria
+
+=== ppt/slides/slide27.xml ===
+TEXTO SOBRE FOTO
+
+=== ppt/slides/slide28.xml ===
+VISÃO GERAL DA CAMPANHA | A campanha "Elegância Sustentável" da Arezzo é uma celebração da moda consciente e sofisticada. Lançada em 08 de 2025, a campanha visa destacar nosso compromisso com a sustentabilidade sem comprometer o estilo e a elegância.
+
+=== ppt/slides/slide29.xml ===
+VISÃO GERAL DA CAMPANHA | A campanha "Elegância Sustentável" da Arezzo é uma celebração da moda consciente e sofisticada. Lançada em 08 de 2025, a campanha visa destacar nosso compromisso com a sustentabilidade sem comprometer o estilo e a elegância.
+
+=== ppt/slides/slide30.xml ===
+ENCERRAMENTO
+
+=== ppt/slides/slide31.xml ===
+OBRIGADO

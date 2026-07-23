@@ -1,0 +1,50 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Filters & search" subtitle="Filter pills + search box pill" viewport="700x180" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Filters & search</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:12px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+  .pill {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:7px 14px; border-radius:100px;
+    font-family:var(--font); font-size:13px; color:#6B6860;
+    border:1px solid #E2E0DB; background:#fff;
+    cursor:pointer; transition:all 150ms ease;
+  }
+  .pill:hover { border-color:#C8C5BE; color:#1A1916; }
+  .pill.active { background:#1A1916; border-color:#1A1916; color:#fff; font-weight:500; }
+  .pill .count {
+    font-family:var(--mono); font-size:11px; color:#9B9890;
+  }
+  .pill.active .count { color:rgba(255,255,255,.7); }
+
+  .search {
+    display:inline-flex; align-items:center; gap:8px;
+    background:#fff; border:1px solid #E2E0DB; border-radius:100px;
+    padding:7px 14px; margin-left:auto; min-width:220px;
+  }
+  .search input { border:none; outline:none; font-family:var(--font); font-size:13px; background:transparent; flex:1; }
+  .search input::placeholder { color:#9B9890; }
+  svg { width:14px; height:14px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Filter pills + search</div>
+  <div class="row">
+    <button class="pill active">Todos <span class="count">42</span></button>
+    <button class="pill">Novos <span class="count">12</span></button>
+    <button class="pill">Em Avaliação <span class="count">18</span></button>
+    <button class="pill">Aprovados <span class="count">24</span></button>
+    <button class="pill">Rejeitados <span class="count">6</span></button>
+  </div>
+  <div class="row">
+    <button class="pill" style="border-style:dashed;color:#9B9890">+ Adicionar filtro</button>
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#9B9890" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      <input placeholder="Buscar demanda, ID ou solicitante...">
+    </div>
+  </div>
+</div>
+</body></html>
