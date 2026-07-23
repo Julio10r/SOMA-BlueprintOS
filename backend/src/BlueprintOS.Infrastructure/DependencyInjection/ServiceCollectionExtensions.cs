@@ -9,8 +9,15 @@ using BlueprintOS.Core.AI.Negotiation.Models;
 using BlueprintOS.Core.AI.Negotiation.Rules;
 using BlueprintOS.Core.Agents;
 using BlueprintOS.Core.Documentation.Contracts;
+using BlueprintOS.Core.Documentation.Contracts.Client;
+using BlueprintOS.Core.Documentation.Contracts.Engineering;
+using BlueprintOS.Core.Documentation.Contracts.Executive;
 using BlueprintOS.Core.Knowledge.Contracts;
 using BlueprintOS.Infrastructure.Documentation;
+using BlueprintOS.Infrastructure.Documentation.Generators.Client;
+using BlueprintOS.Infrastructure.Documentation.Generators.Engineering;
+using BlueprintOS.Infrastructure.Documentation.Generators.Executive;
+using BlueprintOS.Infrastructure.Documentation.Publishing;
 using BlueprintOS.Infrastructure.Integrations.OpenAI;
 using BlueprintOS.Infrastructure.Knowledge;
 using BlueprintOS.Infrastructure.Memory;
@@ -77,6 +84,34 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IStaleDocumentationDetector, StaleDocumentationDetector>();
         services.AddSingleton<IGitLogReader, GitCliDocumentationService>();
         services.AddSingleton<IDocumentationMemoryNotifier, NoOpDocumentationMemoryNotifier>();
+
+        // Portal de Documentação Viva (Sprint A8)
+        services.AddSingleton<IDocumentPublisher, MarkdownPublisher>();
+        services.AddSingleton<DocumentationPublisher>();
+
+        services.AddSingleton<IDashboardGenerator, DashboardGenerator>();
+        services.AddSingleton<IKpiGenerator, KpiGenerator>();
+        services.AddSingleton<IRoadmapGenerator, RoadmapGenerator>();
+        services.AddSingleton<ISprintStatusGenerator, SprintStatusGenerator>();
+        services.AddSingleton<IReleaseGenerator, ReleaseGenerator>();
+
+        services.AddSingleton<IProductOverviewGenerator, ProductOverviewGenerator>();
+        services.AddSingleton<IUserGuideGenerator, UserGuideGenerator>();
+        services.AddSingleton<IFunctionalGuideGenerator, FunctionalGuideGenerator>();
+        services.AddSingleton<IApiDocumentationGenerator, ApiDocumentationGenerator>();
+        services.AddSingleton<IChangelogGenerator, ChangelogGenerator>();
+        services.AddSingleton<IFaqGenerator, FaqGenerator>();
+
+        services.AddSingleton<IArchitectureGenerator, ArchitectureGenerator>();
+        services.AddSingleton<IDatabaseGenerator, DatabaseGenerator>();
+        services.AddSingleton<IAgentsGenerator, AgentsGenerator>();
+        services.AddSingleton<IApiGenerator, ApiGenerator>();
+        services.AddSingleton<IDeployGenerator, DeployGenerator>();
+        services.AddSingleton<IRunbookGenerator, RunbookGenerator>();
+        services.AddSingleton<IMermaidGenerator, MermaidGenerator>();
+        services.AddSingleton<IDecisionsGenerator, DecisionsGenerator>();
+
+        services.AddSingleton<IDocumentationPublishService, DocumentationPublishService>();
 
         return services;
     }

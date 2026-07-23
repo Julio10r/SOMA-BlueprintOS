@@ -1,4 +1,12 @@
-# ROADMAP.md
+# Roadmap
+
+> Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
+
+- **Versão:** 1.0.0
+- **Gerado em:** 2026-07-23 03:43:24 UTC
+- **Última atualização:** 2026-07-23
+
+---
 
 > Roadmap de alto nível do SOMA BlueprintOS, por fases. Não descreve sprints — para detalhe de sprint atual, ver [CURRENT_SPRINT.md](./CURRENT_SPRINT.md); para histórico de sprints concluídas, ver `.ai/memory/completed_sprints.md`.
 

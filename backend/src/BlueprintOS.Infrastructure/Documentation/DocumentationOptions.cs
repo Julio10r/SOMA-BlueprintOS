@@ -15,4 +15,21 @@ public sealed class DocumentationOptions
     /// Diretório, relativo ou absoluto, onde os arquivos Markdown de ADR são armazenados.
     /// </summary>
     public string AdrDirectoryPath { get; set; } = "docs/adr";
+
+    /// <summary>
+    /// Diretório raiz, relativo ou absoluto, onde o portal de documentação viva publica os
+    /// documentos Markdown gerados (executivo, cliente e engenharia).
+    /// </summary>
+    public string DocsRootPath { get; set; } = "docs";
+
+    /// <summary>
+    /// Diretório raiz, relativo ou absoluto, do Engineering Handbook da AI Factory
+    /// (<c>.ai/</c>), utilizado como fonte real de dados pelos geradores executivos.
+    /// </summary>
+    public string AiRootPath { get; set; } = ".ai";
+
+    /// <summary>
+    /// Versão do projeto exibida no cabeçalho dos documentos publicados.
+    /// </summary>
+    public string ProjectVersion { get; set; } = "1.0.0";
 }
