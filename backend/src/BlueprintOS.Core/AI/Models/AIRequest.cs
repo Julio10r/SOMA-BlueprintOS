@@ -11,4 +11,16 @@ public sealed record AIRequest(
     AIModel Model,
     IReadOnlyList<ChatMessage> Messages,
     AIOptions? Options = null,
-    IReadOnlyList<ToolDefinition>? Tools = null);
+    IReadOnlyList<ToolDefinition>? Tools = null)
+{
+    private static readonly AIModel DefaultModel = new("gpt-4o-mini", "openai");
+
+    /// <summary>
+    /// Cria uma requisição simples a partir de um prompt de usuário, utilizando o modelo padrão do runtime.
+    /// </summary>
+    /// <param name="prompt">Texto enviado como mensagem de usuário.</param>
+    public AIRequest(string prompt)
+        : this(DefaultModel, new[] { new ChatMessage(ChatRole.User, prompt) })
+    {
+    }
+}

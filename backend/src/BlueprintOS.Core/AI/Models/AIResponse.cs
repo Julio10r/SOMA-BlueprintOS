@@ -11,4 +11,10 @@ public sealed record AIResponse(
     ChatMessage Message,
     TokenUsage Usage,
     AIExecutionMetrics Metrics,
-    string? FinishReason = null);
+    string? FinishReason = null)
+{
+    /// <summary>
+    /// Atalho para o conteúdo textual da mensagem gerada pelo modelo.
+    /// </summary>
+    public string Text => Message.Content;
+}
