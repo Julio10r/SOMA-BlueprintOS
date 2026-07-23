@@ -1,23 +1,22 @@
 using System.Text;
 using BlueprintOS.Core.Publication.Models;
+using BlueprintOS.Core.Publication.Models.Assets;
 using BlueprintOS.Infrastructure.Publication.Rendering;
 
 namespace BlueprintOS.UnitTests.Infrastructure.Publication.Rendering;
 
 public class MarkdownRendererTests
 {
-    private static PublicationDocument CreateDocument() => new(
-        Slug: "ExecutiveReport",
-        Title: "Relatório Executivo",
-        Subtitle: "Subtítulo de teste",
-        Category: "executive",
-        Sections: new List<PublicationSection>
+    private static PublicationDocument CreateDocument() => PublicationDocumentTestBuilder.Create(
+        slug: "ExecutiveReport",
+        title: "Relatório Executivo",
+        subtitle: "Subtítulo de teste",
+        category: "executive",
+        sections: new List<PublicationSection>
         {
             new("Resumo Executivo", new[] { ContentBlock.Paragraph("Corpo do resumo.") }),
             new("Roadmap", new[] { ContentBlock.Paragraph("Corpo do roadmap.") }),
-        },
-        ProjectVersion: "1.0.0",
-        GeneratedAt: new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        });
 
     [Fact]
     public void Format_Should_Be_Markdown()
@@ -41,6 +40,34 @@ public class MarkdownRendererTests
         Assert.Contains("[Resumo Executivo](#resumo-executivo)", content, StringComparison.Ordinal);
         Assert.Contains("Corpo do resumo.", content, StringComparison.Ordinal);
         Assert.Contains("Corpo do roadmap.", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task RenderAsync_Should_Include_Badges_Appendix_And_Attachments_When_Present()
+    {
+        var attachment = new AttachmentAsset("att-1", "planilha.xlsx", new byte[] { 1 }, "application/octet-stream", "Planilha de apoio");
+        var document = PublicationDocumentTestBuilder.Create(
+            slug: "ExecutiveReport",
+            title: "Relatório Executivo",
+            subtitle: "Subtítulo de teste",
+            category: "executive",
+            sections: new List<PublicationSection> { new("Resumo Executivo", new[] { ContentBlock.Paragraph("Corpo.") }) },
+            assets: PublicationAssets.Empty with
+            {
+                Badges = new[] { new BadgeAsset("badge-build", "Build", "passing", BadgeStatus.Success) },
+                Attachments = new[] { attachment },
+            },
+            appendix: new[] { new PublicationSection("Glossário", new[] { ContentBlock.Paragraph("Termo: definição.") }) });
+
+        var renderer = new MarkdownRenderer();
+        var bytes = await renderer.RenderAsync(document);
+        var content = Encoding.UTF8.GetString(bytes);
+
+        Assert.Contains("`Build: passing`", content, StringComparison.Ordinal);
+        Assert.Contains("## Apêndice", content, StringComparison.Ordinal);
+        Assert.Contains("### Glossário", content, StringComparison.Ordinal);
+        Assert.Contains("## Anexos", content, StringComparison.Ordinal);
+        Assert.Contains("[planilha.xlsx](./attachments/planilha.xlsx) — Planilha de apoio", content, StringComparison.Ordinal);
     }
 
     [Theory]

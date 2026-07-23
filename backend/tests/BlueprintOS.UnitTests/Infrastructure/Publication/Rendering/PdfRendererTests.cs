@@ -5,12 +5,12 @@ namespace BlueprintOS.UnitTests.Infrastructure.Publication.Rendering;
 
 public class PdfRendererTests
 {
-    private static PublicationDocument CreateDocument() => new(
-        Slug: "EngineeringGuide",
-        Title: "Guia de Engenharia",
-        Subtitle: "Documento de teste",
-        Category: "engineering",
-        Sections: new List<PublicationSection>
+    private static PublicationDocument CreateDocument() => PublicationDocumentTestBuilder.Create(
+        slug: "EngineeringGuide",
+        title: "Guia de Engenharia",
+        subtitle: "Documento de teste",
+        category: "engineering",
+        sections: new List<PublicationSection>
         {
             new("Arquitetura", new[]
             {
@@ -18,9 +18,7 @@ public class PdfRendererTests
                 ContentBlock.BulletList(new[] { "item a", "item b" }),
                 ContentBlock.Table(new[] { "Coluna", "Valor" }, new IReadOnlyList<string>[] { new[] { "A", "1" } }),
             }),
-        },
-        ProjectVersion: "1.0.0",
-        GeneratedAt: new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        });
 
     [Fact]
     public void Format_Should_Be_Pdf()

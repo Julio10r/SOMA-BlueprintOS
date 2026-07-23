@@ -82,14 +82,22 @@ public sealed class EngineeringPublisher : IReportPublisher
             ReportPublishingHelper.BuildSection("Observabilidade e Testes (Runbook)", await _runbookGenerator.GenerateAsync(cancellationToken)),
         };
 
+        var metadata = PublicationMetadata.Create(
+            title: "Guia de Engenharia — BlueprintOS",
+            subtitle: "Documentação técnica completa: arquitetura, estrutura, APIs, dados e operação",
+            audience: "Equipe de Engenharia",
+            version: _projectVersion,
+            generatedAt: DateTimeOffset.UtcNow,
+            tags: new[] { "engenharia", "arquitetura", "técnico" });
+
         var document = new PublicationDocument(
             Slug: "EngineeringGuide",
-            Title: "Guia de Engenharia — BlueprintOS",
-            Subtitle: "Documentação técnica completa: arquitetura, estrutura, APIs, dados e operação",
             Category: Category,
+            Metadata: metadata,
             Sections: sections,
-            ProjectVersion: _projectVersion,
-            GeneratedAt: DateTimeOffset.UtcNow);
+            Assets: PublicationAssets.Empty,
+            Appendix: Array.Empty<PublicationSection>(),
+            Theme: PublicationTheme.ForEngineering());
 
         return await ReportPublishingHelper.WriteAllFormatsAsync(document, Category, _distRootPath, _renderers, cancellationToken);
     }

@@ -69,14 +69,22 @@ public sealed class ClientPublisher : IReportPublisher
             ReportPublishingHelper.BuildSection("Changelog", await _changelogGenerator.GenerateAsync(cancellationToken)),
         };
 
+        var metadata = PublicationMetadata.Create(
+            title: "Guia do Cliente — BlueprintOS",
+            subtitle: "Visão geral do produto, funcionalidades e roadmap para clientes",
+            audience: "Clientes",
+            version: _projectVersion,
+            generatedAt: DateTimeOffset.UtcNow,
+            tags: new[] { "cliente", "produto", "guia" });
+
         var document = new PublicationDocument(
             Slug: "ClientGuide",
-            Title: "Guia do Cliente — BlueprintOS",
-            Subtitle: "Visão geral do produto, funcionalidades e roadmap para clientes",
             Category: Category,
+            Metadata: metadata,
             Sections: sections,
-            ProjectVersion: _projectVersion,
-            GeneratedAt: DateTimeOffset.UtcNow);
+            Assets: PublicationAssets.Empty,
+            Appendix: Array.Empty<PublicationSection>(),
+            Theme: PublicationTheme.ForClient());
 
         return await ReportPublishingHelper.WriteAllFormatsAsync(document, Category, _distRootPath, _renderers, cancellationToken);
     }

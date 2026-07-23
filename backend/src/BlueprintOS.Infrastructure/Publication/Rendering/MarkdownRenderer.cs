@@ -7,9 +7,10 @@ namespace BlueprintOS.Infrastructure.Publication.Rendering;
 /// <summary>
 /// Implementação de <see cref="IContentRenderer"/> que serializa o modelo comum
 /// (<see cref="PublicationDocument"/>/<see cref="ContentBlock"/>) de volta para Markdown puro,
-/// para versionamento no Git: capa textual, sumário com âncoras e as seções na ordem recebida.
-/// Não reprocessa texto — apenas emite cada <see cref="ContentBlock"/> em sua forma Markdown
-/// equivalente, o mesmo modelo consumido pelos demais formatos.
+/// para versionamento no Git: capa textual, metadados, selos, sumário com âncoras, seções,
+/// apêndice e imagens (embutidas como data URI). Não reprocessa texto — apenas emite cada
+/// <see cref="ContentBlock"/> em sua forma Markdown equivalente, o mesmo modelo consumido
+/// pelos demais formatos.
 /// </summary>
 public sealed class MarkdownRenderer : IContentRenderer
 {
@@ -20,12 +21,25 @@ public sealed class MarkdownRenderer : IContentRenderer
     public Task<byte[]> RenderAsync(PublicationDocument document, CancellationToken cancellationToken = default)
     {
         var builder = new StringBuilder();
+        var metadata = document.Metadata;
 
-        builder.AppendLine($"# {document.Title}");
+        builder.AppendLine($"# {metadata.Title}");
         builder.AppendLine();
-        builder.AppendLine($"_{document.Subtitle}_");
+        builder.AppendLine($"_{metadata.Subtitle}_");
         builder.AppendLine();
-        builder.AppendLine($"**Versão:** {document.ProjectVersion} · **Gerado em:** {document.GeneratedAt:yyyy-MM-dd HH:mm} UTC");
+        builder.AppendLine($"**Público-alvo:** {metadata.Audience} · **Versão:** {metadata.Version} · **Gerado em:** {metadata.GeneratedAt:yyyy-MM-dd HH:mm} UTC");
+        builder.AppendLine($"**Autor:** {metadata.Author} · **Empresa:** {metadata.Company} · **Classificação:** {metadata.Classification}");
+        if (metadata.Tags.Count > 0)
+        {
+            builder.AppendLine($"**Tags:** {string.Join(", ", metadata.Tags)}");
+        }
+
+        if (document.Assets.Badges.Count > 0)
+        {
+            builder.AppendLine();
+            builder.AppendLine(string.Join(" &nbsp;·&nbsp; ", document.Assets.Badges.Select(b => $"`{b.Label}: {b.Value}`")));
+        }
+
         builder.AppendLine();
         builder.AppendLine("---");
         builder.AppendLine();
@@ -45,13 +59,42 @@ public sealed class MarkdownRenderer : IContentRenderer
             builder.AppendLine($"<a id=\"{Slugify(section.Heading)}\"></a>");
             builder.AppendLine($"## {section.Heading}");
             builder.AppendLine();
-            AppendBlocks(builder, section.Blocks);
+            AppendBlocks(builder, section.Blocks, document.Assets);
+        }
+
+        if (document.Appendix.Count > 0)
+        {
+            builder.AppendLine();
+            builder.AppendLine("---");
+            builder.AppendLine();
+            builder.AppendLine("## Apêndice");
+
+            foreach (var section in document.Appendix)
+            {
+                builder.AppendLine();
+                builder.AppendLine($"### {section.Heading}");
+                builder.AppendLine();
+                AppendBlocks(builder, section.Blocks, document.Assets);
+            }
+        }
+
+        if (document.Assets.Attachments.Count > 0)
+        {
+            builder.AppendLine();
+            builder.AppendLine("---");
+            builder.AppendLine();
+            builder.AppendLine("## Anexos");
+            builder.AppendLine();
+            foreach (var attachment in document.Assets.Attachments)
+            {
+                builder.AppendLine($"- [{attachment.FileName}](./attachments/{attachment.FileName}) — {attachment.Description}");
+            }
         }
 
         return Task.FromResult(Encoding.UTF8.GetBytes(builder.ToString()));
     }
 
-    private static void AppendBlocks(StringBuilder builder, IReadOnlyList<ContentBlock> blocks)
+    private static void AppendBlocks(StringBuilder builder, IReadOnlyList<ContentBlock> blocks, PublicationAssets assets)
     {
         foreach (var block in blocks)
         {
@@ -82,6 +125,12 @@ public sealed class MarkdownRenderer : IContentRenderer
                         builder.AppendLine($"| {string.Join(" | ", row)} |");
                     }
 
+                    if (!string.IsNullOrEmpty(block.Caption))
+                    {
+                        builder.AppendLine();
+                        builder.AppendLine($"_{block.Caption}_");
+                    }
+
                     builder.AppendLine();
                     break;
                 case ContentBlockKind.CodeBlock:
@@ -89,6 +138,22 @@ public sealed class MarkdownRenderer : IContentRenderer
                     builder.AppendLine(block.Text);
                     builder.AppendLine("```");
                     builder.AppendLine();
+                    break;
+                case ContentBlockKind.Image:
+                    var image = block.AssetId is not null ? assets.FindEmbeddableImage(block.AssetId) : null;
+                    if (image is not null)
+                    {
+                        var (bytes, mediaType, altText) = image.Value;
+                        builder.AppendLine($"![{altText}](data:{mediaType};base64,{Convert.ToBase64String(bytes)})");
+                        if (!string.IsNullOrEmpty(block.Caption))
+                        {
+                            builder.AppendLine();
+                            builder.AppendLine($"_{block.Caption}_");
+                        }
+
+                        builder.AppendLine();
+                    }
+
                     break;
             }
         }

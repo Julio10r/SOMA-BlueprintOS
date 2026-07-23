@@ -17,14 +17,13 @@ public class ReportPublishingHelperTests
             Task.FromResult(Encoding.UTF8.GetBytes($"{Format}:{document.Slug}"));
     }
 
-    private static PublicationDocument CreateDocument() => new(
-        Slug: "ExecutiveReport",
-        Title: "Título",
-        Subtitle: "Subtítulo",
-        Category: "executive",
-        Sections: Array.Empty<PublicationSection>(),
-        ProjectVersion: "1.0.0",
-        GeneratedAt: DateTimeOffset.UtcNow);
+    private static PublicationDocument CreateDocument(PublicationAssets? assets = null) => PublicationDocumentTestBuilder.Create(
+        slug: "ExecutiveReport",
+        title: "Título",
+        subtitle: "Subtítulo",
+        category: "executive",
+        sections: Array.Empty<PublicationSection>(),
+        assets: assets);
 
     [Fact]
     public async Task WriteAllFormatsAsync_Should_Write_One_File_Per_Renderer_With_Correct_Extension()
@@ -47,6 +46,34 @@ public class ReportPublishingHelperTests
             Assert.True(File.Exists(Path.Combine(distRoot, "executive", "ExecutiveReport.html")));
             Assert.True(File.Exists(Path.Combine(distRoot, "executive", "ExecutiveReport.pdf")));
             Assert.Contains(artifacts, a => a.Format == PublicationFormat.Markdown && a.RelativePath == Path.Combine("executive", "ExecutiveReport.md"));
+        }
+        finally
+        {
+            if (Directory.Exists(distRoot))
+            {
+                Directory.Delete(distRoot, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task WriteAllFormatsAsync_Should_Copy_Attachments_Once_Regardless_Of_Renderer_Count()
+    {
+        var distRoot = Path.Combine(Path.GetTempPath(), $"publication-engine-tests-{Guid.NewGuid():N}");
+        try
+        {
+            var attachment = new BlueprintOS.Core.Publication.Models.Assets.AttachmentAsset(
+                "att-1", "notes.txt", Encoding.UTF8.GetBytes("conteúdo real"), "text/plain", "Notas de exemplo");
+            var assets = PublicationAssets.Empty with { Attachments = new[] { attachment } };
+
+            var renderers = new IContentRenderer[] { new FakeRenderer(PublicationFormat.Markdown) };
+
+            await ReportPublishingHelper.WriteAllFormatsAsync(
+                CreateDocument(assets), "executive", distRoot, renderers, CancellationToken.None);
+
+            var attachmentPath = Path.Combine(distRoot, "executive", "attachments", "notes.txt");
+            Assert.True(File.Exists(attachmentPath));
+            Assert.Equal("conteúdo real", await File.ReadAllTextAsync(attachmentPath));
         }
         finally
         {

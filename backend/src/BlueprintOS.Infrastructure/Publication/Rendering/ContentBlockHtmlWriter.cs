@@ -13,7 +13,7 @@ namespace BlueprintOS.Infrastructure.Publication.Rendering;
 /// </summary>
 internal static class ContentBlockHtmlWriter
 {
-    public static void Write(StringBuilder builder, IReadOnlyList<ContentBlock> blocks)
+    public static void Write(StringBuilder builder, IReadOnlyList<ContentBlock> blocks, PublicationAssets assets)
     {
         foreach (var block in blocks)
         {
@@ -61,6 +61,22 @@ internal static class ContentBlockHtmlWriter
                     break;
                 case ContentBlockKind.CodeBlock:
                     builder.AppendLine($"<pre><code>{WebUtility.HtmlEncode(block.Text ?? string.Empty)}</code></pre>");
+                    break;
+                case ContentBlockKind.Image:
+                    var image = block.AssetId is not null ? assets.FindEmbeddableImage(block.AssetId) : null;
+                    if (image is not null)
+                    {
+                        var (bytes, mediaType, altText) = image.Value;
+                        builder.AppendLine("<figure>");
+                        builder.AppendLine($"<img src=\"data:{mediaType};base64,{Convert.ToBase64String(bytes)}\" alt=\"{WebUtility.HtmlEncode(altText)}\" />");
+                        if (!string.IsNullOrEmpty(block.Caption))
+                        {
+                            builder.AppendLine($"<figcaption>{WriteInline(block.Caption)}</figcaption>");
+                        }
+
+                        builder.AppendLine("</figure>");
+                    }
+
                     break;
             }
         }

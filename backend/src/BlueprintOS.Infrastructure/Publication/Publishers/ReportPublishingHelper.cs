@@ -49,6 +49,34 @@ internal static class ReportPublishingHelper
             artifacts.Add(new PublishedArtifact(renderer.Format, relativePath, filePath));
         }
 
+        await WriteAttachmentsAsync(document, category, distRootPath, cancellationToken);
+
         return artifacts;
+    }
+
+    /// <summary>
+    /// Copia os anexos do documento (se houver) para <c>dist/{Category}/attachments/</c>, uma
+    /// única vez por documento (não por formato) — todos os renderizadores apenas referenciam
+    /// esse caminho relativo por link, em vez de embuti-los inline.
+    /// </summary>
+    private static async Task WriteAttachmentsAsync(
+        PublicationDocument document,
+        string category,
+        string distRootPath,
+        CancellationToken cancellationToken)
+    {
+        if (document.Assets.Attachments.Count == 0)
+        {
+            return;
+        }
+
+        var attachmentsDirectory = Path.Combine(distRootPath, category, "attachments");
+        Directory.CreateDirectory(attachmentsDirectory);
+
+        foreach (var attachment in document.Assets.Attachments)
+        {
+            var filePath = Path.Combine(attachmentsDirectory, attachment.FileName);
+            await File.WriteAllBytesAsync(filePath, attachment.Bytes, cancellationToken);
+        }
     }
 }

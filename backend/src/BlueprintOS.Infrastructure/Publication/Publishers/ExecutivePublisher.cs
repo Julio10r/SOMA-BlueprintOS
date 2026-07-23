@@ -4,7 +4,9 @@ using BlueprintOS.Core.Documentation.Contracts.Executive;
 using BlueprintOS.Core.Documentation.Contracts.Engineering;
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Core.Publication.Models;
+using BlueprintOS.Core.Publication.Models.Assets;
 using BlueprintOS.Infrastructure.Documentation;
+using BlueprintOS.Infrastructure.Publication.Content;
 using Microsoft.Extensions.Options;
 
 namespace BlueprintOS.Infrastructure.Publication.Publishers;
@@ -12,12 +14,15 @@ namespace BlueprintOS.Infrastructure.Publication.Publishers;
 /// <summary>
 /// Implementação de <see cref="IReportPublisher"/> para o Relatório Executivo
 /// (<c>dist/executive/ExecutiveReport.*</c>): reaproveita os geradores executivos e de
-/// engenharia já existentes do Portal de Documentação Viva, e acrescenta indicadores reais de
-/// build/testes (via <see cref="IQualityMetricsProvider"/>) e dívidas técnicas/próximos passos
-/// extraídos diretamente de <c>.ai/memory/known_issues.md</c> e <c>.ai/ROADMAP.md</c>.
+/// engenharia já existentes do Portal de Documentação Viva, acrescenta indicadores reais de
+/// build/testes (via <see cref="IQualityMetricsProvider"/>) exibidos como selos na capa, um QR
+/// Code apontando para o repositório real, e dívidas técnicas/próximos passos extraídos
+/// diretamente de <c>.ai/memory/known_issues.md</c> e <c>.ai/ROADMAP.md</c>.
 /// </summary>
 public sealed class ExecutivePublisher : IReportPublisher
 {
+    private const string RepositoryUrl = "https://github.com/Julio10r/SOMA-BlueprintOS";
+
     private static readonly Regex PendingPhasePattern =
         new(@"^##\s+(Fase .+\(status:\s*(?!concluíd).+\))$", RegexOptions.Multiline | RegexOptions.IgnoreCase);
 
@@ -62,6 +67,7 @@ public sealed class ExecutivePublisher : IReportPublisher
     public async Task<IReadOnlyList<PublishedArtifact>> PublishAsync(CancellationToken cancellationToken = default)
     {
         var metrics = await _qualityMetricsProvider.GetMetricsAsync(cancellationToken);
+        var generatedAt = DateTimeOffset.UtcNow;
 
         var sections = new List<PublicationSection>
         {
@@ -75,16 +81,67 @@ public sealed class ExecutivePublisher : IReportPublisher
             ReportPublishingHelper.BuildSection("Próximos Passos", await BuildNextStepsSectionAsync(cancellationToken)),
         };
 
+        var metadata = PublicationMetadata.Create(
+            title: "Relatório Executivo — BlueprintOS",
+            subtitle: "Visão consolidada de status, build e roadmap para apresentação à diretoria",
+            audience: "Diretoria",
+            version: _projectVersion,
+            generatedAt: generatedAt,
+            tags: new[] { "executivo", "status", "build" });
+
         var document = new PublicationDocument(
             Slug: "ExecutiveReport",
-            Title: "Relatório Executivo — BlueprintOS",
-            Subtitle: "Visão consolidada de status, build e roadmap para apresentação à diretoria",
             Category: Category,
+            Metadata: metadata,
             Sections: sections,
-            ProjectVersion: _projectVersion,
-            GeneratedAt: DateTimeOffset.UtcNow);
+            Assets: BuildAssets(metrics),
+            Appendix: BuildAppendix(metadata),
+            Theme: PublicationTheme.ForExecutive());
 
         return await ReportPublishingHelper.WriteAllFormatsAsync(document, Category, _distRootPath, _renderers, cancellationToken);
+    }
+
+    private static PublicationAssets BuildAssets(QualityMetrics metrics)
+    {
+        var badges = new List<BadgeAsset>
+        {
+            new(
+                "badge-build",
+                "Build",
+                metrics.BuildSucceeded ? "passing" : "failing",
+                metrics.BuildSucceeded ? BadgeStatus.Success : BadgeStatus.Failure),
+            new(
+                "badge-tests",
+                "Testes",
+                metrics.TestCount.ToString(),
+                metrics.TestCount > 0 ? BadgeStatus.Success : BadgeStatus.Neutral),
+            new(
+                "badge-warnings",
+                "Warnings",
+                metrics.WarningCount.ToString(),
+                metrics.WarningCount == 0 ? BadgeStatus.Success : BadgeStatus.Warning),
+        };
+
+        var qrCode = new QrCodeAsset(
+            "qr-repository",
+            RepositoryUrl,
+            "Repositório no GitHub",
+            QrCodeImageGenerator.GeneratePng(RepositoryUrl));
+
+        return PublicationAssets.Empty with { Badges = badges, QrCodes = new[] { qrCode } };
+    }
+
+    private static IReadOnlyList<PublicationSection> BuildAppendix(PublicationMetadata metadata)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("| Versão | Data | Autor | Resumo |");
+        builder.AppendLine("|---|---|---|---|");
+        foreach (var revision in metadata.RevisionHistory)
+        {
+            builder.AppendLine($"| {revision.Version} | {revision.Date:yyyy-MM-dd} | {revision.Author} | {revision.Summary} |");
+        }
+
+        return new[] { ReportPublishingHelper.BuildSection("Histórico de Versões", builder.ToString()) };
     }
 
     private static string BuildProjectStatusSection(QualityMetrics metrics)
