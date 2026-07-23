@@ -145,6 +145,7 @@ SOMA-BlueprintOS
 │   ├── diagrams/
 │   ├── engineering/
 │   │   ├── Mermaid/
+│   │   ├── .DS_Store
 │   │   ├── Agents.md
 │   │   ├── APIs.md
 │   │   ├── Architecture.md
@@ -162,26 +163,7 @@ SOMA-BlueprintOS
 │   │   ├── Roadmap.md
 │   │   └── SprintStatus.md
 │   ├── presentations/
-│   │   ├── Engineering Handbook Design Mapping.md
-│   │   ├── Engineering Handbook QA.md
-│   │   ├── Engineering Handbook Storyboard.md
-│   │   ├── Engineering Handbook.md
-│   │   ├── Engineering Handbook.pdf
-│   │   ├── Engineering Handbook.pptx
-│   │   ├── Executive Report Design Mapping.md
-│   │   ├── Executive Report QA.md
-│   │   ├── Executive Report Storyboard.md
-│   │   ├── Executive Report.md
-│   │   ├── Executive Report.pdf
-│   │   ├── Executive Report.pptx
-│   │   ├── Executive Review.md
-│   │   ├── Product Blueprint Design Mapping.md
-│   │   ├── Product Blueprint QA.md
-│   │   ├── Product Blueprint Storyboard.md
-│   │   ├── Product Blueprint.md
-│   │   ├── Product Blueprint.pdf
-│   │   ├── Product Blueprint.pptx
-│   │   └── Template Master.pptx
+│   │   └── .DS_Store
 │   ├── sprints/
 │   ├── templates/
 │   │   ├── ADR.md
@@ -225,6 +207,7 @@ SOMA-BlueprintOS
 ├── .env.example
 ├── .gitattributes
 ├── .gitignore
+├── CHANGELOG.md
 ├── LICENSE
 ├── Makefile
 └── README.md

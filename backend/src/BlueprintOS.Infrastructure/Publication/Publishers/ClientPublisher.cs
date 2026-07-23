@@ -19,6 +19,7 @@ public sealed class ClientPublisher : IReportPublisher
     private readonly IFunctionalGuideGenerator _functionalGuideGenerator;
     private readonly IUserGuideGenerator _userGuideGenerator;
     private readonly IRoadmapGenerator _roadmapGenerator;
+    private readonly IFaqGenerator _faqGenerator;
     private readonly IReadOnlyList<IContentRenderer> _renderers;
     private readonly string _distRootPath;
     private readonly string _projectVersion;
@@ -29,6 +30,7 @@ public sealed class ClientPublisher : IReportPublisher
         IFunctionalGuideGenerator functionalGuideGenerator,
         IUserGuideGenerator userGuideGenerator,
         IRoadmapGenerator roadmapGenerator,
+        IFaqGenerator faqGenerator,
         IEnumerable<IContentRenderer> renderers,
         IOptions<PublicationOptions> publicationOptions,
         IOptions<DocumentationOptions> documentationOptions)
@@ -37,6 +39,7 @@ public sealed class ClientPublisher : IReportPublisher
         _functionalGuideGenerator = functionalGuideGenerator;
         _userGuideGenerator = userGuideGenerator;
         _roadmapGenerator = roadmapGenerator;
+        _faqGenerator = faqGenerator;
         _renderers = renderers.ToList();
         _distRootPath = publicationOptions.Value.DistRootPath;
         _projectVersion = publicationOptions.Value.ProjectVersion;
@@ -53,11 +56,18 @@ public sealed class ClientPublisher : IReportPublisher
         {
             ReportPublishingHelper.BuildSection("Visão Geral", await _productOverviewGenerator.GenerateAsync(cancellationToken)),
             ReportPublishingHelper.BuildSection("Funcionalidades", await _functionalGuideGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Módulos", BuildModulesMarkdown()),
             ReportPublishingHelper.BuildSection("Fluxo do Processo", BuildProcessFlowMarkdown()),
             ReportPublishingHelper.BuildSection(
                 "Benefícios",
                 await ReportPublishingHelper.BuildExpectedBenefitsMarkdownAsync(_aiRootPath, cancellationToken)),
             ReportPublishingHelper.BuildSection("Casos de Uso", await _userGuideGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Integrações", BuildIntegrationsMarkdown()),
+            ReportPublishingHelper.BuildSection("Segurança", BuildSecurityMarkdown()),
+            ReportPublishingHelper.BuildSection("Implantação", BuildDeploymentMarkdown()),
+            ReportPublishingHelper.BuildSection(
+                "FAQ",
+                ReportPublishingHelper.StripFirstHeadingLine(await _faqGenerator.GenerateAsync(cancellationToken))),
             ReportPublishingHelper.BuildSection("Roadmap Funcional", await _roadmapGenerator.GenerateAsync(cancellationToken)),
         };
 
@@ -94,4 +104,29 @@ public sealed class ClientPublisher : IReportPublisher
         - **3. Agentes de IA** — agentes especializados consultam o conhecimento indexado para apoiar decisões e responder perguntas.
         - **4. Negociação assistida** — para o processo de compras, um agente aplica estratégia de negociação com base em regras de negócio.
         """;
+
+    /// <summary>
+    /// Lista os módulos de negócio já entregues, em linguagem funcional (sem nomes de
+    /// classes ou detalhes de implementação).
+    /// </summary>
+    private static string BuildModulesMarkdown() =>
+        """
+        Módulos atualmente entregues na plataforma:
+
+        - **Documentação** — geração e manutenção automática da documentação do produto.
+        - **Conhecimento** — ingestão e consulta de conhecimento organizacional.
+        - **Agentes de IA** — agentes especializados para apoio a decisões e respostas.
+        - **Negociação** — apoio ao processo de compras com estratégia de negociação automatizada.
+
+        Novos módulos serão adicionados conforme o roadmap funcional avança.
+        """;
+
+    private static string BuildIntegrationsMarkdown() =>
+        "Esta seção será detalhada conforme evolução do produto.";
+
+    private static string BuildSecurityMarkdown() =>
+        "Esta seção será detalhada conforme evolução do produto.";
+
+    private static string BuildDeploymentMarkdown() =>
+        "Esta seção será detalhada conforme evolução do produto.";
 }

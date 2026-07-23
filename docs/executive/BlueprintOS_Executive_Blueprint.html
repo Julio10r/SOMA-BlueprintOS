@@ -131,21 +131,14 @@ body {
 <li><a href="#executive-blueprint">Executive Blueprint</a></li>
 <li><a href="#sumário">Sum&#225;rio</a></li>
 <li><a href="#1-executive-summary">1. Executive Summary</a></li>
-<li><a href="#2-visão-geral-da-plataforma">2. Vis&#227;o geral da plataforma</a></li>
-<li><a href="#3-arquitetura-geral">3. Arquitetura geral</a></li>
-<li><a href="#4-organização-do-projeto">4. Organiza&#231;&#227;o do projeto</a></li>
-<li><a href="#5-ecossistema-de-agentes">5. Ecossistema de agentes</a></li>
-<li><a href="#6-ai-runtime">6. AI Runtime</a></li>
-<li><a href="#7-sistema-de-memória">7. Sistema de mem&#243;ria</a></li>
-<li><a href="#8-knowledge-engine">8. Knowledge Engine</a></li>
-<li><a href="#9-publication-engine">9. Publication Engine</a></li>
-<li><a href="#10-integrações">10. Integra&#231;&#245;es</a></li>
-<li><a href="#11-arquitetura-técnica">11. Arquitetura t&#233;cnica</a></li>
-<li><a href="#12-roadmap">12. Roadmap</a></li>
-<li><a href="#13-estado-atual-do-projeto">13. Estado atual do projeto</a></li>
-<li><a href="#14-tecnologias">14. Tecnologias</a></li>
-<li><a href="#15-adrs">15. ADRs</a></li>
-<li><a href="#16-próximos-passos">16. Pr&#243;ximos passos</a></li>
+<li><a href="#2-problema-de-negócio">2. Problema de neg&#243;cio</a></li>
+<li><a href="#3-visão-da-plataforma">3. Vis&#227;o da Plataforma</a></li>
+<li><a href="#4-capacidades-do-blueprintos">4. Capacidades do BlueprintOS</a></li>
+<li><a href="#5-benefícios-esperados">5. Benef&#237;cios esperados</a></li>
+<li><a href="#6-roadmap-executivo">6. Roadmap Executivo</a></li>
+<li><a href="#7-estado-atual">7. Estado atual</a></li>
+<li><a href="#8-próximos-passos">8. Pr&#243;ximos passos</a></li>
+<li><a href="#9-visão-de-arquitetura">9. Vis&#227;o de Arquitetura</a></li>
 </ol>
 </nav>
 <section id="executive-blueprint" class="section">
@@ -170,8 +163,8 @@ body {
 <td>Em evolu&#231;&#227;o — Fase 0: Funda&#231;&#227;o</td>
 </tr>
 <tr>
-<td>Autores</td>
-<td>Consolida&#231;&#227;o das fontes oficiais do reposit&#243;rio BlueprintOS</td>
+<td>P&#250;blico-alvo</td>
+<td>Diretoria</td>
 </tr>
 <tr>
 <td>Classifica&#231;&#227;o</td>
@@ -179,673 +172,113 @@ body {
 </tr>
 </tbody>
 </table>
-<p>&gt; Este &#233; o documento consolidado do BlueprintOS. Ele registra fatos existentes no reposit&#243;rio e distingue explicitamente arquitetura-alvo, roadmap e funcionalidades implementadas. Na aus&#234;ncia de evid&#234;ncia documental, a lacuna &#233; declarada.</p>
+<p>&gt; Documento executivo consolidado do BlueprintOS. Foco em neg&#243;cio: problema, vis&#227;o, capacidades, benef&#237;cios e roadmap. Detalhes de implementa&#231;&#227;o t&#233;cnica est&#227;o no Engineering Handbook.</p>
 </div>
 </section>
 <section id="sumário" class="section">
 <h2>Sum&#225;rio</h2>
 <div class="section-body">
-<p>1. [Executive Summary](#1-executive-summary) 2. [Vis&#227;o geral](#2-vis&#227;o-geral-da-plataforma) 3. [Arquitetura geral](#3-arquitetura-geral) 4. [Organiza&#231;&#227;o do projeto](#4-organiza&#231;&#227;o-do-projeto) 5. [Ecossistema de agentes](#5-ecossistema-de-agentes) 6. [AI Runtime](#6-ai-runtime) 7. [Sistema de mem&#243;ria](#7-sistema-de-mem&#243;ria) 8. [Knowledge Engine](#8-knowledge-engine) 9. [Publication Engine](#9-publication-engine) 10. [Integra&#231;&#245;es](#10-integra&#231;&#245;es) 11. [Arquitetura t&#233;cnica](#11-arquitetura-t&#233;cnica) 12. [Roadmap](#12-roadmap) 13. [Estado atual](#13-estado-atual-do-projeto) 14. [Tecnologias](#14-tecnologias) 15. [ADRs](#15-adrs) 16. [Pr&#243;ximos passos](#16-pr&#243;ximos-passos)</p>
+<p>1. [Executive Summary](#1-executive-summary) 2. [Problema de neg&#243;cio](#2-problema-de-neg&#243;cio) 3. [Vis&#227;o da Plataforma](#3-vis&#227;o-da-plataforma) 4. [Capacidades do BlueprintOS](#4-capacidades-do-blueprintos) 5. [Benef&#237;cios esperados](#5-benef&#237;cios-esperados) 6. [Roadmap Executivo](#6-roadmap-executivo) 7. [Estado atual](#7-estado-atual) 8. [Pr&#243;ximos passos](#8-pr&#243;ximos-passos) 9. [Vis&#227;o de Arquitetura](#9-vis&#227;o-de-arquitetura)</p>
 <p>---</p>
 </div>
 </section>
 <section id="1-executive-summary" class="section">
 <h2>1. Executive Summary</h2>
 <div class="section-body">
-<p>O SOMA BlueprintOS &#233; uma plataforma corporativa de IA concebida para automatizar processos de neg&#243;cio por meio de agentes especializados, workflows, mem&#243;ria, planejamento e integra&#231;&#227;o com sistemas corporativos. A proposta combina governan&#231;a operacional da AI Factory com uma base t&#233;cnica modular em .NET.</p>
-<table>
-<thead><tr>
-<th>Necessidade</th>
-<th>Resposta documentada</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Coordenar solicita&#231;&#245;es complexas</td>
-<td>Maestro, Tasks e especialistas da AI Factory</td>
-</tr>
-<tr>
-<td>Reter conhecimento organizacional</td>
-<td>Knowledge Base, mem&#243;ria em camadas e RAG como arquitetura-alvo</td>
-</tr>
-<tr>
-<td>Evoluir sem acoplamento excessivo</td>
-<td>Modular Monolith, Clean Architecture, DDD pragm&#225;tico e Contracts</td>
-</tr>
-<tr>
-<td>Tornar decis&#245;es e entregas rastre&#225;veis</td>
-<td>ADRs, documenta&#231;&#227;o viva, changelog e Publication Engine</td>
-</tr>
-<tr>
-<td>Publicar informa&#231;&#227;o institucional com consist&#234;ncia</td>
-<td>Markdown, HTML e PDF a partir de um modelo comum</td>
-</tr>
-</tbody>
-</table>
-<h3>Benef&#237;cios comprovados no estado atual</h3>
+<p>O SOMA BlueprintOS &#233; uma plataforma corporativa que automatiza processos de neg&#243;cio por meio de agentes de intelig&#234;ncia artificial, com foco inicial em documenta&#231;&#227;o viva e negocia&#231;&#227;o de compras. O projeto est&#225; na Fase 0 (Funda&#231;&#227;o), com bases de arquitetura, padr&#245;es e documenta&#231;&#227;o j&#225; entregues.</p>
 <ul>
-<li>Backend .NET 9 com API, contratos, DI e testes.</li>
-<li>Runtime de IA desacoplado de provedor, com OpenAI Chat Completions implementado.</li>
-<li><code>EchoAgent</code> e <code>KnowledgeAgent</code> implementados; busca de conhecimento em arquivos Markdown.</li>
-<li>Mem&#243;ria e estrat&#233;gia de negocia&#231;&#227;o para o dom&#237;nio de Buyer s&#234;nior.</li>
-<li>Portal de Documenta&#231;&#227;o Viva e Publication Engine entregues nas Sprints A8 e A9.</li>
+<li><strong>Sprints conclu&#237;das:</strong> 3 (A7, A8, A9).</li>
+<li><strong>&#218;ltima sprint conclu&#237;da:</strong> Sprint A9 — gera&#231;&#227;o autom&#225;tica de relat&#243;rios institucionais.</li>
+<li><strong>Build/testes:</strong> passando, 184 testes automatizados.</li>
 </ul>
-<h3>Est&#225;gio e pr&#243;ximo horizonte</h3>
-<p>O roadmap mant&#233;m o projeto na Fase 0 — Funda&#231;&#227;o. O hist&#243;rico registra A7, A8 e A9 conclu&#237;das; a sprint atual, seu objetivo e &#233;picos formais n&#227;o est&#227;o documentados porque <code>.ai/CURRENT_SPRINT.md</code> est&#225; vazio. A sequ&#234;ncia planejada &#233; Identity, Planner e Workflow; depois Knowledge, Memory e Agents; integra&#231;&#245;es; e observabilidade/escala.</p>
 <p>---</p>
 </div>
 </section>
-<section id="2-visão-geral-da-plataforma" class="section">
-<h2>2. Vis&#227;o geral da plataforma</h2>
+<section id="2-problema-de-negócio" class="section">
+<h2>2. Problema de neg&#243;cio</h2>
 <div class="section-body">
-<p>O BlueprintOS &#233; planejado para ser modular, escal&#225;vel, seguro e multiempresa. A aplica&#231;&#227;o execut&#225;vel atual &#233; um backend Minimal API. React/TypeScript, SQL Server com EF Core, GCP e Microsoft Entra ID s&#227;o tecnologias oficiais e dire&#231;&#245;es de produto; n&#227;o devem ser confundidas com funcionalidades completas j&#225; entregues.</p>
-<table>
-<thead><tr>
-<th>Dimens&#227;o</th>
-<th>Evid&#234;ncia</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Aplica&#231;&#227;o</td>
-<td><code>BlueprintOS.Api</code>, ASP.NET Core/.NET 9, <code>GET /health</code> e OpenAPI em desenvolvimento</td>
-</tr>
-<tr>
-<td>IA</td>
-<td><code>IAIRuntime</code>, <code>IAIProvider</code> e <code>OpenAIProvider</code></td>
-</tr>
-<tr>
-<td>Arquitetura</td>
-<td>Modular Monolith + Clean Architecture + DDD pragm&#225;tico</td>
-</tr>
-<tr>
-<td>C&#243;digo atual</td>
-<td><code>Core/{M&#243;dulo}</code> + <code>Infrastructure/{M&#243;dulo}</code>, ainda n&#227;o a estrutura-alvo <code>Modules/</code></td>
-</tr>
-<tr>
-<td>Escala</td>
-<td>Extra&#231;&#227;o futura para microsservi&#231;os prevista, sem servi&#231;os separados hoje</td>
-</tr>
-<tr>
-<td>Frontend</td>
-<td>Planejado; ainda n&#227;o iniciado</td>
-</tr>
-</tbody>
-</table>
-<p>&gt; <strong>Leitura correta do status:</strong> o reposit&#243;rio cont&#233;m funda&#231;&#245;es reais de agentes, conhecimento, negocia&#231;&#227;o, documenta&#231;&#227;o e publica&#231;&#227;o. Orquestrador Maestro, RAG sem&#226;ntico, Memory Engine corporativo, integra&#231;&#245;es de neg&#243;cio e frontend s&#227;o desenho, roadmap ou implementa&#231;&#227;o parcial — n&#227;o produto completo em opera&#231;&#227;o.</p>
+<p>O problema de neg&#243;cio espec&#237;fico e sua quantifica&#231;&#227;o (custo atual, tempo perdido, risco) ainda n&#227;o est&#227;o formalmente documentados. Esta se&#231;&#227;o ser&#225; detalhada conforme evolu&#231;&#227;o do produto.</p>
 <p>---</p>
 </div>
 </section>
-<section id="3-arquitetura-geral" class="section">
-<h2>3. Arquitetura geral</h2>
+<section id="3-visão-da-plataforma" class="section">
+<h2>3. Vis&#227;o da Plataforma</h2>
 <div class="section-body">
-<pre><code>flowchart TB
-    U[Usu&#225;rio / Sistemas] --&gt; API[BlueprintOS.Api\nMinimal API .NET 9]
-    F[Frontend React/TypeScript\nplanejado] -.-&gt; API
-    API --&gt; APP[Application / Domain / Shared]
-    API --&gt; CORE[BlueprintOS.Core\ncontratos e modelos]
-    APP --&gt; CORE
-    CORE --&gt; INFRA[BlueprintOS.Infrastructure\nimplementa&#231;&#245;es e DI]
-    INFRA --&gt; AI[AI Runtime]
-    AI --&gt; OAI[OpenAI Chat Completions\nimplementado]
-    CORE --&gt; KNOW[Knowledge\nMarkdown + busca textual]
-    CORE --&gt; NEG[Mem&#243;ria e estrat&#233;gia\nde negocia&#231;&#227;o]
-    INFRA --&gt; PUB[Publication Engine\nMarkdown &#183; HTML &#183; PDF]
-    API --&gt; WF[WorkflowRunner\nsequencial]
-    INFRA --&gt; SQL[SQL Server Docker\nschema ainda inexistente]
-    ERP[ERP] -. planejado .-&gt; WF
-    MS[Entra ID / Microsoft 365] -. planejado .-&gt; API
-    N8N[n8n] -. planejado .-&gt; WF
-    GCP[Google Cloud Platform] -. planejado .-&gt; API</code></pre>
-<p>Linhas cont&#237;nuas representam componentes existentes ou configurados; pontilhadas representam inten&#231;&#245;es registradas. Docker Compose sobe API e SQL Server, mas o backend n&#227;o possui <code>DbContext</code>, entidades persistentes ou schema de banco.</p>
+<p>O BlueprintOS &#233; planejado para ser modular, escal&#225;vel, seguro e multiempresa, automatizando processos de neg&#243;cio por meio de agentes de IA especializados — com governan&#231;a e rastreabilidade de decis&#245;es como pilares de opera&#231;&#227;o.</p>
+<p>O produto est&#225; em est&#225;gio inicial: a aplica&#231;&#227;o execut&#225;vel hoje &#233; o backend de automa&#231;&#227;o; a camada de usu&#225;rio final (frontend) ainda est&#225; planejada.</p>
 <p>---</p>
 </div>
 </section>
-<section id="4-organização-do-projeto" class="section">
-<h2>4. Organiza&#231;&#227;o do projeto</h2>
+<section id="4-capacidades-do-blueprintos" class="section">
+<h2>4. Capacidades do BlueprintOS</h2>
 <div class="section-body">
-<table>
-<thead><tr>
-<th>&#193;rea</th>
-<th>Responsabilidade</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>backend/src/BlueprintOS.Api</code></td>
-<td>Host web, OpenAPI, health check e CLI <code>publish</code></td>
-</tr>
-<tr>
-<td><code>BlueprintOS.Core</code></td>
-<td>Contratos, modelos e regras de AI, Agents, Knowledge, Workflows, Documentation e Publication</td>
-</tr>
-<tr>
-<td><code>BlueprintOS.Infrastructure</code></td>
-<td>OpenAI, Markdown Knowledge, mem&#243;ria, documenta&#231;&#227;o, publica&#231;&#227;o e DI</td>
-</tr>
-<tr>
-<td><code>BlueprintOS.Application</code></td>
-<td>Projeto de aplica&#231;&#227;o, com refer&#234;ncia a Domain e Shared</td>
-</tr>
-<tr>
-<td><code>BlueprintOS.Domain</code></td>
-<td>Projeto de dom&#237;nio, com refer&#234;ncia a Shared</td>
-</tr>
-<tr>
-<td><code>BlueprintOS.Shared</code></td>
-<td>Componentes compartilhados</td>
-</tr>
-<tr>
-<td><code>backend/tests</code></td>
-<td>Testes unit&#225;rios e de integra&#231;&#227;o</td>
-</tr>
-<tr>
-<td><code>docs</code></td>
-<td>Documenta&#231;&#227;o executiva, cliente, engenharia e AI Factory</td>
-</tr>
-<tr>
-<td><code>.ai</code></td>
-<td>Handbook, padr&#245;es, workflow, ADRs, roadmap e mem&#243;ria operacional</td>
-</tr>
-<tr>
-<td><code>infrastructure/docker</code></td>
-<td>Docker Compose para API e SQL Server</td>
-</tr>
-</tbody>
-</table>
-<pre><code>flowchart LR
- API[Api] --&gt; Application
- API --&gt; Infrastructure
- API --&gt; Shared
- Infrastructure --&gt; Application
- Infrastructure --&gt; Core
- Infrastructure --&gt; Domain
- Infrastructure --&gt; Shared
- Application --&gt; Domain
- Application --&gt; Shared
- Domain --&gt; Shared</code></pre>
-<p>O grafo acima &#233; derivado dos <code>ProjectReference</code> existentes. A ADR-0006 formaliza a perman&#234;ncia tempor&#225;ria da estrutura Core/Infrastructure enquanto a arquitetura-alvo por m&#243;dulos n&#227;o &#233; migrada.</p>
+<p>Capacidades j&#225; implementadas na plataforma:</p>
+<ul>
+<li><strong>Documenta&#231;&#227;o viva:</strong> gera&#231;&#227;o autom&#225;tica de documenta&#231;&#227;o executiva, de cliente e de engenharia, com versionamento e hist&#243;rico de mudan&#231;as.</li>
+<li><strong>Conhecimento organizacional:</strong> ingest&#227;o e consulta de conte&#250;do interno da empresa.</li>
+<li><strong>Agentes de IA:</strong> agentes especializados (ex.: consulta a conhecimento) operando sobre um runtime comum de IA.</li>
+<li><strong>Negocia&#231;&#227;o de compras:</strong> mem&#243;ria de negocia&#231;&#227;o e estrat&#233;gia de negocia&#231;&#227;o automatizada para o processo de Buyer s&#234;nior (urg&#234;ncia, hist&#243;rico de fornecedor, faixa de pre&#231;o).</li>
+</ul>
+<p>Capacidades al&#233;m destas ainda n&#227;o foram implementadas; ver Roadmap Executivo.</p>
 <p>---</p>
 </div>
 </section>
-<section id="5-ecossistema-de-agentes" class="section">
-<h2>5. Ecossistema de agentes</h2>
+<section id="5-benefícios-esperados" class="section">
+<h2>5. Benef&#237;cios esperados</h2>
 <div class="section-body">
-<h3>Modelo operacional da AI Factory</h3>
-<pre><code>flowchart TB
-    R[Solicita&#231;&#227;o] --&gt; M[Maestro]
-    M --&gt; P[Planejamento]
-    P --&gt; T[Tasks]
-    T --&gt; E[Especialistas]
-    E --&gt; V[Valida&#231;&#227;o]
-    V --&gt; D[Entrega]
-    D --&gt; MEM[Atualiza&#231;&#227;o de mem&#243;ria]
-    subgraph C&#243;digo atual
-      EA[EchoAgent]
-      KA[KnowledgeAgent] --&gt; KS[KnowledgeService]
-    end</code></pre>
-<p>O modelo define que o Maestro orquestra, distribui e valida, mas n&#227;o implementa c&#243;digo, SQL, telas ou documentos. A comunica&#231;&#227;o operacional ocorre por Tasks, n&#227;o diretamente entre agentes.</p>
-<h3>Pap&#233;is documentados</h3>
-<table>
-<thead><tr>
-<th>Agente/papel</th>
-<th>Responsabilidade</th>
-<th>Entradas / sa&#237;das</th>
-<th>Ferramentas, integra&#231;&#245;es e depend&#234;ncias</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Maestro</td>
-<td>Entender, decompor, priorizar, distribuir, acompanhar, validar e consolidar</td>
-<td>Pedido → plano, Tasks e resposta</td>
-<td>Tasks; detalhes individuais n&#227;o documentados</td>
-</tr>
-<tr>
-<td>Analista de Neg&#243;cios</td>
-<td>Requisitos, regras, fluxos e documenta&#231;&#227;o funcional</td>
-<td>Pedido/documentos → requisitos e aceite</td>
-<td>N&#227;o documentados</td>
-</tr>
-<tr>
-<td>Arquiteto de Software</td>
-<td>Arquitetura, padr&#245;es, integra&#231;&#245;es e escala</td>
-<td>Contexto → diagramas, ADRs, contratos</td>
-<td>N&#227;o documentados</td>
-</tr>
-<tr>
-<td>Tech Lead</td>
-<td>Divis&#227;o de implementa&#231;&#227;o, revis&#227;o e estrat&#233;gia</td>
-<td>Contexto → orienta&#231;&#227;o</td>
-<td>N&#227;o documentados</td>
-</tr>
-<tr>
-<td>Desenvolvedor Backend</td>
-<td>APIs, regras, banco e integra&#231;&#245;es</td>
-<td>Task → backend</td>
-<td>N&#227;o documentados</td>
-</tr>
-<tr>
-<td>Desenvolvedor Frontend</td>
-<td>Telas, componentes, UX e Design System</td>
-<td>Task → frontend</td>
-<td>Frontend n&#227;o iniciado</td>
-</tr>
-<tr>
-<td>Especialista SQL</td>
-<td>SQL Server, procedures, views, &#237;ndices e otimiza&#231;&#227;o</td>
-<td>Task → artefatos de banco</td>
-<td>SQL Server; sem schema atual</td>
-</tr>
-<tr>
-<td>Especialista IA</td>
-<td>Prompts, agentes, RAG, embeddings, mem&#243;ria e orquestra&#231;&#227;o</td>
-<td>Task → artefatos de IA</td>
-<td>RAG/mem&#243;ria corporativa ainda s&#227;o alvo</td>
-</tr>
-<tr>
-<td>Especialista n8n</td>
-<td>Workflows, automa&#231;&#245;es, filas, webhooks e integra&#231;&#245;es</td>
-<td>Task → automa&#231;&#227;o</td>
-<td>n8n planejado</td>
-</tr>
-<tr>
-<td>Especialista DevOps</td>
-<td>Docker, CI/CD, Kubernetes e observabilidade</td>
-<td>Task → infraestrutura</td>
-<td>Docker existe; CI/CD/Kubernetes n&#227;o configurados</td>
-</tr>
-<tr>
-<td>Especialista Seguran&#231;a</td>
-<td>Entra ID, autentica&#231;&#227;o, autoriza&#231;&#227;o, LGPD e auditoria</td>
-<td>Task → controles</td>
-<td>Padr&#245;es definidos; implementa&#231;&#227;o n&#227;o evidenciada</td>
-</tr>
-<tr>
-<td>Especialista QA</td>
-<td>Testes, regress&#227;o, qualidade e cobertura; n&#227;o altera c&#243;digo</td>
-<td>Task → evid&#234;ncia de qualidade</td>
-<td>xUnit; meta de cobertura n&#227;o definida</td>
-</tr>
-<tr>
-<td>Especialista Documenta&#231;&#227;o</td>
-<td>Documenta&#231;&#227;o, versionamento, arquitetura viva e changelog</td>
-<td>Task → documenta&#231;&#227;o</td>
-<td>M&#243;dulo e portal implementados</td>
-</tr>
-</tbody>
-</table>
-<h3>Agentes implementados</h3>
-<table>
-<thead><tr>
-<th>Agente</th>
-<th>Objetivo</th>
-<th>Entrada / sa&#237;da</th>
-<th>Depend&#234;ncias</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>EchoAgent</code></td>
-<td>Agente de refer&#234;ncia que encaminha a entrada ao runtime</td>
-<td><code>AgentContext.Input</code> → texto da resposta</td>
-<td><code>IAIRuntime</code></td>
-</tr>
-<tr>
-<td><code>KnowledgeAgent</code></td>
-<td>Enriquece a pergunta com trechos relevantes antes de chamar IA</td>
-<td>Entrada → resposta enriquecida</td>
-<td><code>IAIRuntime</code>, <code>IKnowledgeService</code></td>
-</tr>
-</tbody>
-</table>
-<p><code>AgentFactory</code> instancia agentes derivados de <code>BaseAgent</code>. Prompt, modelo, permiss&#245;es, mem&#243;ria espec&#237;fica e ferramentas individuais dos pap&#233;is da AI Factory n&#227;o foram documentados para agentes concretos.</p>
+<ul>
+<li><strong>Funda&#231;&#227;o (Fase 0)</strong> — base s&#243;lida de arquitetura e processo antes de investir em funcionalidade de neg&#243;cio, reduzindo retrabalho futuro.</li>
+<li><strong>M&#243;dulos Core (Fase 1)</strong> — identidade, planejamento e automa&#231;&#227;o de processo como alicerce para os demais m&#243;dulos.</li>
+<li><strong>Conhecimento e Mem&#243;ria (Fase 2)</strong> — capacidade da plataforma de reter e recuperar conhecimento organizacional e operar agentes de IA.</li>
+<li><strong>Automa&#231;&#227;o e Integra&#231;&#245;es (Fase 3)</strong> — conex&#227;o com processos de neg&#243;cio reais e sistemas externos da empresa.</li>
+<li><strong>Observabilidade e Escala (Fase 4)</strong> — plataforma pronta para opera&#231;&#227;o em produ&#231;&#227;o, multiempresa e em escala.</li>
+</ul>
 <p>---</p>
 </div>
 </section>
-<section id="6-ai-runtime" class="section">
-<h2>6. AI Runtime</h2>
+<section id="6-roadmap-executivo" class="section">
+<h2>6. Roadmap Executivo</h2>
 <div class="section-body">
-<p><code>IAIRuntime.ExecuteAsync</code> recebe <code>AIRequest</code> e delega ao <code>IAIProvider</code> cujo nome coincide com o provedor do modelo. A implementa&#231;&#227;o registrada &#233; <code>OpenAIProvider</code>, que envia mensagens para Chat Completions e retorna conte&#250;do, consumo de tokens, dura&#231;&#227;o, provedor, modelo e motivo de t&#233;rmino.</p>
-<pre><code>sequenceDiagram
-    participant A as Agente
-    participant R as IA Runtime
-    participant P as OpenAIProvider
-    participant O as OpenAI Chat Completions
-    A-&gt;&gt;R: AIRequest
-    R-&gt;&gt;P: seleciona por provider
-    P-&gt;&gt;O: POST chat/completions
-    O--&gt;&gt;P: escolha, uso e finish reason
-    P--&gt;&gt;R: AIResponse
-    R--&gt;&gt;A: AIResponse</code></pre>
-<table>
-<thead><tr>
-<th>Aspecto</th>
-<th>Estado</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Contexto</td>
-<td><code>AIRequest</code> suporta mensagens; <code>KnowledgeAgent</code> acrescenta trechos recuperados</td>
-</tr>
-<tr>
-<td>Tool calling</td>
-<td>Tipos <code>ToolDefinition</code>, <code>ToolCall</code> e <code>ToolResult</code> existem; provider atual n&#227;o envia <code>tools</code> nem executa tool calls</td>
-</tr>
-<tr>
-<td>Orquestra&#231;&#227;o</td>
-<td><code>WorkflowRunner</code> encadeia agentes sequencialmente; Maestro &#233; modelo operacional</td>
-</tr>
-<tr>
-<td>Modelo padr&#227;o</td>
-<td><code>gpt-4o-mini</code> com provider <code>openai</code> em <code>AIRequest(string)</code></td>
-</tr>
-<tr>
-<td>Segredos</td>
-<td>Chave configur&#225;vel por <code>AI__OpenAI__ApiKey</code>; padr&#245;es pro&#237;bem segredos versionados</td>
-</tr>
-</tbody>
-</table>
-<p>---</p>
-</div>
-</section>
-<section id="7-sistema-de-memória" class="section">
-<h2>7. Sistema de mem&#243;ria</h2>
-<div class="section-body">
-<p>A AI Factory define mem&#243;ria de curto, m&#233;dio e longo prazo. No c&#243;digo existe uma implementa&#231;&#227;o espec&#237;fica de negocia&#231;&#227;o, em mem&#243;ria, respons&#225;vel por hist&#243;rico de fornecedor/pre&#231;o, score e tend&#234;ncia. N&#227;o h&#225; Memory Engine gen&#233;rico corporativo persistente.</p>
-<table>
-<thead><tr>
-<th>Camada</th>
-<th>Papel definido</th>
-<th>Evid&#234;ncia atual</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Curto prazo</td>
-<td>Contexto da execu&#231;&#227;o, conversa, Tasks e resultados tempor&#225;rios</td>
-<td>Conceito; sem store gen&#233;rico identificado</td>
-</tr>
-<tr>
-<td>M&#233;dio prazo</td>
-<td>Decis&#245;es, conven&#231;&#245;es e estado de sprint</td>
-<td><code>.ai/memory/</code> com entregas, issues e padr&#245;es</td>
-</tr>
-<tr>
-<td>Longo prazo</td>
-<td>Arquitetura, documenta&#231;&#227;o, regras e conhecimento consolidado</td>
-<td>Markdown versionado; Knowledge l&#234; arquivos Markdown</td>
-</tr>
-</tbody>
-</table>
-<pre><code>flowchart LR
- S[Sess&#227;o] --&gt; ST[Curto prazo]
- ST --&gt;|valida&#231;&#227;o| MT[M&#233;dio prazo]
- MT --&gt;|revis&#227;o| LT[Longo prazo / Knowledge Base]
- LT --&gt; C[Contexto recuperado]
- C --&gt; A[Agente]</code></pre>
-<p><code>IDocumentationMemoryNotifier</code> tem implementa&#231;&#227;o no-op/log, preservando um ponto de extens&#227;o. A promo&#231;&#227;o de mem&#243;ria &#233; prevista como processo validado; agentes n&#227;o devem alterar mem&#243;ria persistente diretamente.</p>
-<p>---</p>
-</div>
-</section>
-<section id="8-knowledge-engine" class="section">
-<h2>8. Knowledge Engine</h2>
-<div class="section-body">
-<p>O Knowledge atual carrega arquivos <code>.md</code> de um diret&#243;rio configurado. <code>MarkdownKnowledgeProvider</code> cria <code>KnowledgeDocument</code> com t&#237;tulo, conte&#250;do e caminho. <code>KnowledgeService</code> faz busca textual case-insensitive, ordena por quantidade de ocorr&#234;ncias, extrai snippet e retorna no m&#225;ximo cinco resultados.</p>
-<pre><code>flowchart LR
- MD[Arquivos Markdown] --&gt; MP[MarkdownKnowledgeProvider]
- MP --&gt; KD[KnowledgeDocument]
- Q[Consulta] --&gt; KS[KnowledgeService]
- KD --&gt; KS
- KS --&gt; R[Resultados + snippets]
- R --&gt; KA[KnowledgeAgent]
- KA --&gt; AI[AI Runtime]</code></pre>
-<table>
-<thead><tr>
-<th>Tema</th>
-<th>Estado</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Arquitetura-alvo</td>
-<td>Loader, chunking, embeddings, vector store, ranking e Context Builder</td>
-</tr>
-<tr>
-<td>Implementa&#231;&#227;o</td>
-<td>Leitura de Markdown e busca por substring</td>
-</tr>
-<tr>
-<td>Atualiza&#231;&#227;o atual</td>
-<td>Arquivos s&#227;o recarregados nas buscas</td>
-</tr>
-<tr>
-<td>Atualiza&#231;&#227;o-alvo</td>
-<td>Versionar, gerar embeddings e reindexar chunks afetados</td>
-</tr>
-<tr>
-<td>Vetores e permiss&#245;es</td>
-<td>N&#227;o implementados/documentados como existentes</td>
-</tr>
-</tbody>
-</table>
-<p>---</p>
-</div>
-</section>
-<section id="9-publication-engine" class="section">
-<h2>9. Publication Engine</h2>
-<div class="section-body">
-<p>Entregue na Sprint A9, o Publication Engine usa uma &#250;nica representa&#231;&#227;o estruturada para gerar documentos profissionais. Markdown bruto &#233; convertido uma vez para <code>ContentBlock</code> e <code>InlineSpan</code>; os renderizadores Markdown, HTML e PDF consomem essa mesma estrutura. O PDF &#233; composto diretamente com QuestPDF, sem convers&#227;o de HTML.</p>
-<pre><code>flowchart LR
- SRC[Geradores e fontes reais] --&gt; P[Publishers]
- P --&gt; PARSE[MarkdownContentParser]
- PARSE --&gt; DOC[PublicationDocument]
- DOC --&gt; M[MarkdownRenderer]
- DOC --&gt; H[HtmlRenderer]
- DOC --&gt; PDF[PdfRenderer / QuestPDF]
- M --&gt; OUT[Artefatos]
- H --&gt; OUT
- PDF --&gt; OUT</code></pre>
-<table>
-<thead><tr>
-<th>Componente</th>
-<th>Papel</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>PublicationDocument</code></td>
-<td>Metadata, se&#231;&#245;es, assets, ap&#234;ndice e tema</td>
-</tr>
-<tr>
-<td><code>PublicationAssets</code></td>
-<td>Imagens, logos, &#237;cones, charts, Mermaid, anexos, QR Codes e badges</td>
-</tr>
-<tr>
-<td>Publishers</td>
-<td>Executive, Client e Engineering montam documentos</td>
-</tr>
-<tr>
-<td>Renderers</td>
-<td>Serializam Markdown, HTML e PDF do mesmo modelo</td>
-</tr>
-<tr>
-<td><code>QualityMetricsProvider</code></td>
-<td>Executa build e conta <code>[Fact]</code>/<code>[Theory]</code> para selos reais</td>
-</tr>
-</tbody>
-</table>
-<p>O comando <code>dotnet run -- publish</code> produz nove artefatos em <code>dist/</code>. H&#225; suporte funcional para imagens/logos/&#237;cones, anexos, QR Codes e badges; Mermaid sem imagem rasterizada aparece como c&#243;digo, e n&#227;o h&#225; gr&#225;ficos populados por aus&#234;ncia de fonte real.</p>
-<p>---</p>
-</div>
-</section>
-<section id="10-integrações" class="section">
-<h2>10. Integra&#231;&#245;es</h2>
-<div class="section-body">
-<table>
-<thead><tr>
-<th>Integra&#231;&#227;o</th>
-<th>Papel</th>
-<th>Situa&#231;&#227;o</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>OpenAI</td>
-<td>Chat Completions do runtime</td>
-<td>Implementada</td>
-</tr>
-<tr>
-<td>SQL Server</td>
-<td>Banco oficial e servi&#231;o Docker</td>
-<td>Docker configurado; sem <code>DbContext</code>/schema</td>
-</tr>
-<tr>
-<td>Microsoft Entra ID</td>
-<td>Autentica&#231;&#227;o oficial</td>
-<td>Definida como padr&#227;o; n&#227;o implementada</td>
-</tr>
-<tr>
-<td>Microsoft Authenticator</td>
-<td>Autentica&#231;&#227;o adicional</td>
-<td>N&#227;o documentado no reposit&#243;rio</td>
-</tr>
-<tr>
-<td>Microsoft 365</td>
-<td>Refer&#234;ncia do Workflow Engine</td>
-<td>Planejada</td>
-</tr>
-<tr>
-<td>Google Cloud Platform</td>
-<td>Cloud oficial e Secret Manager previsto</td>
-<td>Dire&#231;&#227;o arquitetural; provisionamento n&#227;o identificado</td>
-</tr>
-<tr>
-<td>ERP</td>
-<td>Processos corporativos</td>
-<td>Planejado, sem conector</td>
-</tr>
-<tr>
-<td>n8n</td>
-<td>Workflows, filas, webhooks e automa&#231;&#245;es</td>
-<td>Planejado, sem integra&#231;&#227;o</td>
-</tr>
-<tr>
-<td>APIs corporativas</td>
-<td>Camada de integra&#231;&#227;o</td>
-<td>Planejada; API atual possui apenas <code>/health</code></td>
-</tr>
-</tbody>
-</table>
-<p>---</p>
-</div>
-</section>
-<section id="11-arquitetura-técnica" class="section">
-<h2>11. Arquitetura t&#233;cnica</h2>
-<div class="section-body">
-<table>
-<thead><tr>
-<th>Princ&#237;pio</th>
-<th>Aplica&#231;&#227;o documentada</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Clean Architecture</td>
-<td>Domain isolado; Application depende de Domain/Shared/Contracts; Infrastructure concentra detalhes; Api hospeda endpoints</td>
-</tr>
-<tr>
-<td>DDD pragm&#225;tico</td>
-<td>M&#243;dulos representam dom&#237;nios, com coes&#227;o e sem complexidade desnecess&#225;ria</td>
-</tr>
-<tr>
-<td>SOLID</td>
-<td>Responsabilidade &#250;nica, interfaces coesas, DI e depend&#234;ncia de abstra&#231;&#245;es</td>
-</tr>
-<tr>
-<td>Modular Monolith</td>
-<td>ADR-0001: evolu&#231;&#227;o modular sem custo inicial de microsservi&#231;os</td>
-</tr>
-<tr>
-<td>Contracts</td>
-<td>Comunica&#231;&#227;o intermodular somente por contratos p&#250;blicos</td>
-</tr>
-<tr>
-<td>CQRS / Result / Events</td>
-<td>Padr&#245;es arquiteturais aceitos em ADRs; ado&#231;&#227;o integral em todos os m&#243;dulos n&#227;o &#233; comprovada pelo c&#243;digo atual</td>
-</tr>
-</tbody>
-</table>
-<h3>Evolu&#231;&#227;o para microsservi&#231;os</h3>
-<p>O projeto n&#227;o possui microsservi&#231;os, mensageria ou workers implementados. A estrat&#233;gia documentada &#233; preservar limites de m&#243;dulo e Contracts para permitir extra&#231;&#227;o futura sem reescrita quando a necessidade de escala justificar essa mudan&#231;a. N&#227;o h&#225; plano de decomposi&#231;&#227;o execut&#225;vel registrado.</p>
-<p>---</p>
-</div>
-</section>
-<section id="12-roadmap" class="section">
-<h2>12. Roadmap</h2>
-<div class="section-body">
-<pre><code>timeline
-    title Roadmap do BlueprintOS
-    Fase 0 : Funda&#231;&#227;o — em andamento
-            : Arquitetura, padr&#245;es, Docker e documenta&#231;&#227;o viva
-    Fase 1 : Identity, Planner e Workflow
-    Fase 2 : Knowledge, Memory e Agents
-    Fase 3 : Procurement, Notifications e integra&#231;&#245;es
-    Fase 4 : Dashboard, Analytics, observabilidade e escala</code></pre>
+<p>O BlueprintOS est&#225; atualmente na <strong>Fase 0 — Funda&#231;&#227;o</strong>, em andamento.</p>
 <table>
 <thead><tr>
 <th>Fase</th>
-<th>Objetivo</th>
+<th>Objetivo de neg&#243;cio</th>
 <th>Status</th>
 </tr></thead>
 <tbody>
 <tr>
 <td>0 — Funda&#231;&#227;o</td>
-<td>Arquitetura, padr&#245;es, handbook, Docker, ambiente GCP inicial e Portal</td>
+<td>Estabelecer bases de arquitetura, padr&#245;es e processo</td>
 <td>Em andamento</td>
 </tr>
 <tr>
 <td>1 — M&#243;dulos Core</td>
-<td>Identity, Planner e Workflow</td>
+<td>Entregar identidade, planejamento e automa&#231;&#227;o de processo</td>
 <td>Planejado</td>
 </tr>
 <tr>
 <td>2 — Conhecimento e Mem&#243;ria</td>
-<td>Knowledge, Memory e Agents</td>
-<td>Planejado; funda&#231;&#245;es parciais existem</td>
+<td>Plataforma capaz de reter conhecimento e operar agentes de IA</td>
+<td>Planejado</td>
 </tr>
 <tr>
 <td>3 — Automa&#231;&#227;o e Integra&#231;&#245;es</td>
-<td>Procurement, Notifications, ERP, n8n e APIs</td>
+<td>Conectar a plataforma a processos e sistemas externos</td>
 <td>Planejado</td>
 </tr>
 <tr>
 <td>4 — Observabilidade e Escala</td>
-<td>Dashboard, Analytics, multi-tenant e extra&#231;&#227;o futura</td>
+<td>Opera&#231;&#227;o em produ&#231;&#227;o, multiempresa e em escala</td>
 <td>Planejado</td>
 </tr>
 </tbody>
 </table>
-<table>
-<thead><tr>
-<th>Sprint registrada</th>
-<th>Entrega</th>
-<th>Status</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>A7</td>
-<td>Sistema de Documenta&#231;&#227;o do BlueprintOS</td>
-<td>Conclu&#237;da</td>
-</tr>
-<tr>
-<td>A8</td>
-<td>Portal de Documenta&#231;&#227;o Viva</td>
-<td>Conclu&#237;da</td>
-</tr>
-<tr>
-<td>A9</td>
-<td>Publication Engine</td>
-<td>Conclu&#237;da</td>
-</tr>
-</tbody>
-</table>
-<p>N&#227;o h&#225; &#233;picos formalmente registrados. O <code>RoadmapGenerator</code> possui texto inconsistente sobre a inexist&#234;ncia de sprints conclu&#237;das; esta consolida&#231;&#227;o usa <code>.ai/memory/completed_sprints.md</code> para o hist&#243;rico efetivo.</p>
 <p>---</p>
 </div>
 </section>
-<section id="13-estado-atual-do-projeto" class="section">
-<h2>13. Estado atual do projeto</h2>
+<section id="7-estado-atual" class="section">
+<h2>7. Estado atual</h2>
 <div class="section-body">
 <table>
 <thead><tr>
@@ -854,192 +287,57 @@ body {
 </tr></thead>
 <tbody>
 <tr>
-<td>Sprint atual e objetivo</td>
-<td>N&#227;o documentados (<code>CURRENT_SPRINT.md</code> vazio)</td>
+<td>Fase do projeto</td>
+<td>Fase 0 — Funda&#231;&#227;o (em andamento)</td>
 </tr>
 <tr>
-<td>&#218;ltima sprint conclu&#237;da</td>
-<td>A9 — Publication Engine</td>
+<td>Sprints conclu&#237;das</td>
+<td>3 (A7, A8, A9)</td>
 </tr>
 <tr>
-<td>Build/testes atuais</td>
-<td><code>dotnet build</code> e <code>dotnet test</code> executados nesta consolida&#231;&#227;o sem sa&#237;da de erro</td>
-</tr>
-<tr>
-<td>&#218;ltima contagem hist&#243;rica</td>
-<td>A9 registra 167 testes unit&#225;rios + 1 integra&#231;&#227;o aprovados</td>
-</tr>
-<tr>
-<td>Cobertura</td>
-<td>N&#227;o documentada</td>
-</tr>
-<tr>
-<td>Releases/tags</td>
-<td>Sem tags de release e sem <code>CHANGELOG</code> dedicado</td>
+<td>&#218;ltima entrega</td>
+<td>Sprint A9 — gera&#231;&#227;o autom&#225;tica de relat&#243;rios institucionais</td>
 </tr>
 <tr>
 <td>KPIs de neg&#243;cio</td>
-<td>Inexistentes; n&#227;o h&#225; opera&#231;&#227;o em produ&#231;&#227;o</td>
+<td>Ainda n&#227;o existem; produto n&#227;o est&#225; em opera&#231;&#227;o/produ&#231;&#227;o</td>
 </tr>
 <tr>
-<td>Produ&#231;&#227;o/runbook</td>
-<td>N&#227;o h&#225; opera&#231;&#227;o em produ&#231;&#227;o nem runbook registrado</td>
-</tr>
-</tbody>
-</table>
-<h3>Entregas relevantes</h3>
-<ul>
-<li>M&#243;dulo Documentation: vers&#245;es, changelog, ADRs, sincroniza&#231;&#227;o, detec&#231;&#227;o de desatualiza&#231;&#227;o e gera&#231;&#227;o de documenta&#231;&#227;o.</li>
-<li>Portal de Documenta&#231;&#227;o Viva: 19 geradores para p&#250;blicos executivo, cliente e engenharia.</li>
-<li>Publication Engine: modelo estruturado, temas, assets e renderiza&#231;&#227;o Markdown/HTML/PDF.</li>
-<li>AI Runtime, Knowledge em Markdown, agentes de refer&#234;ncia/conhecimento, mem&#243;ria e estrat&#233;gia de negocia&#231;&#227;o.</li>
-</ul>
-<h3>Limita&#231;&#245;es e d&#237;vidas registradas</h3>
-<p>1. Frontend React/TypeScript n&#227;o iniciado. 2. Estrutura atual ainda n&#227;o migrou para <code>Modules/</code>. 3. N&#227;o h&#225; <code>DbContext</code> ou schema de banco. 4. KPIs, FAQ e runbook n&#227;o t&#234;m fonte operacional real. 5. Publica&#231;&#227;o de documenta&#231;&#227;o e mem&#243;ria ainda &#233; acionada manualmente. 6. O Publication Engine recompila a solution por publica&#231;&#227;o; HTML/PDF n&#227;o t&#234;m fidelidade pixel-perfect; Mermaid n&#227;o &#233; rasterizado; e n&#227;o h&#225; gr&#225;ficos reais.</p>
-<p>---</p>
-</div>
-</section>
-<section id="14-tecnologias" class="section">
-<h2>14. Tecnologias</h2>
-<div class="section-body">
-<table>
-<thead><tr>
-<th>Categoria</th>
-<th>Tecnologia</th>
-<th>Uso / estado</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Runtime</td>
-<td>.NET 9, C#</td>
-<td>Backend implementado</td>
-</tr>
-<tr>
-<td>Web</td>
-<td>ASP.NET Core Minimal API, OpenAPI</td>
-<td>API e ambiente de desenvolvimento</td>
-</tr>
-<tr>
-<td>IA</td>
-<td>OpenAI Chat Completions</td>
-<td>Provider implementado</td>
-</tr>
-<tr>
-<td>Conhecimento</td>
-<td>Markdown</td>
-<td>Fonte e busca implementadas</td>
-</tr>
-<tr>
-<td>Publica&#231;&#227;o</td>
-<td>QuestPDF, QRCoder</td>
-<td>PDF e QR Codes implementados</td>
-</tr>
-<tr>
-<td>Testes</td>
-<td>xUnit, Microsoft.NET.Test.Sdk</td>
-<td>Unit&#225;rios e integra&#231;&#227;o</td>
-</tr>
-<tr>
-<td>Infraestrutura</td>
-<td>Docker, Docker Compose</td>
-<td>API e SQL Server local</td>
-</tr>
-<tr>
-<td>Banco oficial</td>
-<td>SQL Server, Entity Framework Core</td>
-<td>Definidos; EF/schema n&#227;o implementados</td>
-</tr>
-<tr>
-<td>Frontend oficial</td>
-<td>React, TypeScript</td>
-<td>Definidos; n&#227;o iniciados</td>
-</tr>
-<tr>
-<td>Cloud oficial</td>
-<td>Google Cloud Platform</td>
-<td>Definida; implementa&#231;&#227;o n&#227;o identificada</td>
-</tr>
-<tr>
-<td>Identidade oficial</td>
-<td>Microsoft Entra ID</td>
-<td>Definida; implementa&#231;&#227;o n&#227;o identificada</td>
-</tr>
-<tr>
-<td>Controle de vers&#227;o</td>
-<td>Git, GitHub</td>
-<td>Reposit&#243;rio Git presente</td>
-</tr>
-<tr>
-<td>Automa&#231;&#227;o alvo</td>
-<td>n8n</td>
-<td>Planejada</td>
+<td>D&#237;vidas t&#233;cnicas em aberto</td>
+<td>13 (acompanhadas pela equipe de engenharia)</td>
 </tr>
 </tbody>
 </table>
 <p>---</p>
 </div>
 </section>
-<section id="15-adrs" class="section">
-<h2>15. ADRs</h2>
+<section id="8-próximos-passos" class="section">
+<h2>8. Pr&#243;ximos passos</h2>
 <div class="section-body">
-<table>
-<thead><tr>
-<th>ADR</th>
-<th>Decis&#227;o</th>
-<th>Consequ&#234;ncia</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>0001</td>
-<td>Modular Monolith + Clean Architecture + DDD pragm&#225;tico</td>
-<td>Limites modulares e caminho de extra&#231;&#227;o futura</td>
-</tr>
-<tr>
-<td>0002</td>
-<td>Stack oficial</td>
-<td>Padroniza .NET, SQL Server, React, Docker, GCP e Entra ID</td>
-</tr>
-<tr>
-<td>0003</td>
-<td>CQRS + MediatR + Domain Events</td>
-<td>Separa leitura/escrita e efeitos de dom&#237;nio</td>
-</tr>
-<tr>
-<td>0004</td>
-<td>Result Pattern</td>
-<td>Falhas esperadas expl&#237;citas; exce&#231;&#245;es para cen&#225;rios excepcionais</td>
-</tr>
-<tr>
-<td>0005</td>
-<td>Comunica&#231;&#227;o por Contracts</td>
-<td>Protege m&#243;dulos de acoplamento interno</td>
-</tr>
-<tr>
-<td>0006</td>
-<td>Documentation em Core/Infrastructure</td>
-<td>Entrega agora sem migrar para <code>Modules/</code></td>
-</tr>
-<tr>
-<td>0007</td>
-<td>Publication Engine com ViewModel comum</td>
-<td>Um conte&#250;do para Markdown, HTML e PDF sem HTML→PDF</td>
-</tr>
-<tr>
-<td>0008</td>
-<td>Documento rico com metadata, assets, appendix e theme</td>
-<td>Pontos de extens&#227;o sem refatora&#231;&#227;o ampla</td>
-</tr>
-</tbody>
-</table>
-<p>Todos est&#227;o marcados como <strong>Aceitos</strong> em <code>.ai/DECISIONS.md</code>.</p>
+<p>1. Documentar o problema de neg&#243;cio e sua quantifica&#231;&#227;o. 2. Definir e registrar o escopo da pr&#243;xima sprint. 3. Avan&#231;ar os m&#243;dulos da Fase 1 (identidade, planejamento e automa&#231;&#227;o de processo). 4. Evoluir conhecimento e mem&#243;ria organizacional para uso ampliado por agentes de IA. 5. Iniciar o planejamento do frontend para usu&#225;rios finais.</p>
 <p>---</p>
 </div>
 </section>
-<section id="16-próximos-passos" class="section">
-<h2>16. Pr&#243;ximos passos</h2>
+<section id="9-visão-de-arquitetura" class="section">
+<h2>9. Vis&#227;o de Arquitetura</h2>
 <div class="section-body">
-<p>1. Registrar sprint atual, escopo, crit&#233;rios de aceite e &#233;picos quando existirem. 2. Corrigir a inconsist&#234;ncia do <code>RoadmapGenerator</code> sobre sprints conclu&#237;das. 3. Priorizar os m&#243;dulos da Fase 1: Identity, Planner e Workflow. 4. Evoluir Knowledge e Memory para capacidades corporativas persistentes, conforme ADRs futuros. 5. Introduzir schema, <code>DbContext</code> e migra&#231;&#245;es quando houver dom&#237;nio e requisitos de persist&#234;ncia definidos. 6. Definir contratos antes de implementar Entra ID, ERP, Microsoft e n8n. 7. Criar o frontend React/TypeScript e a biblioteca de UI prevista. 8. Automatizar publica&#231;&#227;o, runbooks, KPIs e observabilidade quando houver opera&#231;&#227;o real.</p>
-<p>&gt; <strong>Fontes consolidadas:</strong> <code>.ai/PROJECT.md</code>, <code>.ai/ARCHITECTURE.md</code>, <code>.ai/DECISIONS.md</code>, <code>.ai/ROADMAP.md</code>, <code>.ai/memory/</code>, <code>docs/</code>, infraestrutura, projetos .NET, c&#243;digo-fonte e testes. Quando houver conflito, <code>PROJECT.md</code> &#233; a fonte de maior prioridade.</p>
+<pre><code>graph TD
+    Api[BlueprintOS.Api]
+    Application[BlueprintOS.Application]
+    Domain[BlueprintOS.Domain]
+    Infrastructure[BlueprintOS.Infrastructure]
+    Core[BlueprintOS.Core]
+    Shared[BlueprintOS.Shared]
+    Api --&gt;|referencia| Application
+    Api --&gt;|referencia| Infrastructure
+    Api --&gt;|referencia| Shared
+    Application --&gt;|referencia| Domain
+    Application --&gt;|referencia| Shared
+    Domain --&gt;|referencia| Shared
+    Infrastructure --&gt;|referencia| Application
+    Infrastructure --&gt;|referencia| Core
+    Infrastructure --&gt;|referencia| Domain
+    Infrastructure --&gt;|referencia| Shared</code></pre>
 </div>
 </section>
 </main>

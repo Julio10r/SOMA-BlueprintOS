@@ -3,7 +3,7 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-23 15:00:02 UTC
+- **Gerado em:** 2026-07-23 15:26:33 UTC
 - **Última atualização:** 2026-07-23
 
 ---
@@ -25,6 +25,8 @@ Objetivo: estabelecer as bases de arquitetura, padrões, processo e infraestrutu
 - Infraestrutura básica: Docker, pipeline de build, ambiente GCP inicial.
 
 - Portal de documentação viva (dashboards, guias, changelog, ADRs) publicado automaticamente em `docs/` (Sprint A8).
+- **EPIC A7 — Sistema de Documentação: ✅ Concluído (23/07/2026).** Sprints A7 (módulo Documentation), A8 (Portal de Documentação Viva), A9 (Publication Engine) e A7.4/A7.5 (homologação final e hotfix de saúde da documentação). Ver `.ai/memory/completed_sprints.md` para o detalhe de cada sprint e ADR-0009 em `.ai/DECISIONS.md` para a organização final de diretórios. Tag de release: `v0.4.0-documentation`.
+
 ---
 
 ## Fase 1 - Módulos Core

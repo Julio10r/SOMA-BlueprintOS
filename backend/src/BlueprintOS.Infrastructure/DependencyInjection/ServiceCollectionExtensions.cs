@@ -101,6 +101,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IRoadmapGenerator, RoadmapGenerator>();
         services.AddSingleton<ISprintStatusGenerator, SprintStatusGenerator>();
         services.AddSingleton<IReleaseGenerator, ReleaseGenerator>();
+        services.AddSingleton<IExecutiveContentLoader, ExecutiveContentLoader>();
 
         services.AddSingleton<IProductOverviewGenerator, ProductOverviewGenerator>();
         services.AddSingleton<IUserGuideGenerator, UserGuideGenerator>();

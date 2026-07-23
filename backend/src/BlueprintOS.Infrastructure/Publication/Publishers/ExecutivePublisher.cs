@@ -1,11 +1,9 @@
 using System.Text;
-using System.Text.RegularExpressions;
-using BlueprintOS.Core.Documentation.Contracts.Client;
+using BlueprintOS.Core.Documentation.Contracts.Engineering;
 using BlueprintOS.Core.Documentation.Contracts.Executive;
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Core.Publication.Models;
 using BlueprintOS.Core.Publication.Models.Assets;
-using BlueprintOS.Infrastructure.Documentation;
 using BlueprintOS.Infrastructure.Publication.Content;
 using Microsoft.Extensions.Options;
 
@@ -13,49 +11,40 @@ namespace BlueprintOS.Infrastructure.Publication.Publishers;
 
 /// <summary>
 /// Implementação de <see cref="IReportPublisher"/> para o Relatório Executivo
-/// (<c>dist/executive/ExecutiveReport.*</c>): conteúdo estratégico para a diretoria — resumo,
-/// objetivos, valor de negócio, benefícios esperados, KPIs, roadmap e próximos passos —, sem
-/// nenhum detalhe técnico (APIs, banco, classes, código ou eventos).
+/// (<c>dist/executive/ExecutiveReport.*</c>). O conteúdo estratégico (visão, problema de
+/// negócio, capacidades, benefícios, roadmap narrativo, estado atual e próximos passos) é
+/// autorado como Markdown em <c>.ai/content/executive/</c> e carregado via
+/// <see cref="IExecutiveContentLoader"/>; este publisher é responsável apenas por acrescentar
+/// informações dinâmicas (versão, data de geração, roadmap automático, diagrama de arquitetura,
+/// indicadores, anexos, índice, capa e rodapé).
 /// </summary>
 public sealed class ExecutivePublisher : IReportPublisher
 {
     private const string RepositoryUrl = "https://github.com/Julio10r/SOMA-BlueprintOS";
 
-    private static readonly Regex PendingPhasePattern =
-        new(@"^##\s+(Fase .+\(status:\s*(?!concluíd).+\))$", RegexOptions.Multiline | RegexOptions.IgnoreCase);
-
-    private readonly IDashboardGenerator _dashboardGenerator;
-    private readonly IProductOverviewGenerator _productOverviewGenerator;
-    private readonly IFunctionalGuideGenerator _functionalGuideGenerator;
-    private readonly IKpiGenerator _kpiGenerator;
+    private readonly IExecutiveContentLoader _contentLoader;
     private readonly IRoadmapGenerator _roadmapGenerator;
+    private readonly IMermaidGenerator _mermaidGenerator;
     private readonly IQualityMetricsProvider _qualityMetricsProvider;
     private readonly IReadOnlyList<IContentRenderer> _renderers;
     private readonly string _distRootPath;
     private readonly string _projectVersion;
-    private readonly string _aiRootPath;
 
     public ExecutivePublisher(
-        IDashboardGenerator dashboardGenerator,
-        IProductOverviewGenerator productOverviewGenerator,
-        IFunctionalGuideGenerator functionalGuideGenerator,
-        IKpiGenerator kpiGenerator,
+        IExecutiveContentLoader contentLoader,
         IRoadmapGenerator roadmapGenerator,
+        IMermaidGenerator mermaidGenerator,
         IQualityMetricsProvider qualityMetricsProvider,
         IEnumerable<IContentRenderer> renderers,
-        IOptions<PublicationOptions> publicationOptions,
-        IOptions<DocumentationOptions> documentationOptions)
+        IOptions<PublicationOptions> publicationOptions)
     {
-        _dashboardGenerator = dashboardGenerator;
-        _productOverviewGenerator = productOverviewGenerator;
-        _functionalGuideGenerator = functionalGuideGenerator;
-        _kpiGenerator = kpiGenerator;
+        _contentLoader = contentLoader;
         _roadmapGenerator = roadmapGenerator;
+        _mermaidGenerator = mermaidGenerator;
         _qualityMetricsProvider = qualityMetricsProvider;
         _renderers = renderers.ToList();
         _distRootPath = publicationOptions.Value.DistRootPath;
         _projectVersion = publicationOptions.Value.ProjectVersion;
-        _aiRootPath = documentationOptions.Value.AiRootPath;
     }
 
     /// <inheritdoc />
@@ -67,28 +56,24 @@ public sealed class ExecutivePublisher : IReportPublisher
         var metrics = await _qualityMetricsProvider.GetMetricsAsync(cancellationToken);
         var generatedAt = DateTimeOffset.UtcNow;
 
-        var sections = new List<PublicationSection>
+        var contentFiles = await _contentLoader.LoadAsync(cancellationToken);
+        var sections = new List<PublicationSection>(contentFiles.Count + 2);
+        foreach (var file in contentFiles)
         {
-            ReportPublishingHelper.BuildSection("Resumo Executivo", await _dashboardGenerator.GenerateAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection(
-                "Objetivos",
-                ReportPublishingHelper.StripFirstHeadingLine(await _productOverviewGenerator.GenerateAsync(cancellationToken))),
-            ReportPublishingHelper.BuildSection(
-                "Valor de Negócio",
-                ReportPublishingHelper.StripFirstHeadingLine(await _functionalGuideGenerator.GenerateAsync(cancellationToken))),
-            ReportPublishingHelper.BuildSection(
-                "Benefícios Esperados",
-                await ReportPublishingHelper.BuildExpectedBenefitsMarkdownAsync(_aiRootPath, cancellationToken)),
-            ReportPublishingHelper.BuildSection(
-                "KPIs",
-                ReportPublishingHelper.StripFirstHeadingLine(await _kpiGenerator.GenerateAsync(cancellationToken))),
-            ReportPublishingHelper.BuildSection("Roadmap", await _roadmapGenerator.GenerateAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection("Próximos Passos", await BuildNextStepsSectionAsync(cancellationToken)),
-        };
+            var (heading, body) = SplitHeading(file.Content);
+            sections.Add(ReportPublishingHelper.BuildSection(heading, body));
+        }
+
+        sections.Add(ReportPublishingHelper.BuildSection(
+            "Roadmap Automático",
+            await _roadmapGenerator.GenerateAsync(cancellationToken)));
+        sections.Add(ReportPublishingHelper.BuildSection(
+            "Visão de Arquitetura",
+            ReportPublishingHelper.StripFirstHeadingLine(await _mermaidGenerator.GenerateAsync(cancellationToken))));
 
         var metadata = PublicationMetadata.Create(
             title: "Relatório Executivo — BlueprintOS",
-            subtitle: "Visão estratégica de objetivos, valor de negócio e roadmap para a diretoria",
+            subtitle: "Visão estratégica de negócio, capacidades e roadmap para a diretoria",
             audience: "Diretoria",
             version: _projectVersion,
             generatedAt: generatedAt,
@@ -104,6 +89,24 @@ public sealed class ExecutivePublisher : IReportPublisher
             Theme: PublicationTheme.ForExecutive());
 
         return await ReportPublishingHelper.WriteAllFormatsAsync(document, Category, _distRootPath, _renderers, cancellationToken);
+    }
+
+    /// <summary>
+    /// Separa a primeira linha de título (<c>#</c>) de um arquivo de conteúdo estratégico,
+    /// usando-a como título da <see cref="PublicationSection"/> — preservando o título definido
+    /// por quem autora o conteúdo em <c>.ai/content/executive/</c>, em vez de fixá-lo no código.
+    /// </summary>
+    private static (string Heading, string Body) SplitHeading(string markdown)
+    {
+        var normalized = markdown.Replace("\r\n", "\n").TrimStart('\n');
+        var firstLineBreak = normalized.IndexOf('\n');
+        var firstLine = firstLineBreak >= 0 ? normalized[..firstLineBreak] : normalized;
+
+        var heading = firstLine.TrimStart().StartsWith('#')
+            ? firstLine.TrimStart('#', ' ').Trim()
+            : "Seção";
+
+        return (heading, ReportPublishingHelper.StripFirstHeadingLine(normalized));
     }
 
     private static PublicationAssets BuildAssets(QualityMetrics metrics)
@@ -154,31 +157,5 @@ public sealed class ExecutivePublisher : IReportPublisher
             ReportPublishingHelper.BuildSection("Histórico de Versões", builder.ToString()),
             repositorySection,
         };
-    }
-
-    private async Task<string> BuildNextStepsSectionAsync(CancellationToken cancellationToken)
-    {
-        var path = Path.Combine(_aiRootPath, "ROADMAP.md");
-        if (!File.Exists(path))
-        {
-            return "Roadmap não encontrado; próximos passos não puderam ser derivados.";
-        }
-
-        var content = await File.ReadAllTextAsync(path, cancellationToken);
-        var matches = PendingPhasePattern.Matches(content);
-        if (matches.Count == 0)
-        {
-            return "Nenhuma fase pendente identificada em `.ai/ROADMAP.md`.";
-        }
-
-        var builder = new StringBuilder();
-        builder.AppendLine("Próximas fases do roadmap ainda não concluídas:");
-        builder.AppendLine();
-        foreach (Match match in matches)
-        {
-            builder.AppendLine($"- {match.Groups[1].Value.Trim()}");
-        }
-
-        return builder.ToString();
     }
 }
