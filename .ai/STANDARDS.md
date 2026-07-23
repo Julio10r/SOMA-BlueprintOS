@@ -492,19 +492,7 @@ antes de qualquer implementação.
 
 # 26. Definition of Done
 
-Uma tarefa só é considerada concluída quando:
-
-✓ Código implementado
-
-✓ Build executado
-
-✓ Testes aprovados
-
-✓ Documentação atualizada
-
-✓ ADR criada (quando necessário)
-
-✓ Revisão concluída
+A Definition of Done canônica do projeto está definida em [context/definition-of-done.md](./context/definition-of-done.md).
 
 ---
 

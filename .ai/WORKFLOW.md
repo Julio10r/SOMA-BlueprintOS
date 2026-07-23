@@ -418,19 +418,7 @@ Uma tarefa só pode iniciar quando possuir:
 
 # 19. Definition of Done
 
-Uma tarefa só termina quando:
-
-✓ código implementado
-
-✓ testes aprovados
-
-✓ documentação atualizada
-
-✓ revisão concluída
-
-✓ memória atualizada
-
-✓ aprovada pelo Product Owner
+A Definition of Done canônica do projeto está definida em [context/definition-of-done.md](./context/definition-of-done.md).
 
 ---
 
