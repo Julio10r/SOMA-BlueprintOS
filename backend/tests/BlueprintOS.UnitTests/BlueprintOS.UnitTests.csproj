@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\BlueprintOS.Application\BlueprintOS.Application.csproj" />
+    <ProjectReference Include="..\..\src\BlueprintOS.Core\BlueprintOS.Core.csproj" />
     <ProjectReference Include="..\..\src\BlueprintOS.Domain\BlueprintOS.Domain.csproj" />
     <ProjectReference Include="..\..\src\BlueprintOS.Infrastructure\BlueprintOS.Infrastructure.csproj" />
   </ItemGroup>
