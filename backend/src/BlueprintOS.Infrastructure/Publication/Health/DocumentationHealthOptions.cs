@@ -26,4 +26,16 @@ public sealed class DocumentationHealthOptions
     /// sinalizados como "muito semelhantes".
     /// </summary>
     public double SimilarityThreshold { get; set; } = 0.85;
+
+    /// <summary>
+    /// Títulos de heading que se repetem por design (ex.: um bloco "Contratos"/"Classes" por
+    /// módulo, concatenado pelos geradores de documentação técnica) e por isso não devem ser
+    /// sinalizados como "Heading duplicado" — ver ADR-0009 em <c>.ai/DECISIONS.md</c>.
+    /// </summary>
+    public HashSet<string> ExpectedDuplicateHeadings { get; set; } = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Contratos",
+        "Classes",
+        "Banco de Dados",
+    };
 }

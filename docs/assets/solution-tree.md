@@ -58,6 +58,8 @@ SOMA-BlueprintOS
 │   ├── ROADMAP.md
 │   ├── STANDARDS.md
 │   └── WORKFLOW.md
+├── .claude/
+│   └── scheduled_tasks.lock
 ├── .github/
 │   └── workflows/
 ├── .vscode/
@@ -101,7 +103,6 @@ SOMA-BlueprintOS
 │   │   └── ExecutiveReport.pdf
 │   └── .DS_Store
 ├── docs/
-│   ├── adr/
 │   ├── AI Factory/
 │   │   ├── Agents/
 │   │   ├── Architecture/
@@ -115,8 +116,11 @@ SOMA-BlueprintOS
 │   │   ├── 03 - Task Protocol.md
 │   │   ├── 04 - Memory System.md
 │   │   └── 05 - Automation Roadmap.md
-│   ├── api/
-│   ├── architecture/
+│   ├── assets/
+│   │   ├── agents.mmd
+│   │   ├── architecture.mmd
+│   │   ├── dependencies.mmd
+│   │   └── solution-tree.md
 │   ├── client/
 │   │   ├── API.md
 │   │   ├── Changelog.md

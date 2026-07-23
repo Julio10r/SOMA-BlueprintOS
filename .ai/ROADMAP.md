@@ -1,6 +1,6 @@
 # ROADMAP.md
 
-> Roadmap de alto nível do SOMA BlueprintOS, por fases. Não descreve sprints — para detalhe de sprint atual, ver [CURRENT_SPRINT.md](./CURRENT_SPRINT.md); para histórico de sprints concluídas, ver `.ai/memory/completed_sprints.md`.
+> Roadmap de alto nível do SOMA BlueprintOS, por fases. Não descreve sprints — para detalhe de sprint atual, ver `.ai/CURRENT_SPRINT.md`; para histórico de sprints concluídas, ver `.ai/memory/completed_sprints.md`.
 
 O projeto encontra-se em estágio inicial: `.ai/memory/completed_sprints.md` ainda não registra nenhuma sprint concluída, portanto o BlueprintOS está atualmente na **Fase 0 - Fundação**.
 

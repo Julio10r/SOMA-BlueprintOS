@@ -43,7 +43,7 @@ public sealed class DocumentationHealthService : IDocumentationHealthService
         {
             cancellationToken.ThrowIfCancellationRequested();
             AnalyzeCoverageAndContent(document);
-            AnalyzeStructure(document);
+            AnalyzeStructure(document, _options.ExpectedDuplicateHeadings);
             AnalyzeLinks(document);
         }
 
@@ -102,7 +102,7 @@ public sealed class DocumentationHealthService : IDocumentationHealthService
         }
     }
 
-    private static void AnalyzeStructure(AnalyzedDocument document)
+    private static void AnalyzeStructure(AnalyzedDocument document, IReadOnlySet<string> expectedDuplicateHeadings)
     {
         var lines = document.Content.Replace("\r\n", "\n").Split('\n');
         var headings = new List<(int Level, string Text)>();
@@ -146,6 +146,11 @@ public sealed class DocumentationHealthService : IDocumentationHealthService
 
         foreach (var group in headings.GroupBy(h => h.Text, StringComparer.OrdinalIgnoreCase).Where(g => g.Count() > 1))
         {
+            if (expectedDuplicateHeadings.Contains(group.Key))
+            {
+                continue;
+            }
+
             document.Warnings.Add($"Heading duplicado dentro do documento: \"{group.Key}\" ({group.Count()}x).");
         }
     }

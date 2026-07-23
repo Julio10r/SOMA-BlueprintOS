@@ -147,6 +147,31 @@ public class DocumentationHealthServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task AnalyzeAsync_Should_Not_Warn_On_Expected_Duplicate_Heading()
+    {
+        var artifact = WriteMarkdown("ExpectedDuplicate", """
+            # Título
+
+            ## Módulo A
+
+            ### Contratos
+
+            Interface do módulo A, com conteúdo suficiente para não ser sinalizado como curto.
+
+            ## Módulo B
+
+            ### Contratos
+
+            Interface do módulo B, com conteúdo suficiente para não ser sinalizado como curto.
+            """);
+
+        var report = await CreateService().AnalyzeAsync(new[] { artifact });
+
+        var result = Assert.Single(report.Documents);
+        Assert.DoesNotContain(result.Warnings, w => w.Contains("Heading duplicado"));
+    }
+
+    [Fact]
     public async Task AnalyzeAsync_Should_Flag_Identical_Documents_As_Error_On_Both()
     {
         const string content = """

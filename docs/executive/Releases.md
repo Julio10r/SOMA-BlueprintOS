@@ -3,7 +3,7 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-23 03:43:24 UTC
+- **Gerado em:** 2026-07-23 14:53:48 UTC
 - **Última atualização:** 2026-07-23
 
 ---
@@ -15,3 +15,4 @@ Cada sprint concluída é tratada, até o momento, como a unidade real de entreg
 
 - Sprint A7 — Sistema de Documentação do BlueprintOS
 - Sprint A8 — Portal de Documentação Viva
+- Sprint A9 — Publication Engine

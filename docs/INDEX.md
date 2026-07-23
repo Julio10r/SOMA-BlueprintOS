@@ -8,10 +8,12 @@ Este documento é o índice oficial da documentação permanente do SOMA Bluepri
 
 ## Arquitetura
 
-- `architecture/` — Documentação da arquitetura geral do BlueprintOS (estilo arquitetural, camadas, módulos e padrões técnicos).
-- `api/` — Documentação das APIs expostas pelo sistema.
-- `diagrams/` — Diagramas de arquitetura, fluxos e componentes.
-- `adr/` — Architecture Decision Records (registros das decisões arquiteturais).
+> Estrutura oficial por público-alvo (ver ADR-0009 em `.ai/DECISIONS.md`): Architecture, API e ADR Index vivem como seções dentro de `engineering/` e `client/`, não em diretórios próprios de topo.
+
+- `engineering/Architecture.md` — Documentação da arquitetura geral do BlueprintOS (estilo arquitetural, camadas, módulos e padrões técnicos).
+- `engineering/APIs.md` / `client/API.md` — Documentação das APIs expostas pelo sistema, por público-alvo.
+- `assets/architecture.mmd`, `assets/dependencies.mmd` — Diagramas Mermaid de arquitetura e dependências.
+- `engineering/Decisions.md` — Architecture Decision Records (índice; texto completo em `.ai/DECISIONS.md`).
 
 ---
 

@@ -137,3 +137,18 @@ Formato de cada ADR:
 - Assinatura eletrônica, organogramas/BPMN/C4 "prontos" (com layout automático), captura automática de tela da aplicação, exportação para DOCX/PPTX/site estático e numeração automática de figuras/tabelas continuam **não implementados** — apenas os pontos de extensão (`Caption`, `IContentRenderer`, `ImageAssetKind.Screenshot`) existem para que sejam adicionados depois.
 - Duas novas dependências de terceiros foram adicionadas: `QRCoder` (usada apenas via `PngByteQRCode`, evitando a dependência transitiva `System.Drawing.Common` em runtime) e, transitivamente, `Microsoft.Win32.SystemEvents`/`System.Drawing.Common` (não referenciadas diretamente pelo código do Publication Engine).
 - `PublicationDocument` teve seus construtores existentes alterados (breaking change interno): `Title`/`Subtitle`/`ProjectVersion`/`GeneratedAt` foram movidos para dentro de `Metadata`; todos os publicadores e testes foram atualizados nesta mesma sprint.
+
+---
+
+## ADR-0009: Estrutura oficial de diretórios da documentação publicada é `docs/{executive,client,engineering,assets}`, não `docs/{architecture,api,adr}`
+
+**Status:** Aceito
+
+**Contexto:** A homologação final da Sprint A7 (documentação) identificou que `docs/architecture/`, `docs/api/` e `docs/adr/` existiam no repositório como pastas vazias, enquanto o Publication Engine e o Portal de Documentação Viva já publicam Architecture, API e ADR Index em `docs/engineering/Architecture.md`, `docs/engineering/APIs.md` / `docs/client/API.md` e `docs/engineering/Decisions.md` respectivamente — nenhum gerador ou publicador jamais escreveu nas três pastas vazias. `IAdrService`/`MarkdownAdrService` (que persistiria ADRs individuais em `docs/adr/ADR-{id}.md`) existe como contrato e implementação, mas não é chamado por nenhum ponto de entrada do CLI (`publish`, `publish-docs`, `publish-executive-blueprint`); o log de ADRs vigente é `.ai/DECISIONS.md`, consumido por `DecisionsGenerator`.
+
+**Decisão:** A estrutura oficial de diretórios de documentação publicada (versionada em Git) é `docs/{executive,client,engineering,assets}`, organizada por público-alvo (Diretoria, Cliente, Desenvolvedores) e não por tipo de conteúdo. Architecture, API e ADR Index são seções dentro de `docs/engineering/` (e, quando aplicável ao público Cliente, também em `docs/client/`), não diretórios próprios de topo. As pastas `docs/architecture/`, `docs/api/` e `docs/adr/` são removidas por serem scaffolding não adotado pelo pipeline real — nenhum Publisher, Generator ou Pipeline foi alterado para justificar essa remoção; ela apenas reconhece formalmente a organização já em produção desde a ADR-0007/ADR-0008. `MarkdownAdrService`/`IAdrService` permanece implementado e testado como ponto de extensão para o dia em que ADRs passarem a ser persistidas também como arquivos individuais, mas não é invocado no fluxo atual — registrado aqui para não ser confundido com código morto em revisões futuras.
+
+**Consequências:**
+- Quem procurar por `docs/architecture/`, `docs/api/` ou `docs/adr/` deve procurar em `docs/engineering/` e `docs/client/`, conforme documentado em `docs/INDEX.md`.
+- Nenhum diretório vazio permanece na estrutura oficial de `docs/`.
+- Caso um dia se decida persistir ADRs individuais via `MarkdownAdrService`, basta invocar `IAdrService` a partir de um comando do CLI existente (ou um novo) — nenhuma mudança de contrato é necessária.
