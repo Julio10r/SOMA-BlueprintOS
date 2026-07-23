@@ -1,7 +1,9 @@
 using System.Net.Http.Headers;
 using BlueprintOS.Core.AI.Contracts;
 using BlueprintOS.Core.Agents;
+using BlueprintOS.Core.Knowledge.Contracts;
 using BlueprintOS.Infrastructure.Integrations.OpenAI;
+using BlueprintOS.Infrastructure.Knowledge;
 using BlueprintOS.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +28,11 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddSingleton<IAIRuntime, AIRuntime>();
+
+        services.Configure<KnowledgeOptions>(configuration.GetSection(KnowledgeOptions.SectionName));
+        services.AddSingleton<IKnowledgeProvider, MarkdownKnowledgeProvider>();
+        services.AddSingleton<IKnowledgeService, KnowledgeService>();
+
         services.AddSingleton<AgentFactory>();
 
         return services;
