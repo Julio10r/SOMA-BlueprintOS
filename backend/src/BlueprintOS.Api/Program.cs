@@ -1,11 +1,17 @@
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Infrastructure.DependencyInjection;
+using BlueprintOS.Infrastructure.Publication.Publishers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 if (args.Length > 0 && args[0] == "publish")
 {
     return await RunPublicationEngineAsync(args);
+}
+
+if (args.Length > 0 && args[0] == "publish-executive-blueprint")
+{
+    return await RunExecutiveBlueprintAsync();
 }
 
 var builder = WebApplication.CreateBuilder(args);
@@ -83,4 +89,27 @@ static string? FindRepoRoot(string startDirectory)
     }
 
     return null;
+}
+
+static async Task<int> RunExecutiveBlueprintAsync()
+{
+    var repoRoot = FindRepoRoot(AppContext.BaseDirectory) ?? Directory.GetCurrentDirectory();
+    var configuration = new ConfigurationBuilder()
+        .SetBasePath(AppContext.BaseDirectory)
+        .AddJsonFile("appsettings.json", optional: true)
+        .AddEnvironmentVariables()
+        .Build();
+
+    var services = new ServiceCollection();
+    services.AddInfrastructure(configuration);
+
+#pragma warning disable ASP0000
+    await using var provider = services.BuildServiceProvider();
+#pragma warning restore ASP0000
+
+    await ExecutiveBlueprintPublisher.PublishAsync(
+        repoRoot,
+        provider.GetRequiredService<IEnumerable<IContentRenderer>>());
+    Console.WriteLine("Executive Blueprint: HTML e PDF publicados em docs/executive/.");
+    return 0;
 }

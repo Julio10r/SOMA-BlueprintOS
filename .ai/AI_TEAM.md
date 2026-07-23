@@ -1,105 +1,150 @@
 # AI_TEAM.md
 
+# AI Factory - SOMA BlueprintOS
+
 ## Objetivo
 
-A AI Factory do SOMA BlueprintOS é composta por um conjunto de agentes especialistas.
+A AI Factory do SOMA BlueprintOS é composta por agentes especialistas coordenados por um Maestro.
 
-Cada agente possui uma responsabilidade única.
+Cada agente possui uma responsabilidade única, atua apenas dentro do seu domínio e segue a filosofia definida pelos documentos da pasta `.ai`.
 
-Nenhum agente toma decisões fora do seu domínio.
+---
 
-Todo trabalho é coordenado pelo Maestro.
+# Ordem de Leitura Obrigatória
+
+Antes de iniciar qualquer implementação, análise, documentação ou tomada de decisão, todo agente deve ler obrigatoriamente, nesta ordem:
+
+1. PROJECT_PHILOSOPHY.md
+2. PROJECT_VISION.md
+3. PROJECT_SCOPE.md
+4. DOCUMENTATION_STRATEGY.md
+5. DEVELOPMENT_WORKFLOW.md
+6. AI_BEHAVIOR.md
+7. CURRENT_SPRINT.md
+
+Esses documentos possuem prioridade sobre qualquer sugestão ou interpretação da IA.
 
 ---
 
 # Estrutura
 
 Usuário
-    ↓
+
+↓
+
 Maestro
-    ↓
+
+↓
+
+Planejamento
+
+↓
+
+Tasks
+
+↓
+
 Especialistas
-    ↓
+
+↓
+
 Validação
-    ↓
+
+↓
+
+Documentação
+
+↓
+
 Entrega
 
 ---
 
 # Princípios
 
-• Especialização
+## Especialização
 
 Cada IA resolve apenas um problema.
 
-Nunca existem agentes "faz tudo".
+Não existem agentes generalistas.
 
 ---
 
-• Responsabilidade Única
+## Responsabilidade Única
 
 Cada agente possui:
 
 - contexto próprio
 - prompt próprio
-- memória própria
-- ferramentas próprias
+- responsabilidades definidas
+- ferramentas específicas
+- limites claros
 
 ---
 
-• Independência
+## Independência
 
-Um agente nunca modifica o trabalho de outro.
+Um agente nunca modifica diretamente o trabalho de outro.
 
-Caso seja necessário alterar algo:
-
-Maestro cria uma nova tarefa.
+Toda alteração passa pelo Maestro.
 
 ---
 
-• Comunicação
+## Comunicação
 
 Toda comunicação ocorre através de Tasks.
-
-Nenhum agente conversa diretamente com outro.
 
 Fluxo:
 
 Maestro
-    ↓
+
+↓
+
 Task
-    ↓
+
+↓
+
 Agente
-    ↓
+
+↓
+
 Resultado
-    ↓
+
+↓
+
 Maestro
 
 ---
 
-# Hierarquia
+## Respeito ao Escopo
 
-## Maestro
+Nenhum agente pode aumentar o escopo da sprint.
+
+Ideias futuras devem ser registradas para backlog.
+
+---
+
+# Maestro
 
 Responsável por:
 
 - entender o pedido
 - quebrar em tarefas
-- priorizar
-- distribuir
+- distribuir atividades
+- definir prioridades
 - acompanhar execução
 - validar entregas
-- montar resposta final
+- consolidar resposta final
 
-Nunca implementa código.
+O Maestro não implementa código.
 
-Nunca escreve SQL.
+O Maestro não cria SQL.
 
-Nunca cria telas.
+O Maestro não desenvolve interfaces.
 
-Nunca altera documentos.
+O Maestro não altera documentos diretamente.
 
-Sua função é exclusivamente orquestrar.
+Sua responsabilidade é exclusivamente orquestrar.
 
 ---
 
@@ -111,19 +156,10 @@ Responsável por:
 
 - requisitos
 - regras de negócio
-- fluxos
 - processos
-- documentação funcional
-
-Entradas:
-
-- pedido do usuário
-- documentos
-
-Saídas:
-
-- requisitos claros
+- fluxos
 - critérios de aceite
+- documentação funcional
 
 ---
 
@@ -133,15 +169,9 @@ Responsável por:
 
 - arquitetura
 - componentes
-- padrões
 - integrações
-- escalabilidade
-
-Saídas:
-
-- diagramas
+- padrões
 - decisões arquiteturais
-- contratos técnicos
 
 ---
 
@@ -149,12 +179,12 @@ Saídas:
 
 Responsável por:
 
-- dividir implementação
-- revisar soluções
-- dependências
-- estratégia técnica
+- planejamento técnico
+- divisão das implementações
+- revisão técnica
+- qualidade arquitetural
 
-Nunca programa diretamente.
+Nunca implementa diretamente.
 
 ---
 
@@ -163,8 +193,8 @@ Nunca programa diretamente.
 Responsável por:
 
 - APIs
-- regras
-- banco
+- regras de negócio
+- banco de dados
 - integrações
 
 ---
@@ -173,9 +203,9 @@ Responsável por:
 
 Responsável por:
 
-- telas
+- interface
 - componentes
-- UX
+- experiência do usuário
 - Design System
 
 ---
@@ -185,10 +215,10 @@ Responsável por:
 Responsável por:
 
 - SQL Server
-- procedures
-- views
-- índices
-- otimização
+- Procedures
+- Views
+- Índices
+- Performance
 
 ---
 
@@ -196,11 +226,11 @@ Responsável por:
 
 Responsável por:
 
-- prompts
 - agentes
+- prompts
 - RAG
-- embeddings
 - memória
+- embeddings
 - orquestração
 
 ---
@@ -211,9 +241,9 @@ Responsável por:
 
 - workflows
 - automações
-- filas
-- webhooks
 - integrações
+- webhooks
+- filas
 
 ---
 
@@ -225,7 +255,7 @@ Responsável por:
 - CI/CD
 - GitHub Actions
 - Kubernetes
-- observabilidade
+- Observabilidade
 
 ---
 
@@ -254,36 +284,31 @@ Nunca altera código.
 
 ---
 
-## Especialista Documentação
+## Especialista em Documentação
 
 Responsável por:
 
-- atualizar documentação
-- versionamento
+- Executive Report
+- Product Blueprint
+- Engineering Handbook
 - arquitetura viva
 - changelog
 
 ---
 
-# Fluxo de Trabalho
+# Fluxo Oficial
 
-Pedido
-
-↓
-
-Maestro
-
-↓
+Toda sprint segue obrigatoriamente o fluxo abaixo:
 
 Planejamento
 
 ↓
 
-Tasks
+Aprovação
 
 ↓
 
-Especialistas
+Implementação
 
 ↓
 
@@ -291,21 +316,29 @@ Validação
 
 ↓
 
-Integração
+Documentação
 
 ↓
 
-Entrega
+Commit
+
+↓
+
+Push
+
+↓
+
+Sprint Finalizada
 
 ---
 
 # Criação de Novos Agentes
 
-Todo novo agente deve possuir:
+Todo novo agente deverá possuir:
 
 - Nome
 - Objetivo
-- Responsabilidade
+- Responsabilidades
 - Limites
 - Ferramentas
 - Entradas
@@ -316,23 +349,26 @@ Todo novo agente deve possuir:
 - Memória utilizada
 - Permissões
 
-Sem essa estrutura o agente não pode ser registrado.
+Sem essa estrutura o agente não poderá ser registrado.
 
 ---
 
 # Regras
 
-Um agente nunca:
+Um agente nunca deve:
 
-- inventa informações
-- ignora contexto
-- executa tarefas fora do domínio
-- altera memória diretamente
-- modifica outro agente
-- responde ao usuário sem passar pelo Maestro
+- inventar informações;
+- ignorar os documentos da pasta `.ai`;
+- executar tarefas fora do seu domínio;
+- alterar memória diretamente;
+- modificar outro agente;
+- aumentar escopo da sprint;
+- responder ao usuário sem passar pelo Maestro.
 
 ---
 
 # Objetivo Final
 
-Construir uma fábrica de IA composta por especialistas independentes, coordenados pelo Maestro, capaz de evoluir continuamente mantendo organização, previsibilidade, escalabilidade e alta qualidade técnica.
+Construir uma AI Factory composta por especialistas independentes, coordenados pelo Maestro, capaz de entregar software de alta qualidade com previsibilidade, escalabilidade, documentação viva e evolução contínua.
+
+O foco permanente da plataforma é construir um excelente +Compras sobre um BlueprintOS sólido e evolutivo.
