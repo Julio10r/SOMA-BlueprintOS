@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.RegularExpressions;
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Core.Publication.Models;
 using BlueprintOS.Infrastructure.Publication.Content;
@@ -11,6 +13,10 @@ namespace BlueprintOS.Infrastructure.Publication.Publishers;
 /// </summary>
 internal static class ReportPublishingHelper
 {
+    private static readonly Regex PhaseObjectivePattern = new(
+        @"^##\s+(Fase [^\n]+)\r?\n\r?\nObjetivo:\s*(.+)$",
+        RegexOptions.Multiline | RegexOptions.Compiled);
+
     /// <summary>
     /// Constrói uma <see cref="PublicationSection"/> a partir do Markdown bruto retornado por
     /// um gerador de documentação existente, convertendo-o uma única vez para o modelo comum
@@ -18,6 +24,51 @@ internal static class ReportPublishingHelper
     /// </summary>
     public static PublicationSection BuildSection(string heading, string markdown) =>
         new(heading, MarkdownContentParser.Parse(markdown));
+
+    /// <summary>
+    /// Remove a primeira linha de título (<c>#</c>/<c>##</c>) de um Markdown gerado por um
+    /// gerador existente, permitindo reaproveitar seu conteúdo sob um título diferente (definido
+    /// pelo publisher) sem duplicar a lógica de geração em si.
+    /// </summary>
+    public static string StripFirstHeadingLine(string markdown)
+    {
+        var lines = markdown.Replace("\r\n", "\n").Split('\n');
+        if (lines.Length == 0 || !lines[0].TrimStart().StartsWith('#'))
+        {
+            return markdown;
+        }
+
+        return string.Join('\n', lines.Skip(1)).TrimStart('\n');
+    }
+
+    /// <summary>
+    /// Extrai, a partir de <c>.ai/ROADMAP.md</c>, o objetivo declarado de cada fase e o
+    /// apresenta como benefício esperado — reaproveitado tanto pelo Relatório Executivo quanto
+    /// pelo Guia do Cliente para evitar duplicar a leitura/parsing do roadmap em dois lugares.
+    /// </summary>
+    public static async Task<string> BuildExpectedBenefitsMarkdownAsync(string aiRootPath, CancellationToken cancellationToken)
+    {
+        var path = Path.Combine(aiRootPath, "ROADMAP.md");
+        if (!File.Exists(path))
+        {
+            return "Roadmap não encontrado; benefícios esperados não puderam ser derivados.";
+        }
+
+        var content = await File.ReadAllTextAsync(path, cancellationToken);
+        var matches = PhaseObjectivePattern.Matches(content);
+        if (matches.Count == 0)
+        {
+            return "Nenhum objetivo de fase identificado em `.ai/ROADMAP.md`.";
+        }
+
+        var builder = new StringBuilder();
+        foreach (Match match in matches)
+        {
+            builder.AppendLine($"- **{match.Groups[1].Value.Trim()}** — {match.Groups[2].Value.Trim()}");
+        }
+
+        return builder.ToString();
+    }
 
     public static async Task<IReadOnlyList<PublishedArtifact>> WriteAllFormatsAsync(
         PublicationDocument document,

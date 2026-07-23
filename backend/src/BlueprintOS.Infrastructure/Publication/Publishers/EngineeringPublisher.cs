@@ -9,10 +9,9 @@ namespace BlueprintOS.Infrastructure.Publication.Publishers;
 
 /// <summary>
 /// Implementação de <see cref="IReportPublisher"/> para o Guia de Engenharia
-/// (<c>dist/engineering/EngineeringGuide.*</c>): reaproveita os geradores de documentação
-/// técnica já existentes e acrescenta uma seção de estrutura da solução (projetos,
-/// dependências e pastas), lida diretamente do <c>.sln</c>, dos <c>.csproj</c> e do sistema de
-/// arquivos do repositório.
+/// (<c>dist/engineering/EngineeringGuide.*</c>): documentação técnica completa — arquitetura,
+/// componentes, banco de dados, APIs, eventos, estrutura do código, dependências e decisões
+/// técnicas.
 /// </summary>
 public sealed class EngineeringPublisher : IReportPublisher
 {
@@ -28,8 +27,6 @@ public sealed class EngineeringPublisher : IReportPublisher
     private readonly IDatabaseGenerator _databaseGenerator;
     private readonly IAgentsGenerator _agentsGenerator;
     private readonly IApiGenerator _apiGenerator;
-    private readonly IDeployGenerator _deployGenerator;
-    private readonly IRunbookGenerator _runbookGenerator;
     private readonly IMermaidGenerator _mermaidGenerator;
     private readonly IDecisionsGenerator _decisionsGenerator;
     private readonly IReadOnlyList<IContentRenderer> _renderers;
@@ -42,8 +39,6 @@ public sealed class EngineeringPublisher : IReportPublisher
         IDatabaseGenerator databaseGenerator,
         IAgentsGenerator agentsGenerator,
         IApiGenerator apiGenerator,
-        IDeployGenerator deployGenerator,
-        IRunbookGenerator runbookGenerator,
         IMermaidGenerator mermaidGenerator,
         IDecisionsGenerator decisionsGenerator,
         IEnumerable<IContentRenderer> renderers,
@@ -53,8 +48,6 @@ public sealed class EngineeringPublisher : IReportPublisher
         _databaseGenerator = databaseGenerator;
         _agentsGenerator = agentsGenerator;
         _apiGenerator = apiGenerator;
-        _deployGenerator = deployGenerator;
-        _runbookGenerator = runbookGenerator;
         _mermaidGenerator = mermaidGenerator;
         _decisionsGenerator = decisionsGenerator;
         _renderers = renderers.ToList();
@@ -72,19 +65,18 @@ public sealed class EngineeringPublisher : IReportPublisher
         var sections = new List<PublicationSection>
         {
             ReportPublishingHelper.BuildSection("Arquitetura", await _architectureGenerator.GenerateAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection("Estrutura da Solução, Projetos e Dependências", await BuildSolutionStructureSectionAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection("Diagramas Mermaid e Fluxos", await _mermaidGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Componentes", await BuildComponentsSectionAsync(cancellationToken)),
             ReportPublishingHelper.BuildSection("Banco de Dados", await _databaseGenerator.GenerateAsync(cancellationToken)),
             ReportPublishingHelper.BuildSection("APIs", await _apiGenerator.GenerateAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection("Agentes", await _agentsGenerator.GenerateAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection("ADRs (Decisões Arquiteturais)", await _decisionsGenerator.GenerateAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection("Deploy", await _deployGenerator.GenerateAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection("Observabilidade e Testes (Runbook)", await _runbookGenerator.GenerateAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Eventos", BuildEventsMarkdown()),
+            ReportPublishingHelper.BuildSection("Estrutura do Código", BuildCodeStructureSection()),
+            ReportPublishingHelper.BuildSection("Dependências", await BuildDependenciesSectionAsync(cancellationToken)),
+            ReportPublishingHelper.BuildSection("Decisões Técnicas", await _decisionsGenerator.GenerateAsync(cancellationToken)),
         };
 
         var metadata = PublicationMetadata.Create(
             title: "Guia de Engenharia — BlueprintOS",
-            subtitle: "Documentação técnica completa: arquitetura, estrutura, APIs, dados e operação",
+            subtitle: "Documentação técnica completa: arquitetura, estrutura, APIs, dados e decisões",
             audience: "Equipe de Engenharia",
             version: _projectVersion,
             generatedAt: DateTimeOffset.UtcNow,
@@ -102,7 +94,38 @@ public sealed class EngineeringPublisher : IReportPublisher
         return await ReportPublishingHelper.WriteAllFormatsAsync(document, Category, _distRootPath, _renderers, cancellationToken);
     }
 
-    private async Task<string> BuildSolutionStructureSectionAsync(CancellationToken cancellationToken)
+    /// <summary>
+    /// Combina o diagrama de dependências entre projetos (visão de componentes) com a
+    /// descrição do subsistema de agentes, reaproveitando dois geradores já existentes em vez
+    /// de introduzir um novo.
+    /// </summary>
+    private async Task<string> BuildComponentsSectionAsync(CancellationToken cancellationToken)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine(ReportPublishingHelper.StripFirstHeadingLine(await _mermaidGenerator.GenerateAsync(cancellationToken)));
+        builder.AppendLine();
+        builder.AppendLine(ReportPublishingHelper.StripFirstHeadingLine(await _agentsGenerator.GenerateAsync(cancellationToken)));
+
+        return builder.ToString();
+    }
+
+    /// <summary>
+    /// O BlueprintOS ainda não implementa um barramento de eventos/mensageria (ver
+    /// ARCHITECTURE.md §13 - Escalabilidade); Domain Events é um padrão previsto (ARCHITECTURE.md
+    /// §11) mas ainda não adotado pelos módulos atuais. Refletido honestamente, sem inventar
+    /// eventos inexistentes.
+    /// </summary>
+    private static string BuildEventsMarkdown() =>
+        """
+        Nenhum barramento de eventos ou mensageria está implementado até o momento.
+
+        - **Domain Events** é um padrão de arquitetura previsto (ver `.ai/ARCHITECTURE.md`, seção de padrões adotados), mas ainda não foi adotado por nenhum dos módulos atuais.
+        - **Mensageria** entre serviços é um item previsto para a fase de escalabilidade (`.ai/ARCHITECTURE.md`, seção 13), condicionado a uma eventual separação em microsserviços — ainda não implementado no monólito modular atual.
+
+        Este documento será atualizado assim que eventos de domínio ou mensageria forem efetivamente implementados.
+        """;
+
+    private string BuildCodeStructureSection()
     {
         var builder = new StringBuilder();
         builder.AppendLine("### Estrutura de Pastas");
@@ -123,7 +146,12 @@ public sealed class EngineeringPublisher : IReportPublisher
             }
         }
 
-        builder.AppendLine();
+        return builder.ToString();
+    }
+
+    private async Task<string> BuildDependenciesSectionAsync(CancellationToken cancellationToken)
+    {
+        var builder = new StringBuilder();
         builder.AppendLine("### Projetos e Dependências");
         builder.AppendLine();
 

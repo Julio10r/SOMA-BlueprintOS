@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
+using BlueprintOS.Core.Documentation.Contracts.Client;
 using BlueprintOS.Core.Documentation.Contracts.Executive;
-using BlueprintOS.Core.Documentation.Contracts.Engineering;
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Core.Publication.Models;
 using BlueprintOS.Core.Publication.Models.Assets;
@@ -13,11 +13,9 @@ namespace BlueprintOS.Infrastructure.Publication.Publishers;
 
 /// <summary>
 /// Implementação de <see cref="IReportPublisher"/> para o Relatório Executivo
-/// (<c>dist/executive/ExecutiveReport.*</c>): reaproveita os geradores executivos e de
-/// engenharia já existentes do Portal de Documentação Viva, acrescenta indicadores reais de
-/// build/testes (via <see cref="IQualityMetricsProvider"/>) exibidos como selos na capa, um QR
-/// Code apontando para o repositório real, e dívidas técnicas/próximos passos extraídos
-/// diretamente de <c>.ai/memory/known_issues.md</c> e <c>.ai/ROADMAP.md</c>.
+/// (<c>dist/executive/ExecutiveReport.*</c>): conteúdo estratégico para a diretoria — resumo,
+/// objetivos, valor de negócio, benefícios esperados, KPIs, roadmap e próximos passos —, sem
+/// nenhum detalhe técnico (APIs, banco, classes, código ou eventos).
 /// </summary>
 public sealed class ExecutivePublisher : IReportPublisher
 {
@@ -27,10 +25,10 @@ public sealed class ExecutivePublisher : IReportPublisher
         new(@"^##\s+(Fase .+\(status:\s*(?!concluíd).+\))$", RegexOptions.Multiline | RegexOptions.IgnoreCase);
 
     private readonly IDashboardGenerator _dashboardGenerator;
-    private readonly ISprintStatusGenerator _sprintStatusGenerator;
-    private readonly IReleaseGenerator _releaseGenerator;
+    private readonly IProductOverviewGenerator _productOverviewGenerator;
+    private readonly IFunctionalGuideGenerator _functionalGuideGenerator;
+    private readonly IKpiGenerator _kpiGenerator;
     private readonly IRoadmapGenerator _roadmapGenerator;
-    private readonly IArchitectureGenerator _architectureGenerator;
     private readonly IQualityMetricsProvider _qualityMetricsProvider;
     private readonly IReadOnlyList<IContentRenderer> _renderers;
     private readonly string _distRootPath;
@@ -39,20 +37,20 @@ public sealed class ExecutivePublisher : IReportPublisher
 
     public ExecutivePublisher(
         IDashboardGenerator dashboardGenerator,
-        ISprintStatusGenerator sprintStatusGenerator,
-        IReleaseGenerator releaseGenerator,
+        IProductOverviewGenerator productOverviewGenerator,
+        IFunctionalGuideGenerator functionalGuideGenerator,
+        IKpiGenerator kpiGenerator,
         IRoadmapGenerator roadmapGenerator,
-        IArchitectureGenerator architectureGenerator,
         IQualityMetricsProvider qualityMetricsProvider,
         IEnumerable<IContentRenderer> renderers,
         IOptions<PublicationOptions> publicationOptions,
         IOptions<DocumentationOptions> documentationOptions)
     {
         _dashboardGenerator = dashboardGenerator;
-        _sprintStatusGenerator = sprintStatusGenerator;
-        _releaseGenerator = releaseGenerator;
+        _productOverviewGenerator = productOverviewGenerator;
+        _functionalGuideGenerator = functionalGuideGenerator;
+        _kpiGenerator = kpiGenerator;
         _roadmapGenerator = roadmapGenerator;
-        _architectureGenerator = architectureGenerator;
         _qualityMetricsProvider = qualityMetricsProvider;
         _renderers = renderers.ToList();
         _distRootPath = publicationOptions.Value.DistRootPath;
@@ -72,22 +70,29 @@ public sealed class ExecutivePublisher : IReportPublisher
         var sections = new List<PublicationSection>
         {
             ReportPublishingHelper.BuildSection("Resumo Executivo", await _dashboardGenerator.GenerateAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection("Status do Projeto (Build, Testes e Qualidade)", BuildProjectStatusSection(metrics)),
+            ReportPublishingHelper.BuildSection(
+                "Objetivos",
+                ReportPublishingHelper.StripFirstHeadingLine(await _productOverviewGenerator.GenerateAsync(cancellationToken))),
+            ReportPublishingHelper.BuildSection(
+                "Valor de Negócio",
+                ReportPublishingHelper.StripFirstHeadingLine(await _functionalGuideGenerator.GenerateAsync(cancellationToken))),
+            ReportPublishingHelper.BuildSection(
+                "Benefícios Esperados",
+                await ReportPublishingHelper.BuildExpectedBenefitsMarkdownAsync(_aiRootPath, cancellationToken)),
+            ReportPublishingHelper.BuildSection(
+                "KPIs",
+                ReportPublishingHelper.StripFirstHeadingLine(await _kpiGenerator.GenerateAsync(cancellationToken))),
             ReportPublishingHelper.BuildSection("Roadmap", await _roadmapGenerator.GenerateAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection("Sprint Atual", await _sprintStatusGenerator.GenerateAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection("Sprints Concluídas", await _releaseGenerator.GenerateAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection("Módulos Implementados", await _architectureGenerator.GenerateAsync(cancellationToken)),
-            ReportPublishingHelper.BuildSection("Dívidas Técnicas", await BuildKnownIssuesSectionAsync(cancellationToken)),
             ReportPublishingHelper.BuildSection("Próximos Passos", await BuildNextStepsSectionAsync(cancellationToken)),
         };
 
         var metadata = PublicationMetadata.Create(
             title: "Relatório Executivo — BlueprintOS",
-            subtitle: "Visão consolidada de status, build e roadmap para apresentação à diretoria",
+            subtitle: "Visão estratégica de objetivos, valor de negócio e roadmap para a diretoria",
             audience: "Diretoria",
             version: _projectVersion,
             generatedAt: generatedAt,
-            tags: new[] { "executivo", "status", "build" });
+            tags: new[] { "executivo", "estratégia", "roadmap" });
 
         var document = new PublicationDocument(
             Slug: "ExecutiveReport",
@@ -115,11 +120,6 @@ public sealed class ExecutivePublisher : IReportPublisher
                 "Testes",
                 metrics.TestCount.ToString(),
                 metrics.TestCount > 0 ? BadgeStatus.Success : BadgeStatus.Neutral),
-            new(
-                "badge-warnings",
-                "Warnings",
-                metrics.WarningCount.ToString(),
-                metrics.WarningCount == 0 ? BadgeStatus.Success : BadgeStatus.Warning),
         };
 
         var qrCode = new QrCodeAsset(
@@ -154,33 +154,6 @@ public sealed class ExecutivePublisher : IReportPublisher
             ReportPublishingHelper.BuildSection("Histórico de Versões", builder.ToString()),
             repositorySection,
         };
-    }
-
-    private static string BuildProjectStatusSection(QualityMetrics metrics)
-    {
-        var builder = new StringBuilder();
-        builder.AppendLine(metrics.Summary);
-        builder.AppendLine();
-        builder.AppendLine("| Indicador | Valor |");
-        builder.AppendLine("|---|---|");
-        builder.AppendLine($"| Build Status | {(metrics.BuildSucceeded ? "✅ Sucesso" : "❌ Falhou")} |");
-        builder.AppendLine($"| Warnings | {metrics.WarningCount} |");
-        builder.AppendLine($"| Erros | {metrics.ErrorCount} |");
-        builder.AppendLine($"| Quantidade de Testes | {metrics.TestCount} |");
-
-        return builder.ToString();
-    }
-
-    private async Task<string> BuildKnownIssuesSectionAsync(CancellationToken cancellationToken)
-    {
-        var path = Path.Combine(_aiRootPath, "memory", "known_issues.md");
-        if (!File.Exists(path))
-        {
-            return "Nenhuma dívida técnica registrada.";
-        }
-
-        var content = await File.ReadAllTextAsync(path, cancellationToken);
-        return content.Trim();
     }
 
     private async Task<string> BuildNextStepsSectionAsync(CancellationToken cancellationToken)
