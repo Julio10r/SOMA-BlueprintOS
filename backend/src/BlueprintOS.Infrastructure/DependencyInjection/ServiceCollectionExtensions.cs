@@ -3,6 +3,10 @@ using BlueprintOS.Core.AI.Contracts;
 using BlueprintOS.Core.AI.Memory;
 using BlueprintOS.Core.AI.Memory.Contracts;
 using BlueprintOS.Core.AI.Memory.Models;
+using BlueprintOS.Core.AI.Negotiation;
+using BlueprintOS.Core.AI.Negotiation.Contracts;
+using BlueprintOS.Core.AI.Negotiation.Models;
+using BlueprintOS.Core.AI.Negotiation.Rules;
 using BlueprintOS.Core.Agents;
 using BlueprintOS.Core.Knowledge.Contracts;
 using BlueprintOS.Infrastructure.Integrations.OpenAI;
@@ -44,6 +48,18 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<INegotiationMemory>(provider => new NegotiationMemory(
             provider.GetRequiredService<INegotiationMemoryStore>(),
             provider.GetRequiredService<IOptions<NegotiationScoreOptions>>().Value));
+
+        services.Configure<NegotiationStrategyOptions>(configuration.GetSection(NegotiationStrategyOptions.SectionName));
+        services.AddSingleton(provider => provider.GetRequiredService<IOptions<NegotiationStrategyOptions>>().Value);
+        services.AddSingleton<INegotiationStrategyRule, EmergencyUrgencyRule>();
+        services.AddSingleton<INegotiationStrategyRule, PartnershipHighScoreRecurringRule>();
+        services.AddSingleton<INegotiationStrategyRule, CompetitiveExpensiveSupplierRule>();
+        services.AddSingleton<INegotiationStrategyRule, AggressivePriceAboveHistoryRule>();
+        services.AddSingleton<INegotiationStrategyRule, BalancedNewSupplierRule>();
+        services.AddSingleton<INegotiationStrategyRule, ConservativeFallbackRule>();
+        services.AddSingleton<INegotiationStrategy>(provider => new NegotiationStrategy(
+            provider.GetRequiredService<IEnumerable<INegotiationStrategyRule>>(),
+            provider.GetRequiredService<IOptions<NegotiationStrategyOptions>>().Value));
 
         return services;
     }
