@@ -11,12 +11,22 @@ namespace BlueprintOS.Infrastructure.Publication.Publishers;
 /// (<c>dist/engineering/EngineeringGuide.*</c>). O conteúdo técnico (visão técnica, arquitetura,
 /// componentes, runtime de IA, memória, conhecimento, desenvolvimento, DevOps, testes, segurança,
 /// roadmap técnico e próximos passos) é autorado como Markdown em
-/// <c>.ai/content/engineering/</c> e carregado via <see cref="IEngineeringContentLoader"/>; este
-/// publisher é responsável apenas por acrescentar informações dinâmicas (versão, data de geração,
-/// roadmap automático, badges, métricas, QR Code, anexos, índice, capa e rodapé).
+/// <c>.ai/content/engineering/</c> e carregado via <see cref="IEngineeringContentLoader"/>; a
+/// montagem do documento (capa, índice, selos, métricas, QR Code, apêndice e rodapé) é delegada
+/// ao <see cref="DocumentAssembler"/>. Este publisher só define o <see cref="DocumentTemplate"/>
+/// e a única seção dinâmica específica (roadmap automático).
 /// </summary>
 public sealed class EngineeringPublisher : IReportPublisher
 {
+    private static readonly DocumentTemplate Template = new(
+        Slug: "EngineeringGuide",
+        Category: "engineering",
+        Title: "Guia de Engenharia — BlueprintOS",
+        Subtitle: "Visão técnica, arquitetura, componentes e roadmap técnico da plataforma",
+        Audience: "Equipe de Engenharia",
+        Tags: new[] { "engenharia", "arquitetura", "técnico" },
+        Theme: PublicationTheme.ForEngineering());
+
     private readonly IEngineeringContentLoader _contentLoader;
     private readonly IRoadmapGenerator _roadmapGenerator;
     private readonly IQualityMetricsProvider _qualityMetricsProvider;
@@ -40,43 +50,28 @@ public sealed class EngineeringPublisher : IReportPublisher
     }
 
     /// <inheritdoc />
-    public string Category => "engineering";
+    public string Category => Template.Category;
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<PublishedArtifact>> PublishAsync(CancellationToken cancellationToken = default)
     {
         var metrics = await _qualityMetricsProvider.GetMetricsAsync(cancellationToken);
-        var generatedAt = DateTimeOffset.UtcNow;
-
         var contentFiles = await _contentLoader.LoadAsync(cancellationToken);
-        var sections = new List<PublicationSection>(contentFiles.Count + 1);
-        foreach (var file in contentFiles)
+
+        var dynamicSections = new[]
         {
-            var (heading, body) = ReportPublishingHelper.SplitHeading(file.Content);
-            sections.Add(ReportPublishingHelper.BuildSection(heading, body));
-        }
+            new DocumentSection("Roadmap Automático", _roadmapGenerator.GenerateAsync),
+        };
 
-        sections.Add(ReportPublishingHelper.BuildSection(
-            "Roadmap Automático",
-            await _roadmapGenerator.GenerateAsync(cancellationToken)));
-
-        var metadata = PublicationMetadata.Create(
-            title: "Guia de Engenharia — BlueprintOS",
-            subtitle: "Visão técnica, arquitetura, componentes e roadmap técnico da plataforma",
-            audience: "Equipe de Engenharia",
-            version: _projectVersion,
-            generatedAt: generatedAt,
-            tags: new[] { "engenharia", "arquitetura", "técnico" });
-
-        var document = new PublicationDocument(
-            Slug: "EngineeringGuide",
-            Category: Category,
-            Metadata: metadata,
-            Sections: sections,
-            Assets: ReportPublishingHelper.BuildStandardAssets(metrics),
-            Appendix: ReportPublishingHelper.BuildStandardAppendix(metadata),
-            Theme: PublicationTheme.ForEngineering());
-
-        return await ReportPublishingHelper.WriteAllFormatsAsync(document, Category, _distRootPath, _renderers, cancellationToken);
+        return await DocumentAssembler.AssembleAsync(
+            Template,
+            contentFiles.Select(f => (f.FileName, f.Content)).ToList(),
+            dynamicSections,
+            metrics,
+            DateTimeOffset.UtcNow,
+            _projectVersion,
+            _distRootPath,
+            _renderers,
+            cancellationToken);
     }
 }

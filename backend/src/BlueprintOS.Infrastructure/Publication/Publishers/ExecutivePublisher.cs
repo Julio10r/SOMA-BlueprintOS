@@ -11,12 +11,22 @@ namespace BlueprintOS.Infrastructure.Publication.Publishers;
 /// (<c>dist/executive/ExecutiveReport.*</c>). O conteúdo estratégico (visão, problema de
 /// negócio, capacidades, benefícios, roadmap narrativo, estado atual e próximos passos) é
 /// autorado como Markdown em <c>.ai/content/executive/</c> e carregado via
-/// <see cref="IExecutiveContentLoader"/>; este publisher é responsável apenas por acrescentar
-/// informações dinâmicas (versão, data de geração, roadmap automático, diagrama de arquitetura,
-/// indicadores, anexos, índice, capa e rodapé).
+/// <see cref="IExecutiveContentLoader"/>; a montagem do documento (capa, índice, selos,
+/// métricas, QR Code, apêndice e rodapé) é delegada ao <see cref="DocumentAssembler"/>. Este
+/// publisher só define o <see cref="DocumentTemplate"/> e as seções dinâmicas específicas
+/// (roadmap automático e diagrama de arquitetura).
 /// </summary>
 public sealed class ExecutivePublisher : IReportPublisher
 {
+    private static readonly DocumentTemplate Template = new(
+        Slug: "ExecutiveReport",
+        Category: "executive",
+        Title: "Relatório Executivo — BlueprintOS",
+        Subtitle: "Visão estratégica de negócio, capacidades e roadmap para a diretoria",
+        Audience: "Diretoria",
+        Tags: new[] { "executivo", "estratégia", "roadmap" },
+        Theme: PublicationTheme.ForExecutive());
+
     private readonly IExecutiveContentLoader _contentLoader;
     private readonly IRoadmapGenerator _roadmapGenerator;
     private readonly IMermaidGenerator _mermaidGenerator;
@@ -43,46 +53,31 @@ public sealed class ExecutivePublisher : IReportPublisher
     }
 
     /// <inheritdoc />
-    public string Category => "executive";
+    public string Category => Template.Category;
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<PublishedArtifact>> PublishAsync(CancellationToken cancellationToken = default)
     {
         var metrics = await _qualityMetricsProvider.GetMetricsAsync(cancellationToken);
-        var generatedAt = DateTimeOffset.UtcNow;
-
         var contentFiles = await _contentLoader.LoadAsync(cancellationToken);
-        var sections = new List<PublicationSection>(contentFiles.Count + 2);
-        foreach (var file in contentFiles)
+
+        var dynamicSections = new[]
         {
-            var (heading, body) = ReportPublishingHelper.SplitHeading(file.Content);
-            sections.Add(ReportPublishingHelper.BuildSection(heading, body));
-        }
+            new DocumentSection("Roadmap Automático", _roadmapGenerator.GenerateAsync),
+            new DocumentSection(
+                "Visão de Arquitetura",
+                async ct => ReportPublishingHelper.StripFirstHeadingLine(await _mermaidGenerator.GenerateAsync(ct))),
+        };
 
-        sections.Add(ReportPublishingHelper.BuildSection(
-            "Roadmap Automático",
-            await _roadmapGenerator.GenerateAsync(cancellationToken)));
-        sections.Add(ReportPublishingHelper.BuildSection(
-            "Visão de Arquitetura",
-            ReportPublishingHelper.StripFirstHeadingLine(await _mermaidGenerator.GenerateAsync(cancellationToken))));
-
-        var metadata = PublicationMetadata.Create(
-            title: "Relatório Executivo — BlueprintOS",
-            subtitle: "Visão estratégica de negócio, capacidades e roadmap para a diretoria",
-            audience: "Diretoria",
-            version: _projectVersion,
-            generatedAt: generatedAt,
-            tags: new[] { "executivo", "estratégia", "roadmap" });
-
-        var document = new PublicationDocument(
-            Slug: "ExecutiveReport",
-            Category: Category,
-            Metadata: metadata,
-            Sections: sections,
-            Assets: ReportPublishingHelper.BuildStandardAssets(metrics),
-            Appendix: ReportPublishingHelper.BuildStandardAppendix(metadata),
-            Theme: PublicationTheme.ForExecutive());
-
-        return await ReportPublishingHelper.WriteAllFormatsAsync(document, Category, _distRootPath, _renderers, cancellationToken);
+        return await DocumentAssembler.AssembleAsync(
+            Template,
+            contentFiles.Select(f => (f.FileName, f.Content)).ToList(),
+            dynamicSections,
+            metrics,
+            DateTimeOffset.UtcNow,
+            _projectVersion,
+            _distRootPath,
+            _renderers,
+            cancellationToken);
     }
 }
