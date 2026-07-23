@@ -2,6 +2,7 @@ using BlueprintOS.Core.Documentation.Contracts.Client;
 using BlueprintOS.Core.Documentation.Contracts.Engineering;
 using BlueprintOS.Core.Documentation.Contracts.Executive;
 using BlueprintOS.Infrastructure.Documentation;
+using BlueprintOS.Infrastructure.Documentation.Assets;
 using BlueprintOS.Infrastructure.Documentation.Publishing;
 using Microsoft.Extensions.Options;
 
@@ -34,7 +35,8 @@ public class DocumentationPublishServiceTests : IDisposable
 
     private DocumentationPublishService CreateService()
     {
-        var options = Options.Create(new DocumentationOptions { AiRootPath = _aiRoot, DocsRootPath = _docsRoot });
+        var assetsRoot = Path.Combine(Path.GetDirectoryName(_docsRoot)!, "assets");
+        var options = Options.Create(new DocumentationOptions { AiRootPath = _aiRoot, DocsRootPath = _docsRoot, AssetsRootPath = assetsRoot });
         var publisher = new DocumentationPublisher(new MarkdownPublisher(options));
         var fake = new FakeGenerator();
 
@@ -42,7 +44,9 @@ public class DocumentationPublishServiceTests : IDisposable
             publisher, options,
             fake, fake, fake, fake, fake,
             fake, fake, fake, fake, fake, fake,
-            fake, fake, fake, fake, fake, fake, fake, fake);
+            fake, fake, fake, fake, fake, fake, fake, fake,
+            new DocumentationAssetGenerator(new MermaidDiagramGenerator()),
+            new AssetFilePublisher(options));
     }
 
     [Fact]
@@ -53,6 +57,18 @@ public class DocumentationPublishServiceTests : IDisposable
         Assert.Equal(19, results.Count);
         Assert.True(File.Exists(Path.Combine(_docsRoot, "executive/Dashboard.md")));
         Assert.True(File.Exists(Path.Combine(_docsRoot, "engineering/Mermaid/ArchitectureDiagram.md")));
+    }
+
+    [Fact]
+    public async Task PublishAllAsync_Should_Generate_Reusable_Documentation_Assets()
+    {
+        await CreateService().PublishAllAsync();
+
+        var assetsRoot = Path.Combine(Path.GetDirectoryName(_docsRoot)!, "assets");
+        Assert.True(File.Exists(Path.Combine(assetsRoot, "architecture.mmd")));
+        Assert.True(File.Exists(Path.Combine(assetsRoot, "dependencies.mmd")));
+        Assert.True(File.Exists(Path.Combine(assetsRoot, "agents.mmd")));
+        Assert.True(File.Exists(Path.Combine(assetsRoot, "solution-tree.md")));
     }
 
     [Fact]

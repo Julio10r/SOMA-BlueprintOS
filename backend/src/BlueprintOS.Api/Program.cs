@@ -1,3 +1,4 @@
+using BlueprintOS.Core.Documentation.Contracts;
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Infrastructure.DependencyInjection;
 using BlueprintOS.Infrastructure.Publication.Publishers;
@@ -7,6 +8,11 @@ using Microsoft.Extensions.DependencyInjection;
 if (args.Length > 0 && args[0] == "publish")
 {
     return await RunPublicationEngineAsync(args);
+}
+
+if (args.Length > 0 && args[0] == "publish-docs")
+{
+    return await RunDocumentationPublishServiceAsync();
 }
 
 if (args.Length > 0 && args[0] == "publish-executive-blueprint")
@@ -78,6 +84,32 @@ static async Task<int> RunPublicationEngineAsync(string[] args)
 
     Console.WriteLine(
         $"Documentation Health: {healthReport.HealthyCount} saudável(is), {healthReport.WarningCount} aviso(s), {healthReport.ErrorCount} erro(s). Relatório em {healthReportPath}.");
+
+    return 0;
+}
+
+static async Task<int> RunDocumentationPublishServiceAsync()
+{
+    var repoRoot = FindRepoRoot(AppContext.BaseDirectory) ?? Directory.GetCurrentDirectory();
+    Directory.SetCurrentDirectory(repoRoot);
+
+    var configuration = new ConfigurationBuilder()
+        .SetBasePath(AppContext.BaseDirectory)
+        .AddJsonFile("appsettings.json", optional: true)
+        .AddEnvironmentVariables()
+        .Build();
+
+    var services = new ServiceCollection();
+    services.AddInfrastructure(configuration);
+
+#pragma warning disable ASP0000 // ponto de entrada isolado para o CLI de publicação, sem relação com o host web.
+    await using var provider = services.BuildServiceProvider();
+#pragma warning restore ASP0000
+
+    var documentationPublishService = provider.GetRequiredService<IDocumentationPublishService>();
+    var documents = await documentationPublishService.PublishAllAsync();
+
+    Console.WriteLine($"Portal de Documentação Viva: {documents.Count} documento(s) publicado(s) em docs/.");
 
     return 0;
 }

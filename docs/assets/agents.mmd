@@ -1,0 +1,8 @@
+graph TD
+    Planner[AgentFactory (Planner)]
+    Especialistas[EchoAgent / KnowledgeAgent (Especialistas)]
+    Executores[DocumentationPublishService (Executores)]
+    Publicacao[DocumentationPublisher (Publicação)]
+    Planner -->|cria| Especialistas
+    Especialistas -->|executa| Executores
+    Executores -->|publica| Publicacao

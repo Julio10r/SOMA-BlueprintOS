@@ -1,4 +1,5 @@
 using BlueprintOS.Core.Documentation.Contracts;
+using BlueprintOS.Core.Documentation.Contracts.Assets;
 using BlueprintOS.Core.Documentation.Contracts.Client;
 using BlueprintOS.Core.Documentation.Contracts.Engineering;
 using BlueprintOS.Core.Documentation.Contracts.Executive;
@@ -47,6 +48,9 @@ public sealed class DocumentationPublishService : IDocumentationPublishService
     private readonly IMermaidGenerator _mermaidGenerator;
     private readonly IDecisionsGenerator _decisionsGenerator;
 
+    private readonly IDocumentationAssetGenerator _assetGenerator;
+    private readonly IAssetPublisher _assetPublisher;
+
     public DocumentationPublishService(
         DocumentationPublisher publisher,
         IOptions<DocumentationOptions> options,
@@ -68,10 +72,14 @@ public sealed class DocumentationPublishService : IDocumentationPublishService
         IDeployGenerator deployGenerator,
         IRunbookGenerator runbookGenerator,
         IMermaidGenerator mermaidGenerator,
-        IDecisionsGenerator decisionsGenerator)
+        IDecisionsGenerator decisionsGenerator,
+        IDocumentationAssetGenerator assetGenerator,
+        IAssetPublisher assetPublisher)
     {
         _publisher = publisher;
         _aiRootPath = options.Value.AiRootPath;
+        _assetGenerator = assetGenerator;
+        _assetPublisher = assetPublisher;
 
         _dashboardGenerator = dashboardGenerator;
         _kpiGenerator = kpiGenerator;
@@ -126,11 +134,24 @@ public sealed class DocumentationPublishService : IDocumentationPublishService
 
         var results = await _publisher.PublishManyAsync(requests, cancellationToken);
 
+        await PublishAssetsAsync(cancellationToken);
+
         await UpdateRoadmapAsync(cancellationToken);
         await UpdateCompletedSprintsAsync(cancellationToken);
         await UpdateKnownIssuesAsync(cancellationToken);
 
         return results;
+    }
+
+    private async Task PublishAssetsAsync(CancellationToken cancellationToken)
+    {
+        var assets = await _assetGenerator.GenerateAllAsync(cancellationToken);
+
+        foreach (var asset in assets)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await _assetPublisher.PublishAsync(asset, cancellationToken);
+        }
     }
 
     private async Task UpdateRoadmapAsync(CancellationToken cancellationToken)

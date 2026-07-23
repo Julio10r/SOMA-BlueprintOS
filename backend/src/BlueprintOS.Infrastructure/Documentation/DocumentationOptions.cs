@@ -32,4 +32,11 @@ public sealed class DocumentationOptions
     /// Versão do projeto exibida no cabeçalho dos documentos publicados.
     /// </summary>
     public string ProjectVersion { get; set; } = "1.0.0";
+
+    /// <summary>
+    /// Diretório raiz, relativo ou absoluto, onde o Asset Generator publica os ativos de
+    /// documentação reutilizáveis (diagramas Mermaid e Markdown auxiliares) consumidos
+    /// futuramente pelos Publishers.
+    /// </summary>
+    public string AssetsRootPath { get; set; } = "docs/assets";
 }

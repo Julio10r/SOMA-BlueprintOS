@@ -9,12 +9,14 @@ using BlueprintOS.Core.AI.Negotiation.Models;
 using BlueprintOS.Core.AI.Negotiation.Rules;
 using BlueprintOS.Core.Agents;
 using BlueprintOS.Core.Documentation.Contracts;
+using BlueprintOS.Core.Documentation.Contracts.Assets;
 using BlueprintOS.Core.Documentation.Contracts.Client;
 using BlueprintOS.Core.Documentation.Contracts.Engineering;
 using BlueprintOS.Core.Documentation.Contracts.Executive;
 using BlueprintOS.Core.Knowledge.Contracts;
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Infrastructure.Documentation;
+using BlueprintOS.Infrastructure.Documentation.Assets;
 using BlueprintOS.Infrastructure.Documentation.Generators.Client;
 using BlueprintOS.Infrastructure.Documentation.Generators.Engineering;
 using BlueprintOS.Infrastructure.Documentation.Generators.Executive;
@@ -115,6 +117,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IRunbookGenerator, RunbookGenerator>();
         services.AddSingleton<IMermaidGenerator, MermaidGenerator>();
         services.AddSingleton<IDecisionsGenerator, DecisionsGenerator>();
+
+        // Asset Generator (Sprint A7.3)
+        services.AddSingleton<IDocumentationAssetGenerator, DocumentationAssetGenerator>();
+        services.AddSingleton<IAssetPublisher, AssetFilePublisher>();
 
         services.AddSingleton<IDocumentationPublishService, DocumentationPublishService>();
 
