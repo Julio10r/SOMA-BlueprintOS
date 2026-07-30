@@ -152,3 +152,19 @@ Formato de cada ADR:
 - Quem procurar por `docs/architecture/`, `docs/api/` ou `docs/adr/` deve procurar em `docs/engineering/` e `docs/client/`, conforme documentado em `docs/INDEX.md`.
 - Nenhum diretório vazio permanece na estrutura oficial de `docs/`.
 - Caso um dia se decida persistir ADRs individuais via `MarkdownAdrService`, basta invocar `IAdrService` a partir de um comando do CLI existente (ou um novo) — nenhuma mudança de contrato é necessária.
+
+---
+
+## ADR-0011: Identidade temporária de desenvolvimento para antecipar a persistência de fornecedores
+
+**Status:** Aceito
+
+**Contexto:** O +COMPRAS precisa evoluir do slice transitório para cadastro persistente de fornecedores antes da disponibilidade corporativa do Microsoft Entra ID. Adiar toda persistência até H1/H2 impediria validar o próximo fluxo de negócio; porém, tratar uma identidade provisória como mecanismo de produção criaria risco de segurança e retrabalho.
+
+**Decisão:** As próximas entregas de negócio podem usar um adaptador de identidade temporária, configurado exclusivamente para o ambiente `Development`. O adaptador fornecerá um identificador estável de usuário e um perfil mínimo por requisição; registros persistidos de fornecedor deverão manter o vínculo de autoria/responsabilidade com esse identificador temporário. A camada de negócio dependerá somente de um contrato de identidade, para que o adaptador seja substituído pelo Entra ID sem alterar entidades, casos de uso ou contratos de Procurement. Em ambiente diferente de `Development`, a aplicação não poderá iniciar com esse adaptador. A implantação produtiva continua bloqueada até H1/H2.
+
+**Consequências:**
+- B1 pode implementar persistência de fornecedor e autoria temporária sem aguardar o tenant corporativo.
+- A Work Order de B1 deverá definir o contrato, o formato de configuração e os perfis mínimos; ela não pode expor headers temporários como autenticação de produção.
+- Entra ID e segregação de funções permanecem entregas obrigatórias antes de qualquer uso produtivo, integração corporativa ou exposição externa.
+- Dados persistidos deverão suportar a migração do identificador temporário para o identificador corporativo, com plano de migração definido em H1.

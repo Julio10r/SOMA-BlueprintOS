@@ -12,7 +12,7 @@
 
 - **Data:** 30/07/2026
 - **Branch:** `main`
-- **Commit de referência:** `5f33167` — `docs: add standardized work order template system`.
+- **Commit de referência:** `a6491d2` — `docs: organize work orders structure`.
 - **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros e 4 avisos `NU1900` de conectividade com `nuget.org` na consulta de vulnerabilidades; 230 testes unitários e 1 teste de integração aprovados.
 
 ## Sistema de Work Orders
@@ -23,14 +23,14 @@
 
 ## Resumo executivo
 
-O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes simples, conhecimento em Markdown, memória e estratégia de negociação em processo, workflow sequencial e publicação/documentação. O +COMPRAS ainda não é uma funcionalidade utilizável de ponta a ponta: não há portal, API de negócio, persistência durável, autenticação, Procurement nem integração ERP.
+O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes simples, conhecimento em Markdown, memória e estratégia de negociação em processo, workflow sequencial e publicação/documentação. O +COMPRAS ainda não é uma funcionalidade utilizável de ponta a ponta: não há portal, API de negócio, persistência durável, autenticação, Procurement nem integração ERP. A13 está aprovada para planejamento, sem evidência de execução.
 
 ## Ciclo atual
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
 - **Última sprint comprovadamente concluída:** A12 — Especificação Oficial das 56 Work Orders (Completed em 30/07/2026).
-- **Sprint atual:** nenhuma ativa. O registro em `CURRENT_SPRINT.md` referencia A12 como a última sprint concluída.
-- **Próxima sprint proposta:** não definida. A seleção depende de priorização e aprovação explícitas do Product Owner.
+- **Sprint atual:** A13 — Primeiro Vertical Slice do +Compras (Approved; execução não iniciada).
+- **Próxima sprint proposta:** A13, aprovada pelo Product Owner; a seleção posterior depende de priorização explícita.
 - **Progresso real:** documentação/publicação e capacidades internas de IA estão implementadas; os fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
 ## Capacidades implementadas
@@ -64,6 +64,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 - **Agentes:** `EchoAgent` e `KnowledgeAgent`. Não existe classe concreta `SeniorBuyerAgent`, `NegotiationAgent`, `ComplianceAgent` ou `RiskAgent`.
 - **Integrações:** OpenAI Chat Completions via `OpenAIProvider`; CLI Git somente para leitura de histórico de documentação; Docker Compose com SQL Server configurado, mas não consumido pela aplicação.
+- **Identidade planejada:** a ADR-0011 aceita identidade temporária somente em `Development` para futura persistência e vínculo de fornecedores; não há adaptador, autenticação ou persistência implementados.
 
 ## Qualidade
 
