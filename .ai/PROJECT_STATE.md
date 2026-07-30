@@ -82,3 +82,7 @@ Build da solution: sucesso, 0 avisos e 0 erros.
 - O roadmap estratégico de apresentação +COMPRAS continua sem atualização visual; as correções necessárias estão listadas em `docs/presentations/ROADMAP_UPDATE.md`.
 - A estrutura alvo descrita em `ARCHITECTURE.md` não é a estrutura física atual.
 - Nenhuma Work Order futura está aprovada; a próxima sprint depende de decisão explícita do Product Owner.
+
+## Auditoria de repositório
+
+- **Etapa 1 — Higiene e artefatos gerados (30/07/2026):** remoção exclusiva de resíduos locais comprovados (`.DS_Store`, `bin/`, `obj/` e `dist/`) e reforço do `.gitignore`. Não houve alteração de progresso funcional. Restore serial, build e 231 testes foram concluídos; o único aviso `NU1900` decorre da indisponibilidade de consulta de vulnerabilidades ao nuget.org, sem impedir a validação. Ver [relatório da auditoria](../docs/audits/repository-cleanup-step-01.md).
