@@ -5,11 +5,12 @@ namespace BlueprintOS.UnitTests.Infrastructure.Documentation.Generators.Engineer
 public class ApiGeneratorTests
 {
     [Fact]
-    public async Task GenerateAsync_Should_Document_Real_Health_Endpoint_Only()
+    public async Task GenerateAsync_Should_Document_Health_And_Negotiation_Recommendation_Endpoints()
     {
         var result = await new ApiGenerator().GenerateAsync();
 
         Assert.Contains("GET /health", result);
-        Assert.Contains("Nenhum controller de negócio", result);
+        Assert.Contains("POST /api/v1/negociacoes/recomendacoes", result);
+        Assert.Contains("caso de uso Application", result);
     }
 }

@@ -4,6 +4,11 @@
 
 ---
 
+## A13 — Vertical Slice do +COMPRAS
+
+- A recomendação de negociação não persiste histórico, fornecedores ou resultados; a memória existente é transitória.
+- A identidade temporária aceita apenas em `Development` bloqueia a operação em Production até a futura implementação de identidade corporativa.
+
 ## Estado consolidado na Sprint A10 — Project State Consolidation
 
 - **Fonte operacional de estado criada.** `.ai/PROJECT_STATE.md` passou a registrar a evidência atual de código, testes e Git. `CURRENT_SPRINT.md`, `ROADMAP.md` e o histórico de sprints foram alinhados a ela.

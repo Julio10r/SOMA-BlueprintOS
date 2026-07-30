@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\BlueprintOS.Core\BlueprintOS.Core.csproj" />
     <ProjectReference Include="..\BlueprintOS.Domain\BlueprintOS.Domain.csproj" />
     <ProjectReference Include="..\BlueprintOS.Shared\BlueprintOS.Shared.csproj" />
   </ItemGroup>

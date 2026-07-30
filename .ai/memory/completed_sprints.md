@@ -91,3 +91,13 @@
 - As fontes externas de descoberta de Compras Indiretas foram registradas sem serem tratadas como evidência de implementação ou aprovação de escopo.
 
 **Resultado da validação:** `dotnet build backend/BlueprintOS.sln --no-restore` com 0 avisos e 0 erros; `dotnet test backend/BlueprintOS.sln --no-build` com 230 testes unitários e 1 teste de integração aprovados, 0 ignorados e 0 falhos. As 56 Work Orders têm as 28 seções obrigatórias; links e referências do catálogo foram verificados.
+
+## Sprint A13 — Primeiro Vertical Slice do +Compras
+
+**Status:** Concluída em 30/07/2026.
+
+**Escopo:** endpoint consultivo `POST /api/v1/negociacoes/recomendacoes`, orquestrado por caso de uso Application sobre memória e estratégia existentes, sem persistência ou alteração de estado.
+
+**Evidência:** `NegotiationRecommendationController`, `NegotiationRecommendationUseCase` e o adaptador `DevelopmentRequestIdentity`; a resposta propaga `requestId`, justificativas, alertas, probabilidade suportada e `humanDecisionRequired: true`.
+
+**Validação:** build sem erros, 231 testes unitários e 1 teste de integração aprovados; smoke test HTTP aprovado em Development e resposta 503 segura validada em Production para a identidade temporária.

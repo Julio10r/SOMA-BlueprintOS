@@ -1,4 +1,6 @@
 using System.Net.Http.Headers;
+using BlueprintOS.Application.Procurement.Negotiations;
+using BlueprintOS.Application.Procurement.Negotiations.Contracts;
 using BlueprintOS.Core.AI.Contracts;
 using BlueprintOS.Core.AI.Memory;
 using BlueprintOS.Core.AI.Memory.Contracts;
@@ -77,6 +79,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<INegotiationStrategy>(provider => new NegotiationStrategy(
             provider.GetRequiredService<IEnumerable<INegotiationStrategyRule>>(),
             provider.GetRequiredService<IOptions<NegotiationStrategyOptions>>().Value));
+        services.AddScoped<INegotiationRecommendationUseCase, NegotiationRecommendationUseCase>();
 
         services.Configure<DocumentationOptions>(configuration.GetSection(DocumentationOptions.SectionName));
         services.AddSingleton<IDocumentationRepository, InMemoryDocumentationRepository>();

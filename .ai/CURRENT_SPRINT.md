@@ -1,13 +1,13 @@
 Sprint: A13
 
 Status:
-Approved
+Completed
 
 Objetivo:
 Primeiro Vertical Slice do +Compras
 
 Estado:
-Planejamento aprovado; execução ainda não iniciada.
+Implementação concluída: fluxo consultivo exposto em `POST /api/v1/negociacoes/recomendacoes`, sem persistência ou alteração de estado.
 
 Limites de identidade:
 - O Entra ID não será implementado nesta sprint.

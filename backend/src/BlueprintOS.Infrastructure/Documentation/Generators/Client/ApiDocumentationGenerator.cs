@@ -15,15 +15,16 @@ public sealed class ApiDocumentationGenerator : IApiDocumentationGenerator
         var builder = new StringBuilder();
         builder.AppendLine("## API para clientes e integradores");
         builder.AppendLine();
-        builder.AppendLine("A API pública do BlueprintOS ainda está em estágio inicial. O único endpoint");
-        builder.AppendLine("disponível hoje é o de verificação de saúde do serviço:");
+        builder.AppendLine("A API pública do BlueprintOS ainda está em estágio inicial. Além do endpoint");
+        builder.AppendLine("de saúde, há um fluxo consultivo de recomendação de negociação:");
         builder.AppendLine();
-        builder.AppendLine("| Método | Rota      | Descrição                              |");
-        builder.AppendLine("|--------|-----------|-----------------------------------------|");
-        builder.AppendLine("| GET    | `/health` | Retorna o status de saúde da aplicação. |");
+        builder.AppendLine("| Método | Rota | Descrição |");
+        builder.AppendLine("|--------|------|-----------|");
+        builder.AppendLine("| GET | `/health` | Retorna o status de saúde da aplicação. |");
+        builder.AppendLine("| POST | `/api/v1/negociacoes/recomendacoes` | Retorna recomendação consultiva; não altera estado e exige decisão humana. |");
         builder.AppendLine();
-        builder.AppendLine("Novos endpoints de negócio serão documentados aqui automaticamente conforme forem");
-        builder.AppendLine("expostos em `BlueprintOS.Api`.");
+        builder.AppendLine("A identidade temporária só é aceita em Development; fora desse ambiente a operação");
+        builder.AppendLine("falha de forma segura. Não há persistência, ERP ou execução automática de compras.");
 
         return Task.FromResult(builder.ToString());
     }

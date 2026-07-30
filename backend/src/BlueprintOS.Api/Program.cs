@@ -1,5 +1,8 @@
 using BlueprintOS.Core.Documentation.Contracts;
 using BlueprintOS.Core.Publication.Contracts;
+using BlueprintOS.Api.Identity;
+using BlueprintOS.Api.Negotiations;
+using BlueprintOS.Application.Identity.Contracts;
 using BlueprintOS.Infrastructure.DependencyInjection;
 using BlueprintOS.Infrastructure.Publication.Publishers;
 using Microsoft.Extensions.Configuration;
@@ -24,6 +27,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Services
 builder.Services.AddOpenApi();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentIdentity, DevelopmentRequestIdentity>();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
@@ -47,6 +52,8 @@ app.MapGet("/health", () =>
         Version = "1.0.0"
     });
 });
+
+app.MapNegotiationRecommendation();
 
 app.Run();
 return 0;
