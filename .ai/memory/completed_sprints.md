@@ -54,11 +54,11 @@
 
 **Resultado da validação:** `dotnet build` sem erros/warnings; `dotnet test` com 100% dos testes passando (167 testes unitários + 1 teste de integração); `dotnet run -- publish` executado com sucesso, gerando os 9 arquivos esperados em `dist/`, com selos, QR Code e histórico de versões visíveis nos três formatos do Relatório Executivo.
 
-## Sprint A10 — Project State Consolidation
+## Sprint A10 — Governance and Work Order Foundation
 
-**Status:** Concluída
+**Status:** Completed
 
-**Escopo:** Normalização documental e consolidação do estado real do SOMA BlueprintOS / +COMPRAS, sem implementar funcionalidade de negócio. A sprint estabeleceu `.ai/PROJECT_STATE.md` como fonte operacional de estado e corrigiu documentação cuja informação não era sustentada por código, testes ou histórico Git.
+**Escopo:** Fundação de governança, visão e Work Orders do SOMA BlueprintOS / +COMPRAS, incluindo a normalização documental já iniciada. Não implementa funcionalidade de negócio.
 
 **Entregas comprovadas:**
 - Criação de `.ai/PROJECT_STATE.md`, com estado de módulos, agentes, integrações, APIs, infraestrutura, riscos e evidências de validação.
@@ -67,3 +67,5 @@
 - Criação de `docs/presentations/ROADMAP_UPDATE.md`, sem alterar o PowerPoint, com as correções factuais necessárias em cada slide do roadmap executivo +COMPRAS.
 
 **Resultado da validação:** `dotnet build backend/BlueprintOS.sln --no-restore` com 0 avisos e 0 erros; 230 testes unitários e 1 teste de integração executados, todos aprovados, sem testes ignorados ou falhos.
+
+**Complemento de governança:** `VISION.md`, `BACKLOG.md`, template oficial e 56 Work Orders foram criados. Sprints sem escopo ou evidência suficiente foram marcadas como `A detalhar`, `Planejado` ou `Não comprovado`.

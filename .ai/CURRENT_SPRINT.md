@@ -1,7 +1,7 @@
 Sprint: A10
 
 Status:
-Concluída
+Completed
 
 Objetivo:
-Project State Consolidation
+Governance and Work Order Foundation

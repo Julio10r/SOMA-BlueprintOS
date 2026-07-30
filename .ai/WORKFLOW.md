@@ -416,6 +416,18 @@ Uma tarefa só pode iniciar quando possuir:
 
 ---
 
+# 18.1 Governança de Work Orders
+
+1. Apenas uma Work Order pode ter status `Approved` por vez.
+2. Codex só implementa a sprint explicitamente aprovada e registrada em `CURRENT_SPRINT.md`.
+3. Antes da implementação, o executor lê `VISION.md`, `PROJECT_STATE.md` e a Work Order correspondente.
+4. Ao concluir, atualiza estado, histórico, documentação e o resultado da Work Order.
+5. Melhorias fora do escopo são registradas como sugestão ou decisão pendente; não são implementadas.
+6. Toda sprint termina com build, testes aplicáveis, commit e push.
+7. Uma sprint que não cumpra todos os critérios permanece `In Progress`.
+
+---
+
 # 19. Definition of Done
 
 A Definition of Done canônica do projeto está definida em [context/definition-of-done.md](./context/definition-of-done.md).

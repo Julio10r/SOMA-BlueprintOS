@@ -6,7 +6,7 @@
 
 - **Data:** 30/07/2026
 - **Branch:** `main`
-- **Commit de referência:** `38ad07d` — `feat(documentation): integrate publication engine with official design system`
+- **Commit de referência:** `741d809` — `docs: consolidate canonical project state`
 - **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 avisos e 0 erros; 230 testes unitários e 1 teste de integração aprovados.
 
 ## Resumo executivo
@@ -16,9 +16,9 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 ## Ciclo atual
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
-- **Última sprint concluída antes desta consolidação:** A9 — Publication Engine.
-- **Sprint atual:** A10 — Project State Consolidation (concluída em 30/07/2026).
-- **Próxima sprint proposta:** A11 — +COMPRAS Negotiation API Slice: expor uma API mínima e autenticável futuramente para consultar e avaliar uma recomendação de negociação. A proposta ainda depende de aprovação e não foi iniciada.
+- **Última sprint comprovadamente concluída:** A9 — Publication Engine.
+- **Sprint atual:** A10 — Governance and Work Order Foundation (Completed em 30/07/2026).
+- **Próxima sprint proposta:** não definida; A11 — +COMPRAS Negotiation API Slice permanece apenas como sugestão, sujeita a priorização e aprovação.
 - **Progresso real:** documentação/publicação e capacidades internas de IA estão implementadas; os fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
 ## Capacidades implementadas
