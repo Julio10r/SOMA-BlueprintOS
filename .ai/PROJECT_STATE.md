@@ -12,8 +12,8 @@
 
 - **Data:** 30/07/2026
 - **Branch:** `main`
-- **Commit de referência:** `5f33167` — `docs: add standardized work order template system`.
-- **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros e 4 avisos `NU1900` de conectividade com `nuget.org` na consulta de vulnerabilidades; 230 testes unitários e 1 teste de integração aprovados.
+- **Commit de referência:** pendente de criação para a Sprint A13.
+- **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros e 4 avisos `NU1900` de conectividade com `nuget.org` na consulta de vulnerabilidades; `dotnet test backend/BlueprintOS.sln --no-build`, 230 unitários e 1 integração aprovados; smoke test HTTP aprovado nos três endpoints de negociação.
 
 ## Sistema de Work Orders
 
@@ -23,15 +23,15 @@
 
 ## Resumo executivo
 
-O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes simples, conhecimento em Markdown, memória e estratégia de negociação em processo, workflow sequencial e publicação/documentação. O +COMPRAS ainda não é uma funcionalidade utilizável de ponta a ponta: não há portal, API de negócio, persistência durável, autenticação, Procurement nem integração ERP.
+O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes simples, conhecimento em Markdown, memória e estratégia de negociação em processo, workflow sequencial e publicação/documentação. O +COMPRAS possui agora um primeiro vertical slice consultivo: uma API registra histórico transitório e gera recomendação explicável de negociação. Ainda não há portal, persistência durável, autenticação, Procurement completo nem integração ERP.
 
 ## Ciclo atual
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
-- **Última sprint comprovadamente concluída:** A12 — Especificação Oficial das 56 Work Orders (Completed em 30/07/2026).
-- **Sprint atual:** nenhuma ativa. O registro em `CURRENT_SPRINT.md` referencia A12 como a última sprint concluída.
+- **Última sprint comprovadamente concluída:** A13 — Primeiro Vertical Slice do +Compras (Completed em 30/07/2026).
+- **Sprint atual:** nenhuma ativa. O registro em `CURRENT_SPRINT.md` referencia A13 como a última sprint concluída.
 - **Próxima sprint proposta:** não definida. A seleção depende de priorização e aprovação explícitas do Product Owner.
-- **Progresso real:** documentação/publicação e capacidades internas de IA estão implementadas; os fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
+- **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
 ## Capacidades implementadas
 
@@ -41,6 +41,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 | Agents | `IAgent`, `BaseAgent`, `EchoAgent`, `KnowledgeAgent`, `AgentFactory` | Implementado, básico |
 | Knowledge | `MarkdownKnowledgeProvider` e `KnowledgeService` | Implementado, baseado em Markdown |
 | Negociação | `NegotiationMemory`, regras e `NegotiationStrategy` | Implementado, em memória |
+| API de negociação | `NegotiationEndpoints`: registro de histórico, consulta de fornecedor e recomendação consultiva em `/api/v1/negotiations` | Implementado, transitório e sem identidade |
 | Workflow | `Workflow` e `WorkflowRunner` sequenciais | Implementado, básico |
 | Documentation | contratos, geradores, publicação Markdown, Git reader e health report | Implementado |
 | Publication | renderização Markdown/HTML/PDF, QR Code e publicadores por público | Implementado |
@@ -48,7 +49,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 ## Capacidades parciais
 
 - **Memória:** existe apenas a memória de negociação em processo; não há memória corporativa genérica, persistência nem recuperação de longo prazo.
-- **API:** host ASP.NET Core e OpenAPI em desenvolvimento existem; a única rota HTTP é `GET /health`.
+- **API:** host ASP.NET Core, OpenAPI em desenvolvimento, `GET /health` e o slice de negociação versionado existem; não há autenticação, autorização ou contratos para os demais domínios de Procurement.
 - **Infraestrutura:** Docker Compose sobe SQL Server e API; não há CI/CD, GCP, Kubernetes, Terraform, Nginx ou observabilidade implementados.
 - **Arquitetura:** o estilo alvo é Modular Monolith com módulos por camada, mas o código real permanece em projetos transversais `Core`/`Infrastructure`.
 
@@ -73,11 +74,11 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 | Integração | 1 | 1 | 0 | 0 |
 | Total | 231 | 231 | 0 | 0 |
 
-Build da solution: sucesso, 0 erros e 4 avisos `NU1900` de conectividade com `nuget.org` na consulta de vulnerabilidades.
+Build da solution: sucesso, 0 erros e 4 avisos `NU1900` de conectividade com `nuget.org` na consulta de vulnerabilidades. Smoke test HTTP da A13 aprovado para registro de histórico, consulta de fornecedor e geração de recomendação.
 
 ## Riscos e pendências
 
-- As capacidades internas não estão expostas em uma API de negócio nem em uma interface utilizável.
+- O slice de negociação é uma API consultiva mínima; os demais domínios de negócio ainda não estão expostos em API ou interface utilizável.
 - Dados de negociação e documentação ainda não são duráveis.
 - A configuração da chave OpenAI depende de ambiente e não há tratamento operacional completo para credenciais, rate limits ou telemetria.
 - A arquitetura física diverge do layout alvo; uma migração deve ser planejada somente quando trouxer benefício concreto.

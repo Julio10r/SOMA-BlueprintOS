@@ -3,12 +3,16 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-30 17:40:07 UTC
+- **Gerado em:** 2026-07-30 18:24:18 UTC
 - **Última atualização:** 2026-07-30
 
 ---
 
 ## Changelog
+
+### Sprint A13 — Primeiro Vertical Slice do +Compras
+
+primeiro fluxo consultivo por API do +COMPRAS: registro de negociação concluída em memória, consulta de histórico de fornecedor e recomendação explicável de negociação.
 
 ### Sprint A12 — Especificação Oficial das 56 Work Orders
 

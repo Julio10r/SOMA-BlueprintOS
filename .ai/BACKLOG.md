@@ -77,3 +77,4 @@
 | A10 | Governance and Work Order Foundation | Implementado | Documentação e histórico Git. |
 | A11 | Engineering Blueprint | Implementado | Documento e histórico Git. |
 | A12 | Especificação Oficial das 56 Work Orders | Implementado | Catálogo, Work Orders e validações documentais desta sprint. |
+| A13 | Primeiro Vertical Slice do +Compras | Implementado | API versionada para registrar histórico transitório, consultar fornecedor e obter recomendação consultiva; ver [Work Order](work-orders/A13-PrimeiroVerticalSliceMaisCompras.md). |

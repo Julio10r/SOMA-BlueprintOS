@@ -152,3 +152,18 @@ Formato de cada ADR:
 - Quem procurar por `docs/architecture/`, `docs/api/` ou `docs/adr/` deve procurar em `docs/engineering/` e `docs/client/`, conforme documentado em `docs/INDEX.md`.
 - Nenhum diretório vazio permanece na estrutura oficial de `docs/`.
 - Caso um dia se decida persistir ADRs individuais via `MarkdownAdrService`, basta invocar `IAdrService` a partir de um comando do CLI existente (ou um novo) — nenhuma mudança de contrato é necessária.
+
+---
+
+## ADR-0010: Primeiro vertical slice do +COMPRAS exposto como API consultiva sobre capacidades de negociação existentes
+
+**Status:** Aceito
+
+**Contexto:** A13 precisa comprovar um fluxo de produto utilizável de ponta a ponta, mas o repositório ainda não possui persistência, identidade, cadastro de fornecedores ou frontend. As capacidades existentes de memória e estratégia de negociação já são coesas, registradas por interfaces e não devem ser reimplementadas na camada HTTP.
+
+**Decisão:** Expor apenas três operações versionadas em `/api/v1/negotiations`: registrar uma negociação concluída em memória, consultar o histórico de um fornecedor e solicitar uma recomendação de negociação. A API valida e mapeia contratos HTTP; regras de memória, score, tendência e recomendação permanecem em `INegotiationMemory` e `INegotiationStrategy`. A recomendação sempre retorna o marcador `humanDecisionRequired: true` e não aciona qualquer compra, fornecedor ou integração externa.
+
+**Consequências:**
+- O +COMPRAS passa a ter uma superfície de produto mínima e verificável, sem antecipar módulos de fornecedor, catálogo ou pedido.
+- Dados são transitórios por usar o store em memória existente; reiniciar a aplicação elimina o histórico do slice.
+- A ausência de autenticação e autorização restringe este endpoint a ambientes controlados até uma Work Order de identidade e segregação de funções.

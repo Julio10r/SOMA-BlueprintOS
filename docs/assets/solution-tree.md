@@ -42,18 +42,49 @@ SOMA-BlueprintOS
 │   │   ├── review.md
 │   │   └── tests.md
 │   ├── reports/
+│   ├── sources/
+│   │   └── COMPRAS_INDIRETAS_SOURCES.md
 │   ├── tasks/
 │   │   └── README.md
+│   ├── templates/
+│   │   ├── AUDIT_TEMPLATE.md
+│   │   ├── EPIC_TEMPLATE.md
+│   │   ├── HOTFIX_TEMPLATE.md
+│   │   ├── README.md
+│   │   ├── REFACTOR_TEMPLATE.md
+│   │   ├── RELEASE_TEMPLATE.md
+│   │   ├── SPIKE_TEMPLATE.md
+│   │   └── WORK_ORDER_TEMPLATE.md
+│   ├── work-orders/
+│   │   ├── A13-PrimeiroVerticalSliceMaisCompras.md
+│   │   └── README.md
 │   ├── workorders/
-│   │   └── A7 - Documentation System.md
+│   │   ├── fase-a/
+│   │   ├── fase-b/
+│   │   ├── fase-c/
+│   │   ├── fase-d/
+│   │   ├── fase-e/
+│   │   ├── fase-f/
+│   │   ├── fase-g/
+│   │   ├── fase-h/
+│   │   ├── A10 - Governance and Work Order Foundation.md
+│   │   ├── A7 - Documentation System.md
+│   │   ├── DEPENDENCY_MAP.md
+│   │   ├── README.md
+│   │   └── WORK_ORDER_TEMPLATE.md
+│   ├── .DS_Store
+│   ├── AI_AUTONOMY_POLICY.md
 │   ├── AI_BEHAVIOR.md
 │   ├── AI_TEAM.md
 │   ├── ARCHITECTURE.md
+│   ├── BACKLOG.md
 │   ├── CLAUDE.md
 │   ├── CURRENT_SPRINT.md
 │   ├── DECISIONS.md
 │   ├── DEVELOPMENT_WORKFLOW.md
 │   ├── DOCUMENTATION_STRATEGY.md
+│   ├── DOCUMENTATION_UPDATE_COMMAND.md
+│   ├── ENGINEERING_BLUEPRINT.md
 │   ├── PRESENTATION_WORKFLOW.md
 │   ├── PROJECT.md
 │   ├── PROJECT_PHILOSOPHY.md
@@ -62,6 +93,7 @@ SOMA-BlueprintOS
 │   ├── PROJECT_VISION.md
 │   ├── ROADMAP.md
 │   ├── STANDARDS.md
+│   ├── VISION.md
 │   └── WORKFLOW.md
 ├── .claude/
 ├── .github/
@@ -101,11 +133,10 @@ SOMA-BlueprintOS
 │   │   ├── EngineeringGuide.html
 │   │   ├── EngineeringGuide.md
 │   │   └── EngineeringGuide.pdf
-│   ├── executive/
-│   │   ├── ExecutiveReport.html
-│   │   ├── ExecutiveReport.md
-│   │   └── ExecutiveReport.pdf
-│   └── .DS_Store
+│   └── executive/
+│       ├── ExecutiveReport.html
+│       ├── ExecutiveReport.md
+│       └── ExecutiveReport.pdf
 ├── docs/
 │   ├── AI Factory/
 │   │   ├── Agents/
@@ -125,6 +156,11 @@ SOMA-BlueprintOS
 │   │   ├── architecture.mmd
 │   │   ├── dependencies.mmd
 │   │   └── solution-tree.md
+│   ├── audits/
+│   │   ├── architecture-review.md
+│   │   ├── repository-cleanup-step-01.md
+│   │   ├── repository-cleanup-step-02.md
+│   │   └── repository-cleanup-step-03.md
 │   ├── client/
 │   │   ├── API.md
 │   │   ├── Changelog.md
@@ -149,7 +185,6 @@ SOMA-BlueprintOS
 │   ├── diagrams/
 │   ├── engineering/
 │   │   ├── Mermaid/
-│   │   ├── .DS_Store
 │   │   ├── Agents.md
 │   │   ├── APIs.md
 │   │   ├── Architecture.md
@@ -171,7 +206,12 @@ SOMA-BlueprintOS
 │   │   ├── +COMPRAS Strategic Roadmap.md
 │   │   ├── +COMPRAS Strategic Roadmap.pdf
 │   │   ├── +COMPRAS Strategic Roadmap.pptx
-│   │   ├── .DS_Store
+│   │   ├── Roadmap Gerencial - BlueprintOS.pptx
+│   │   ├── Roadmap Gerencial - Conteúdo.md
+│   │   ├── Roadmap Gerencial - Design Mapping.md
+│   │   ├── Roadmap Gerencial - Executive Review.md
+│   │   ├── Roadmap Gerencial - QA.md
+│   │   ├── Roadmap Gerencial - Storyboard.md
 │   │   └── ROADMAP_UPDATE.md
 │   ├── sprints/
 │   ├── templates/
@@ -197,7 +237,6 @@ SOMA-BlueprintOS
 │   │   ├── .dockerignore
 │   │   ├── .env.docker
 │   │   ├── .env.docker.example
-│   │   ├── docker-compose.override.yml
 │   │   └── docker-compose.yml
 │   ├── kubernetes/
 │   ├── monitoring/

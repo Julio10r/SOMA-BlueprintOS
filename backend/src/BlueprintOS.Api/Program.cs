@@ -2,6 +2,7 @@ using BlueprintOS.Core.Documentation.Contracts;
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Infrastructure.DependencyInjection;
 using BlueprintOS.Infrastructure.Publication.Publishers;
+using BlueprintOS.Api.Negotiations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -47,6 +48,8 @@ app.MapGet("/health", () =>
         Version = "1.0.0"
     });
 });
+
+app.MapNegotiationEndpoints();
 
 app.Run();
 return 0;

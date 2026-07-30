@@ -15,15 +15,18 @@ public sealed class ApiDocumentationGenerator : IApiDocumentationGenerator
         var builder = new StringBuilder();
         builder.AppendLine("## API para clientes e integradores");
         builder.AppendLine();
-        builder.AppendLine("A API pública do BlueprintOS ainda está em estágio inicial. O único endpoint");
-        builder.AppendLine("disponível hoje é o de verificação de saúde do serviço:");
+        builder.AppendLine("A API pública do BlueprintOS ainda está em estágio inicial. Além da verificação");
+        builder.AppendLine("de saúde, há um primeiro fluxo consultivo de negociação do +COMPRAS:");
         builder.AppendLine();
-        builder.AppendLine("| Método | Rota      | Descrição                              |");
-        builder.AppendLine("|--------|-----------|-----------------------------------------|");
-        builder.AppendLine("| GET    | `/health` | Retorna o status de saúde da aplicação. |");
+        builder.AppendLine("| Método | Rota | Descrição |");
+        builder.AppendLine("|--------|------|-----------|");
+        builder.AppendLine("| GET | `/health` | Retorna o status de saúde da aplicação. |");
+        builder.AppendLine("| POST | `/api/v1/negotiations/history` | Registra uma negociação concluída no histórico transitório. |");
+        builder.AppendLine("| GET | `/api/v1/negotiations/suppliers/{supplierId}` | Consulta o histórico consolidado de um fornecedor. |");
+        builder.AppendLine("| POST | `/api/v1/negotiations/recommendations` | Produz recomendação explicável; exige decisão humana. |");
         builder.AppendLine();
-        builder.AppendLine("Novos endpoints de negócio serão documentados aqui automaticamente conforme forem");
-        builder.AppendLine("expostos em `BlueprintOS.Api`.");
+        builder.AppendLine("O histórico é perdido ao reiniciar a aplicação. Os endpoints não executam compras,");
+        builder.AppendLine("não integram ERP e ainda não possuem autenticação ou autorização.");
 
         return Task.FromResult(builder.ToString());
     }
