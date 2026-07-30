@@ -2,6 +2,8 @@
 
 > Estado canônico operacional do SOMA BlueprintOS / +COMPRAS. Atualizar ao concluir cada sprint.
 
+> Política de autonomia dos agentes: [AI_AUTONOMY_POLICY.md](./AI_AUTONOMY_POLICY.md).
+
 ## Atualização
 
 - **Data:** 30/07/2026

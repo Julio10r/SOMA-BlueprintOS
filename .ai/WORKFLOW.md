@@ -426,6 +426,25 @@ Uma tarefa só pode iniciar quando possuir:
 6. Toda sprint termina com build, testes aplicáveis, commit e push.
 7. Uma sprint que não cumpra todos os critérios permanece `In Progress`.
 
+## Autonomia dos Agentes
+
+`AI_AUTONOMY_POLICY.md` define os níveis de autonomia. O agente decide sozinho apenas melhorias internas autorizadas; mudanças de módulo, integração, arquitetura ou estrutura exigem proposta e aprovação; visão, roadmap, escopo, stack, autenticação e remoções oficiais não podem ser alterados sem aprovação.
+
+Um agente pode enriquecer uma Work Order com diagramas, casos de uso, testes, exemplos, observações, riscos e melhorias. Nunca pode remover objetivo, valor entregue ou critérios de aceite.
+
+## Checklist obrigatório antes do commit
+
+1. A Work Order foi concluída?
+2. Existe solução melhor?
+3. Existe duplicação?
+4. Existe débito técnico?
+5. Alguma documentação ficou desatualizada?
+6. Algum teste novo deve existir?
+7. Alguma melhoria foi encontrada?
+8. Alguma decisão arquitetural mudou?
+9. O projeto ficou melhor?
+10. Toda documentação foi sincronizada?
+
 ---
 
 # 19. Definition of Done

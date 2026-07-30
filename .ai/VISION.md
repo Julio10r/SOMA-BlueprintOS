@@ -50,6 +50,10 @@ O +COMPRAS ainda não é utilizável ponta a ponta. Não há portal, API de neg�
 - **Automação com controle humano:** automação reduz trabalho manual sem esconder decisões nem retirar controles.
 - **Integrações desacopladas:** integrações externas ficam atrás de interfaces e não contaminam o domínio.
 
+## Filosofia de Desenvolvimento
+
+O BlueprintOS espera que agentes de IA atuem como engenheiros seniores: identifiquem melhorias, reduzam duplicação, proponham soluções e mantenham documentação continuamente. A autonomia é regida por `AI_AUTONOMY_POLICY.md`; melhorias estratégicas ou de escopo exigem aprovação humana.
+
 ## Filosofia arquitetural
 
 | Área | Responsabilidade alvo | Estado comprovado atual |
