@@ -1,0 +1,35 @@
+# Work Orders operacionais
+
+Esta pasta concentra as Work Orders operacionais criadas para execução futura no SOMA BlueprintOS. Uma Work Order transforma uma demanda aprovada em escopo rastreável, critérios de aceite e evidências de conclusão; ela não substitui o backlog, o planejamento ou a aprovação do Product Owner.
+
+## Relação com os demais artefatos
+
+- [`../templates/`](../templates/README.md) contém os modelos reutilizáveis. Copie o modelo adequado para esta pasta antes de preenchê-lo.
+- [`../workorders/`](../workorders/README.md) preserva o catálogo estratégico e histórico das Work Orders já especificadas. Não mover ou duplicar esse conteúdo para esta pasta.
+- [WORKFLOW.md](../WORKFLOW.md), [VISION.md](../VISION.md), [PROJECT_STATE.md](../PROJECT_STATE.md) e [CURRENT_SPRINT.md](../CURRENT_SPRINT.md) são as fontes canônicas que devem ser lidas antes da execução.
+
+## Convenção de nomenclatura
+
+Use apenas nomes em `PascalCase` sem espaços e a extensão `.md`.
+
+| Tipo | Formato | Uso |
+|---|---|---|
+| Work Order de sprint | `A13-Descricao.md` | sprint ou entrega planejada identificada por fase e número |
+| Work Order de sprint | `A14-Descricao.md` | próxima entrega sequencial da mesma fase |
+| Épico | `EPIC-01-Nome.md` | iniciativa composta por múltiplas entregas |
+| Refatoração | `R01-Descricao.md` | mudança estrutural sem alteração de comportamento aprovada |
+| Hotfix | `HF01-Descricao.md` | correção urgente de incidente |
+| Spike | `SP01-Descricao.md` | pesquisa técnica com decisão explícita |
+
+O identificador é estável depois da criação. A descrição deve ser curta, legível e refletir o objetivo aprovado. Não reutilize um identificador, mesmo que a Work Order seja bloqueada ou cancelada.
+
+## Ciclo de vida
+
+1. A demanda é registrada no backlog e planejada conforme [WORKFLOW.md](../WORKFLOW.md).
+2. O responsável escolhe um template em [`../templates/`](../templates/README.md), cria o arquivo nesta pasta e preenche o escopo sem inventar requisitos.
+3. A Work Order permanece `Draft` até obter objetivo, escopo, dependências, critérios de aceite e executor.
+4. Após aprovação do Product Owner e registro em `CURRENT_SPRINT.md`, seu status passa a `Approved`. Apenas uma Work Order pode estar aprovada por vez.
+5. A execução ocorre somente dentro do escopo aprovado, com validações, revisão, documentação e Git Flow exigidos pelo projeto.
+6. A Work Order é concluída apenas com evidências de build, testes, atualização documental, commit e push; caso contrário, permanece `In Progress` ou `Blocked`.
+
+Não criar Work Orders nesta pasta sem a aprovação e o contexto exigidos pelo workflow oficial.

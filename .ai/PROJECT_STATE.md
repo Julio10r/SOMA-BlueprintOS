@@ -12,7 +12,7 @@
 
 - **Data:** 30/07/2026
 - **Branch:** `main`
-- **Commit de referência:** `7265ded` — `docs: create Engineering Blueprint` (baseline da A12)
+- **Commit de referência:** `5f33167` — `docs: add standardized work order template system`.
 - **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros e 4 avisos `NU1900` de conectividade com `nuget.org` na consulta de vulnerabilidades; 230 testes unitários e 1 teste de integração aprovados.
 
 ## Sistema de Work Orders
@@ -28,8 +28,8 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 ## Ciclo atual
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
-- **Última sprint comprovadamente concluída:** A9 — Publication Engine.
-- **Sprint atual:** A12 — Especificação Oficial das 56 Work Orders (Completed em 30/07/2026).
+- **Última sprint comprovadamente concluída:** A12 — Especificação Oficial das 56 Work Orders (Completed em 30/07/2026).
+- **Sprint atual:** nenhuma ativa. O registro em `CURRENT_SPRINT.md` referencia A12 como a última sprint concluída.
 - **Próxima sprint proposta:** não definida. A seleção depende de priorização e aprovação explícitas do Product Owner.
 - **Progresso real:** documentação/publicação e capacidades internas de IA estão implementadas; os fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
@@ -73,7 +73,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 | Integração | 1 | 1 | 0 | 0 |
 | Total | 231 | 231 | 0 | 0 |
 
-Build da solution: sucesso, 0 avisos e 0 erros.
+Build da solution: sucesso, 0 erros e 4 avisos `NU1900` de conectividade com `nuget.org` na consulta de vulnerabilidades.
 
 ## Riscos e pendências
 
