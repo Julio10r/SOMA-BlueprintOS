@@ -3,14 +3,16 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-30 15:56:27 UTC
+- **Gerado em:** 2026-07-30 17:40:07 UTC
 - **Última atualização:** 2026-07-30
 
 ---
 
 > Roadmap de alto nível do SOMA BlueprintOS, por fases. Não descreve sprints — para detalhe de sprint atual, ver `.ai/CURRENT_SPRINT.md`; para histórico de sprints concluídas, ver `.ai/memory/completed_sprints.md`.
 
-O projeto encontra-se na **Fase 0 - Fundação**, ainda em andamento. As sprints A7, A8, A9 e A10 estão registradas em `.ai/memory/completed_sprints.md`; o estado operacional verificável está em `.ai/PROJECT_STATE.md`.
+O projeto encontra-se na **Fase 0 - Fundação**, ainda em andamento. As sprints A7, A8, A9, A10, A11 e A12 estão registradas em `.ai/memory/completed_sprints.md`; o estado operacional verificável está em `.ai/PROJECT_STATE.md`.
+
+O catálogo estratégico oficial de oito fases e 56 Work Orders está em `.ai/workorders/README.md`; ele não altera o status comprovado das funcionalidades.
 
 ---
 
@@ -25,7 +27,7 @@ Objetivo: estabelecer as bases de arquitetura, padrões, processo e infraestrutu
 - Infraestrutura básica: Docker Compose com SQL Server e API. Pipeline de CI e ambiente GCP inicial ainda não estão implementados.
 
 - Portal de documentação viva (dashboards, guias, changelog, ADRs) publicado automaticamente em `docs/` (Sprint A8).
-- **EPIC de documentação: concluído (23/07/2026).** A7 implementou o módulo Documentation; A8 comprovadamente adicionou publicadores por público e o Portal de Documentação Viva; A9 implementou o Publication Engine. A10 consolidou o estado documental em 30/07/2026. Ver `.ai/memory/completed_sprints.md` e `.ai/PROJECT_STATE.md`.
+- **EPIC de documentação: concluído (23/07/2026).** A7 implementou o módulo Documentation; A8 comprovadamente adicionou publicadores por público e o Portal de Documentação Viva; A9 implementou o Publication Engine. A10–A12 consolidaram a governança e a especificação documental em 30/07/2026. Ver `.ai/memory/completed_sprints.md` e `.ai/PROJECT_STATE.md`.
 
 ---
 

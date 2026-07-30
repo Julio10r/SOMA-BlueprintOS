@@ -6,6 +6,10 @@
 
 ---
 
+## Estado documental
+
+A última sprint concluída é **A12 — Especificação Oficial das 56 Work Orders**. Não há sprint em execução ou próxima sprint aprovada. As fontes canônicas são [VISION.md](../.ai/VISION.md), [PROJECT_STATE.md](../.ai/PROJECT_STATE.md) e [WORKFLOW.md](../.ai/WORKFLOW.md).
+
 ## Arquitetura
 
 O BlueprintOS segue **Modular Monolith + Clean Architecture + DDD pragmático** (ver ADR-0001 e [`.ai/ARCHITECTURE.md`](../.ai/ARCHITECTURE.md)).
@@ -167,7 +171,7 @@ dist/                # saída gerada pelo Publication Engine (não versionado)
 
 - Framework: xUnit, sem biblioteca de mocking — fakes escritos manualmente.
 - Prioridade de cobertura: Application → Domain → Integration → End-to-End (ainda não há testes E2E).
-- Validação A10 (30/07/2026): **230 testes unitários + 1 teste de integração, 100% passando**, sem ignorados ou falhos; build sem warnings.
+- Validação A12 e auditorias subsequentes (30/07/2026): **230 testes unitários + 1 teste de integração, 100% passando**, sem ignorados ou falhos. A consulta de vulnerabilidades NuGet pode emitir `NU1900` sem impedir build ou testes quando o cache local estiver disponível.
 
 ```bash
 dotnet test backend/BlueprintOS.sln

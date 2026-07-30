@@ -10,7 +10,7 @@
 
 O BlueprintOS é a plataforma corporativa de IA que sustenta o **+Compras**, primeiro produto construído sobre ela. A fundação backend contém runtime de IA, agentes de referência, memória de negociação em processo e motor de estratégia baseado em regras. Essas capacidades são internas: não há agente Comprador Sênior concreto, API de negócio ou portal utilizável.
 
-Nesta sprint, o foco é consolidar o estado verificável do projeto e eliminar divergências entre código, testes, Git e documentos, sem alterar funcionalidades de negócio.
+A consolidação documental mais recente foi a Sprint A12, que especificou as 56 Work Orders estratégicas sem alterar funcionalidades de negócio. Não há sprint funcional em execução.
 
 ---
 
@@ -39,13 +39,13 @@ Detalhe completo em [`.ai/ROADMAP.md`](../.ai/ROADMAP.md).
 
 ---
 
-## Sprint Atual
+## Estado de sprint
 
-**A10 — Project State Consolidation**
+**Última sprint concluída: A12 — Especificação Oficial das 56 Work Orders**
 
-Objetivo: consolidar uma fonte verificável de estado e corrigir divergências documentais, sem adicionar funcionalidade ao produto.
+Objetivo: consolidar o catálogo oficial das oito fases e 56 Work Orders, preservando evidências históricas e sem aprovar execução automática.
 
-Concluída em 30/07/2026, após build e testes completos.
+**Sprint em execução:** nenhuma. **Próxima sprint:** aguardando aprovação do Product Owner.
 
 ---
 
@@ -61,7 +61,7 @@ Concluída em 30/07/2026, após build e testes completos.
 
 ## Próximos Passos
 
-- Aprovar a próxima sprint proposta: uma API mínima de negociação para tornar a capacidade interna utilizável pelo +COMPRAS.
+- Aprovar explicitamente a próxima Work Order antes de iniciar qualquer funcionalidade de produto.
 - Definir autenticação, persistência e fronteira de API antes de expor dados corporativos.
 
 ---

@@ -1,8 +1,12 @@
 # BlueprintOS Documentation Index
 
-## Visão Geral
+## Visão Geral e classificação
 
-Este documento é o índice oficial da documentação permanente do SOMA BlueprintOS. Ele organiza e referencia todo o conteúdo disponível em `docs/`, servindo como ponto de entrada para arquitetura, AI Factory, banco de dados, infraestrutura, sprints, templates e ADRs.
+Este documento é o índice oficial da documentação versionada em `docs/`. As fontes canônicas de visão, estado e processo ficam em `.ai/`; saídas por público em `docs/executive`, `docs/client` e `docs/engineering` são documentação derivada e devem ser regeneradas/revisadas a partir dessas fontes.
+
+- **Implementado/versionado:** código, documentação por público, assets e templates que existem no Git.
+- **Histórico:** documentos preservados para rastreabilidade, sem substituir as fontes canônicas.
+- **Planejado/local vazio:** estruturas citadas sem conteúdo versionado; não representam implementação disponível.
 
 ---
 
@@ -34,23 +38,23 @@ Este documento é o índice oficial da documentação permanente do SOMA Bluepri
 
 ---
 
-## Banco de Dados
+## Banco de Dados (planejado/local vazio)
 
-- `database/`
-  - `docs` — Documentação do modelo de dados e regras do banco.
-  - `migrations` — Migrações versionadas do banco de dados.
-  - `scripts` — Scripts auxiliares de banco de dados.
-  - `seed` — Dados iniciais (seed) utilizados pelo sistema.
+`database/` existe apenas como estrutura local vazia; não há modelo, migrações, scripts ou seed versionados.
 
 ---
 
 ## Infraestrutura
 
-- `docker` — Configurações e definições de containers Docker.
-- `kubernetes` — Manifestos e configurações de orquestração Kubernetes.
-- `monitoring` — Configurações de observabilidade e monitoramento.
-- `nginx` — Configurações do proxy reverso Nginx.
-- `terraform` — Definições de infraestrutura como código (IaC).
+- `infrastructure/docker/` — Docker Compose e Dockerfile versionados.
+- `kubernetes/`, `monitoring/`, `nginx/` e `terraform/` — estruturas locais vazias e planejadas; não há implementação versionada.
+
+## Fontes canônicas e histórico
+
+- `.ai/VISION.md` — visão, escopo e direção estratégica.
+- `.ai/PROJECT_STATE.md` — estado operacional comprovado.
+- `.ai/WORKFLOW.md` — processo oficial de desenvolvimento.
+- `.ai/CURRENT_SPRINT.md`, `.ai/workorders/` e `.ai/memory/completed_sprints.md` — execução, escopo e histórico de sprints.
 
 ---
 

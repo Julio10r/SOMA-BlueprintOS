@@ -16,6 +16,8 @@
 
 Áreas de Compras lidam com grande volume de negociações, histórico disperso de fornecedores e decisões que dependem fortemente da experiência individual do comprador. O +Compras existe para tornar esse conhecimento explícito, consistente e reutilizável — apoiando o comprador com dados e recomendações, em vez de substituí-lo.
 
+O catálogo estratégico de 56 Work Orders foi consolidado na Sprint A12. Nenhuma nova sprint funcional está aprovada; o estado verificável permanece em [PROJECT_STATE.md](../.ai/PROJECT_STATE.md).
+
 ---
 
 ## Objetivos
@@ -74,15 +76,16 @@ Hoje, apenas a avaliação de estratégia de negociação existe como capacidade
 
 ---
 
-## Roadmap
+## Roadmap estratégico
 
-| Fase | O que entrega para o +Compras |
+| Fase | Direção para o +Compras | Estado |
 |---|---|
-| Fase 0 — Fundação | Base arquitetural e de documentação da plataforma (em andamento) |
-| Fase 1 — Módulos Core | Identidade e autenticação, planejamento e execução de fluxos de trabalho |
-| Fase 2 — Conhecimento e Memória | Já iniciada: conhecimento organizacional e agentes de IA |
-| Fase 3 — Automação e Integrações | Módulo de Procurement e integração com ERPs — onde o +Compras se torna um produto completo |
-| Fase 4 — Observabilidade e Escala | Painéis de indicadores e operação em escala |
+| A — Foundation | Base técnica e documental | Parcial |
+| B — Sourcing Intelligence | Fornecedores e sourcing | Planejado |
+| C — Negotiation Automation | Negociação assistida | Planejado; estratégia interna existe |
+| D–H | Compliance, risco, analytics, integrações e escala | Planejado |
+
+Próxima sprint: aguardando aprovação do Product Owner.
 
 ---
 

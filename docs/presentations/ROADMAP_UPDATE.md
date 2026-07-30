@@ -2,7 +2,7 @@
 
 > Referência para a próxima edição visual do PowerPoint. Este arquivo não altera o layout, masters ou conteúdo binário de `+COMPRAS Strategic Roadmap.pptx`.
 >
-> Base de evidência: código, validação A10 de 30/07/2026, histórico Git e `.ai/PROJECT_STATE.md`.
+> Base de evidência: código, validações de 30/07/2026, histórico Git e `.ai/PROJECT_STATE.md`.
 
 ## Slide 01 — Capa
 
@@ -13,8 +13,8 @@
 ## Slide 02 — Dashboard Executivo
 
 - **Conteúdo atual incorreto:** Sprint atual A6, última sprint A5, próximo marco A7, progresso de 12% e referência a Multi-Tenant concluído.
-- **Conteúdo atualizado:** última sprint concluída A10 — Project State Consolidation; antes dela, A9 — Publication Engine. Próxima sprint é proposta, não aprovada: A11 — +COMPRAS Negotiation API Slice. Exibir progresso como “sem percentual verificável” e estado “Fase 0 — Fundação em andamento”.
-- **Motivo da alteração:** A5 Multi-Tenant e A6 Senior Buyer Agent não são comprovados pelo código nem pelo histórico Git; A10 validou 231 testes aprovados.
+- **Conteúdo atualizado:** última sprint concluída A12 — Especificação Oficial das 56 Work Orders. Não há sprint em execução; próxima sprint aguardando aprovação do Product Owner. Exibir progresso como “sem percentual verificável” e estado “Fase 0 — Fundação em andamento”.
+- **Motivo da alteração:** A5 Multi-Tenant e A6 Senior Buyer Agent não são comprovados pelo código nem pelo histórico Git; A12 consolidou o catálogo sem transformar planejamento em entrega.
 
 ## Slide 03 — Roadmap Geral
 
@@ -73,7 +73,7 @@
 ## Slide 12 — Próximos Marcos
 
 - **Conteúdo atual incorreto:** datas Q4 2026/Q1 2027/Q2 2027 e dependências A4/A5 apresentadas como cronograma confirmado.
-- **Conteúdo atualizado:** substituir por “próximo passo sujeito à aprovação: A11 — +COMPRAS Negotiation API Slice”; listar pré-requisitos de design: contrato de API, autenticação, persistência e fronteira de dados.
+- **Conteúdo atualizado:** substituir por “próxima sprint aguardando aprovação do Product Owner”; listar que qualquer entrega funcional exige Work Order aprovada, contrato de API, autenticação, persistência e fronteira de dados conforme aplicável.
 - **Motivo da alteração:** não há evidência de planejamento aprovado para A4/A5, nem base para datas de entrega.
 
 ## Slide 13 — Roadmap Consolidado
@@ -85,7 +85,7 @@
 ## Slide 14 — Indicadores
 
 - **Conteúdo atual incorreto:** “56 sprints”, “10 módulos” e “3+ agentes especializados” podem ser lidos como entregas; omite a validação real.
-- **Conteúdo atualizado:** “4 sprints canônicas registradas (A7–A10); 6 capacidades backend implementadas (AI/Agents, Knowledge, Negociação/Memória, Workflow básico, Documentation, Publication); 2 agentes concretos (Echo e Knowledge); 231 testes aprovados; módulos de produto e integrações corporativas planejados”.
+- **Conteúdo atualizado:** “sprints históricas A7–A12 registradas; 6 capacidades backend implementadas (AI/Agents, Knowledge, Negociação/Memória, Workflow básico, Documentation, Publication); 2 agentes concretos (Echo e Knowledge); 231 testes aprovados na validação registrada; módulos de produto e integrações corporativas planejados”.
 - **Motivo da alteração:** métricas devem refletir evidência atual e distinguir módulos previstos dos implementados.
 
 ## Slide 15 — Arquitetura

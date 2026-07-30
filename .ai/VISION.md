@@ -6,6 +6,8 @@
 
 O SOMA BlueprintOS é a plataforma corporativa de IA que fornece capacidades reutilizáveis para produtos da organização. A visão de longo prazo abrange agentes especializados, workflows, memória, conhecimento, integrações, governança, observabilidade e segurança. A plataforma deve evoluir somente na medida em que viabilize valor comprovado para o primeiro produto, +COMPRAS.
 
+O contexto de negócio é a transformação digital da área de Compras: cada capacidade criada para o +COMPRAS deve resolver uma necessidade concreta do produto antes de ser generalizada para a plataforma ou para outros produtos corporativos.
+
 ### Arquitetura reutilizável
 
 O alvo é um Modular Monolith com Clean Architecture, DDD pragmático, CQRS, contratos públicos entre módulos e possibilidade de extração futura. A implementação atual ainda usa projetos transversais em `backend/src/BlueprintOS.{Api,Application,Core,Domain,Infrastructure,Shared}`; não deve ser descrita como a estrutura alvo `Apps/`, `BuildingBlocks/` e `Modules/` até que a migração exista.
@@ -49,6 +51,7 @@ O +COMPRAS ainda não é utilizável ponta a ponta. Não há portal, API de neg�
 - **Documentação viva:** documentação tem público definido, fonte conhecida e atualização vinculada à sprint.
 - **Automação com controle humano:** automação reduz trabalho manual sem esconder decisões nem retirar controles.
 - **Integrações desacopladas:** integrações externas ficam atrás de interfaces e não contaminam o domínio.
+- **Evolução incremental:** priorizar a solução mais simples, sustentável e verificável para o problema aprovado; ideias adicionais entram no backlog, não na sprint em curso.
 
 ## Filosofia de Desenvolvimento
 

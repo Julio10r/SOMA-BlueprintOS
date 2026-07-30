@@ -30,8 +30,8 @@
 
 O SOMA BlueprintOS é uma plataforma corporativa que automatiza processos de negócio por meio de agentes de inteligência artificial, com foco inicial em documentação viva e negociação de compras. O projeto está na Fase 0 (Fundação), com bases de arquitetura, padrões e documentação já entregues.
 
-- **Sprints concluídas:** 4 (A7, A8, A9, A10).
-- **Última sprint concluída:** Sprint A10 — Project State Consolidation.
+- **Sprints concluídas:** A7–A12 registradas no histórico canônico.
+- **Última sprint concluída:** Sprint A12 — Especificação Oficial das 56 Work Orders.
 - **Build/testes:** passando, 231 testes automatizados (230 unitários e 1 de integração; 0 ignorados e 0 falhos).
 
 ---
@@ -92,8 +92,8 @@ O BlueprintOS está atualmente na **Fase 0 — Fundação**, em andamento.
 | Indicador | Estado |
 |---|---|
 | Fase do projeto | Fase 0 — Fundação (em andamento) |
-| Sprints concluídas | 4 (A7, A8, A9, A10) |
-| Última entrega | Sprint A10 — Project State Consolidation |
+| Sprints concluídas | A7–A12 registradas no histórico canônico |
+| Última entrega | Sprint A12 — Especificação Oficial das 56 Work Orders |
 | KPIs de negócio | Ainda não existem; produto não está em operação/produção |
 | Dívidas técnicas em aberto | 16 (acompanhadas pela equipe de engenharia) |
 
@@ -102,7 +102,7 @@ O BlueprintOS está atualmente na **Fase 0 — Fundação**, em andamento.
 ## 8. Próximos passos
 
 1. Documentar o problema de negócio e sua quantificação.
-2. Aprovar ou ajustar a proposta da próxima sprint: uma API mínima de negociação para o +COMPRAS.
+2. Aprovar explicitamente a próxima Work Order antes de iniciar nova funcionalidade.
 3. Definir autenticação, persistência e fronteira de API antes de expor dados corporativos.
 4. Evoluir conhecimento e memória organizacional para uso ampliado por agentes de IA.
 5. Iniciar o planejamento do frontend para usuários finais.

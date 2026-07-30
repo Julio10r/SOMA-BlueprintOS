@@ -320,6 +320,8 @@ patterns.md
 
 quando aplicável.
 
+Ao concluir uma sprint, atualizar também os documentos canônicos aplicáveis (`PROJECT_STATE.md`, `CURRENT_SPRINT.md`, histórico e Work Order). Relatórios por público devem ser regenerados ou atualizados a partir dessas fontes, sem tratar saídas derivadas como fonte de verdade.
+
 ---
 
 # 15. Fluxo de Correções

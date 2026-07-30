@@ -3,7 +3,7 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-30 15:56:27 UTC
+- **Gerado em:** 2026-07-30 17:40:07 UTC
 - **Última atualização:** 2026-07-30
 
 ---
@@ -16,4 +16,6 @@ Cada sprint concluída é tratada, até o momento, como a unidade real de entreg
 - Sprint A7 — Sistema de Documentação do BlueprintOS
 - Sprint A8 — Audience-Specific Publishers (Portal de Documentação Viva)
 - Sprint A9 — Publication Engine
-- Sprint A10 — Project State Consolidation
+- Sprint A10 — Governance and Work Order Foundation
+- Sprint A11 — Engineering Blueprint
+- Sprint A12 — Especificação Oficial das 56 Work Orders

@@ -3,16 +3,24 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-30 15:56:27 UTC
+- **Gerado em:** 2026-07-30 17:40:07 UTC
 - **Última atualização:** 2026-07-30
 
 ---
 
 ## Changelog
 
-### Sprint A10 — Project State Consolidation
+### Sprint A12 — Especificação Oficial das 56 Work Orders
 
-Normalização documental e consolidação do estado real do SOMA BlueprintOS / +COMPRAS, sem implementar funcionalidade de negócio. A sprint estabeleceu `.ai/PROJECT_STATE.md` como fonte operacional de estado e corrigiu documentação cuja informação não era sustentada por código, testes ou histórico Git.
+consolidação exclusivamente documental do catálogo estratégico de oito fases e 56 Work Orders, sem implementação de funcionalidades de negócio.
+
+### Sprint A11 — Engineering Blueprint
+
+Consolidação documental de arquitetura, implementação, roadmap técnico, Work Orders e operação, sem alteração de funcionalidades.
+
+### Sprint A10 — Governance and Work Order Foundation
+
+Fundação de governança, visão e Work Orders do SOMA BlueprintOS / +COMPRAS, incluindo a normalização documental já iniciada. Não implementa funcionalidade de negócio.
 
 ### Sprint A9 — Publication Engine
 
