@@ -20,7 +20,7 @@ namespace BlueprintOS.Infrastructure.Documentation;
 /// </summary>
 public sealed class DocumentationPublishService : IDocumentationPublishService
 {
-    private const string SprintMarker = "## Sprint A8 — Portal de Documentação Viva";
+    private const string SprintMarker = "## Sprint A8 — Audience-Specific Publishers (Portal de Documentação Viva)";
     private const string RoadmapMarker = "Portal de documentação viva (dashboards, guias, changelog, ADRs) publicado automaticamente em `docs/` (Sprint A8).";
 
     private readonly DocumentationPublisher _publisher;

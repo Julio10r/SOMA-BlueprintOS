@@ -24,7 +24,7 @@ public sealed class FunctionalGuideGenerator : IFunctionalGuideGenerator
         builder.AppendLine("  partir de conteúdo Markdown.");
         builder.AppendLine("- **Agentes de IA:** runtime de agentes especializados (ex.: agente de conhecimento),");
         builder.AppendLine("  construídos sobre um runtime de IA comum.");
-        builder.AppendLine("- **Negociação (Buyer sênior):** memória de negociação e motor de estratégia de");
+        builder.AppendLine("- **Negociação (capacidade interna):** memória de negociação e motor de estratégia de");
         builder.AppendLine("  negociação baseado em regras (urgência, histórico do fornecedor, faixa de preço).");
         builder.AppendLine();
         builder.AppendLine("Funcionalidades de produto além destas ainda não foram implementadas; consulte o");

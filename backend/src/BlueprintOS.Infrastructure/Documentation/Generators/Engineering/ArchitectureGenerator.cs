@@ -31,7 +31,7 @@ public sealed class ArchitectureGenerator : IArchitectureGenerator
             new[] { "BaseAgent", "EchoAgent", "KnowledgeAgent", "AgentFactory" }),
         new ModuleMetadata(
             "AI.Negotiation",
-            "Memória de negociação e motor de estratégia de negociação baseado em regras para o agente Buyer sênior.",
+            "Memória de negociação e motor de estratégia baseado em regras; ainda sem agente Buyer sênior concreto.",
             new[] { "INegotiationMemory", "INegotiationMemoryStore", "INegotiationStrategy", "INegotiationStrategyRule" },
             new[] { "NegotiationMemory", "InMemoryNegotiationMemoryStore", "NegotiationStrategy" }),
     };

@@ -26,9 +26,9 @@ public sealed class AgentsGenerator : IAgentsGenerator
         builder.AppendLine("- `AgentFactory` — fábrica que cria instâncias de agentes via reflexão, injetando o");
         builder.AppendLine("  runtime de IA e o serviço de conhecimento quando aplicável.");
         builder.AppendLine();
-        builder.AppendLine("O módulo `AI.Negotiation` complementa o runtime de agentes com memória de negociação");
-        builder.AppendLine("(`INegotiationMemory`) e um motor de estratégia baseado em regras (`INegotiationStrategy`),");
-        builder.AppendLine("usados pelo agente Buyer sênior.");
+        builder.AppendLine("O módulo `AI.Negotiation` complementa a fundação com memória de negociação");
+        builder.AppendLine("(`INegotiationMemory`) e um motor de estratégia baseado em regras (`INegotiationStrategy`).");
+        builder.AppendLine("Não há, no código atual, um agente concreto Buyer sênior.");
 
         return Task.FromResult(builder.ToString());
     }

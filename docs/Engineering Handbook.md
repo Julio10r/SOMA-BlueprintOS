@@ -58,7 +58,7 @@ Dentro de `Core`/`Infrastructure`, cada módulo segue `{Módulo}/{Contracts,Mode
 | Frontend | React, TypeScript (ainda não iniciado) |
 | Banco de dados | SQL Server + Entity Framework Core (oficial; ainda não integrado no código) |
 | Autenticação | Microsoft Entra ID (planejado, Fase 1) |
-| Infraestrutura | Docker (ativo), Google Cloud Platform |
+| Infraestrutura | Docker Compose ativo; GCP planejado, ainda não configurado no repositório |
 | PDF | QuestPDF (biblioteca .NET pura) |
 | QR Code | QRCoder (`PngByteQRCode`, sem dependência de `System.Drawing`) |
 | Testes | xUnit, fakes manuais (sem framework de mocking) |
@@ -167,7 +167,7 @@ dist/                # saída gerada pelo Publication Engine (não versionado)
 
 - Framework: xUnit, sem biblioteca de mocking — fakes escritos manualmente.
 - Prioridade de cobertura: Application → Domain → Integration → End-to-End (ainda não há testes E2E).
-- Estado atual: **167 testes unitários + 1 teste de integração, 100% passando**, build sem warnings.
+- Validação A10 (30/07/2026): **230 testes unitários + 1 teste de integração, 100% passando**, sem ignorados ou falhos; build sem warnings.
 
 ```bash
 dotnet test backend/BlueprintOS.sln
@@ -177,4 +177,4 @@ dotnet test backend/BlueprintOS.sln
 
 ## Deploy
 
-Hoje o deploy é local, via Docker Compose (`make up`), usando `infrastructure/docker/docker-compose.yml`. Terraform, Kubernetes, Nginx e observabilidade estão reservados em `infrastructure/` mas ainda não implementados (ver Roadmap, Fase 4).
+Hoje o deploy é local, via Docker Compose (`make up`), usando `infrastructure/docker/docker-compose.yml`. A composição inclui API e SQL Server, mas a API ainda não usa SQL Server. Terraform, Kubernetes, Nginx, observabilidade, CI/CD e GCP estão planejados ou reservados, sem implementação no repositório (ver Roadmap, Fase 4).

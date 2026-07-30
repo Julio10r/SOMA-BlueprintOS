@@ -5,7 +5,7 @@
 | Campo | Informação |
 |---|---|
 | Versão | 1.0.0 |
-| Data | 23 de julho de 2026 |
+| Data | 30 de julho de 2026 |
 | Status do projeto | Em evolução — Fase 0: Fundação |
 | Público-alvo | Diretoria |
 | Classificação | Institucional |
@@ -30,9 +30,9 @@
 
 O SOMA BlueprintOS é uma plataforma corporativa que automatiza processos de negócio por meio de agentes de inteligência artificial, com foco inicial em documentação viva e negociação de compras. O projeto está na Fase 0 (Fundação), com bases de arquitetura, padrões e documentação já entregues.
 
-- **Sprints concluídas:** 3 (A7, A8, A9).
-- **Última sprint concluída:** Sprint A9 — geração automática de relatórios institucionais.
-- **Build/testes:** passando, 184 testes automatizados.
+- **Sprints concluídas:** 4 (A7, A8, A9, A10).
+- **Última sprint concluída:** Sprint A10 — Project State Consolidation.
+- **Build/testes:** passando, 231 testes automatizados (230 unitários e 1 de integração; 0 ignorados e 0 falhos).
 
 ---
 
@@ -55,9 +55,9 @@ O produto está em estágio inicial: a aplicação executável hoje é o backend
 Capacidades já implementadas na plataforma:
 
 - **Documentação viva:** geração automática de documentação executiva, de cliente e de engenharia, com versionamento e histórico de mudanças.
-- **Conhecimento organizacional:** ingestão e consulta de conteúdo interno da empresa.
-- **Agentes de IA:** agentes especializados (ex.: consulta a conhecimento) operando sobre um runtime comum de IA.
-- **Negociação de compras:** memória de negociação e estratégia de negociação automatizada para o processo de Buyer sênior (urgência, histórico de fornecedor, faixa de preço).
+- **Conhecimento organizacional:** ingestão e consulta baseada em conteúdo Markdown.
+- **Agentes de IA:** runtime básico com `EchoAgent` e `KnowledgeAgent` sobre um runtime comum de IA.
+- **Negociação de compras:** memória de negociação em processo e estratégia baseada em regras (urgência, histórico de fornecedor e faixa de preço), ainda sem agente Buyer sênior concreto.
 
 Capacidades além destas ainda não foram implementadas; ver Roadmap Executivo.
 
@@ -81,7 +81,7 @@ O BlueprintOS está atualmente na **Fase 0 — Fundação**, em andamento.
 |---|---|---|
 | 0 — Fundação | Estabelecer bases de arquitetura, padrões e processo | Em andamento |
 | 1 — Módulos Core | Entregar identidade, planejamento e automação de processo | Planejado |
-| 2 — Conhecimento e Memória | Plataforma capaz de reter conhecimento e operar agentes de IA | Planejado |
+| 2 — Conhecimento e Memória | Plataforma capaz de reter conhecimento e operar agentes de IA | Parcial: Knowledge Markdown, memória de negociação e agentes básicos |
 | 3 — Automação e Integrações | Conectar a plataforma a processos e sistemas externos | Planejado |
 | 4 — Observabilidade e Escala | Operação em produção, multiempresa e em escala | Planejado |
 
@@ -92,18 +92,18 @@ O BlueprintOS está atualmente na **Fase 0 — Fundação**, em andamento.
 | Indicador | Estado |
 |---|---|
 | Fase do projeto | Fase 0 — Fundação (em andamento) |
-| Sprints concluídas | 3 (A7, A8, A9) |
-| Última entrega | Sprint A9 — geração automática de relatórios institucionais |
+| Sprints concluídas | 4 (A7, A8, A9, A10) |
+| Última entrega | Sprint A10 — Project State Consolidation |
 | KPIs de negócio | Ainda não existem; produto não está em operação/produção |
-| Dívidas técnicas em aberto | 13 (acompanhadas pela equipe de engenharia) |
+| Dívidas técnicas em aberto | 16 (acompanhadas pela equipe de engenharia) |
 
 ---
 
 ## 8. Próximos passos
 
 1. Documentar o problema de negócio e sua quantificação.
-2. Definir e registrar o escopo da próxima sprint.
-3. Avançar os módulos da Fase 1 (identidade, planejamento e automação de processo).
+2. Aprovar ou ajustar a proposta da próxima sprint: uma API mínima de negociação para o +COMPRAS.
+3. Definir autenticação, persistência e fronteira de API antes de expor dados corporativos.
 4. Evoluir conhecimento e memória organizacional para uso ampliado por agentes de IA.
 5. Iniciar o planejamento do frontend para usuários finais.
 

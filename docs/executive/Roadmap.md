@@ -3,14 +3,14 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-23 15:26:33 UTC
-- **Última atualização:** 2026-07-23
+- **Gerado em:** 2026-07-30 15:56:27 UTC
+- **Última atualização:** 2026-07-30
 
 ---
 
 > Roadmap de alto nível do SOMA BlueprintOS, por fases. Não descreve sprints — para detalhe de sprint atual, ver `.ai/CURRENT_SPRINT.md`; para histórico de sprints concluídas, ver `.ai/memory/completed_sprints.md`.
 
-O projeto encontra-se em estágio inicial: `.ai/memory/completed_sprints.md` ainda não registra nenhuma sprint concluída, portanto o BlueprintOS está atualmente na **Fase 0 - Fundação**.
+O projeto encontra-se na **Fase 0 - Fundação**, ainda em andamento. As sprints A7, A8, A9 e A10 estão registradas em `.ai/memory/completed_sprints.md`; o estado operacional verificável está em `.ai/PROJECT_STATE.md`.
 
 ---
 
@@ -21,11 +21,11 @@ Objetivo: estabelecer as bases de arquitetura, padrões, processo e infraestrutu
 - Definição da arquitetura oficial (Modular Monolith + Clean Architecture + DDD pragmático).
 - Padrões de engenharia (STANDARDS.md) e workflow da AI Factory (WORKFLOW.md).
 - Engineering Handbook (`.ai/`) completo e navegável.
-- Estrutura de pastas `/src/Apps`, `/src/BuildingBlocks`, `/src/Modules` criada.
-- Infraestrutura básica: Docker, pipeline de build, ambiente GCP inicial.
+- Estrutura alvo de pastas `/src/Apps`, `/src/BuildingBlocks`, `/src/Modules` definida, mas **ainda não adotada fisicamente**. O backend real está em `backend/src/BlueprintOS.{Api,Application,Core,Domain,Infrastructure,Shared}`.
+- Infraestrutura básica: Docker Compose com SQL Server e API. Pipeline de CI e ambiente GCP inicial ainda não estão implementados.
 
 - Portal de documentação viva (dashboards, guias, changelog, ADRs) publicado automaticamente em `docs/` (Sprint A8).
-- **EPIC A7 — Sistema de Documentação: ✅ Concluído (23/07/2026).** Sprints A7 (módulo Documentation), A8 (Portal de Documentação Viva), A9 (Publication Engine) e A7.4/A7.5 (homologação final e hotfix de saúde da documentação). Ver `.ai/memory/completed_sprints.md` para o detalhe de cada sprint e ADR-0009 em `.ai/DECISIONS.md` para a organização final de diretórios. Tag de release: `v0.4.0-documentation`.
+- **EPIC de documentação: concluído (23/07/2026).** A7 implementou o módulo Documentation; A8 comprovadamente adicionou publicadores por público e o Portal de Documentação Viva; A9 implementou o Publication Engine. A10 consolidou o estado documental em 30/07/2026. Ver `.ai/memory/completed_sprints.md` e `.ai/PROJECT_STATE.md`.
 
 ---
 
@@ -37,6 +37,8 @@ Objetivo: entregar os módulos que sustentam identidade, planejamento e automaç
 - **Planner** — decomposição e execução de planos de trabalho.
 - **Workflow** — motor de fluxos de processo de negócio.
 
+> Estado real: há somente um workflow sequencial básico no código. Identity e Planner não foram iniciados como módulos de produto; o motor de processo de negócio permanece planejado.
+
 ---
 
 ## Fase 2 - Conhecimento e Memória
@@ -47,6 +49,8 @@ Objetivo: dar à plataforma capacidade de reter e recuperar conhecimento, e de o
 - **Memory** — memória de curto, médio e longo prazo para agentes e execuções.
 - **Agents** — runtime de agentes especializados, registro e execução.
 
+> Estado real: Knowledge por Markdown, memória de negociação em processo e runtime básico com `EchoAgent` e `KnowledgeAgent` existem. Memória corporativa genérica e agentes especializados de +COMPRAS permanecem planejados.
+
 ---
 
 ## Fase 3 - Automação e Integrações
@@ -56,6 +60,8 @@ Objetivo: conectar a plataforma a processos de negócio reais e sistemas externo
 - **Procurement** — automação de processos de compras.
 - **Notifications** — notificações e comunicação com usuários e sistemas externos.
 - Integrações externas (ERPs, n8n, APIs corporativas).
+
+> Estado real: Procurement, Notifications, ERP e n8n não foram iniciados. A integração externa concreta é OpenAI Chat Completions; Git é lido apenas pelo módulo de documentação.
 
 ---
 

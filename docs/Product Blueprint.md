@@ -8,7 +8,7 @@
 
 ## Visão Geral
 
-**+Compras** é o produto de Inteligência Artificial para automação e apoio à área de Compras, o primeiro construído sobre a plataforma **BlueprintOS**. Ele combina agentes especializados, memória de negociação e conhecimento organizacional para apoiar compradores nas decisões do dia a dia.
+**+Compras** é o produto de Inteligência Artificial planejado para automação e apoio à área de Compras, o primeiro construído sobre a plataforma **BlueprintOS**. A fundação atual combina capacidades internas de negociação, memória em processo e conhecimento em Markdown; o produto utilizável ainda está em construção.
 
 ---
 
@@ -31,7 +31,7 @@
 
 ```mermaid
 flowchart LR
-    Comprador --> Agente["Agente de IA (Comprador Sênior)"]
+    Comprador --> Agente["Agente de IA especializado (planejado)"]
     Agente --> Memoria["Memória de Negociação\n(histórico de fornecedores, score)"]
     Agente --> Conhecimento["Conhecimento Organizacional"]
     Memoria --> Recomendacao["Recomendação de Estratégia\nde Negociação"]
@@ -45,11 +45,11 @@ O +Compras roda sobre o BlueprintOS, que fornece o runtime de agentes, a memóri
 
 ## Funcionalidades
 
-Implementadas hoje (fundação do produto):
+Implementadas hoje (capacidades internas da fundação):
 
 - **Motor de estratégia de negociação**, que recomenda uma abordagem (ex.: agressiva, conservadora, de parceria) com base no histórico e na urgência de cada negociação.
 - **Memória de negociação**, com histórico de fornecedores, preços e score de relacionamento.
-- **Agente Comprador Sênior**, que consome essa memória e estratégia para apoiar decisões.
+- **Runtime de agentes básico**, com `EchoAgent` e `KnowledgeAgent`; não há Agente Comprador Sênior concreto.
 - **Base de conhecimento organizacional**, para consulta por agentes e pessoas.
 
 Planejadas (ver Roadmap):
@@ -70,7 +70,7 @@ Fluxo previsto, à medida que os módulos de Portal e Procurement forem entregue
 4. O comprador conduz a negociação apoiado pela recomendação.
 5. O resultado é registrado, alimentando a memória para as próximas negociações.
 
-Hoje, os passos 2 a 4 já existem como capacidade de IA (motor de negociação); os passos 1 e 5, que dependem de um portal e de um fluxo de processo, ainda não foram construídos.
+Hoje, apenas a avaliação de estratégia de negociação existe como capacidade interna. Os passos 1 a 5 dependem de portal, API de negócio, persistência e fluxo de processo que ainda não foram construídos.
 
 ---
 
@@ -100,7 +100,7 @@ Hoje, os passos 2 a 4 já existem como capacidade de IA (motor de negociação);
 Não. Ele apoia a decisão com dados e recomendações; a decisão final é do comprador.
 
 **O +Compras já está pronto para uso?**
-O produto está em construção. As capacidades de IA (negociação, conhecimento, agentes) já existem; o portal e a automação de processo de compras ainda estão no roadmap.
+O produto está em construção. Existem capacidades internas de negociação, conhecimento e agentes básicos; o portal, a API de negócio e a automação de processo de compras ainda estão no roadmap.
 
 **Os dados de fornecedores ficam seguros?**
 A segurança é um requisito de escopo da plataforma (autenticação corporativa, autorização, LGPD); o módulo de Identidade que implementa isso ainda está no roadmap (Fase 1).

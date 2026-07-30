@@ -79,7 +79,7 @@ public class DocumentationPublishServiceTests : IDisposable
         var content = await File.ReadAllTextAsync(Path.Combine(_aiRoot, "memory", "completed_sprints.md"));
 
         Assert.Contains("Sprint A7 — Existente", content);
-        Assert.Contains("Sprint A8 — Portal de Documentação Viva", content);
+        Assert.Contains("Sprint A8 — Audience-Specific Publishers (Portal de Documentação Viva)", content);
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class DocumentationPublishServiceTests : IDisposable
         var content = await File.ReadAllTextAsync(Path.Combine(_aiRoot, "memory", "known_issues.md"));
 
         Assert.Contains("Sprint A7 — Existente", content);
-        Assert.Contains("Sprint A8 — Portal de Documentação Viva", content);
+        Assert.Contains("Sprint A8 — Audience-Specific Publishers (Portal de Documentação Viva)", content);
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class DocumentationPublishServiceTests : IDisposable
         await service.PublishAllAsync();
 
         var content = await File.ReadAllTextAsync(Path.Combine(_aiRoot, "memory", "completed_sprints.md"));
-        var occurrences = content.Split("Sprint A8 — Portal de Documentação Viva").Length - 1;
+        var occurrences = content.Split("Sprint A8 — Audience-Specific Publishers (Portal de Documentação Viva)").Length - 1;
 
         Assert.Equal(1, occurrences);
     }

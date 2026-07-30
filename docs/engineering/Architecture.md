@@ -3,8 +3,8 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-23 15:26:33 UTC
-- **Última atualização:** 2026-07-23
+- **Gerado em:** 2026-07-30 15:56:27 UTC
+- **Última atualização:** 2026-07-30
 
 ---
 
@@ -75,7 +75,7 @@ Runtime de agentes de IA especializados, construídos sobre um runtime de IA com
 
 # Documentação Técnica — Módulo AI.Negotiation
 
-Memória de negociação e motor de estratégia de negociação baseado em regras para o agente Buyer sênior.
+Memória de negociação e motor de estratégia baseado em regras; ainda sem agente Buyer sênior concreto.
 
 ## Contratos
 

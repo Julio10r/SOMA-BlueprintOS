@@ -8,9 +8,9 @@
 
 ## Resumo Executivo
 
-O BlueprintOS é a plataforma corporativa de IA que sustenta o **+Compras**, primeiro produto construído sobre ela. A plataforma já possui uma base arquitetural estável (Modular Monolith, Clean Architecture) e três capacidades de IA em produção interna: runtime de agentes, memória de negociação e motor de estratégia de negociação para o comprador sênior.
+O BlueprintOS é a plataforma corporativa de IA que sustenta o **+Compras**, primeiro produto construído sobre ela. A fundação backend contém runtime de IA, agentes de referência, memória de negociação em processo e motor de estratégia baseado em regras. Essas capacidades são internas: não há agente Comprador Sênior concreto, API de negócio ou portal utilizável.
 
-Nesta sprint, o foco é organizar a documentação oficial do projeto em três públicos (Diretoria, Cliente, Desenvolvedores), sem alterar comportamento da aplicação.
+Nesta sprint, o foco é consolidar o estado verificável do projeto e eliminar divergências entre código, testes, Git e documentos, sem alterar funcionalidades de negócio.
 
 ---
 
@@ -19,8 +19,8 @@ Nesta sprint, o foco é organizar a documentação oficial do projeto em três p
 | Indicador | Valor |
 |---|---|
 | Build | ✅ Sucesso (0 erros, 0 warnings) |
-| Testes automatizados | 167 unitários + 1 integração — 100% passando |
-| ADRs registradas | 8 |
+| Testes automatizados | 230 unitários + 1 integração — 100% passando; 0 ignorados e 0 falhos |
+| ADRs registradas | 9 |
 | Fase do roadmap | Fase 0 — Fundação (em andamento) |
 
 ---
@@ -41,18 +41,18 @@ Detalhe completo em [`.ai/ROADMAP.md`](../.ai/ROADMAP.md).
 
 ## Sprint Atual
 
-**A7 — Sistema de Documentação**
+**A10 — Project State Consolidation**
 
-Objetivo: estabelecer a documentação oficial do projeto para três públicos (Diretoria, Cliente, Desenvolvedores), sem adicionar funcionalidade ao produto.
+Objetivo: consolidar uma fonte verificável de estado e corrigir divergências documentais, sem adicionar funcionalidade ao produto.
 
-Está em andamento; não altera arquitetura, código ou comportamento da aplicação.
+Concluída em 30/07/2026, após build e testes completos.
 
 ---
 
 ## Entregas Recentes
 
 - Runtime de agentes de IA (`IAgent`, `AgentFactory`), com agentes de exemplo (`EchoAgent`, `KnowledgeAgent`).
-- Memória e motor de estratégia de negociação para o agente Comprador Sênior (histórico de fornecedores, score, recomendação de negociação por regras).
+- Memória e motor de estratégia de negociação em processo (histórico de fornecedores, score e recomendação por regras), ainda sem agente Comprador Sênior concreto.
 - Módulo de conhecimento organizacional (`Knowledge`), ingestão a partir de Markdown.
 - Sistema de gestão de documentação do próprio BlueprintOS (versionamento, changelog, ADRs, geração de documentação técnica/funcional).
 - Publication Engine: geração automática de relatórios (Executivo, Cliente, Engenharia) em Markdown, HTML e PDF a partir de dados reais do repositório.
@@ -61,8 +61,8 @@ Está em andamento; não altera arquitetura, código ou comportamento da aplica�
 
 ## Próximos Passos
 
-- Finalizar a Sprint A7 (revisão de consistência, validação de links e encerramento formal).
-- Priorizar, junto ao Product Owner, o próximo módulo da Fase 1 ou 3 que sustente diretamente o +Compras (ver `.ai/PROJECT_SCOPE.md`).
+- Aprovar a próxima sprint proposta: uma API mínima de negociação para tornar a capacidade interna utilizável pelo +COMPRAS.
+- Definir autenticação, persistência e fronteira de API antes de expor dados corporativos.
 
 ---
 
@@ -72,14 +72,14 @@ Está em andamento; não altera arquitetura, código ou comportamento da aplica�
 |---|---|
 | Módulos de domínio implementados | AI (Agents, Negotiation), Knowledge, Documentation, Publication, Workflows |
 | ADRs aceitas | 8 |
-| Cobertura de testes automatizados | 167 testes unitários + 1 de integração, 100% passando |
+| Cobertura de testes automatizados | 230 testes unitários + 1 de integração, 100% passando; 0 ignorados e 0 falhos |
 | Dependências de build sem acesso à internet em runtime | Sim (QuestPDF, QRCoder — bibliotecas .NET puras) |
 
 ---
 
 ## Riscos
 
-- **Módulos de negócio da Fase 1/3 (Identity, Procurement, Workflow como motor de processo) ainda não existem.** O BlueprintOS hoje sustenta capacidades de IA (agentes, negociação, conhecimento) e documentação, mas não os módulos que operacionalizam o +Compras de ponta a ponta.
+- **Módulos de negócio da Fase 1/3 (Identity, Procurement e workflow como motor de processo) ainda não existem.** O BlueprintOS hoje sustenta capacidades internas de IA, negociação, conhecimento e documentação, mas não os módulos que operacionalizam o +COMPRAS de ponta a ponta.
 - **Persistência ainda em memória** para documentação e negociação — nenhum `DbContext`/schema de banco existe hoje.
 - **QuestPDF (Community)** é gratuito apenas para empresas com receita anual abaixo de US$ 1M; acima disso, exige licença comercial.
 

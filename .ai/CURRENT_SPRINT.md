@@ -1,7 +1,7 @@
-Sprint: A7
+Sprint: A10
 
 Status:
-Em andamento
+Concluída
 
 Objetivo:
-Sistema de Documentação
+Project State Consolidation

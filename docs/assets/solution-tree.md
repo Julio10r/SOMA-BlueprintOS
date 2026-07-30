@@ -6,6 +6,10 @@ Estrutura real de diretórios e projetos do repositório (ignorando `bin`, `obj`
 ```
 SOMA-BlueprintOS
 ├── .ai/
+│   ├── content/
+│   │   ├── client/
+│   │   ├── engineering/
+│   │   └── executive/
 │   ├── context/
 │   │   ├── agents.md
 │   │   ├── architecture.md
@@ -54,12 +58,12 @@ SOMA-BlueprintOS
 │   ├── PROJECT.md
 │   ├── PROJECT_PHILOSOPHY.md
 │   ├── PROJECT_SCOPE.md
+│   ├── PROJECT_STATE.md
 │   ├── PROJECT_VISION.md
 │   ├── ROADMAP.md
 │   ├── STANDARDS.md
 │   └── WORKFLOW.md
 ├── .claude/
-│   └── scheduled_tasks.lock
 ├── .github/
 │   └── workflows/
 ├── .vscode/
@@ -163,7 +167,12 @@ SOMA-BlueprintOS
 │   │   ├── Roadmap.md
 │   │   └── SprintStatus.md
 │   ├── presentations/
-│   │   └── .DS_Store
+│   │   ├── +COMPRAS Strategic Roadmap QA.md
+│   │   ├── +COMPRAS Strategic Roadmap.md
+│   │   ├── +COMPRAS Strategic Roadmap.pdf
+│   │   ├── +COMPRAS Strategic Roadmap.pptx
+│   │   ├── .DS_Store
+│   │   └── ROADMAP_UPDATE.md
 │   ├── sprints/
 │   ├── templates/
 │   │   ├── ADR.md

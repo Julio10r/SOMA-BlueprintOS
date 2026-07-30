@@ -21,7 +21,7 @@
 
 **Resultado da validação:** `dotnet build` sem erros/warnings; `dotnet test` com 100% dos testes passando (99 testes unitários + 1 teste de integração).
 
-## Sprint A8 — Portal de Documentação Viva
+## Sprint A8 — Audience-Specific Publishers (Portal de Documentação Viva)
 
 **Status:** Concluída
 
@@ -53,3 +53,17 @@
 - Suíte de testes unitários (xUnit, fakes manuais) cobrindo o parser de conteúdo, o parser de ênfase inline, os três renderizadores (incluindo blocos de imagem, selos, apêndice e anexos), o gerador de QR Code, o modelo de assets, o orquestrador e a coleta de indicadores.
 
 **Resultado da validação:** `dotnet build` sem erros/warnings; `dotnet test` com 100% dos testes passando (167 testes unitários + 1 teste de integração); `dotnet run -- publish` executado com sucesso, gerando os 9 arquivos esperados em `dist/`, com selos, QR Code e histórico de versões visíveis nos três formatos do Relatório Executivo.
+
+## Sprint A10 — Project State Consolidation
+
+**Status:** Concluída
+
+**Escopo:** Normalização documental e consolidação do estado real do SOMA BlueprintOS / +COMPRAS, sem implementar funcionalidade de negócio. A sprint estabeleceu `.ai/PROJECT_STATE.md` como fonte operacional de estado e corrigiu documentação cuja informação não era sustentada por código, testes ou histórico Git.
+
+**Entregas comprovadas:**
+- Criação de `.ai/PROJECT_STATE.md`, com estado de módulos, agentes, integrações, APIs, infraestrutura, riscos e evidências de validação.
+- Atualização da sprint corrente, roadmap, documentação técnica e relatórios institucionais para distinguir implementação, parcialidade e planejamento.
+- Atualização do registro da Sprint A8 para explicitar a evidência de publicadores por público (`Executive`, `Client`, `Engineering`) no código e no commit `3905290`.
+- Criação de `docs/presentations/ROADMAP_UPDATE.md`, sem alterar o PowerPoint, com as correções factuais necessárias em cada slide do roadmap executivo +COMPRAS.
+
+**Resultado da validação:** `dotnet build backend/BlueprintOS.sln --no-restore` com 0 avisos e 0 erros; 230 testes unitários e 1 teste de integração executados, todos aprovados, sem testes ignorados ou falhos.

@@ -5,51 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BlueprintOS — Executive Blueprint</title>
 <style>:root {
-    color-scheme: light dark;
-    --ink: #1c2530;
-    --muted: #5B6A7A;
-    --accent: #2E5C8A;
-    --primary: #16324F;
-    --border: #DFE4EA;
-    --surface: #ffffff;
-    --surface-alt: #f6f8fa;
-    font-synthesis: none;
+    --text-primary: #1A1916;
+    --accent: #1A1916;
+    --text-secondary: #6B6860;
+    --border: #E2E0DB;
+    --surface: #FFFFFF;
+    --bg: #F7F6F3;
+    --aprovado: #2D6A4F;
+    --avaliacao: #E09B3D;
+    --rejeitado: #C0392B;
+    --novo: #4A90D9;
+    --font-display: "Inter Tight", Arial, sans-serif;
+    --font: "DM Sans", system-ui, sans-serif;
+    --mono: "DM Mono", ui-monospace, monospace;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow-1: 0 2px 8px rgba(26,25,22,0.07);
 }
+
 * { box-sizing: border-box; }
 body {
     margin: 0;
-    font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-    color: var(--ink);
-    background: var(--surface-alt);
-    line-height: 1.6;
+    font-family: var(--font);
+    color: var(--text-primary);
+    background: var(--bg);
+    line-height: 1.5;
 }
 .cover {
-    min-height: 60vh;
+    min-height: 55vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
     gap: 0.75rem;
     padding: 4rem clamp(1.5rem, 6vw, 6rem);
-    background: linear-gradient(135deg, var(--accent), var(--primary));
-    color: #fff;
+    background: var(--text-primary);
+    color: var(--bg);
 }
-.cover-brand { font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; }
+.cover-brand { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.85; }
 .cover-logo { max-height: 3rem; max-width: 12rem; object-fit: contain; }
-.cover h1 { font-size: clamp(2rem, 4vw, 3rem); margin: 0; }
+.cover h1 { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.02em; font-size: clamp(2rem, 4vw, 3rem); margin: 0; }
 .cover-subtitle { font-size: 1.15rem; opacity: 0.9; max-width: 42rem; }
 .cover-meta { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 1rem; font-size: 0.95rem; opacity: 0.85; }
 .cover-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
 .badge {
-    display: inline-flex; overflow: hidden; border-radius: 0.3rem; font-size: 0.8rem; font-weight: 600;
+    display: inline-flex; overflow: hidden; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 600;
 }
 .badge-label, .badge-value { padding: 0.2rem 0.5rem; }
-.badge-label { background: rgba(255,255,255,0.15); }
-.badge-value { color: #fff; }
-.badge-success .badge-value { background: #1f8a4c; }
-.badge-warning .badge-value { background: #b8860b; }
-.badge-failure .badge-value { background: #b8341f; }
-.badge-neutral .badge-value { background: #4a5568; }
+.badge-label { background: rgba(247,246,243,0.15); }
+.badge-value { color: var(--bg); }
+.badge-success .badge-value { background: var(--aprovado); }
+.badge-warning .badge-value { background: var(--avaliacao); }
+.badge-failure .badge-value { background: var(--rejeitado); }
+.badge-neutral .badge-value { background: var(--novo); }
 .page-header {
     position: sticky; top: 0; z-index: 10;
     display: flex; justify-content: space-between; align-items: center;
@@ -57,13 +65,14 @@ body {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
 }
-.page-header-brand { font-weight: 700; color: var(--accent); }
-.page-header-title { color: var(--muted); font-size: 0.95rem; }
+.page-header-brand { font-family: var(--font-display); font-weight: 700; color: var(--accent); }
+.page-header-title { color: var(--text-secondary); font-size: 0.95rem; }
 .content { max-width: 60rem; margin: 0 auto; padding: 2rem clamp(1rem, 6vw, 6rem) 4rem; }
 .card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 0.75rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-1);
     padding: 1.5rem;
     margin-bottom: 2rem;
 }
@@ -72,36 +81,30 @@ body {
 .toc a:hover { text-decoration: underline; }
 .section { margin-bottom: 2.5rem; }
 .section h2, .section h3 {
+    font-family: var(--font-display);
     border-bottom: 2px solid var(--border);
     padding-bottom: 0.5rem;
     color: var(--accent);
 }
 .appendix-divider { margin: 3rem 0 1.5rem; }
-.appendix-divider h2 { color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
+.appendix-divider h2 { font-family: var(--font-display); color: var(--accent); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
 .section-body table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
 .section-body th, .section-body td {
     border: 1px solid var(--border);
     padding: 0.5rem 0.75rem;
     text-align: left;
 }
-.section-body th { background: var(--surface-alt); }
-.section-body code { background: var(--surface-alt); padding: 0.1rem 0.35rem; border-radius: 0.25rem; }
-.section-body pre { background: #10151c; color: #e8edf3; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+.section-body th { background: var(--surface); }
+.section-body code { font-family: var(--mono); background: var(--surface); padding: 0.1rem 0.35rem; border-radius: 4px; }
+.section-body pre { font-family: var(--mono); background: var(--text-primary); color: var(--bg); padding: 1rem; border-radius: var(--radius-sm); overflow-x: auto; }
 .section-body figure { margin: 1rem 0; }
-.section-body figure img { max-width: 100%; border-radius: 0.5rem; border: 1px solid var(--border); }
-.section-body figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 0.35rem; }
+.section-body figure img { max-width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.section-body figcaption { font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.35rem; }
 .page-footer {
     display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
     padding: 1.25rem clamp(1.5rem, 6vw, 6rem);
-    color: var(--muted); font-size: 0.85rem;
+    color: var(--text-secondary); font-size: 0.85rem;
     border-top: 1px solid var(--border);
-}
-@media (prefers-color-scheme: dark) {
-    :root {
-        --ink: #e8edf3; --border: #2a3644;
-        --surface: #141a22; --surface-alt: #0f1319;
-    }
-    .section-body pre { background: #05070a; }
 }
 @media (max-width: 40rem) {
     .cover { padding: 3rem 1.25rem; }
@@ -156,7 +159,7 @@ body {
 </tr>
 <tr>
 <td>Data</td>
-<td>23 de julho de 2026</td>
+<td>30 de julho de 2026</td>
 </tr>
 <tr>
 <td>Status do projeto</td>
@@ -187,9 +190,9 @@ body {
 <div class="section-body">
 <p>O SOMA BlueprintOS &#233; uma plataforma corporativa que automatiza processos de neg&#243;cio por meio de agentes de intelig&#234;ncia artificial, com foco inicial em documenta&#231;&#227;o viva e negocia&#231;&#227;o de compras. O projeto est&#225; na Fase 0 (Funda&#231;&#227;o), com bases de arquitetura, padr&#245;es e documenta&#231;&#227;o j&#225; entregues.</p>
 <ul>
-<li><strong>Sprints conclu&#237;das:</strong> 3 (A7, A8, A9).</li>
-<li><strong>&#218;ltima sprint conclu&#237;da:</strong> Sprint A9 — gera&#231;&#227;o autom&#225;tica de relat&#243;rios institucionais.</li>
-<li><strong>Build/testes:</strong> passando, 184 testes automatizados.</li>
+<li><strong>Sprints conclu&#237;das:</strong> 4 (A7, A8, A9, A10).</li>
+<li><strong>&#218;ltima sprint conclu&#237;da:</strong> Sprint A10 — Project State Consolidation.</li>
+<li><strong>Build/testes:</strong> passando, 231 testes automatizados (230 unit&#225;rios e 1 de integra&#231;&#227;o; 0 ignorados e 0 falhos).</li>
 </ul>
 <p>---</p>
 </div>
@@ -215,9 +218,9 @@ body {
 <p>Capacidades j&#225; implementadas na plataforma:</p>
 <ul>
 <li><strong>Documenta&#231;&#227;o viva:</strong> gera&#231;&#227;o autom&#225;tica de documenta&#231;&#227;o executiva, de cliente e de engenharia, com versionamento e hist&#243;rico de mudan&#231;as.</li>
-<li><strong>Conhecimento organizacional:</strong> ingest&#227;o e consulta de conte&#250;do interno da empresa.</li>
-<li><strong>Agentes de IA:</strong> agentes especializados (ex.: consulta a conhecimento) operando sobre um runtime comum de IA.</li>
-<li><strong>Negocia&#231;&#227;o de compras:</strong> mem&#243;ria de negocia&#231;&#227;o e estrat&#233;gia de negocia&#231;&#227;o automatizada para o processo de Buyer s&#234;nior (urg&#234;ncia, hist&#243;rico de fornecedor, faixa de pre&#231;o).</li>
+<li><strong>Conhecimento organizacional:</strong> ingest&#227;o e consulta baseada em conte&#250;do Markdown.</li>
+<li><strong>Agentes de IA:</strong> runtime b&#225;sico com <code>EchoAgent</code> e <code>KnowledgeAgent</code> sobre um runtime comum de IA.</li>
+<li><strong>Negocia&#231;&#227;o de compras:</strong> mem&#243;ria de negocia&#231;&#227;o em processo e estrat&#233;gia baseada em regras (urg&#234;ncia, hist&#243;rico de fornecedor e faixa de pre&#231;o), ainda sem agente Buyer s&#234;nior concreto.</li>
 </ul>
 <p>Capacidades al&#233;m destas ainda n&#227;o foram implementadas; ver Roadmap Executivo.</p>
 <p>---</p>
@@ -260,7 +263,7 @@ body {
 <tr>
 <td>2 — Conhecimento e Mem&#243;ria</td>
 <td>Plataforma capaz de reter conhecimento e operar agentes de IA</td>
-<td>Planejado</td>
+<td>Parcial: Knowledge Markdown, mem&#243;ria de negocia&#231;&#227;o e agentes b&#225;sicos</td>
 </tr>
 <tr>
 <td>3 — Automa&#231;&#227;o e Integra&#231;&#245;es</td>
@@ -292,11 +295,11 @@ body {
 </tr>
 <tr>
 <td>Sprints conclu&#237;das</td>
-<td>3 (A7, A8, A9)</td>
+<td>4 (A7, A8, A9, A10)</td>
 </tr>
 <tr>
 <td>&#218;ltima entrega</td>
-<td>Sprint A9 — gera&#231;&#227;o autom&#225;tica de relat&#243;rios institucionais</td>
+<td>Sprint A10 — Project State Consolidation</td>
 </tr>
 <tr>
 <td>KPIs de neg&#243;cio</td>
@@ -304,7 +307,7 @@ body {
 </tr>
 <tr>
 <td>D&#237;vidas t&#233;cnicas em aberto</td>
-<td>13 (acompanhadas pela equipe de engenharia)</td>
+<td>16 (acompanhadas pela equipe de engenharia)</td>
 </tr>
 </tbody>
 </table>
@@ -314,7 +317,7 @@ body {
 <section id="8-próximos-passos" class="section">
 <h2>8. Pr&#243;ximos passos</h2>
 <div class="section-body">
-<p>1. Documentar o problema de neg&#243;cio e sua quantifica&#231;&#227;o. 2. Definir e registrar o escopo da pr&#243;xima sprint. 3. Avan&#231;ar os m&#243;dulos da Fase 1 (identidade, planejamento e automa&#231;&#227;o de processo). 4. Evoluir conhecimento e mem&#243;ria organizacional para uso ampliado por agentes de IA. 5. Iniciar o planejamento do frontend para usu&#225;rios finais.</p>
+<p>1. Documentar o problema de neg&#243;cio e sua quantifica&#231;&#227;o. 2. Aprovar ou ajustar a proposta da pr&#243;xima sprint: uma API m&#237;nima de negocia&#231;&#227;o para o +COMPRAS. 3. Definir autentica&#231;&#227;o, persist&#234;ncia e fronteira de API antes de expor dados corporativos. 4. Evoluir conhecimento e mem&#243;ria organizacional para uso ampliado por agentes de IA. 5. Iniciar o planejamento do frontend para usu&#225;rios finais.</p>
 <p>---</p>
 </div>
 </section>
