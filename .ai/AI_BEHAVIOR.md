@@ -34,6 +34,8 @@ Apresentar critérios de aceite.
 
 Não assumir requisitos inexistentes.
 
+Ao receber o comando `[atualizar tudo]`, seguir o procedimento de atualização documental em [DOCUMENTATION_UPDATE_COMMAND.md](./DOCUMENTATION_UPDATE_COMMAND.md).
+
 ---
 
 ## Objetivo
