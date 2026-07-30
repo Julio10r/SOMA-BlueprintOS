@@ -69,3 +69,11 @@
 **Resultado da validação:** `dotnet build backend/BlueprintOS.sln --no-restore` com 0 avisos e 0 erros; 230 testes unitários e 1 teste de integração executados, todos aprovados, sem testes ignorados ou falhos.
 
 **Complemento de governança:** `VISION.md`, `BACKLOG.md`, template oficial e 56 Work Orders foram criados. Sprints sem escopo ou evidência suficiente foram marcadas como `A detalhar`, `Planejado` ou `Não comprovado`.
+
+## Sprint A11 — Engineering Blueprint
+
+**Status:** Completed
+
+**Escopo:** Consolidação documental de arquitetura, implementação, roadmap técnico, Work Orders e operação, sem alteração de funcionalidades.
+
+**Entregas:** `ENGINEERING_BLUEPRINT.md` com 22 seções, índice e diagramas Mermaid; referências sincronizadas em `PROJECT_STATE.md`, `VISION.md` e `WORKFLOW.md`.

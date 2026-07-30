@@ -420,7 +420,7 @@ Uma tarefa só pode iniciar quando possuir:
 
 1. Apenas uma Work Order pode ter status `Approved` por vez.
 2. Codex só implementa a sprint explicitamente aprovada e registrada em `CURRENT_SPRINT.md`.
-3. Antes da implementação, o executor lê `VISION.md`, `PROJECT_STATE.md` e a Work Order correspondente.
+3. Antes da implementação, o executor lê `VISION.md`, `PROJECT_STATE.md`, `ENGINEERING_BLUEPRINT.md` e a Work Order correspondente.
 4. Ao concluir, atualiza estado, histórico, documentação e o resultado da Work Order.
 5. Melhorias fora do escopo são registradas como sugestão ou decisão pendente; não são implementadas.
 6. Toda sprint termina com build, testes aplicáveis, commit e push.

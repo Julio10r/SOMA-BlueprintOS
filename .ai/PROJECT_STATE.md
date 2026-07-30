@@ -4,6 +4,8 @@
 
 > Política de autonomia dos agentes: [AI_AUTONOMY_POLICY.md](./AI_AUTONOMY_POLICY.md).
 
+> Referência técnica consolidada: [ENGINEERING_BLUEPRINT.md](./ENGINEERING_BLUEPRINT.md).
+
 ## Atualização
 
 - **Data:** 30/07/2026
@@ -19,7 +21,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
 - **Última sprint comprovadamente concluída:** A9 — Publication Engine.
-- **Sprint atual:** A10 — Governance and Work Order Foundation (Completed em 30/07/2026).
+- **Sprint atual:** A11 — Engineering Blueprint (Completed em 30/07/2026).
 - **Próxima sprint proposta:** não definida; A11 — +COMPRAS Negotiation API Slice permanece apenas como sugestão, sujeita a priorização e aprovação.
 - **Progresso real:** documentação/publicação e capacidades internas de IA estão implementadas; os fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 

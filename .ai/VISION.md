@@ -90,6 +90,7 @@ O inventário de todas as 56 Work Orders está em `BACKLOG.md`. A ordem e a prio
 | Artefato | Finalidade |
 |---|---|
 | `VISION.md` | Direção estratégica, princípios e limites do produto |
+| `ENGINEERING_BLUEPRINT.md` | Arquitetura, implementação e operação técnica consolidadas |
 | `PROJECT_STATE.md` | Estado operacional comprovado por código, testes e Git |
 | `ROADMAP.md` | Fases técnicas de alto nível e estado real por fase |
 | `CURRENT_SPRINT.md` | Única sprint em execução e seu status |

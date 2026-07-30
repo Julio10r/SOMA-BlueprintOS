@@ -1,7 +1,7 @@
-Sprint: A10
+Sprint: A11
 
 Status:
 Completed
 
 Objetivo:
-Governance and Work Order Foundation
+Engineering Blueprint
