@@ -1,7 +1,7 @@
-Sprint: A11
+Sprint: A12
 
 Status:
 Completed
 
 Objetivo:
-Engineering Blueprint
+Especificação Oficial das 56 Work Orders

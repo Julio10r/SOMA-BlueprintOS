@@ -6,11 +6,13 @@
 
 > Referência técnica consolidada: [ENGINEERING_BLUEPRINT.md](./ENGINEERING_BLUEPRINT.md).
 
+> Fonte externa de descoberta: [COMPRAS_INDIRETAS_SOURCES.md](./sources/COMPRAS_INDIRETAS_SOURCES.md) (não é evidência de implementação).
+
 ## Atualização
 
 - **Data:** 30/07/2026
 - **Branch:** `main`
-- **Commit de referência:** `741d809` — `docs: consolidate canonical project state`
+- **Commit de referência:** `7265ded` — `docs: create Engineering Blueprint` (baseline da A12)
 - **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 avisos e 0 erros; 230 testes unitários e 1 teste de integração aprovados.
 
 ## Resumo executivo
@@ -21,8 +23,8 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
 - **Última sprint comprovadamente concluída:** A9 — Publication Engine.
-- **Sprint atual:** A11 — Engineering Blueprint (Completed em 30/07/2026).
-- **Próxima sprint proposta:** não definida; A11 — +COMPRAS Negotiation API Slice permanece apenas como sugestão, sujeita a priorização e aprovação.
+- **Sprint atual:** A12 — Especificação Oficial das 56 Work Orders (Completed em 30/07/2026).
+- **Próxima sprint proposta:** não definida. A seleção depende de priorização e aprovação explícitas do Product Owner.
 - **Progresso real:** documentação/publicação e capacidades internas de IA estão implementadas; os fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
 ## Capacidades implementadas
@@ -79,4 +81,4 @@ Build da solution: sucesso, 0 avisos e 0 erros.
 
 - O roadmap estratégico de apresentação +COMPRAS continua sem atualização visual; as correções necessárias estão listadas em `docs/presentations/ROADMAP_UPDATE.md`.
 - A estrutura alvo descrita em `ARCHITECTURE.md` não é a estrutura física atual.
-- O roadmap de alto nível ainda não define uma sprint aprovada após A10; A11 é apenas proposta.
+- Nenhuma Work Order futura está aprovada; a próxima sprint depende de decisão explícita do Product Owner.

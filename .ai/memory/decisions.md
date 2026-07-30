@@ -5,3 +5,7 @@ O log canônico de ADRs do projeto é [.ai/DECISIONS.md](../DECISIONS.md). Este 
 ## A10 — Adoção da Política de Autonomia da IA
 
 Foi adotada oficialmente `AI_AUTONOMY_POLICY.md`, definindo autonomia total para melhorias internas compatíveis, proposta obrigatória para mudanças estruturais e proibição de decisões estratégicas sem aprovação humana.
+
+## A12 — Catálogo oficial de oito fases e 56 Work Orders
+
+Foi adotado o catálogo estratégico de oito fases e 56 Work Orders. A especificação não aprova execução nem altera fatos históricos; status Completed permanece condicionado a evidência de código, testes ou Git.

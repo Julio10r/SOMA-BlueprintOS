@@ -159,7 +159,7 @@ Docker Compose é o único caminho implementado. CI/CD, ambientes, promoção, v
 
 ## 17. Work Orders
 
-Há 56 Work Orders estratégicas nas fases A–H e uma A10 de governança. A7 é comprovada; A5/A6 são não comprovadas; o restante está Planejado, Não iniciado ou A detalhar. `BACKLOG.md` é a visão consolidada e `WORK_ORDER_TEMPLATE.md` define o formato.
+Há 56 Work Orders estratégicas nas fases A–H, além das sprints de governança A10–A12. A1–A4 e A7 são comprovadas; A5 não é comprovada e A6 é parcial; as Work Orders B–H estão planejadas, sem aprovação de execução. `BACKLOG.md`, `workorders/README.md` e `DEPENDENCY_MAP.md` consolidam catálogo e dependências.
 
 ```mermaid
 flowchart LR
