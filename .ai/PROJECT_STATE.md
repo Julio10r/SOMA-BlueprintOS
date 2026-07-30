@@ -13,7 +13,13 @@
 - **Data:** 30/07/2026
 - **Branch:** `main`
 - **Commit de referência:** `7265ded` — `docs: create Engineering Blueprint` (baseline da A12)
-- **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 avisos e 0 erros; 230 testes unitários e 1 teste de integração aprovados.
+- **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros e 4 avisos `NU1900` de conectividade com `nuget.org` na consulta de vulnerabilidades; 230 testes unitários e 1 teste de integração aprovados.
+
+## Sistema de Work Orders
+
+- **Estado:** Implementado em 30/07/2026.
+- **Evidência:** [templates/README.md](./templates/README.md) e os sete templates padronizados para desenvolvimento, épicos, auditorias, refatorações, hotfixes, spikes e releases.
+- **Uso:** os templates complementam, sem substituir, as Work Orders estratégicas em `workorders/` e a governança de [WORKFLOW.md](./WORKFLOW.md). Eles exigem leitura prévia de visão, workflow, estado do projeto e sprint atual.
 
 ## Resumo executivo
 
