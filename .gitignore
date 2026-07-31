@@ -156,3 +156,8 @@ kubeconfig
 *.bak
 *.orig
 *.rej
+
+# ==========================================================
+# Relatórios de auditoria gerados automaticamente
+# ==========================================================
+docs/audits/
