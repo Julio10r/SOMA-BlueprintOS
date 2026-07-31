@@ -1,4 +1,4 @@
-# Work Order — B6 — Recomendação de Sourcing
+# Work Order — B6 — Integrações ERP por BU
 
 ## Metadados
 
@@ -11,7 +11,7 @@
 
 ## Objetivo
 
-Recomendar estratégia de fornecimento por categoria, demanda, criticidade, mercado, prazo e risco.
+Consolidar adaptadores ERP por BU para operações aprovadas, identificador externo, status, tratamento de falhas e reprocessamento.
 
 ## Problema de negócio
 
@@ -27,7 +27,7 @@ Seguir .NET 9, Clean Architecture, DDD pragmático e contratos públicos. Não p
 
 ## Escopo incluído
 
-Modelagem, contratos, casos de uso, validações, testes e documentação estritamente necessários para o objetivo.
+Integrações desacopladas por contratos; escrita no ERP somente após confirmação humana e contrato aprovado.
 
 ## Fora do escopo
 

@@ -113,3 +113,15 @@
 **Validação:** `dotnet build backend/BlueprintOS.sln --no-restore` sem avisos ou erros; 234 testes unitários e 2 de integração aprovados. `validate-b1-connectivity` confirmou +Compras e ERP `SOMA_DESENV` por `SELECT 1`, sem migration, DDL ou escrita.
 
 **Limite operacional:** a migration não foi aplicada por solicitação explícita; a criação física das tabelas no +Compras depende de autorização posterior.
+
+## Sprint B2 — Descoberta Inicial de Fornecedores
+
+**Status:** Concluída em 30/07/2026.
+
+**Escopo:** consulta somente leitura ao ERP SOMA_DESENV por item, descrição ou categoria, score explicável 100/80/60/40, persistência de descobertas no +Compras e endpoints de descoberta/consulta.
+
+**Evidência:** `a19e496`; `ErpFornecedorDiscoveryRepository`, `FornecedorDescoberto`, `ScoreFornecedor` e endpoints de descoberta. O fluxo não escreveu no ERP.
+
+**Validação:** build sem erros ou avisos; 240 testes unitários e 2 de integração aprovados.
+
+**Limite operacional:** o ambiente de execução não alcançou o SQL Server ERP (timeout). A validação operacional permanece pendente; o score é estrutura inicial e será evoluído somente quando existirem dados operacionais de itens, pedidos e relacionamentos.

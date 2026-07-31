@@ -235,6 +235,12 @@ Migrações devem ser versionadas.
 
 Nunca alterar dados manualmente em produção.
 
+O ERP é a fonte corporativa para códigos e cadastros oficiais de fornecedor e item, pedidos efetivados e dados fiscais/transacionais. O banco +Compras é a fonte para dados comerciais próprios, catálogos, relacionamentos fornecedor × item/família/categoria, rascunhos, contexto, evidências, status de integração e auditoria. Esta divisão inicial é definida pela ADR-0013 e será refinada por módulo.
+
+## 10.1 Operação sem IA
+
+O +Compras evolui primeiro como plataforma operacional. O portal web é sua interface integrada, não um produto separado. Toda operação crítica deve ter alternativa manual: cadastrar ou selecionar fornecedor/item, criar pedido, enviar ao ERP e acompanhar a integração. Agentes chamam contratos e casos de uso da Application; não acessam banco ou ERP diretamente. Escritas no ERP exigem confirmação humana e adaptadores desacoplados por BU.
+
 ---
 
 # 11. Padrões
@@ -299,17 +305,7 @@ Sem necessidade de reescrita.
 
 Toda decisão relevante deve gerar uma ADR.
 
-As ADRs serão armazenadas em:
-
-.ai/decisions/
-
-Formato:
-
-ADR-0001.md
-
-ADR-0002.md
-
-...
+O log canônico de ADRs é [DECISIONS.md](./DECISIONS.md); novas decisões são adicionadas ao final desse arquivo com numeração sequencial.
 
 ---
 

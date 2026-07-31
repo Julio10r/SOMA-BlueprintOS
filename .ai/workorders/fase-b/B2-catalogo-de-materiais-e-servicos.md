@@ -1,17 +1,17 @@
-# Work Order — B2 — Catálogo de Materiais e Serviços
+# Work Order — B2 — Descoberta Inicial de Fornecedores
 
 ## Metadados
 
 - Fase: Sourcing Intelligence
 - Sprint: B2
-- Status: Draft
-- Prioridade: Priorização pendente do Product Owner
+- Status: Concluída
+- Prioridade: Concluída conforme entrega B2
 - Dependências: B1.
-- Data de aprovação: Não aprovada
+- Data de aprovação: 30/07/2026
 
 ## Objetivo
 
-Criar taxonomia de categorias, itens, serviços, atributos, unidades de medida e relacionamento com fornecedores.
+Consultar o ERP SOMA_DESENV somente para leitura, aplicar score explicável e persistir descobertas de fornecedores no +Compras.
 
 ## Problema de negócio
 
@@ -27,7 +27,7 @@ Seguir .NET 9, Clean Architecture, DDD pragmático e contratos públicos. Não p
 
 ## Escopo incluído
 
-Modelagem, contratos, casos de uso, validações, testes e documentação estritamente necessários para o objetivo.
+Descoberta por item, descrição ou categoria; score centralizado 100/80/60/40; persistência +Compras e endpoints de consulta. A validação operacional do ERP permanece dependente de ambiente com acesso.
 
 ## Fora do escopo
 
@@ -92,10 +92,10 @@ PROJECT_STATE, CURRENT_SPRINT, histórico, BACKLOG, Engineering Blueprint, contr
 
 ## Critérios de aceite
 
-- [ ] Objetivo implementado sem expansão de escopo.
-- [ ] Regras e falhas relevantes cobertas por testes.
-- [ ] Interfaces não expõem dependências internas.
-- [ ] Documentação e decisões sincronizadas.
+- [x] Objetivo implementado sem expansão de escopo.
+- [x] Regras e falhas relevantes cobertas por testes.
+- [x] Interfaces não expõem dependências internas.
+- [x] Documentação e decisões sincronizadas.
 
 ## Definition of Done
 
@@ -122,4 +122,4 @@ B1.
 
 ## Resultado da execução
 
-Não executada. Preencher somente após conclusão comprovada.
+Concluída em 30/07/2026. `a19e496` implementou a estrutura de descoberta e score, com acesso somente leitura ao ERP. O timeout de rede do ambiente impediu a validação operacional, sem invalidar a entrega; o score permanece estrutura inicial até existirem dados de itens, pedidos e relacionamentos operacionais.

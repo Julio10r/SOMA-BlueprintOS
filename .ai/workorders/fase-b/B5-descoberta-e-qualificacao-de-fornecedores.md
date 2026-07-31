@@ -1,4 +1,4 @@
-# Work Order — B5 — Descoberta e Qualificação de Fornecedores
+# Work Order — B5 — Portal Operacional Integrado
 
 ## Metadados
 
@@ -11,7 +11,7 @@
 
 ## Objetivo
 
-Identificar fornecedores candidatos, aplicar critérios de qualificação e produzir ranking explicável.
+Evoluir o portal web como interface do próprio +Compras para fornecedor, item e pedido, com seleção e cadastro manuais.
 
 ## Problema de negócio
 
@@ -27,7 +27,7 @@ Seguir .NET 9, Clean Architecture, DDD pragmático e contratos públicos. Não p
 
 ## Escopo incluído
 
-Modelagem, contratos, casos de uso, validações, testes e documentação estritamente necessários para o objetivo.
+Interface integrada aos casos de uso operacionais; não criar produto ou módulo de portal separado nem prometer recomendação inteligente real.
 
 ## Fora do escopo
 

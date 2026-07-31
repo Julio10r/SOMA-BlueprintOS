@@ -1,4 +1,4 @@
-# Work Order — B3 — Histórico de Compras
+# Work Order — B3 — Cadastro e Integração de Itens
 
 ## Metadados
 
@@ -11,7 +11,7 @@
 
 ## Objetivo
 
-Ingerir e consultar requisições, cotações, pedidos, preços, quantidades, prazos e condições históricas.
+Construir consulta ERP, cadastro próprio e manual de itens, famílias, categorias, seleção de item existente e relacionamentos com fornecedores.
 
 ## Problema de negócio
 
@@ -27,7 +27,7 @@ Seguir .NET 9, Clean Architecture, DDD pragmático e contratos públicos. Não p
 
 ## Escopo incluído
 
-Modelagem, contratos, casos de uso, validações, testes e documentação estritamente necessários para o objetivo.
+Fluxos básicos de itens antes de inteligência avançada, com alternativa manual e integração desacoplada por BU quando aprovada.
 
 ## Fora do escopo
 

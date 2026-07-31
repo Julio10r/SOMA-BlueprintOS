@@ -9,6 +9,11 @@
 - A recomendação de negociação não persiste histórico, fornecedores ou resultados; a memória existente é transitória.
 - A identidade temporária aceita apenas em `Development` bloqueia a operação em Production até a futura implementação de identidade corporativa.
 
+## B2 — Descoberta Inicial de Fornecedores
+
+- A validação operacional de leitura no ERP SOMA_DESENV permanece pendente por timeout de rede no ambiente de execução; o adaptador é somente leitura.
+- O score 100/80/60/40 é estrutura inicial. Relacionamentos fornecedor × item/família/categoria e histórico de pedidos ainda dependem dos módulos operacionais futuros.
+
 ## Estado consolidado na Sprint A10 — Project State Consolidation
 
 - **Fonte operacional de estado criada.** `.ai/PROJECT_STATE.md` passou a registrar a evidência atual de código, testes e Git. `CURRENT_SPRINT.md`, `ROADMAP.md` e o histórico de sprints foram alinhados a ela.

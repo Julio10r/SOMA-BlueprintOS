@@ -1,4 +1,4 @@
-# Work Order — B4 — Inteligência de Preços
+# Work Order — B4 — Compras e Pedidos Operacionais
 
 ## Metadados
 
@@ -11,7 +11,7 @@
 
 ## Objetivo
 
-Calcular preço histórico, dispersão, tendências, referências, anomalias e oportunidades de economia.
+Criar solicitação de compra, cabeçalho e itens do pedido, rascunho, confirmação humana, persistência +Compras e status de integração.
 
 ## Problema de negócio
 
@@ -27,7 +27,7 @@ Seguir .NET 9, Clean Architecture, DDD pragmático e contratos públicos. Não p
 
 ## Escopo incluído
 
-Modelagem, contratos, casos de uso, validações, testes e documentação estritamente necessários para o objetivo.
+Fluxo operacional de pedido com fornecedor, item, quantidade, preço, condição, centro de custo, BU, prazo, endereço, tratamento de falha e reprocessamento quando aplicável.
 
 ## Fora do escopo
 

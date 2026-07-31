@@ -1,6 +1,6 @@
 # Work Orders — Índice Oficial
 
-Este índice é a fonte navegável das 56 Work Orders estratégicas. O [BACKLOG](../BACKLOG.md) é a visão consolidada com objetivos e evidências.
+Este índice é a fonte navegável das 56 Work Orders estratégicas. O [BACKLOG](../BACKLOG.md) é a visão consolidada com objetivos e evidências. A ADR-0013 reorganiza as Work Orders futuras para priorizar operação; a recomendação curta B2.1 está em [`../work-orders/`](../work-orders/B2.1-ValidacaoOperacionalESincronizacaoDeFornecedoresComERP.md) e não inicia uma sprint.
 
 ## Legenda
 
@@ -19,12 +19,12 @@ Este índice é a fonte navegável das 56 Work Orders estratégicas. O [BACKLOG]
 | A6 | Foundation | Agente Comprador Sênior | Parcial | A2 e A3. | [A6](../workorders/fase-a/A6-agente-comprador-senior.md) |
 | A7 | Foundation | Sistema de Documentação | Implementado | A1. | [A7](../workorders/fase-a/A7-sistema-de-documentacao.md) |
 | B1 | Sourcing Intelligence | Cadastro e Perfil de Fornecedores | Concluída | A1; H1/H2 propostos. | [B1](../workorders/fase-b/B1-cadastro-e-perfil-de-fornecedores.md) |
-| B2 | Sourcing Intelligence | Catálogo de Materiais e Serviços | Planejado | B1. | [B2](../workorders/fase-b/B2-catalogo-de-materiais-e-servicos.md) |
-| B3 | Sourcing Intelligence | Histórico de Compras | Planejado | B1 e B2. | [B3](../workorders/fase-b/B3-historico-de-compras.md) |
-| B4 | Sourcing Intelligence | Inteligência de Preços | Planejado | B3. | [B4](../workorders/fase-b/B4-inteligencia-de-precos.md) |
-| B5 | Sourcing Intelligence | Descoberta e Qualificação de Fornecedores | Planejado | B1, B2 e B3. | [B5](../workorders/fase-b/B5-descoberta-e-qualificacao-de-fornecedores.md) |
-| B6 | Sourcing Intelligence | Recomendação de Sourcing | Planejado | B1, B3, B4 e B5. | [B6](../workorders/fase-b/B6-recomendacao-de-sourcing.md) |
-| B7 | Sourcing Intelligence | Cockpit de Sourcing | Planejado | B1 a B6; H1/H2 propostos. | [B7](../workorders/fase-b/B7-cockpit-de-sourcing.md) |
+| B2 | Sourcing Intelligence | Descoberta Inicial de Fornecedores | Concluída | B1. | [B2](../workorders/fase-b/B2-catalogo-de-materiais-e-servicos.md) |
+| B3 | Sourcing Intelligence | Cadastro e Integração de Itens | Planejado | B1; B2.1 recomendada. | [B3](../workorders/fase-b/B3-historico-de-compras.md) |
+| B4 | Sourcing Intelligence | Compras e Pedidos Operacionais | Planejado | B3. | [B4](../workorders/fase-b/B4-inteligencia-de-precos.md) |
+| B5 | Sourcing Intelligence | Portal Operacional Integrado | Planejado | B1 a B4. | [B5](../workorders/fase-b/B5-descoberta-e-qualificacao-de-fornecedores.md) |
+| B6 | Sourcing Intelligence | Integrações ERP por BU | Planejado | B3 e B4. | [B6](../workorders/fase-b/B6-recomendacao-de-sourcing.md) |
+| B7 | Sourcing Intelligence | Fluxo Operacional Ponta a Ponta | Planejado | B1 a B6. | [B7](../workorders/fase-b/B7-cockpit-de-sourcing.md) |
 | C1 | Negotiation Automation | Dossiê de Negociação | Planejado | B1, B3, B4 e B6. | [C1](../workorders/fase-c/C1-dossie-de-negociacao.md) |
 | C2 | Negotiation Automation | Planejador de Negociação | Planejado | C1. | [C2](../workorders/fase-c/C2-planejador-de-negociacao.md) |
 | C3 | Negotiation Automation | Agente de Negociação | Planejado | C2 e C5. | [C3](../workorders/fase-c/C3-agente-de-negociacao.md) |

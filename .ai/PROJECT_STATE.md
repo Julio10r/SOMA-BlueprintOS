@@ -10,16 +10,23 @@
 
 ## Atualização
 
-- **Data:** 30/07/2026
+- **Data:** 31/07/2026
 - **Branch:** `feature/a13-procurement-vertical-slice`
-- **Commit de referência:** será criado para a Sprint B2 após a validação final.
-- **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros e 0 avisos; 240 testes unitários e 2 testes de integração aprovados. A conexão SQL ao ERP não estava acessível neste ambiente, sem alteração de estado.
+- **Commit de referência:** `a19e496` — `feat(B2): implement intelligent supplier discovery`.
+- **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros e 0 avisos; 240 testes unitários e 3 testes de integração aprovados. A conexão SQL ao ERP não estava acessível no ambiente da B2, sem alteração de estado.
 
 ## Sistema de Work Orders
 
 - **Estado:** Implementado em 30/07/2026.
 - **Evidência:** [templates/README.md](./templates/README.md) e os sete templates padronizados para desenvolvimento, épicos, auditorias, refatorações, hotfixes, spikes e releases.
 - **Uso:** os templates complementam, sem substituir, as Work Orders estratégicas em `workorders/` e a governança de [WORKFLOW.md](./WORKFLOW.md). Eles exigem leitura prévia de visão, workflow, estado do projeto e sprint atual.
+
+## Evolução arquitetural do +Compras
+
+- **Decisão aceita:** [ADR-0013](./DECISIONS.md) estabelece a evolução em dois momentos: plataforma operacional primeiro e inteligência progressiva sobre dados reais depois.
+- **Princípio obrigatório:** toda operação crítica possui alternativa manual; IA acelera e orienta, mas não é pré-requisito para cadastrar ou selecionar fornecedor/item, criar pedido, enviá-lo ao ERP ou acompanhar a integração.
+- **Portal:** é a interface do próprio +Compras e evolui junto aos módulos, sem constituir produto ou módulo separado.
+- **B2:** permanece concluída como estrutura inicial de descoberta e score (100/80/60/40). A validação operacional de leitura no ERP SOMA_DESENV permanece pendente por timeout de rede; o fluxo é somente leitura e o score completo depende de itens, pedidos e relacionamentos operacionais futuros.
 
 ## Resumo executivo
 
@@ -30,7 +37,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
 - **Última sprint comprovadamente concluída:** B2 — Descoberta Inteligente de Fornecedores (30/07/2026).
 - **Sprint atual:** B2 concluída. `CURRENT_SPRINT.md` registra a entrega e suas limitações operacionais.
-- **Próxima sprint proposta:** B3 não iniciada, conforme escopo solicitado.
+- **Próxima sprint recomendada:** B2.1 — Validação Operacional e Sincronização de Fornecedores com ERP, em `Draft`; B3 não foi iniciada.
 - **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
 ## Capacidades implementadas
@@ -73,8 +80,8 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 | Suíte | Executados | Aprovados | Ignorados | Falhos |
 |---|---:|---:|---:|---:|
 | Unitários | 240 | 240 | 0 | 0 |
-| Integração | 2 | 2 | 0 | 0 |
-| Total | 242 | 242 | 0 | 0 |
+| Integração | 3 | 3 | 0 | 0 |
+| Total | 243 | 243 | 0 | 0 |
 
 Build da solution: sucesso, 0 erros e 0 avisos.
 

@@ -55,7 +55,16 @@ Objetivo: conectar a plataforma a processos de negócio reais e sistemas externo
 - **Notifications** — notificações e comunicação com usuários e sistemas externos.
 - Integrações externas (ERPs, n8n, APIs corporativas).
 
-> Estado real: Procurement, Notifications, ERP e n8n não foram iniciados. A integração externa concreta é OpenAI Chat Completions; Git é lido apenas pelo módulo de documentação.
+> Estado real: há persistência própria de fornecedores, APIs REST e descoberta de fornecedores somente leitura no ERP SOMA_DESENV; a validação operacional deste acesso está pendente por timeout de rede. Procurement completo, portal operacional, itens, pedidos, notificações e n8n não foram iniciados.
+
+## Reorientação do roadmap do +Compras
+
+A [ADR-0013](./DECISIONS.md) organiza a evolução em dois blocos sem alterar as oito fases e 56 Work Orders estratégicas: primeiro a plataforma operacional e, sobre seus dados reais, a plataforma inteligente.
+
+1. **Operacional:** fornecedores, itens, compras/pedidos, portal como interface integrada, adaptadores ERP por BU e fluxo ponta a ponta com auditoria básica.
+2. **Inteligente:** inteligência de fornecedores, itens e compras; negociação, orçamento, auditoria, compliance e autonomia progressiva.
+
+O portal não é uma fase isolada: ele evolui com os módulos. Operações críticas mantêm caminho manual e confirmação humana; IA não é a única forma de concluí-las. A próxima entrega recomendada é B2.1, em rascunho, para validar e consolidar a sincronização de fornecedores; B3 não está iniciada.
 
 ---
 

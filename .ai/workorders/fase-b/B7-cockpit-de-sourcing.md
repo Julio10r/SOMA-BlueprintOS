@@ -1,4 +1,4 @@
-# Work Order — B7 — Cockpit de Sourcing
+# Work Order — B7 — Fluxo Operacional Ponta a Ponta
 
 ## Metadados
 
@@ -11,7 +11,7 @@
 
 ## Objetivo
 
-Expor APIs e visão operacional consolidada para oportunidades, fornecedores, preços e recomendações.
+Validar o ciclo fornecedor, item, pedido e integração ERP, com auditoria técnica básica e operação manual equivalente.
 
 ## Problema de negócio
 
@@ -27,7 +27,7 @@ Seguir .NET 9, Clean Architecture, DDD pragmático e contratos públicos. Não p
 
 ## Escopo incluído
 
-Modelagem, contratos, casos de uso, validações, testes e documentação estritamente necessários para o objetivo.
+Consolidação operacional antes de inteligência de fornecedores, itens e compras; agentes apenas assistidos e sob confirmação humana.
 
 ## Fora do escopo
 

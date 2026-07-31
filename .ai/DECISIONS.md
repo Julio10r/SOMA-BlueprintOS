@@ -180,3 +180,41 @@ Formato de cada ADR:
 **Decisão:** O agregado `Fornecedor` permanece no Domain; Application depende de `IFornecedorRepository` e `ICurrentIdentity`; Infrastructure implementa o repositório com EF Core/SQL Server e mantém `TemporaryUserId` em cada registro. Consultas sempre recebem o identificador atual e são filtradas por ele. CNPJ possui índice único e é normalizado por value object. A ConnectionString `MaisComprasConnection` é a única usada pelo DbContext e pelas migrations; `ErpConnection` permanece isolada, sem acesso nesta sprint.
 
 **Consequências:** A troca do adaptador de Development por Entra ID não altera entidades, contratos ou casos de uso. A migration inicial estabelece os índices de CNPJ, nome e identidade temporária. A13 não foi alterada e sua lógica de IA continua consultiva.
+
+---
+
+## ADR-0013: Estratégia de Evolução Incremental da Plataforma Operacional e Inteligente do +Compras
+
+**Status:** Aceito
+
+**Data:** 31/07/2026
+
+**Contexto:** O roadmap inicial antecipava capacidades inteligentes antes de uma base operacional completa de fornecedores, itens e pedidos. O ERP mantém os cadastros corporativos, mas não possui os relacionamentos fornecedor × item, família e categoria necessários ao mecanismo completo de descoberta. Esses relacionamentos, assim como dados próprios de operação, precisam existir no +Compras; o histórico de compras será obtido progressivamente pelos pedidos do ERP. O produto deve entregar valor e manter operações críticas mesmo quando o modelo, o provedor de IA ou um agente estiver indisponível.
+
+**Opções consideradas:**
+
+1. Priorizar inteligência avançada antes dos fluxos operacionais — descartada por depender de dados inexistentes e tornar a operação crítica dependente de IA.
+2. Construir a plataforma operacional primeiro e evoluir a inteligência sobre dados reais — adotada.
+
+**Decisão:** O +Compras será construído inicialmente como uma plataforma operacional completa, composta pelo portal web, APIs, banco próprio, integrações ERP, módulos operacionais, workflows, auditoria e agentes do SOMA BlueprintOS. O portal é a interface do próprio +Compras, não um produto ou módulo separado.
+
+Fornecedores, itens e pedidos terão fluxos básicos completos antes da inteligência avançada. Agentes atuam inicialmente como operadores assistidos: interpretam solicitações, consultam dados, preenchem informações, apresentam opções, criam rascunhos e executam somente operações confirmadas pelo usuário. Decisões críticas exigem confirmação humana.
+
+Toda funcionalidade inteligente deve possuir alternativa operacional manual equivalente. A indisponibilidade de IA não pode impedir cadastrar ou selecionar fornecedor e item, criar pedido, enviá-lo ao ERP ou acompanhar a integração. Agentes usam contratos e casos de uso da Application; não acessam diretamente banco ou ERP.
+
+Cada BU pode possuir um ERP distinto. Integrações permanecem desacopladas por adaptadores vinculados à BU. O banco +Compras armazena dados da aplicação e relacionamentos ausentes no ERP; capacidades inteligentes são acrescentadas progressivamente sobre dados operacionais reais.
+
+**Fontes de verdade iniciais:**
+
+| Sistema | Fonte de verdade |
+|---|---|
+| ERP | códigos externos e cadastro corporativo de fornecedor/item, pedidos efetivamente registrados, dados fiscais e transacionais oficiais |
+| +Compras | sites e canais comerciais, catálogos, relacionamentos fornecedor × item/família/categoria, scores, recomendações, solicitações e rascunhos, contexto conversacional, evidências de agentes, status de integração, auditoria e decisões assistidas |
+
+Essa divisão será refinada por ADRs futuras conforme os módulos forem implementados.
+
+**Consequências positivas:** entrega antecipada de valor, homologação progressiva com compradores, geração de dados reais para inteligência, menor dependência de IA, testes mais objetivos, isolamento de falhas entre portal, aplicação, banco e ERP, e continuidade operacional sem IA.
+
+**Trade-offs:** inteligência avançada é postergada; CRUDs e fluxos operacionais precedem automações; estruturas de B2 permanecem iniciais até haver dados reais; modelos podem ser ajustados quando Compras for detalhado; haverá duplicidade controlada e será necessário definir a fonte de verdade de cada campo.
+
+**Ações posteriores:** reorganizar Work Orders futuras para fornecedores, itens, pedidos, portal integrado e integrações; validar B2.1 em ambiente com acesso ao ERP; não iniciar B3 sem aprovação.
