@@ -10,10 +10,16 @@
 
 ## Banco de dados
 
-Nenhum schema de banco de dados definido até o momento.
+O `BlueprintOSDbContext` usa exclusivamente `MaisComprasConnection` para persistência da aplicação.
 
-O backend ainda não possui nenhum `DbContext` (EF Core) nem entidades persistentes.
-A persistência atual dos módulos existentes (ex.: `Documentation`, `Knowledge`) é feita
-em memória (`InMemoryDocumentationRepository`) ou em arquivos Markdown (ADRs, changelog),
-adequado ao escopo das sprints entregues até aqui. Este documento será atualizado assim
-que um `DbContext` real for introduzido no projeto.
+### +Compras
+
+- `Fornecedores`: agregado persistente entregue na B1.
+- `FornecedoresDescobertos`: resultados da descoberta B2, vinculados a `TemporaryUserId`.
+- Migration B2: `202607300002_B2FornecedorDiscovery`.
+
+### ERP SOMA_DESENV
+
+`ErpFornecedorDiscoveryRepository` usa `ErpConnection` somente para leitura de metadados e dados
+operacionais. O adaptador rejeita qualquer banco cujo catálogo não seja `SOMA_DESENV` e não possui
+migrations ou comandos de escrita no ERP. A validação operacional depende de conectividade com o SQL Server.

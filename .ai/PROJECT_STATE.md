@@ -11,9 +11,9 @@
 ## Atualização
 
 - **Data:** 30/07/2026
-- **Branch:** `main`
-- **Commit de referência:** pendente de criação para a Sprint B1.
-- **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros e 0 avisos; suíte de testes aprovada; `validate-b1-connectivity` confirmou as conexões +Compras e ERP SOMA_DESENV por `SELECT 1`, sem alteração de estado.
+- **Branch:** `feature/a13-procurement-vertical-slice`
+- **Commit de referência:** será criado para a Sprint B2 após a validação final.
+- **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros e 0 avisos; 240 testes unitários e 2 testes de integração aprovados. A conexão SQL ao ERP não estava acessível neste ambiente, sem alteração de estado.
 
 ## Sistema de Work Orders
 
@@ -28,9 +28,9 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 ## Ciclo atual
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
-- **Última sprint comprovadamente concluída:** B1 — Persistência de Fornecedores (Completed em 30/07/2026).
-- **Sprint atual:** nenhuma ativa. `CURRENT_SPRINT.md` registra B1 como última sprint concluída.
-- **Próxima sprint proposta:** não definida; a seleção depende de priorização explícita.
+- **Última sprint comprovadamente concluída:** B2 — Descoberta Inteligente de Fornecedores (30/07/2026).
+- **Sprint atual:** B2 concluída. `CURRENT_SPRINT.md` registra a entrega e suas limitações operacionais.
+- **Próxima sprint proposta:** B3 não iniciada, conforme escopo solicitado.
 - **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
 ## Capacidades implementadas
@@ -42,7 +42,8 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 | Knowledge | `MarkdownKnowledgeProvider` e `KnowledgeService` | Implementado, baseado em Markdown |
 | Negociação | `NegotiationMemory`, regras e `NegotiationStrategy` | Implementado, em memória |
 | API de negociação | `POST /api/v1/negociacoes/recomendacoes` via `NegotiationRecommendationUseCase` | Implementado, consultivo e sem estado |
-| Fornecedores | `Fornecedor`, EF Core/SQL Server sobre `MaisComprasConnection`, migration e `POST/GET/PUT/DELETE /fornecedores` | Implementado; migration ainda não aplicada por restrição explícita |
+| Fornecedores | `Fornecedor`, EF Core/SQL Server sobre `MaisComprasConnection`, migration e `POST/GET/PUT/DELETE /fornecedores` | Implementado |
+| Descoberta de fornecedores | `FornecedorDescoberto`, score centralizado, leitura `SOMA_DESENV`, persistência +Compras e `/api/fornecedores/descobertas` | Implementado; validação SQL ERP pendente de ambiente com acesso |
 | Workflow | `Workflow` e `WorkflowRunner` sequenciais | Implementado, básico |
 | Documentation | contratos, geradores, publicação Markdown, Git reader e health report | Implementado |
 | Publication | renderização Markdown/HTML/PDF, QR Code e publicadores por público | Implementado |
@@ -64,16 +65,16 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 ## Agentes e integrações concretos
 
 - **Agentes:** `EchoAgent` e `KnowledgeAgent`. Não existe classe concreta `SeniorBuyerAgent`, `NegotiationAgent`, `ComplianceAgent` ou `RiskAgent`.
-- **Integrações:** OpenAI Chat Completions via `OpenAIProvider`; CLI Git somente para leitura de histórico de documentação; Docker Compose com SQL Server configurado, mas não consumido pela aplicação.
+- **Integrações:** OpenAI Chat Completions via `OpenAIProvider`; descoberta ERP somente leitura via `ErpFornecedorDiscoveryRepository` em `SOMA_DESENV`; CLI Git somente para leitura de histórico de documentação.
 - **Identidade temporária:** `DevelopmentRequestIdentity` atende somente Development e alimenta `ICurrentIdentity`; fornecedores persistem esse vínculo sem dependência da implementação concreta.
 
 ## Qualidade
 
 | Suíte | Executados | Aprovados | Ignorados | Falhos |
 |---|---:|---:|---:|---:|
-| Unitários | 234 | 234 | 0 | 0 |
+| Unitários | 240 | 240 | 0 | 0 |
 | Integração | 2 | 2 | 0 | 0 |
-| Total | 236 | 236 | 0 | 0 |
+| Total | 242 | 242 | 0 | 0 |
 
 Build da solution: sucesso, 0 erros e 0 avisos.
 

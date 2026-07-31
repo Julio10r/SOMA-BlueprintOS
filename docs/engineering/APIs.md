@@ -11,7 +11,7 @@
 ## API — documentação técnica
 
 `BlueprintOS.Api` é um Minimal API (.NET 9) que registra os serviços de
-infraestrutura via `AddInfrastructure` e expõe saúde e uma recomendação consultiva:
+infraestrutura via `AddInfrastructure` e expõe saúde, fornecedores e descoberta ERP:
 
 ```
 GET /health
@@ -19,7 +19,16 @@ GET /health
 
 POST /api/v1/negociacoes/recomendacoes
   -> 200 OK { RequestId, Strategy, Justifications, Alerts, SuccessProbability, HumanDecisionRequired }
+
+POST /api/fornecedores/descobrir
+  -> 200 OK [ { Id, CodigoItem, Nome, Score, Criterio, ... } ]
+
+GET /api/fornecedores/descobertas
+  -> 200 OK [ descobertas persistidas da identidade temporária ]
+
+GET /api/fornecedores/descobertas/{id}
+  -> 200 OK descoberta persistida ou 404
 ```
 
 OpenAPI (`AddOpenApi`/`MapOpenApi`) está habilitado em ambiente de desenvolvimento.
-O controller delega ao caso de uso Application, reutiliza contratos de memória e estratégia e não altera estado.
+Os endpoints delegam aos casos de uso Application. A descoberta lê exclusivamente `SOMA_DESENV` e persiste no +Compras.

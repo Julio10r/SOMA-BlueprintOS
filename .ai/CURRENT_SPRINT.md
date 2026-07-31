@@ -1,19 +1,31 @@
-Sprint: B1
+Sprint: B2 — Descoberta Inteligente de Fornecedores
 
 Status:
 CONCLUÍDA
 
 Objetivo:
-Persistência de Fornecedores do +Compras
+Consultar o ERP SOMA_DESENV para localizar fornecedores relacionados a item, descrição ou categoria, calcular score explicável e persistir todas as descobertas no +Compras.
 
-Estado:
-Implementação concluída: CRUD de fornecedores preparado com EF Core/SQL Server, migration versionada, repository, casos de uso e endpoints REST em `/fornecedores`. A migration não foi aplicada por restrição explícita desta sprint.
+Entrega:
+- `DescobrirFornecedoresUseCase` com identidade temporária e persistência por descoberta.
+- `FornecedorDescoberto` e `ScoreFornecedor` no domínio.
+- `ErpFornecedorDiscoveryRepository` somente leitura, com proteção para usar exclusivamente o banco `SOMA_DESENV`.
+- Endpoints `POST /api/fornecedores/descobrir`, `GET /api/fornecedores/descobertas` e `GET /api/fornecedores/descobertas/{id}`.
+- Migration `202607300002_B2FornecedorDiscovery` somente para o banco +Compras.
 
-Validação de conectividade:
-- `MaisComprasConnection`: sucesso por conexão aberta e `SELECT 1`.
-- `ErpConnection` (`SOMA_DESENV`): sucesso por conexão aberta e `SELECT 1`.
-- Nenhuma migration, DDL ou escrita foi executada em qualquer banco.
+Regra de score:
+- Item exato: 100
+- Família: 80
+- Categoria: 60
+- Histórico: 40
 
-Limites de identidade:
-- O Entra ID não será implementado nesta sprint.
-- Qualquer identidade temporária será restrita a `Development` e desacoplada por contrato, conforme [ADR-0011](./DECISIONS.md#adr-0011-identidade-temporária-de-desenvolvimento-para-antecipar-a-persistência-de-fornecedores).
+Validação:
+- Build da solution: 0 erros e 0 avisos.
+- Testes unitários: 240 aprovados.
+- Testes de integração: 2 aprovados, incluindo persistência/isolation no +Compras em memória.
+- O SQL Server ERP `SOMA_DESENV` não estava acessível neste ambiente de execução (timeout); o adaptador está preparado para validação operacional com `ErpConnection` configurada.
+
+Limites:
+- O fluxo B2 é somente leitura no ERP; não há escrita aplicável em `SOMA_DESENV`.
+- A ADR de identidade temporária permanece válida.
+- A Sprint B3 não foi iniciada.

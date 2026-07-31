@@ -6,6 +6,7 @@ namespace BlueprintOS.Infrastructure.Persistence;
 public sealed class BlueprintOSDbContext(DbContextOptions<BlueprintOSDbContext> options) : DbContext(options)
 {
     public DbSet<Fornecedor> Fornecedores => Set<Fornecedor>();
+    public DbSet<FornecedorDescoberto> FornecedoresDescobertos => Set<FornecedorDescoberto>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

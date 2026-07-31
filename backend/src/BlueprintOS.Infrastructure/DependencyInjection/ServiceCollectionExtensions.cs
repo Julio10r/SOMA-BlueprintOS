@@ -60,11 +60,15 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<BlueprintOSDbContext>(options => options.UseSqlServer(connectionString));
         services.AddSingleton<B1ConnectivityValidator>();
         services.AddScoped<IFornecedorRepository, FornecedorRepository>();
+        services.AddScoped<IErpFornecedorDiscoveryRepository, ErpFornecedorDiscoveryRepository>();
+        services.AddScoped<IFornecedorDescobertoRepository, FornecedorDescobertoRepository>();
         services.AddScoped<ICadastrarFornecedorUseCase, CadastrarFornecedorUseCase>();
         services.AddScoped<IAtualizarFornecedorUseCase, AtualizarFornecedorUseCase>();
         services.AddScoped<IExcluirFornecedorUseCase, ExcluirFornecedorUseCase>();
         services.AddScoped<IObterFornecedorUseCase, ObterFornecedorUseCase>();
         services.AddScoped<IPesquisarFornecedorUseCase, PesquisarFornecedorUseCase>();
+        services.AddScoped<IDescobrirFornecedoresUseCase, DescobrirFornecedoresUseCase>();
+        services.AddScoped<IListarDescobertasUseCase, ListarDescobertasUseCase>();
 
         services.Configure<OpenAIOptions>(configuration.GetSection(OpenAIOptions.SectionName));
 
