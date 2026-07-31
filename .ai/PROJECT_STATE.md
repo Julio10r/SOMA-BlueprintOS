@@ -28,6 +28,13 @@
 - **Portal:** é a interface do próprio +Compras e evolui junto aos módulos, sem constituir produto ou módulo separado.
 - **B2:** permanece concluída como estrutura inicial de descoberta e score (100/80/60/40). A validação operacional de leitura no ERP SOMA_DESENV permanece pendente por timeout de rede; o fluxo é somente leitura e o score completo depende de itens, pedidos e relacionamentos operacionais futuros.
 
+## Estratégia de LLM
+
+- **Decisão aceita:** a [ADR-0014](./DECISIONS.md) determina `IAIProvider` e `IAIRuntime` como fronteira entre a aplicação e qualquer fornecedor de LLM.
+- **Desenvolvimento:** Ollama local é o padrão arquitetural, com preferência por modelos de 3B a 4B parâmetros; seu adaptador ainda não foi implementado ou configurado por esta decisão documental.
+- **Produção:** a plataforma corporativa de IA, definida pela Infraestrutura/Arquitetura Corporativa, será consumida por adaptador e configuração. O fornecedor não é decidido pelo +Compras.
+- **Estado atual:** `OpenAIProvider` permanece o adaptador implementado em Infrastructure; agentes e regras de negócio continuam dependentes apenas das abstrações.
+
 ## Resumo executivo
 
 O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes simples, conhecimento em Markdown, memória e estratégia de negociação em processo, workflow sequencial e publicação/documentação. O +COMPRAS possui o CRUD de fornecedores implementado e pronto para aplicação da migration, além de um fluxo consultivo de negociação por API; ainda não há autenticação corporativa ou integração ERP.

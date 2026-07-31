@@ -218,3 +218,36 @@ Essa divisão será refinada por ADRs futuras conforme os módulos forem impleme
 **Trade-offs:** inteligência avançada é postergada; CRUDs e fluxos operacionais precedem automações; estruturas de B2 permanecem iniciais até haver dados reais; modelos podem ser ajustados quando Compras for detalhado; haverá duplicidade controlada e será necessário definir a fonte de verdade de cada campo.
 
 **Ações posteriores:** reorganizar Work Orders futuras para fornecedores, itens, pedidos, portal integrado e integrações; validar B2.1 em ambiente com acesso ao ERP; não iniciar B3 sem aprovação.
+
+---
+
+## ADR-0014: Estratégia de LLM para Desenvolvimento e Produção
+
+**Status:** Aceito
+
+**Data:** 31/07/2026
+
+**Contexto:** O +Compras utilizará agentes de IA em diversos módulos. Depender de APIs pagas ou de um fornecedor específico durante o desenvolvimento aumenta custos, dificulta testes locais e cria lock-in. Em homologação e produção, o consumo de IA será padronizado e governado pela Infraestrutura/Arquitetura Corporativa, cuja plataforma pode mudar ao longo do tempo.
+
+**Opções consideradas:**
+
+1. Acoplar a aplicação a um fornecedor de IA — descartada, pois exige alteração de regras de negócio a cada troca de fornecedor e contraria Clean Architecture.
+2. Consumir modelos por contratos de aplicação e adaptadores de infraestrutura configurados por ambiente — adotada.
+
+**Decisão:** Toda comunicação com LLMs ocorre exclusivamente pelos contratos existentes `IAIProvider` e `IAIRuntime`. O runtime seleciona um adaptador pelo identificador de provedor presente no modelo solicitado. Domain, Application, agentes e regras de negócio não podem conhecer SDKs, APIs, tipos ou credenciais de OpenAI, Azure OpenAI, Claude, Gemini, Llama, Qwen, Mistral, DeepSeek ou qualquer outro fornecedor. Implementações específicas pertencem somente à Infrastructure e são registradas por injeção de dependência.
+
+**Estratégia por ambiente:**
+
+| Ambiente | Estratégia |
+|---|---|
+| Desenvolvimento | Ollama local é o padrão arquitetural. Usar o menor modelo que atenda aos testes funcionais, com preferência inicial por modelos de 3B a 4B parâmetros, para validar agentes, prompts, memória, ferramentas, orquestração e fluxos. |
+| Homologação | Usar preferencialmente a plataforma corporativa disponibilizada pela Infraestrutura. Na ausência dela, permitir provedor compatível temporário, configurável e restrito à validação. |
+| Produção | O +Compras não escolhe o fornecedor. Consome exclusivamente a plataforma corporativa definida pela Infraestrutura/Arquitetura Corporativa por configuração e adaptador. |
+
+O adaptador `OpenAIProvider` existente é uma implementação de Infrastructure preservada por compatibilidade; esta ADR não altera seu comportamento nem configura Ollama automaticamente. A adoção do adaptador local e da seleção por ambiente requer Work Order de implementação aprovada.
+
+**Consequências positivas:** desenvolvimento local de baixo custo, testes mais acessíveis, ausência de lock-in na aplicação, troca de fornecedor sem mudança no domínio e maior aderência à governança corporativa.
+
+**Trade-offs:** adaptadores precisam manter paridade de contratos e capacidades; qualidade do modelo local pode ser inferior; configuração, telemetria, credenciais e limites de cada ambiente exigirão uma Work Order futura.
+
+**Regras:** nenhum código fora de Infrastructure acessa API de IA diretamente; nenhum adaptador é assumido pela regra de negócio; a troca de fornecedor não altera o Domain; e integrações devem permanecer Ports & Adapters, configuradas por ambiente.

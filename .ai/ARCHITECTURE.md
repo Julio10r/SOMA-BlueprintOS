@@ -261,6 +261,14 @@ Result Pattern
 
 Domain Events
 
+## 11.1 Consumo de LLMs
+
+O consumo de modelos de linguagem segue a ADR-0014. `IAIProvider` e `IAIRuntime` são os ports de aplicação; adaptadores de fornecedores pertencem exclusivamente à Infrastructure e são selecionados por configuração e injeção de dependência. Domain, Application, agentes e controllers não podem referenciar SDKs, APIs, credenciais ou tipos de fornecedores específicos.
+
+Em Development, Ollama local é o padrão arquitetural, preferindo modelos de 3B a 4B parâmetros que atendam aos testes funcionais. Homologação usa preferencialmente a plataforma corporativa e pode usar provedor configurável temporário para validação. Produção consome exclusivamente a plataforma definida pela Infraestrutura/Arquitetura Corporativa. A troca de fornecedor não pode exigir alteração na camada de domínio.
+
+O `OpenAIProvider` atual permanece um adaptador de Infrastructure por compatibilidade. A configuração efetiva do adaptador Ollama é uma entrega futura e não é habilitada por esta decisão documental.
+
 ---
 
 # 12. Padrões proibidos

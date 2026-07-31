@@ -85,7 +85,7 @@ Não há SeniorBuyerAgent, NegotiationAgent, ComplianceAgent ou RiskAgent concre
 
 ## 6. Runtime
 
-`IAIRuntime` abstrai chamadas de IA; `OpenAIProvider` implementa Chat Completions. `AgentFactory` cria agentes via reflexão. `WorkflowRunner` executa passos sequenciais. Planejamento autônomo, orquestrador distribuído, eventos, fila e pipeline de execução são planejados, não implementados.
+`IAIRuntime` abstrai chamadas de IA e seleciona implementações de `IAIProvider` pelo provedor do modelo solicitado. `OpenAIProvider` é o adaptador atualmente implementado para Chat Completions; ele não é dependência de Domain, Application ou agentes. Pela ADR-0014, Ollama local é o padrão arquitetural de Development e a plataforma corporativa é a única estratégia de Produção; ambos devem ser fornecidos por adaptadores configuráveis. `AgentFactory` cria agentes via reflexão. `WorkflowRunner` executa passos sequenciais. Planejamento autônomo, orquestrador distribuído, eventos, fila e pipeline de execução são planejados, não implementados.
 
 ```mermaid
 sequenceDiagram
@@ -102,7 +102,7 @@ sequenceDiagram
 
 | Módulo | Responsabilidade | Dependências | Status/Roadmap |
 |---|---|---|---|
-| AI Runtime | Contratos e provedor LLM | HttpClient/OpenAI | Implementado |
+| AI Runtime | Contratos e seleção de adaptadores LLM | `IAIProvider`/`IAIRuntime`; OpenAI implementado; Ollama planejado para Development | Implementado, extensível |
 | Agents | Agentes básicos e factory | Runtime, Knowledge | Implementado |
 | Knowledge | Busca em Markdown | Arquivos | Implementado, básico |
 | Memory/Negotiation | Histórico e score de negociação | Em memória | Parcial |
@@ -127,7 +127,9 @@ Não há catálogo de eventos, publicadores ou consumidores implementados. Domai
 
 | Integração | Estado |
 |---|---|
-| OpenAI Chat Completions | Implementado via OpenAIProvider |
+| OpenAI Chat Completions | Adaptador atual de Infrastructure, preservado por compatibilidade |
+| Ollama local | Padrão arquitetural para Development; adaptador ainda não implementado |
+| Plataforma corporativa de IA | Estratégia obrigatória de Produção; fornecedor e adaptador dependem da Infraestrutura |
 | Git CLI | Implementado somente para leitura documental |
 | ERP SOMA_DESENV | Descoberta de fornecedores somente leitura; validação operacional pendente |
 | Microsoft 365, Google, n8n, RAG vetorial e provedores futuros | Planejado |
@@ -172,7 +174,7 @@ flowchart LR
 
 ## 18. Decisões Arquiteturais
 
-`DECISIONS.md` é o log canônico: ADR-0001 arquitetura; 0002 stack; 0003 CQRS/MediatR/Domain Events; 0004 Result Pattern; 0005 Contracts entre módulos; 0006 estrutura atual; 0007 renderização comum; 0008 documento rico; 0009 organização de docs; 0011 identidade temporária; 0012 persistência de fornecedores; 0013 evolução operacional e inteligente. A política de autonomia é registrada em `memory/decisions.md` como decisão operacional, não ADR.
+`DECISIONS.md` é o log canônico: ADR-0001 arquitetura; 0002 stack; 0003 CQRS/MediatR/Domain Events; 0004 Result Pattern; 0005 Contracts entre módulos; 0006 estrutura atual; 0007 renderização comum; 0008 documento rico; 0009 organização de docs; 0011 identidade temporária; 0012 persistência de fornecedores; 0013 evolução operacional e inteligente; 0014 estratégia de LLM desacoplada. A política de autonomia é registrada em `memory/decisions.md` como decisão operacional, não ADR.
 
 ## 19. Padrões do Projeto
 
