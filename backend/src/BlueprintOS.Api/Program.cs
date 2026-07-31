@@ -2,11 +2,14 @@ using BlueprintOS.Core.Documentation.Contracts;
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Api.Identity;
 using BlueprintOS.Api.Negotiations;
+using BlueprintOS.Api.Suppliers;
 using BlueprintOS.Application.Identity.Contracts;
 using BlueprintOS.Infrastructure.DependencyInjection;
+using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Publication.Publishers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.RegularExpressions;
 
 if (args.Length > 0 && args[0] == "publish")
 {
@@ -21,6 +24,21 @@ if (args.Length > 0 && args[0] == "publish-docs")
 if (args.Length > 0 && args[0] == "publish-executive-blueprint")
 {
     return await RunExecutiveBlueprintAsync();
+}
+
+if (args.Length > 0 && args[0] == "migrate")
+{
+    return await RunMigrationsAsync();
+}
+
+if (args.Length > 0 && args[0] == "validate-maiscompras")
+{
+    return await ValidateMaisComprasAsync();
+}
+
+if (args.Length > 0 && args[0] == "validate-b1-connectivity")
+{
+    return await ValidateB1ConnectivityAsync();
 }
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,6 +72,7 @@ app.MapGet("/health", () =>
 });
 
 app.MapNegotiationRecommendation();
+app.MapFornecedores();
 
 app.Run();
 return 0;
@@ -159,4 +178,92 @@ static async Task<int> RunExecutiveBlueprintAsync()
         provider.GetRequiredService<IDocumentThemeProvider>());
     Console.WriteLine("Executive Blueprint: HTML e PDF publicados em docs/executive/.");
     return 0;
+}
+
+static async Task<int> RunMigrationsAsync()
+{
+    var configuration = new ConfigurationBuilder()
+        .SetBasePath(AppContext.BaseDirectory)
+        .AddJsonFile("appsettings.json", optional: true)
+        .AddJsonFile("appsettings.Development.json", optional: true)
+        .AddUserSecrets<Program>(optional: true)
+        .AddEnvironmentVariables()
+        .Build();
+
+    var services = new ServiceCollection();
+    services.AddInfrastructure(configuration);
+#pragma warning disable ASP0000 // Isolated CLI composition root; no ASP.NET host is created.
+    await using var provider = services.BuildServiceProvider();
+#pragma warning restore ASP0000
+    await DatabaseMigrationService.ApplyPendingMigrationsAsync(provider);
+    Console.WriteLine("Connectivity confirmed and pending migrations applied.");
+    return 0;
+}
+
+static async Task<int> ValidateMaisComprasAsync()
+{
+    var configuration = new ConfigurationBuilder()
+        .SetBasePath(AppContext.BaseDirectory)
+        .AddJsonFile("appsettings.json", optional: true)
+        .AddJsonFile("appsettings.Development.json", optional: true)
+        .AddUserSecrets<Program>(optional: true)
+        .AddEnvironmentVariables()
+        .Build();
+
+    var services = new ServiceCollection();
+    services.AddInfrastructure(configuration);
+#pragma warning disable ASP0000 // Isolated CLI composition root; no ASP.NET host is created.
+    await using var provider = services.BuildServiceProvider();
+#pragma warning restore ASP0000
+    var result = await provider.GetRequiredService<B1ConnectivityValidator>().ValidateMaisComprasAsync();
+    WriteConnectivityResult(result);
+    return result.IsSuccess ? 0 : 1;
+}
+
+static async Task<int> ValidateB1ConnectivityAsync()
+{
+    var configuration = BuildDatabaseConfiguration();
+    var services = new ServiceCollection();
+    services.AddInfrastructure(configuration);
+#pragma warning disable ASP0000 // Isolated CLI composition root; no ASP.NET host is created.
+    await using var provider = services.BuildServiceProvider();
+#pragma warning restore ASP0000
+    var validator = provider.GetRequiredService<B1ConnectivityValidator>();
+    var maisCompras = await validator.ValidateMaisComprasAsync();
+    var erp = await validator.ValidateErpAsync();
+
+    Console.WriteLine($"+Compras ........ {(maisCompras.IsSuccess ? "SUCESSO" : "FALHA")}");
+    Console.WriteLine($"ERP SOMA_DESENV . {(erp.IsSuccess ? "SUCESSO" : "FALHA")}");
+    WriteConnectivityError(maisCompras);
+    WriteConnectivityError(erp);
+    return maisCompras.IsSuccess && erp.IsSuccess ? 0 : 1;
+}
+
+static IConfiguration BuildDatabaseConfiguration() => new ConfigurationBuilder()
+    .SetBasePath(AppContext.BaseDirectory)
+    .AddJsonFile("appsettings.json", optional: true)
+    .AddJsonFile("appsettings.Development.json", optional: true)
+    .AddUserSecrets<Program>(optional: true)
+    .AddEnvironmentVariables()
+    .Build();
+
+static void WriteConnectivityResult(DatabaseConnectivityResult result)
+{
+    Console.WriteLine($"{result.Label} ........ {(result.IsSuccess ? "SUCESSO" : "FALHA")}");
+    WriteConnectivityError(result);
+}
+
+static void WriteConnectivityError(DatabaseConnectivityResult result)
+{
+    if (result.IsSuccess || result.Exception is null) return;
+    Console.WriteLine($"  Exceção: {result.Exception.GetType().FullName}");
+    Console.WriteLine($"  Mensagem: {SanitizeConnectivityMessage(result.Exception.Message)}");
+    Console.WriteLine($"  Servidor: {result.Server ?? "não disponível"}");
+    Console.WriteLine($"  Banco: {result.Database ?? "não disponível"}");
+}
+
+static string SanitizeConnectivityMessage(string message)
+{
+    var sanitized = Regex.Replace(message, "(?i)(login failed for user\\s*)'[^']*'", "$1'[REDACTED]'");
+    return Regex.Replace(sanitized, "(?i)(user id|uid|password|pwd)\\s*=\\s*[^;\\r\\n]*", "$1=[REDACTED]");
 }

@@ -168,3 +168,15 @@ Formato de cada ADR:
 - A Work Order de B1 deverá definir o contrato, o formato de configuração e os perfis mínimos; ela não pode expor headers temporários como autenticação de produção.
 - Entra ID e segregação de funções permanecem entregas obrigatórias antes de qualquer uso produtivo, integração corporativa ou exposição externa.
 - Dados persistidos deverão suportar a migração do identificador temporário para o identificador corporativo, com plano de migração definido em H1.
+
+---
+
+## ADR-0012: Persistência de fornecedores isolada por repositório e identidade abstrata
+
+**Status:** Aceito
+
+**Contexto:** B1 introduz o primeiro dado de negócio durável antes do Microsoft Entra ID. A persistência não pode vazar detalhes de EF Core, SQL Server ou da identidade temporária para regras de negócio.
+
+**Decisão:** O agregado `Fornecedor` permanece no Domain; Application depende de `IFornecedorRepository` e `ICurrentIdentity`; Infrastructure implementa o repositório com EF Core/SQL Server e mantém `TemporaryUserId` em cada registro. Consultas sempre recebem o identificador atual e são filtradas por ele. CNPJ possui índice único e é normalizado por value object. A ConnectionString `MaisComprasConnection` é a única usada pelo DbContext e pelas migrations; `ErpConnection` permanece isolada, sem acesso nesta sprint.
+
+**Consequências:** A troca do adaptador de Development por Entra ID não altera entidades, contratos ou casos de uso. A migration inicial estabelece os índices de CNPJ, nome e identidade temporária. A13 não foi alterada e sua lógica de IA continua consultiva.

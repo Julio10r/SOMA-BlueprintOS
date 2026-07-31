@@ -12,8 +12,8 @@
 
 - **Data:** 30/07/2026
 - **Branch:** `main`
-- **Commit de referência:** pendente de criação para a Sprint A13.
-- **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros e 4 avisos `NU1900` de conectividade com `nuget.org` na consulta de vulnerabilidades; 231 testes unitários e 1 teste de integração aprovados; smoke test HTTP aprovado em Development e bloqueio seguro confirmado em Production.
+- **Commit de referência:** pendente de criação para a Sprint B1.
+- **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros e 0 avisos; suíte de testes aprovada; `validate-b1-connectivity` confirmou as conexões +Compras e ERP SOMA_DESENV por `SELECT 1`, sem alteração de estado.
 
 ## Sistema de Work Orders
 
@@ -23,13 +23,13 @@
 
 ## Resumo executivo
 
-O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes simples, conhecimento em Markdown, memória e estratégia de negociação em processo, workflow sequencial e publicação/documentação. O +COMPRAS possui um primeiro fluxo consultivo de negociação por API, sem persistência, autenticação corporativa, Procurement completo ou integração ERP.
+O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes simples, conhecimento em Markdown, memória e estratégia de negociação em processo, workflow sequencial e publicação/documentação. O +COMPRAS possui o CRUD de fornecedores implementado e pronto para aplicação da migration, além de um fluxo consultivo de negociação por API; ainda não há autenticação corporativa ou integração ERP.
 
 ## Ciclo atual
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
-- **Última sprint comprovadamente concluída:** A13 — Primeiro Vertical Slice do +Compras (Completed em 30/07/2026).
-- **Sprint atual:** nenhuma ativa. `CURRENT_SPRINT.md` registra A13 como última sprint concluída.
+- **Última sprint comprovadamente concluída:** B1 — Persistência de Fornecedores (Completed em 30/07/2026).
+- **Sprint atual:** nenhuma ativa. `CURRENT_SPRINT.md` registra B1 como última sprint concluída.
 - **Próxima sprint proposta:** não definida; a seleção depende de priorização explícita.
 - **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
@@ -42,6 +42,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 | Knowledge | `MarkdownKnowledgeProvider` e `KnowledgeService` | Implementado, baseado em Markdown |
 | Negociação | `NegotiationMemory`, regras e `NegotiationStrategy` | Implementado, em memória |
 | API de negociação | `POST /api/v1/negociacoes/recomendacoes` via `NegotiationRecommendationUseCase` | Implementado, consultivo e sem estado |
+| Fornecedores | `Fornecedor`, EF Core/SQL Server sobre `MaisComprasConnection`, migration e `POST/GET/PUT/DELETE /fornecedores` | Implementado; migration ainda não aplicada por restrição explícita |
 | Workflow | `Workflow` e `WorkflowRunner` sequenciais | Implementado, básico |
 | Documentation | contratos, geradores, publicação Markdown, Git reader e health report | Implementado |
 | Publication | renderização Markdown/HTML/PDF, QR Code e publicadores por público | Implementado |
@@ -50,7 +51,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 - **Memória:** existe apenas a memória de negociação em processo; não há memória corporativa genérica, persistência nem recuperação de longo prazo.
 - **API:** host ASP.NET Core, OpenAPI em desenvolvimento, `GET /health` e o endpoint consultivo de negociação existem; não há autenticação corporativa, autorização ou contratos para os demais domínios de Procurement.
-- **Infraestrutura:** Docker Compose sobe SQL Server e API; não há CI/CD, GCP, Kubernetes, Terraform, Nginx ou observabilidade implementados.
+- **Infraestrutura:** EF Core/SQL Server possui `BlueprintOSDbContext`, migration inicial, conexões segregadas de +Compras/ERP e validador somente leitura; não há CI/CD, GCP, Kubernetes, Terraform, Nginx ou observabilidade implementados.
 - **Arquitetura:** o estilo alvo é Modular Monolith com módulos por camada, mas o código real permanece em projetos transversais `Core`/`Infrastructure`.
 
 ## Capacidades não iniciadas
@@ -58,24 +59,23 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 - Identity, autorização, multi-tenant e Microsoft Entra ID.
 - Planner, Procurement, Notifications, Dashboard e Analytics.
 - Frontend React/TypeScript e portal +COMPRAS.
-- Persistência EF Core/SQL Server, `DbContext`, migrations e schema de negócio.
 - Integrações ERP, n8n e APIs corporativas.
 
 ## Agentes e integrações concretos
 
 - **Agentes:** `EchoAgent` e `KnowledgeAgent`. Não existe classe concreta `SeniorBuyerAgent`, `NegotiationAgent`, `ComplianceAgent` ou `RiskAgent`.
 - **Integrações:** OpenAI Chat Completions via `OpenAIProvider`; CLI Git somente para leitura de histórico de documentação; Docker Compose com SQL Server configurado, mas não consumido pela aplicação.
-- **Identidade planejada:** a ADR-0011 aceita identidade temporária somente em `Development` para futura persistência e vínculo de fornecedores; não há adaptador, autenticação ou persistência implementados.
+- **Identidade temporária:** `DevelopmentRequestIdentity` atende somente Development e alimenta `ICurrentIdentity`; fornecedores persistem esse vínculo sem dependência da implementação concreta.
 
 ## Qualidade
 
 | Suíte | Executados | Aprovados | Ignorados | Falhos |
 |---|---:|---:|---:|---:|
-| Unitários | 230 | 230 | 0 | 0 |
-| Integração | 1 | 1 | 0 | 0 |
-| Total | 231 | 231 | 0 | 0 |
+| Unitários | 234 | 234 | 0 | 0 |
+| Integração | 2 | 2 | 0 | 0 |
+| Total | 236 | 236 | 0 | 0 |
 
-Build da solution: sucesso, 0 erros e 4 avisos `NU1900` de conectividade com `nuget.org` na consulta de vulnerabilidades.
+Build da solution: sucesso, 0 erros e 0 avisos.
 
 ## Riscos e pendências
 

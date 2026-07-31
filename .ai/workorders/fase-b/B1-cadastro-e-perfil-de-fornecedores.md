@@ -4,7 +4,7 @@
 
 - Fase: Sourcing Intelligence
 - Sprint: B1
-- Status: Draft
+- Status: Concluída
 - Prioridade: Priorização pendente do Product Owner
 - Dependências: A1; H1/H2 propostos.
 - Data de aprovação: Não aprovada
@@ -122,4 +122,4 @@ A1; H1/H2 propostos.
 
 ## Resultado da execução
 
-Não executada. Preencher somente após conclusão comprovada.
+Entregue em 30/07/2026: agregado de fornecedor, value object CNPJ, persistência EF Core/SQL Server, migration versionada, repository, casos de uso CRUD, endpoints REST e validação segura de conectividade. As conexões +Compras e ERP SOMA_DESENV foram abertas e validadas exclusivamente por `SELECT 1`; nenhuma migration, DDL ou escrita foi executada. A aplicação física da migration permanece pendente de autorização específica.

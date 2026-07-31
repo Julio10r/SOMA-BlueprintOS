@@ -1,0 +1,52 @@
+using BlueprintOS.Application.Identity.Contracts;
+using BlueprintOS.Application.Identity.Models;
+using BlueprintOS.Application.Procurement.Suppliers;
+using BlueprintOS.Application.Procurement.Suppliers.Contracts;
+using BlueprintOS.Application.Procurement.Suppliers.Models;
+using BlueprintOS.Domain.Procurement.Suppliers;
+
+namespace BlueprintOS.UnitTests.Application.Procurement.Suppliers;
+
+public sealed class FornecedorUseCasesTests
+{
+    [Fact]
+    public async Task Cadastrar_Should_Create_Supplier_With_Current_Temporary_User()
+    {
+        var identity = new FakeIdentity(); var repository = new FakeRepository();
+        var result = await new CadastrarFornecedorUseCase(repository, identity).ExecuteAsync(CreateDto());
+        Assert.Equal(identity.UserId, result.TemporaryUserId);
+        Assert.Equal("12345678000195", result.Cnpj);
+    }
+
+    [Fact]
+    public async Task Cadastrar_Should_Reject_Duplicate_Cnpj()
+    {
+        var repository = new FakeRepository { ExistingCnpj = "12345678000195" };
+        await Assert.ThrowsAsync<InvalidOperationException>(() => new CadastrarFornecedorUseCase(repository, new FakeIdentity()).ExecuteAsync(CreateDto()));
+    }
+
+    [Fact]
+    public async Task Update_Should_Not_Expose_Supplier_From_Another_User()
+    {
+        var repository = new FakeRepository();
+        var supplier = new Fornecedor(Guid.NewGuid(), "Empresa", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null, Guid.NewGuid(), DateTimeOffset.UtcNow);
+        repository.Items.Add(supplier);
+        var result = await new AtualizarFornecedorUseCase(repository, new FakeIdentity()).ExecuteAsync(supplier.Id, new AtualizarFornecedorDto("Novo", null, null, null, null, null, null, null, null, null));
+        Assert.Null(result);
+    }
+
+    private static CadastrarFornecedorDto CreateDto() => new("Empresa Ltda", "12.345.678/0001-95", null, null, null, null, null, null, null, "Ativo", null);
+    private sealed class FakeIdentity : ICurrentIdentity { public Guid UserId { get; } = Guid.NewGuid(); public RequestIdentity GetRequired() => new(UserId, "Buyer"); }
+    private sealed class FakeRepository : IFornecedorRepository
+    {
+        public List<Fornecedor> Items { get; } = []; public string? ExistingCnpj { get; set; }
+        public Task AdicionarAsync(Fornecedor f, CancellationToken ct = default) { Items.Add(f); return Task.CompletedTask; }
+        public Task AtualizarAsync(Fornecedor f, CancellationToken ct = default) => Task.CompletedTask;
+        public Task ExcluirAsync(Fornecedor f, CancellationToken ct = default) { Items.Remove(f); return Task.CompletedTask; }
+        public Task<Fornecedor?> ObterPorIdAsync(Guid id, Guid user, CancellationToken ct = default) => Task.FromResult(Items.SingleOrDefault(x => x.Id == id && x.TemporaryUserId == user));
+        public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid user, CancellationToken ct = default) => Task.FromResult(Items.SingleOrDefault(x => x.Cnpj == cnpj && x.TemporaryUserId == user));
+        public Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string term, Guid user, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Fornecedor>>(Items.Where(x => x.TemporaryUserId == user).ToArray());
+        public Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid user, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Fornecedor>>(Items.Where(x => x.TemporaryUserId == user).ToArray());
+        public Task<bool> ExisteAsync(string cnpj, CancellationToken ct = default) => Task.FromResult(ExistingCnpj == cnpj || Items.Any(x => x.Cnpj == cnpj));
+    }
+}

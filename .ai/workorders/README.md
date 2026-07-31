@@ -18,7 +18,7 @@ Este índice é a fonte navegável das 56 Work Orders estratégicas. O [BACKLOG]
 | A5 | Foundation | Configuração Multiempresa | Não comprovado | A1; Identity e persistência futuras. | [A5](../workorders/fase-a/A5-configuracao-multiempresa.md) |
 | A6 | Foundation | Agente Comprador Sênior | Parcial | A2 e A3. | [A6](../workorders/fase-a/A6-agente-comprador-senior.md) |
 | A7 | Foundation | Sistema de Documentação | Implementado | A1. | [A7](../workorders/fase-a/A7-sistema-de-documentacao.md) |
-| B1 | Sourcing Intelligence | Cadastro e Perfil de Fornecedores | Planejado | A1; H1/H2 propostos. | [B1](../workorders/fase-b/B1-cadastro-e-perfil-de-fornecedores.md) |
+| B1 | Sourcing Intelligence | Cadastro e Perfil de Fornecedores | Concluída | A1; H1/H2 propostos. | [B1](../workorders/fase-b/B1-cadastro-e-perfil-de-fornecedores.md) |
 | B2 | Sourcing Intelligence | Catálogo de Materiais e Serviços | Planejado | B1. | [B2](../workorders/fase-b/B2-catalogo-de-materiais-e-servicos.md) |
 | B3 | Sourcing Intelligence | Histórico de Compras | Planejado | B1 e B2. | [B3](../workorders/fase-b/B3-historico-de-compras.md) |
 | B4 | Sourcing Intelligence | Inteligência de Preços | Planejado | B3. | [B4](../workorders/fase-b/B4-inteligencia-de-precos.md) |

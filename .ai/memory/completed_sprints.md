@@ -101,3 +101,15 @@
 **Evidência:** `NegotiationRecommendationController`, `NegotiationRecommendationUseCase` e o adaptador `DevelopmentRequestIdentity`; a resposta propaga `requestId`, justificativas, alertas, probabilidade suportada e `humanDecisionRequired: true`.
 
 **Validação:** build sem erros, 231 testes unitários e 1 teste de integração aprovados; smoke test HTTP aprovado em Development e resposta 503 segura validada em Production para a identidade temporária.
+
+## Sprint B1 — Persistência de Fornecedores
+
+**Status:** Concluída em 30/07/2026.
+
+**Escopo:** agregado `Fornecedor`, value object `Cnpj`, DbContext EF Core/SQL Server, migration versionada, repositório assíncrono, casos de uso CRUD, endpoints REST `/fornecedores` e validador somente leitura das conexões de +Compras e ERP.
+
+**Identidade:** todos os acessos são isolados por `TemporaryUserId` recebido exclusivamente por `ICurrentIdentity`; a regra de negócio não conhece o adaptador de Development e permanece preparada para Entra ID.
+
+**Validação:** `dotnet build backend/BlueprintOS.sln --no-restore` sem avisos ou erros; 234 testes unitários e 2 de integração aprovados. `validate-b1-connectivity` confirmou +Compras e ERP `SOMA_DESENV` por `SELECT 1`, sem migration, DDL ou escrita.
+
+**Limite operacional:** a migration não foi aplicada por solicitação explícita; a criação física das tabelas no +Compras depende de autorização posterior.

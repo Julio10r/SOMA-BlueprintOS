@@ -1,6 +1,8 @@
 using System.Net.Http.Headers;
 using BlueprintOS.Application.Procurement.Negotiations;
 using BlueprintOS.Application.Procurement.Negotiations.Contracts;
+using BlueprintOS.Application.Procurement.Suppliers;
+using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Core.AI.Contracts;
 using BlueprintOS.Core.AI.Memory;
 using BlueprintOS.Core.AI.Memory.Contracts;
@@ -26,6 +28,8 @@ using BlueprintOS.Infrastructure.Documentation.Publishing;
 using BlueprintOS.Infrastructure.Integrations.OpenAI;
 using BlueprintOS.Infrastructure.Knowledge;
 using BlueprintOS.Infrastructure.Memory;
+using BlueprintOS.Infrastructure.Persistence;
+using BlueprintOS.Infrastructure.Persistence.Repositories;
 using BlueprintOS.Infrastructure.Publication;
 using BlueprintOS.Infrastructure.Publication.Assets;
 using BlueprintOS.Infrastructure.Publication.Health;
@@ -35,6 +39,7 @@ using BlueprintOS.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintOS.Infrastructure.DependencyInjection;
 
@@ -45,6 +50,22 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddSingleton(configuration);
+        // B1 uses only the application-owned +Compras database. ERP is an external integration boundary.
+        var connectionString = configuration.GetConnectionString("MaisComprasConnection");
+        if (string.IsNullOrWhiteSpace(connectionString) || connectionString.StartsWith("__SET_", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("ConnectionStrings:MaisComprasConnection must be configured through User Secrets or the ConnectionStrings__MaisComprasConnection environment variable.");
+        }
+        services.AddDbContext<BlueprintOSDbContext>(options => options.UseSqlServer(connectionString));
+        services.AddSingleton<B1ConnectivityValidator>();
+        services.AddScoped<IFornecedorRepository, FornecedorRepository>();
+        services.AddScoped<ICadastrarFornecedorUseCase, CadastrarFornecedorUseCase>();
+        services.AddScoped<IAtualizarFornecedorUseCase, AtualizarFornecedorUseCase>();
+        services.AddScoped<IExcluirFornecedorUseCase, ExcluirFornecedorUseCase>();
+        services.AddScoped<IObterFornecedorUseCase, ObterFornecedorUseCase>();
+        services.AddScoped<IPesquisarFornecedorUseCase, PesquisarFornecedorUseCase>();
+
         services.Configure<OpenAIOptions>(configuration.GetSection(OpenAIOptions.SectionName));
 
         services.AddHttpClient<IAIProvider, OpenAIProvider>((provider, client) =>
