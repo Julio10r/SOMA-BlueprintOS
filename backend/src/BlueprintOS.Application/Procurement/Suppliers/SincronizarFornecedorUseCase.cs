@@ -64,7 +64,7 @@ public sealed class SincronizarFornecedorUseCase(
         // confirmada no ERP quando a persistência local falhou após o commit remoto.
         local.RegistrarVinculoErp(dto.BusinessUnit, dto.ErpSistema, externo.Id);
         var localTime = Normalize(local.UpdatedAt); var erpTime = Normalize(externo.UltimaAlteracaoEm ?? localTime);
-        var same = Same(local, erpDados);
+        var same = Same(local, erpDados, externo.DadosCanonicos is not null || !string.IsNullOrWhiteSpace(externo.HashDadosSincronizaveis));
         if (!externo.Ativo && local.Status != "Inativo") { local.AlterarStatus(false, erpTime, "ERP"); await fornecedorRepository.AtualizarAsync(local, ct); }
         else if (erpTime > localTime && !same) { local.AplicarContratoCanonico(erpDados, "ERP", erpTime); await fornecedorRepository.AtualizarAsync(local, ct); }
         else if (erpTime == localTime && !same) { /* desempate é +Compras; nenhuma escrita local */ }
@@ -84,9 +84,10 @@ public sealed class SincronizarFornecedorUseCase(
         else
         {
             var erpData = Canonical(remoto); var localTime = Normalize(local.UpdatedAt); var erpTime = Normalize(remoto.UltimaAlteracaoEm ?? DateTimeOffset.MinValue);
-            if (Same(local, erpData) && dto.Operacao == OperacaoFornecedor.Sincronizar)
+            var same = Same(local, erpData, remoto.DadosCanonicos is not null || !string.IsNullOrWhiteSpace(remoto.HashDadosSincronizaveis));
+            if (same && dto.Operacao == OperacaoFornecedor.Sincronizar)
                 return await FinishAsync(dto, local, remoto, correlationId, "NenhumaAlteracao", "+Compras", "ERP", "Dados iguais", started, snapshotAntes, ct);
-            if (erpTime > localTime && !Same(local, erpData) && dto.Operacao == OperacaoFornecedor.Sincronizar)
+            if (erpTime > localTime && !same && dto.Operacao == OperacaoFornecedor.Sincronizar)
                 return await FinishAsync(dto, local, remoto, correlationId, "ConflitoErpMaisRecente", "ERP", "+Compras", "ERP mais recente; não sobrescrever", started, snapshotAntes, ct);
             externo = dto.Operacao == OperacaoFornecedor.Inativar
                 ? await adapter.InativarAsync(remoto.Id, ct)
@@ -121,7 +122,9 @@ public sealed class SincronizarFornecedorUseCase(
             null, before, after, hashAntes, hashDepois, 1, duration), ct);
     }
 
-    private static FornecedorCanonico Canonical(ErpFornecedorDto value) => value.DadosCanonicos ?? new(
+    private static FornecedorCanonico Canonical(ErpFornecedorDto value)
+    {
+        var canonical = value.DadosCanonicos ?? new(
         RazaoSocial: value.Nome, NomeFantasia: null, DocumentoFiscal: value.Cnpj ?? "00000000000000", TipoPessoa: null,
         Pais: value.Pais, InscricaoEstadual: null, InscricaoMunicipal: null, Cep: null, Logradouro: null, Numero: null,
         Complemento: null, Bairro: null, Cidade: value.Cidade, Uf: value.Estado, CodigoMunicipio: null, Ddd: null, Telefone: null,
@@ -130,12 +133,22 @@ public sealed class SincronizarFornecedorUseCase(
         CategoriasFornecimento: null, ForneceMateriais: false, ForneceConsumo: false, ForneceServicos: false, ForneceProdutos: false,
         Ativo: value.Ativo, DataUltimaAlteracao: value.UltimaAlteracaoEm ?? DateTimeOffset.UtcNow,
         HashDadosSincronizaveis: value.HashDadosSincronizaveis ?? string.Empty);
+        var hash = string.IsNullOrWhiteSpace(value.HashDadosSincronizaveis) ? Hash(JsonSerializer.Serialize(canonical with { HashDadosSincronizaveis = string.Empty })) : value.HashDadosSincronizaveis;
+        return canonical with { Ativo = value.Ativo, DataUltimaAlteracao = value.UltimaAlteracaoEm ?? canonical.DataUltimaAlteracao, HashDadosSincronizaveis = hash };
+    }
     private static FornecedorCanonico Canonical(Fornecedor value) => new(value.Nome, value.NomeFantasia, value.Cnpj, value.TipoPessoa, value.Pais, value.InscricaoEstadual, value.InscricaoMunicipal,
         value.Cep, value.Logradouro, value.Numero, value.Complemento, value.Bairro, value.Cidade, value.Estado, value.CodigoMunicipio, value.Ddd, value.Telefone, value.Email, value.EmailFiscal,
         value.Banco, value.Agencia, value.Conta, value.DigitosConta, value.CondicaoPagamento, value.TipoFornecedor, value.SubtipoFornecedor, value.ContaContabil, value.RegimeFiscal,
         value.SimplesNacional, value.CategoriasFornecimento, value.ForneceMateriais, value.ForneceConsumo, value.ForneceServicos, value.ForneceProdutos, value.Status != "Inativo", value.UpdatedAt, value.HashDadosSincronizaveis ?? string.Empty);
     private static ErpFornecedorParaEscrita ToWrite(FornecedorCanonico data, string id) => new(id, data.RazaoSocial, data.DocumentoFiscal, data.Cidade, data.Uf, data.Pais, data.Ativo, data.DataUltimaAlteracao, data.HashDadosSincronizaveis, data);
-    private static bool Same(Fornecedor local, FornecedorCanonico remoto) => local.HashDadosSincronizaveis is not null && local.HashDadosSincronizaveis == remoto.HashDadosSincronizaveis || local.Nome == remoto.RazaoSocial && local.Cnpj == remoto.DocumentoFiscal && (local.Status != "Inativo") == remoto.Ativo && local.Cidade == remoto.Cidade && local.Estado == remoto.Uf;
+    private static bool Same(Fornecedor local, FornecedorCanonico remoto, bool contratoCompleto)
+    {
+        if (!contratoCompleto) return local.Nome == remoto.RazaoSocial && local.Cnpj == remoto.DocumentoFiscal && (local.Status != "Inativo") == remoto.Ativo && local.Cidade == remoto.Cidade && local.Estado == remoto.Uf;
+        if (!string.IsNullOrWhiteSpace(local.HashDadosSincronizaveis) && local.HashDadosSincronizaveis == remoto.HashDadosSincronizaveis) return true;
+        var localData = Canonical(local) with { DataUltimaAlteracao = default, HashDadosSincronizaveis = string.Empty };
+        var remoteData = remoto with { DataUltimaAlteracao = default, HashDadosSincronizaveis = string.Empty };
+        return localData == remoteData;
+    }
     private static string Snapshot(Fornecedor x) => JsonSerializer.Serialize(new { x.Id, x.Nome, x.Cnpj, x.Status, x.UpdatedAt, x.BusinessUnit, x.ErpSistema, x.ErpFornecedorId, x.Versao });
     private static string Hash(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
     private static DateTimeOffset Normalize(DateTimeOffset value) => TimeZoneInfo.ConvertTime(value, SaoPaulo);

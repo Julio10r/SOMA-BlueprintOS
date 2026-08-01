@@ -81,6 +81,27 @@ public sealed class SincronizarFornecedorUseCaseTests
     }
 
     [Fact]
+    public async Task Import_Should_Persist_Complete_Canonical_Contract_And_Remain_Idempotent()
+    {
+        await using var context = NewContext(); var user = new FakeIdentity();
+        var canonical = new FornecedorCanonico("Razão Social Completa", "Fantasia Completa", "12345678000195", "PJ", "BR", "IE-123", "IM-456", "01001000", "Rua Central", "100", "Sala 2", "Centro", "São Paulo", "SP", "3550308", "11", "999999999", "comercial@example.invalid", "fiscal@example.invalid", "001", "1234", "56789", "0", "030", "Industrial", "Têxtil", "4.1.2", "NORMAL", true, "CAT-1", true, true, true, true, true, DateTimeOffset.UtcNow, "hash-completo");
+        var adapter = new FakeAdapter { Current = new("ERP-COMPLETE", canonical.RazaoSocial, canonical.DocumentoFiscal, canonical.Cidade, canonical.Uf, canonical.Pais, true, canonical.DataUltimaAlteracao, canonical.HashDadosSincronizaveis, canonical) };
+        var useCase = Create(context, user, adapter);
+
+        var first = await useCase.ExecuteAsync(new("BU-A", "SOMA_DESENV", "ERP-COMPLETE", null, DirecaoSincronizacao.ErpParaMaisCompras, "complete-1"));
+        var versionAfterImport = (await context.Fornecedores.SingleAsync()).Versao;
+        var second = await useCase.ExecuteAsync(new("BU-A", "SOMA_DESENV", "ERP-COMPLETE", null, DirecaoSincronizacao.ErpParaMaisCompras, "complete-2"));
+        var stored = await context.Fornecedores.SingleAsync();
+
+        Assert.Equal("Sincronizado", first.Status); Assert.Equal(first.FornecedorId, second.FornecedorId);
+        Assert.Equal(versionAfterImport, stored.Versao); Assert.Equal(canonical.NomeFantasia, stored.NomeFantasia); Assert.Equal(canonical.Logradouro, stored.Logradouro);
+        Assert.Equal(canonical.Numero, stored.Numero); Assert.Equal(canonical.Bairro, stored.Bairro); Assert.Equal(canonical.Ddd, stored.Ddd); Assert.Equal(canonical.EmailFiscal, stored.EmailFiscal);
+        Assert.Equal(canonical.Banco, stored.Banco); Assert.Equal(canonical.Agencia, stored.Agencia); Assert.Equal(canonical.Conta, stored.Conta); Assert.Equal(canonical.CondicaoPagamento, stored.CondicaoPagamento);
+        Assert.Equal(canonical.TipoFornecedor, stored.TipoFornecedor); Assert.Equal(canonical.RegimeFiscal, stored.RegimeFiscal); Assert.Equal(canonical.SimplesNacional, stored.SimplesNacional); Assert.Equal(canonical.HashDadosSincronizaveis, stored.HashDadosSincronizaveis);
+        Assert.Single(await context.Fornecedores.ToListAsync());
+    }
+
+    [Fact]
     public async Task Export_Inactivation_Should_Be_Idempotent_And_Audited()
     {
         await using var context = NewContext(); var user = new FakeIdentity(); var local = new Fornecedor(Guid.NewGuid(), "Teste", Cnpj.Create("12345678000195"), null, null, null, null, null, "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow, "BU-A", "SOMA_DESENV", "ERP-1");

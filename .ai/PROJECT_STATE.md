@@ -44,7 +44,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
 - **Última sprint comprovadamente concluída:** B2 — Descoberta Inteligente de Fornecedores (30/07/2026).
-- **Sprint atual:** B2.1 com validação técnica completa em 01/08/2026, aguardando revisão formal do relatório antes do encerramento. B2.2 permanece em Draft e B3 não foi iniciada.
+- **Sprint atual:** B2.1/B2.1.1 com validação técnica completa em 01/08/2026, incluindo mapeamento canônico ERP → +Compras, aguardando revisão formal antes do encerramento. B2.2 permanece em Draft e B3 não foi iniciada.
 - **Próxima sprint planejada:** B2.2 — Enriquecimento Cadastral de Fornecedores por CNPJ, em Draft e condicionada à conclusão da B2.1. B3 não foi iniciada.
 - **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
@@ -88,9 +88,9 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 | Suíte | Executados | Aprovados | Ignorados | Falhos |
 |---|---:|---:|---:|---:|
-| Unitários | 249 | 249 | 0 | 0 |
+| Unitários | 250 | 250 | 0 | 0 |
 | Integração | 3 | 3 | 0 | 0 |
-| Total | 252 | 252 | 0 | 0 |
+| Total | 253 | 253 | 0 | 0 |
 
 Build da solution: sucesso, 0 erros e 0 avisos.
 

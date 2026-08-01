@@ -21,6 +21,7 @@
 - `LX_SEQUENCIAL` retornou `315501`, `315502` e `315503` em criações reais; os códigos foram confirmados nas tabelas `FORNECEDORES` e `CADASTRO_CLI_FOR`, inclusive em execução concorrente.
 - O timestamp efetivo foi identificado em `CADASTRO_CLI_FOR.DATA_PARA_TRANSFERENCIA`, com `FORNECEDORES.DATA_PARA_TRANSFERENCIA` como espelho/fallback, normalizado em `America/Sao_Paulo` até o segundo.
 - O registro inválido `00000*` foi preservado e inativado; correlação da correção: `b21-invalid-clifor-inactivate-final-erp`.
+- B2.1.1 corrigiu o preenchimento do contrato canônico ERP → +Compras. O fornecedor fictício `315504` confirmou persistência de endereço, contatos, dados bancários/fiscais/comerciais, indicadores e hash. Classificações `TIPO`/`SUBTIPO_FORNECEDOR` são protegidas por FKs no ERP e devem usar valores válidos, nunca valores inventados no teste.
 - O ERP limita `FORNECEDOR` a 25 caracteres e o mantém como FK para `CADASTRO_CLI_FOR.NOME_CLIFOR`; a sincronização não altera essa chave e atualiza CNPJ como campo corporativo permitido.
 - A identidade de desenvolvimento continua limitando a operação a Development, conforme ADR-0011.
 

@@ -1,4 +1,5 @@
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
+using BlueprintOS.Domain.Procurement.Suppliers;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Data;
@@ -100,8 +101,9 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
             if (confirmado is null) throw new InvalidOperationException("O ERP não confirmou o cadastro do fornecedor.");
             return confirmado;
         }
-        catch
+        catch (Exception ex)
         {
+            logger.LogError(ex, "Falha na escrita transacional do fornecedor ERP. ERP {ErpSistema}, Inserir {Inserir}", ErpSistema, inserir);
             try { await transaction.RollbackAsync(CancellationToken.None); } catch (Exception rollbackError) { logger.LogWarning(rollbackError, "Falha ao desfazer transação ERP de fornecedor. ERP {ErpSistema}", ErpSistema); }
             throw;
         }
@@ -160,9 +162,29 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
         return shape;
     }
 
-    private static ErpFornecedorDto Map(IDataRecord reader, TableShape shape) => new(Convert.ToString(reader["Id"])!, Convert.ToString(reader["Nome"])!.Trim(), Nullable(reader, "Cnpj"), Nullable(reader, "Cidade"), Nullable(reader, "Estado"), Nullable(reader, "Pais"),
-        !string.Equals(Nullable(reader, "Ativo"), "1", StringComparison.OrdinalIgnoreCase) && !string.Equals(Nullable(reader, "Ativo"), "True", StringComparison.OrdinalIgnoreCase), ParseDate(reader, "UltimaAlteracao"));
+    private static ErpFornecedorDto Map(IDataRecord reader, TableShape shape)
+    {
+        var canonical = shape.IsSomaFornecedores ? MapCanonical(reader) : null;
+        var ativo = !string.Equals(Nullable(reader, "Ativo"), "1", StringComparison.OrdinalIgnoreCase) && !string.Equals(Nullable(reader, "Ativo"), "True", StringComparison.OrdinalIgnoreCase);
+        return new(Convert.ToString(reader["Id"])!, canonical?.RazaoSocial ?? Nullable(reader, "Nome") ?? string.Empty,
+            canonical?.DocumentoFiscal ?? Nullable(reader, "Cnpj"), canonical?.Cidade ?? Nullable(reader, "Cidade"), canonical?.Uf ?? Nullable(reader, "Estado"), canonical?.Pais ?? Nullable(reader, "Pais"),
+            ativo, ParseDate(reader, "UltimaAlteracao"), canonical?.HashDadosSincronizaveis, canonical is null ? null : canonical with { Ativo = ativo, DataUltimaAlteracao = ParseDate(reader, "UltimaAlteracao") ?? canonical.DataUltimaAlteracao });
+    }
+
+    private static FornecedorCanonico MapCanonical(IDataRecord reader) => new(
+        RazaoSocial: Nullable(reader, "CanonicalRazaoSocial") ?? Nullable(reader, "Nome") ?? string.Empty,
+        NomeFantasia: Nullable(reader, "CanonicalNomeFantasia"), DocumentoFiscal: Nullable(reader, "CanonicalCnpj") ?? Nullable(reader, "Cnpj") ?? string.Empty,
+        TipoPessoa: Nullable(reader, "CanonicalTipoPessoa"), Pais: Nullable(reader, "CanonicalPais"), InscricaoEstadual: Nullable(reader, "CanonicalInscricaoEstadual"), InscricaoMunicipal: null,
+        Cep: Nullable(reader, "CanonicalCep"), Logradouro: Nullable(reader, "CanonicalLogradouro"), Numero: Nullable(reader, "CanonicalNumero"), Complemento: Nullable(reader, "CanonicalComplemento"), Bairro: Nullable(reader, "CanonicalBairro"),
+        Cidade: Nullable(reader, "CanonicalCidade"), Uf: Nullable(reader, "CanonicalUf"), CodigoMunicipio: Nullable(reader, "CanonicalCodigoMunicipio"), Ddd: Nullable(reader, "CanonicalDdd"), Telefone: Nullable(reader, "CanonicalTelefone"),
+        EmailComercial: Nullable(reader, "CanonicalEmailComercial"), EmailFiscal: Nullable(reader, "CanonicalEmailFiscal"), Banco: Nullable(reader, "CanonicalBanco"), Agencia: Nullable(reader, "CanonicalAgencia"), Conta: Nullable(reader, "CanonicalConta"), DigitosConta: null,
+        CondicaoPagamento: Nullable(reader, "CanonicalCondicaoPagamento"), TipoFornecedor: Nullable(reader, "CanonicalTipoFornecedor"), SubtipoFornecedor: Nullable(reader, "CanonicalSubtipoFornecedor"), ContaContabil: Nullable(reader, "CanonicalContaContabil"), RegimeFiscal: Nullable(reader, "CanonicalRegimeFiscal"),
+        SimplesNacional: BoolNullable(reader, "CanonicalSimplesNacional"), CategoriasFornecimento: Nullable(reader, "CanonicalCategorias"), ForneceMateriais: Bool(reader, "CanonicalForneceMateriais"), ForneceConsumo: Bool(reader, "CanonicalForneceConsumo"), ForneceServicos: Bool(reader, "CanonicalForneceServicos"), ForneceProdutos: Bool(reader, "CanonicalForneceProdutos"),
+        Ativo: true, DataUltimaAlteracao: ParseDate(reader, "UltimaAlteracao") ?? DateTimeOffset.UtcNow, HashDadosSincronizaveis: string.Empty);
     private static string? Nullable(IDataRecord reader, string name) => reader[name] is DBNull ? null : Convert.ToString(reader[name])?.Trim();
+    private static bool Bool(IDataRecord reader, string name) => ParseBool(reader[name]) == true;
+    private static bool? BoolNullable(IDataRecord reader, string name) => ParseBool(reader[name]);
+    private static bool? ParseBool(object value) => value is DBNull ? null : value switch { bool boolean => boolean, byte number => number != 0, short number => number != 0, int number => number != 0, long number => number != 0, _ => bool.TryParse(Convert.ToString(value), out var parsed) ? parsed : Convert.ToString(value) == "1" };
     private static DateTimeOffset? ParseDate(IDataRecord reader, string name)
     {
         if (reader[name] is DBNull) return null;
@@ -190,13 +212,28 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
         public string TimestampUpdate => UltimaAlteracaoColumn is null ? string.Empty : $", {Q(UltimaAlteracaoColumn)} = GETDATE()";
         public string FromClause => IsSomaFornecedores ? $"{Table} f LEFT JOIN [dbo].[CADASTRO_CLI_FOR] c ON c.[COD_CLIFOR] = f.[CLIFOR]" : Table;
         public string IdPredicate => IsSomaFornecedores ? "f.[COD_FORNECEDOR]" : IdColumn!;
-        public string SelectList => $"{Prefix(IdColumn, "f")} AS Id, {Prefix(NameColumn, "f")} AS Nome, {Select(Prefix(CnpjColumn, "f"), "Cnpj")}, {Select(Prefix(CidadeColumn, "f"), "Cidade")}, {Select(Prefix(EstadoColumn, "f"), "Estado")}, {Select(Prefix(PaisColumn, "f"), "Pais")}, {Select(Prefix(InativoColumn, "f"), "Ativo")}, {SelectTimestamp()}";
+        public string SelectList => $"{Prefix(IdColumn, "f")} AS Id, {Prefix(NameColumn, "f")} AS Nome, {Select(Prefix(CnpjColumn, "f"), "Cnpj")}, {Select(Prefix(CidadeColumn, "f"), "Cidade")}, {Select(Prefix(EstadoColumn, "f"), "Estado")}, {Select(Prefix(PaisColumn, "f"), "Pais")}, {Select(Prefix(InativoColumn, "f"), "Ativo")}, {SelectTimestamp()}{(IsSomaFornecedores ? $", {CanonicalSelectList}" : string.Empty)}";
+        private string CanonicalSelectList => string.Join(", ", new[]
+        {
+            Select(C("RAZAO_SOCIAL"), "CanonicalRazaoSocial"), Select(C("NOME_CLIFOR"), "CanonicalNomeFantasia"), Select(C("CGC_CPF"), "CanonicalCnpj"),
+            Select(Case(C("PJ_PF"), "PJ", "PF"), "CanonicalTipoPessoa"), Select(C("PAIS"), "CanonicalPais"), Select(C("RG_IE"), "CanonicalInscricaoEstadual"),
+            Select(C("CEP"), "CanonicalCep"), Select(C("ENDERECO"), "CanonicalLogradouro"), Select(C("NUMERO"), "CanonicalNumero"), Select(C("COMPLEMENTO"), "CanonicalComplemento"), Select(C("BAIRRO"), "CanonicalBairro"), Select(C("CIDADE"), "CanonicalCidade"), Select(C("UF"), "CanonicalUf"), Select(C("COD_MUNICIPIO_IBGE"), "CanonicalCodigoMunicipio"),
+            Select(C("DDD1"), "CanonicalDdd"), Select(C("TELEFONE1"), "CanonicalTelefone"), Select(C("EMAIL"), "CanonicalEmailComercial"), Select(C("EMAIL_NFE"), "CanonicalEmailFiscal"), Select(C("BANCO"), "CanonicalBanco"), Select(C("CC_AGENCIA"), "CanonicalAgencia"), Select(C("CC_CONTA"), "CanonicalConta"),
+            Select(F("CONDICAO_PGTO"), "CanonicalCondicaoPagamento"), Select(F("TIPO"), "CanonicalTipoFornecedor"), Select(F("SUBTIPO_FORNECEDOR"), "CanonicalSubtipoFornecedor"), Select(Coalesce(C("CTB_CONTA_CONTABIL"), F("CTB_CONTA_CONTABIL")), "CanonicalContaContabil"), Select(Coalesce(C("TIPO_TRIBUTACAO"), ConvertString(C("INDICADOR_FISCAL_TERCEIRO"))), "CanonicalRegimeFiscal"),
+            Select(Case(C("ATIVIDADE_SIMPLES_NACIONAL"), "1", "0"), "CanonicalSimplesNacional"), Select(C("ID_CLASIF_CLIFOR"), "CanonicalCategorias"),
+            Select(F("FORNECE_MATERIAIS"), "CanonicalForneceMateriais"), Select(F("FORNECE_MAT_CONSUMO"), "CanonicalForneceConsumo"), Select(F("FORNECE_OUTROS"), "CanonicalForneceServicos"), Select(F("FORNECE_PROD_ACAB"), "CanonicalForneceProdutos")
+        });
         public string WriteColumns => string.Join(", ", new[] { (IdColumn, "@id"), (NameColumn, "@nome"), (CnpjColumn, "@cnpj"), (CidadeColumn, "@cidade"), (EstadoColumn, "@estado"), (PaisColumn, "@pais") }.Where(x => x.Item1 is not null).Select(x => Q(x.Item1!)));
         public string WriteValues => string.Join(", ", new[] { (IdColumn, "@id"), (NameColumn, "@nome"), (CnpjColumn, "@cnpj"), (CidadeColumn, "@cidade"), (EstadoColumn, "@estado"), (PaisColumn, "@pais") }.Where(x => x.Item1 is not null).Select(x => x.Item2));
         public string UpdateSet => string.Join(", ", new[] { (NameColumn, "@nome"), (CnpjColumn, "@cnpj"), (CidadeColumn, "@cidade"), (EstadoColumn, "@estado"), (PaisColumn, "@pais") }.Where(x => x.Item1 is not null).Select(x => $"{Q(x.Item1!)} = {x.Item2}"));
         public bool IsSomaFornecedores => string.Equals(table, "FORNECEDORES", StringComparison.OrdinalIgnoreCase) && string.Equals(schema, "dbo", StringComparison.OrdinalIgnoreCase);
         private string? Find(IReadOnlyList<string> source, params string[] aliases) => source.FirstOrDefault(x => aliases.Contains(x, StringComparer.OrdinalIgnoreCase));
         private string? Find(params string[] aliases) => Find(columns, aliases);
+        private string? C(string column) => cadastroColumns.Contains(column, StringComparer.OrdinalIgnoreCase) ? $"c.{Q(column)}" : null;
+        private string? F(string column) => columns.Contains(column, StringComparer.OrdinalIgnoreCase) ? $"f.{Q(column)}" : null;
+        private static string? Coalesce(string? first, string? second) => first is null ? second : second is null ? first : $"COALESCE({first}, {second})";
+        private static string? ConvertString(string? expression) => expression is null ? null : $"CONVERT(varchar(80), {expression})";
+        private static string? Case(string? column, string whenTrue, string whenFalse) => column is null ? null : $"CASE WHEN {column} = 1 THEN '{whenTrue}' ELSE '{whenFalse}' END";
         private string? Prefix(string? column, string prefix) => column is null ? null : IsSomaFornecedores ? $"{prefix}.{Q(column)}" : Q(column);
         private string SelectTimestamp() => UltimaAlteracaoColumn is null && CadastroUltimaAlteracaoColumn is null ? "NULL AS UltimaAlteracao" : IsSomaFornecedores ? $"COALESCE({(CadastroUltimaAlteracaoColumn is null ? "NULL" : $"c.{Q(CadastroUltimaAlteracaoColumn)}")}, {(UltimaAlteracaoColumn is null ? "NULL" : $"f.{Q(UltimaAlteracaoColumn)}")}) AS UltimaAlteracao" : $"{Q(UltimaAlteracaoColumn!)} AS UltimaAlteracao";
         public string Quote(string value) => Q(value);

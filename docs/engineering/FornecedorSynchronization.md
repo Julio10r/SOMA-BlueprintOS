@@ -51,3 +51,21 @@ O campo efetivo de transferência identificado foi `CADASTRO_CLI_FOR.DATA_PARA_T
 O registro inválido `00000*` não foi excluído. Foi inativado no ERP e no +Compras pela correlação `b21-invalid-clifor-inactivate-final-erp`; a sonda final confirmou `INATIVO=True` e o código permaneceu preservado para histórico.
 
 O teste automatizado de concorrência foi aprovado junto com a execução real simultânea: dois códigos diferentes, nenhum vínculo duplicado e nenhuma geração por `MAX(CLIFOR)+1`. O build terminou sem avisos; a suíte possui 249 testes unitários e 3 de integração aprovados. A B2.1 aguarda apenas revisão formal deste relatório.
+
+## B2.1.1 — Mapeamento canônico ERP → +Compras
+
+O adaptador `SomaDesenvolErpFornecedorAdapter` consulta `FORNECEDORES` em conjunto com `CADASTRO_CLI_FOR` e devolve `ErpFornecedorDto.DadosCanonicos`, sem expor tabelas do ERP à Application. O mapeamento cobre:
+
+| Origem Linx | Contrato canônico |
+|---|---|
+| `RAZAO_SOCIAL`, `NOME_CLIFOR`, `CGC_CPF`, `PJ_PF`, `RG_IE` | razão social, nome fantasia, documento, tipo de pessoa, inscrição estadual |
+| `CEP`, `ENDERECO`, `NUMERO`, `COMPLEMENTO`, `BAIRRO`, `CIDADE`, `UF`, `PAIS`, `COD_MUNICIPIO_IBGE` | endereço |
+| `DDD1`, `TELEFONE1`, `EMAIL`, `EMAIL_NFE` | contatos |
+| `BANCO`, `CC_AGENCIA`, `CC_CONTA` | dados bancários |
+| `CONDICAO_PGTO`, `TIPO`, `SUBTIPO_FORNECEDOR`, `CTB_CONTA_CONTABIL` | dados comerciais |
+| `FORNECE_MATERIAIS`, `FORNECE_MAT_CONSUMO`, `FORNECE_OUTROS`, `FORNECE_PROD_ACAB` | características de fornecimento |
+| `TIPO_TRIBUTACAO`, `INDICADOR_FISCAL_TERCEIRO`, `ATIVIDADE_SIMPLES_NACIONAL` | dados fiscais |
+
+Validação real: fornecedor fictício ERP `315504`, correlação `b21-1-1-importacao-completa-315504-v2`. Foram persistidos razão social, nome fantasia, endereço, contatos, banco/agência/conta, condição de pagamento, indicadores, regime fiscal, Simples Nacional e hash no registro +Compras `0a89dfbd-a6db-42eb-b0d6-413400a8a268`. A repetição `b21-1-1-importacao-completa-315504-idempotente` retornou `NenhumaAlteracao` e preservou `Versao=4`.
+
+O ambiente ERP possui FKs para classificação (`TIPO`/`SUBTIPO_FORNECEDOR`); não foram inventados valores para forçar o teste. Quando preenchidos por dados válidos do ERP, esses campos são lidos pelo mesmo mapeamento. Nenhuma migration adicional foi necessária.

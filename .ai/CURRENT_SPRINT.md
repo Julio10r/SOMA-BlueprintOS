@@ -3,6 +3,9 @@ Sprint: B2.1 — Validação Operacional e Sincronização de Fornecedores com E
 Status:
 VALIDAÇÃO TÉCNICA COMPLETA em 01/08/2026 — sprint permanece aberta para revisão formal do relatório
 
+Subetapa B2.1.1:
+IMPLEMENTADA E VALIDADA — mapeamento canônico ERP → +Compras completo; encerramento formal depende da revisão do relatório.
+
 Objetivo:
 Completar o contrato canônico e validar a sincronização bidirecional completa de fornecedores entre o +Compras e o ERP configurado por BU, incluindo atualização, inativação, regra temporal, empate favorável ao +Compras, auditoria imutável e idempotência.
 
@@ -31,6 +34,7 @@ Validação operacional concluída nesta reabertura:
 - O timestamp real foi validado em `CADASTRO_CLI_FOR.DATA_PARA_TRANSFERENCIA`, com fallback/espelho em `FORNECEDORES.DATA_PARA_TRANSFERENCIA`; a leitura normaliza para `America/Sao_Paulo` com precisão de segundo.
 - O registro inválido `00000*` foi inativado, sem exclusão física, com correlação `b21-invalid-clifor-inactivate-final-erp`; estado final `INATIVO=True`.
 - Reexecução, atualização e inativação do fornecedor `315501` reutilizaram o mesmo identificador; auditoria registrou as correlações e os snapshots.
+- B2.1.1 importou o fornecedor fictício `315504` com razão social, fantasia, endereço, contatos, banco, dados fiscais/comerciais, indicadores e hash; a repetição preservou `Versao=4` e não gerou alteração.
 
 Escopo desta reabertura:
 - ampliar o agregado e DTOs para identificação, endereço, contato, fiscal, bancário, comercial, classificação, BU e estado de sincronização;
