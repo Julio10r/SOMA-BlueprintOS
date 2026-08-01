@@ -27,6 +27,7 @@
 - **Princípio obrigatório:** toda operação crítica possui alternativa manual; IA acelera e orienta, mas não é pré-requisito para cadastrar ou selecionar fornecedor/item, criar pedido, enviá-lo ao ERP ou acompanhar a integração.
 - **Portal:** é a interface do próprio +Compras e evolui junto aos módulos, sem constituir produto ou módulo separado.
 - **B2/B2.1:** B2 permanece como estrutura inicial de descoberta e score (100/80/60/40); B2.1 validou operacionalmente leitura, escrita, atualização e idempotência de fornecedores.
+- **B2.2:** planejada em Draft após a B2.1 para enriquecimento cadastral por CNPJ. Consulta externa será apenas sugestão revisável, com auditoria e sem atualização automática do +Compras ou ERP.
 
 ## Estratégia de LLM
 
@@ -44,7 +45,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
 - **Última sprint comprovadamente concluída:** B2 — Descoberta Inteligente de Fornecedores (30/07/2026).
 - **Sprint atual:** B2.1 reaberta. A conclusão anterior foi revogada para ampliar o contrato canônico e comprovar sincronização bidirecional completa, inativação, regra temporal e auditoria imutável.
-- **Próxima sprint recomendada:** B3; B3 não foi iniciada.
+- **Próxima sprint planejada:** B2.2 — Enriquecimento Cadastral de Fornecedores por CNPJ, em Draft e condicionada à conclusão da B2.1. B3 não foi iniciada.
 - **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
 ## Capacidades implementadas

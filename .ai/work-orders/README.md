@@ -17,6 +17,7 @@ Use apenas nomes em `PascalCase` sem espaços e a extensão `.md`.
 | Work Order de sprint | `A13-Descricao.md` | sprint ou entrega planejada identificada por fase e número |
 | Work Order de sprint | `A14-Descricao.md` | próxima entrega sequencial da mesma fase |
 | Work Order complementar | `B2.1-Descricao.md` | consolidação curta vinculada a uma sprint concluída, sem reutilizar seu identificador |
+| Work Order complementar sequencial | `B2.2-Descricao.md` | próxima entrega planejada e dependente da conclusão da entrega complementar anterior |
 | Épico | `EPIC-01-Nome.md` | iniciativa composta por múltiplas entregas |
 | Refatoração | `R01-Descricao.md` | mudança estrutural sem alteração de comportamento aprovada |
 | Hotfix | `HF01-Descricao.md` | correção urgente de incidente |
