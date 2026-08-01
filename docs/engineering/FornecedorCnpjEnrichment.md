@@ -6,7 +6,7 @@ Definir a arquitetura inicial da capacidade B2.2 — Consulta CNPJ e Enriquecime
 
 A funcionalidade deve permitir que o usuário informe um `Cnpj_Cpf`, acione uma consulta externa e receba dados sugeridos para enriquecer o cadastro de fornecedor no +Compras. A consulta externa não substitui o cadastro e nunca deve atualizar o +Compras ou o ERP Linx sem confirmação humana.
 
-**Estado B2.2.1:** concluída. O contrato, o resultado tipado, a auditoria persistida e os testes unitários foram entregues; a B2.2 continua em andamento e não possui provider externo configurado.
+**Estado B2.2.2:** concluída. O contrato, o resultado tipado, a auditoria persistida e o primeiro provider externo gratuito foram entregues; a consulta continua sendo sugestão revisável e não cria fornecedor automaticamente.
 
 ```text
 Usuário informa Cnpj_Cpf
@@ -56,7 +56,35 @@ O retorno deve representar sugestão de dados, não comando de persistência.
 
 ## Fontes externas
 
-A fonte externa ainda deve ser selecionada e autorizada.
+O provider inicial implementado é `BrasilApiCnpjProvider`, em `BlueprintOS.Infrastructure.Integrations.CnpjConsulta`, usando a BrasilAPI pública para consulta de CNPJ.
+
+Fluxo mantido:
+
+```text
+BrasilAPI
+    ↓
+BrasilApiCnpjProvider
+    ↓
+ConsultaCnpjResultado
+    ↓
+ConsultarCnpjFornecedorUseCase
+    ↓
++Compras
+```
+
+Configuração:
+
+```json
+{
+  "CnpjConsulta": {
+    "Provider": "BrasilApi",
+    "BaseUrl": "https://brasilapi.com.br/api/cnpj/v1/",
+    "TimeoutSeconds": 10
+  }
+}
+```
+
+`BaseUrl` e `TimeoutSeconds` são externos ao código. `Provider` prepara a troca futura por `ProviderPago` ou `GovBr`; nesta sprint somente `BrasilApi` é registrado.
 
 Critérios mínimos para escolha:
 
@@ -67,7 +95,13 @@ Critérios mínimos para escolha:
 - modelo de autenticação compatível com secrets corporativos;
 - possibilidade de auditoria da origem dos dados.
 
-Fontes públicas ou gratuitas podem ser usadas apenas como referência técnica durante a arquitetura. Contratos pagos dependem de aprovação específica.
+Limitações da fonte gratuita:
+
+- disponibilidade e limites dependem da BrasilAPI;
+- não há SLA corporativo contratado nesta sprint;
+- não há cache local;
+- falhas são normalizadas e não bloqueiam cadastro manual;
+- uso produtivo definitivo ainda depende de validação jurídica/operacional.
 
 ## Campos retornados
 
@@ -88,6 +122,19 @@ Campos candidatos para sugestão:
 - e-mail;
 - quadro societário, se permitido pelo provedor;
 - data da última atualização da fonte.
+
+Mapeamento BrasilAPI B2.2.2:
+
+- `cnpj` → `Cnpj_Cpf`;
+- `razao_social` → `RazaoSocial`;
+- `nome_fantasia` → `NomeFantasia`;
+- `descricao_situacao_cadastral` → `SituacaoCadastral`;
+- `data_situacao_cadastral` → `DataSituacaoCadastral`;
+- `cep`, `logradouro`, `numero`, `complemento`, `bairro`, `municipio`, `uf` → endereço;
+- `email`, `ddd_telefone_1`/`ddd_telefone_2` → contato;
+- `natureza_juridica`, `porte` → dados adicionais;
+- `FonteConsulta` = `BrasilAPI`;
+- `DataConsulta` = horário UTC da consulta.
 
 Mapeamento para o +Compras:
 
@@ -147,6 +194,18 @@ Erros devem ser normalizados por categoria:
 
 Falha na consulta externa não deve bloquear o cadastro manual de fornecedor.
 
+O provider B2.2.2 trata:
+
+- CNPJ inválido;
+- CNPJ não encontrado (`404`);
+- indisponibilidade externa;
+- timeout configurável;
+- cancelamento por `CancellationToken`;
+- erro de comunicação;
+- resposta inválida.
+
+Erros técnicos brutos não são repassados ao usuário; o retorno usa mensagens normalizadas em `ConsultaCnpjResultado.MensagemErro`.
+
 ## Futuro Modelo de Licença/API
 
 A B2.2 deve manter o provedor externo atrás de uma interface própria para permitir troca futura.
@@ -166,7 +225,7 @@ Antes de uso produtivo, será necessário definir:
 ## Backlog B2.2
 
 - B2.2.1 — Concluída: contrato de consulta CNPJ, resultado tipado e auditoria persistida, sem provider externo.
-- B2.2.2 — Integração API externa.
+- B2.2.2 — Concluída: provider BrasilAPI, configuração externa, timeout, cancelamento, normalização e testes.
 - B2.2.3 — Normalização de dados.
 - B2.2.4 — Validação de fornecedor.
 - B2.2.5 — Persistência e auditoria.

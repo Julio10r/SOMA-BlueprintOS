@@ -12,7 +12,7 @@
 
 - **Data:** 01/08/2026
 - **Branch:** `feature/a13-procurement-vertical-slice`
-- **Commit de referência:** `b08769f`, `3b6d54b` e `0240c35` para as entregas B2.1 e B2.1.1; `77861eb` para B2.1.2.
+- **Commit de referência:** `b08769f`, `3b6d54b` e `0240c35` para as entregas B2.1 e B2.1.1; `77861eb` para B2.1.2; B2.2.2 pendente de commit nesta atualização.
 - **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros e 0 avisos; 260 testes unitários e 4 testes de integração aprovados. A migration `202608010002_B212FornecedorLinxCanonicalModel` foi aplicada no +Compras dev; a migration B2.2.1 foi versionada, sem alteração de schema no ERP.
 
 ## Sistema de Work Orders
@@ -28,7 +28,7 @@
 - **Portal:** a ADR-0017 definiu o Portal Operacional +Compras como navegação e identidade visual completas, com evolução funcional incremental por domínio. Fornecedores é a primeira vertical slice funcional planejada; não há portal frontend implementado ainda.
 - **B2/B2.1/B2.1.1:** B2 permanece como estrutura inicial de descoberta e score (100/80/60/40). B2.1 concluiu sincronização bidirecional, regra temporal, inativação, auditoria e concorrência; B2.1.1 concluiu o mapeamento canônico ERP → +Compras.
 - **B2.1.2:** concluída conforme ADR-0016, com modelo fornecedor alinhado ao Linx: `Cnpj_Cpf`, `TipoPessoa`, separação de `RazaoSocial`/`NomeFantasia`, proteção do nome fantasia controlado pelo Linx, flags `Beneficiador`/`Licenciado`, domínios ERP estruturados, FKs opcionais e contrato frontend inicial.
-- **B2.2:** em andamento como Consulta CNPJ e Enriquecimento de Fornecedor. A B2.2.1 foi concluída com contrato `ICnpjConsultaProvider`, retorno tipado e auditoria persistida; consulta externa continua apenas sugestão revisável, sem atualização automática do +Compras ou ERP e sem provider concreto nesta etapa.
+- **B2.2:** em andamento como Consulta CNPJ e Enriquecimento de Fornecedor. A B2.2.1 foi concluída com contrato `ICnpjConsultaProvider`, retorno tipado e auditoria persistida. A B2.2.2 implementou `BrasilApiCnpjProvider` como adaptador gratuito BrasilAPI, com configuração externa, timeout, cancelamento e normalização; consulta externa continua apenas sugestão revisável, sem atualização automática do +Compras ou ERP.
 
 ## Estratégia de LLM
 
@@ -46,7 +46,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
 - **Última sprint comprovadamente concluída:** B2.1.2 — Modelo Canônico de Fornecedor ERP Linx (01/08/2026).
 - **Sprint atual:** B2.2 — Consulta CNPJ e Enriquecimento de Fornecedor, em andamento.
-- **Próxima pendência planejada:** consolidar contrato, provedor externo, normalização, validação, persistência e auditoria da B2.2. B3 não foi iniciada.
+- **Próxima pendência planejada:** evoluir validação e fluxo de confirmação da B2.2. B3 não foi iniciada.
 - **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
 ## Capacidades implementadas
@@ -60,7 +60,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 | API de negociação | `POST /api/v1/negociacoes/recomendacoes` via `NegotiationRecommendationUseCase` | Implementado, consultivo e sem estado |
 | Fornecedores | `Fornecedor`, EF Core/SQL Server sobre `MaisComprasConnection`, migration e `POST/GET/PUT/DELETE /fornecedores` | Implementado |
 | Sincronização de fornecedores | Contrato canônico, adaptadores por BU, importação/exportação/inativação, `LX_SEQUENCIAL`, timestamp Linx, concorrência, idempotência, auditoria append-only e modelo Linx B2.1.2 alinhado ao ERP | Concluída (B2.1, B2.1.1 e B2.1.2) |
-| Enriquecimento de fornecedores por CNPJ | `ICnpjConsultaProvider`, `ConsultaCnpjResultado`, caso de uso e histórico persistido; nenhuma API externa ou tela | B2.2.1 concluída; B2.2 em andamento |
+| Enriquecimento de fornecedores por CNPJ | `ICnpjConsultaProvider`, `ConsultaCnpjResultado`, `BrasilApiCnpjProvider`, configuração `CnpjConsulta`, caso de uso e histórico persistido; nenhuma tela ou cadastro automático | B2.2.2 concluída; B2.2 em andamento |
 | Descoberta de fornecedores | `FornecedorDescoberto`, score centralizado, leitura `SOMA_DESENV`, persistência +Compras e `/api/fornecedores/descobertas` | Implementado; validação SQL ERP pendente de ambiente com acesso |
 | Workflow | `Workflow` e `WorkflowRunner` sequenciais | Implementado, básico |
 | Documentation | contratos, geradores, publicação Markdown, Git reader e health report | Implementado |

@@ -1,7 +1,7 @@
 # B2.2 - Consulta CNPJ e Enriquecimento de Fornecedor
 
 Status:
-Em andamento
+Concluída em B2.2.2 para provider gratuito; B2.2 permanece aberta para próximas etapas.
 
 Objetivo:
 Criar capacidade arquitetural para consultar dados externos de fornecedor a partir do `Cnpj_Cpf` informado pelo usuário, tratando o retorno como sugestão de enriquecimento revisável antes da persistência no +Compras e antes de qualquer sincronização ERP.
@@ -53,7 +53,7 @@ Documentação inicial:
 
 Backlog B2.2:
 - B2.2.1 — Contrato de consulta CNPJ, concluída: provider desacoplado, resultado tipado, auditoria persistida e 260 testes unitários/4 de integração aprovados, sem API externa.
-- B2.2.2 — Integração API externa.
+- B2.2.2 — Concluída: `BrasilApiCnpjProvider` implementado com BrasilAPI, configuração `CnpjConsulta`, timeout, cancelamento, normalização, auditoria via caso de uso e testes unitários.
 - B2.2.3 — Normalização de dados.
 - B2.2.4 — Validação de fornecedor.
 - B2.2.5 — Persistência e auditoria.
@@ -68,6 +68,6 @@ Contexto herdado:
 
 Limites desta sprint:
 - Não criar frontend ou telas.
-- Não implementar chamadas definitivas para fornecedor externo.
+- Não criar fornecedor automaticamente.
 - Não assumir contratos pagos.
-- Consolidar primeiro a arquitetura e o contrato operacional.
+- Manter BrasilAPI como adaptador gratuito substituível por provider pago/GovBr.

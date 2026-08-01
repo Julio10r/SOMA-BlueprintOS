@@ -25,6 +25,7 @@ using BlueprintOS.Infrastructure.Documentation.Generators.Client;
 using BlueprintOS.Infrastructure.Documentation.Generators.Engineering;
 using BlueprintOS.Infrastructure.Documentation.Generators.Executive;
 using BlueprintOS.Infrastructure.Documentation.Publishing;
+using BlueprintOS.Infrastructure.Integrations.CnpjConsulta;
 using BlueprintOS.Infrastructure.Integrations.OpenAI;
 using BlueprintOS.Infrastructure.Knowledge;
 using BlueprintOS.Infrastructure.Memory;
@@ -74,6 +75,20 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPesquisarFornecedorUseCase, PesquisarFornecedorUseCase>();
         services.AddScoped<IDescobrirFornecedoresUseCase, DescobrirFornecedoresUseCase>();
         services.AddScoped<IListarDescobertasUseCase, ListarDescobertasUseCase>();
+        services.AddScoped<IConsultarCnpjFornecedorUseCase, ConsultarCnpjFornecedorUseCase>();
+
+        services.Configure<CnpjConsultaOptions>(configuration.GetSection(CnpjConsultaOptions.SectionName));
+        services.AddHttpClient<ICnpjConsultaProvider, BrasilApiCnpjProvider>((provider, client) =>
+        {
+            var options = provider.GetRequiredService<IOptions<CnpjConsultaOptions>>().Value;
+            if (!string.Equals(options.Provider, "BrasilApi", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException($"CnpjConsulta provider '{options.Provider}' is not supported.");
+            }
+
+            client.BaseAddress = new Uri(options.BaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(Math.Max(1, options.TimeoutSeconds + 1));
+        });
 
         services.Configure<OpenAIOptions>(configuration.GetSection(OpenAIOptions.SectionName));
 
