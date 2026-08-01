@@ -270,7 +270,7 @@ O adaptador `OpenAIProvider` existente é uma implementação de Infrastructure 
 
 **Consequências:** o +Compras passa a preservar campos exclusivos e o vínculo externo por BU/ERP/ID; fornecedores são inativados logicamente e nunca removidos pela sincronização. A migration complementar altera somente o banco +Compras. O adaptador SOMA_DESENV traduz apenas os campos que o ERP suporta e preserva chaves protegidas por FK.
 
-## ADR-0016: Sequencial Linx e timestamp efetivo do fornecedor
+### Complemento ADR-0015: Sequencial Linx e timestamp efetivo do fornecedor
 
 **Status:** Aceito para a validação operacional final da B2.1
 
@@ -282,14 +282,87 @@ O timestamp primário de transferência confirmado no cadastro Linx é `CADASTRO
 
 **Consequências:** concorrência depende do mecanismo oficial do ERP e não duplica códigos; falhas não criam vínculo falso; o registro inválido `00000*` permanece preservado e é tratado por inativação lógica; nenhuma transação distribuída entre os bancos é introduzida.
 
-## ADR-0016: Sequencial Linx e timestamp efetivo do fornecedor
+## ADR-0016: Modelo Canônico de Fornecedor Integrado ao ERP Linx
 
-**Status:** Aceito para a validação operacional final da B2.1
+**Status:** Aceita
 
 **Data:** 01/08/2026
 
-**Decisão:** A criação no adaptador Linx usa exclusivamente `LX_SEQUENCIAL` para `FORNECEDORES.CLIFOR`, com `@EMPRESA = 1`, dentro da transação controlada que grava `CADASTRO_CLI_FOR` e `FORNECEDORES`. O domínio e a Application recebem somente o identificador externo retornado. Não são permitidos `MAX + 1`, contador local, valor fixo, prefixo ou reaproveitamento.
+**Contexto:** A B2.1.2 iniciou o diagnóstico estrutural entre ERP Linx e +Compras para alinhar tipos, tamanhos, nulabilidade, collation, validações e limitações operacionais antes de qualquer migration. O ERP Linx possui o cadastro mestre em `CADASTRO_CLI_FOR`; um mesmo registro pode representar fornecedor, cliente ou filial. A tabela `FORNECEDORES` é uma extensão desse cadastro mestre para o papel de fornecedor, enquanto o +Compras trabalha inicialmente somente com fornecedores.
 
-O timestamp primário de transferência confirmado no cadastro Linx é `CADASTRO_CLI_FOR.DATA_PARA_TRANSFERENCIA`; `FORNECEDORES.DATA_PARA_TRANSFERENCIA` é consultado como espelho/fallback. Ambos são normalizados para `America/Sao_Paulo`, com precisão até o segundo, e a auditoria preserva os valores original e normalizado. A confirmação remota precede a persistência do vínculo; se a persistência local falhar, a reconciliação consulta o identificador externo já confirmado.
+No Linx, `CADASTRO_CLI_FOR.NOME_CLIFOR`, `FORNECEDORES.FORNECEDOR` e o conceito de nome fantasia representam a mesma chave operacional. Esse campo é protegido por regra operacional/FK e não pode ser alterado livremente pelo +Compras.
 
-**Consequências:** concorrência depende do mecanismo oficial do ERP e não duplica códigos; falhas não criam vínculo falso; o registro inválido `00000*` permanece preservado e é tratado por inativação lógica; nenhuma transação distribuída entre os bancos é introduzida.
+**Decisão:** O modelo canônico de fornecedor integrado ao ERP Linx deve refletir a separação estrutural do Linx entre cadastro mestre e extensão de fornecedor.
+
+1. Documento fiscal
+
+O conceito atual `Cnpj` deve evoluir para `Cnpj_Cpf`, mantendo compatibilidade com `CGC_CPF` do Linx:
+
+```text
+Cnpj_Cpf varchar(14)
+TipoPessoa varchar(20)
+```
+
+Regras aprovadas:
+- aceitar CPF e CNPJ;
+- permitir caracteres alfanuméricos no banco;
+- não restringir somente números na persistência;
+- manter validações de formato na API e no frontend;
+- usar `TipoPessoa` para distinguir `PJ` e `PF`.
+
+Exemplos:
+
+```text
+Cnpj_Cpf = 10285590000108
+TipoPessoa = PJ
+```
+
+```text
+Cnpj_Cpf = 12345678901
+TipoPessoa = PF
+```
+
+2. Modelo de nomes
+
+A separação de nomes deve ser explícita:
+
+| Origem Linx | Campo canônico +Compras |
+|---|---|
+| `RAZAO_SOCIAL` | `RazaoSocial` |
+| `NOME_CLIFOR` / `FORNECEDORES.FORNECEDOR` | `NomeFantasia` |
+
+O conceito `NomeOperacionalERP` não deve ser criado. `NomeFantasia` é controlado pelo ERP Linx. O fluxo permitido para alteração desse campo é somente `ERP -> +Compras`; o fluxo `+Compras -> ERP` não é permitido para nome fantasia. Alterações de nome fantasia só podem ser aplicadas no +Compras quando originadas no ERP.
+
+3. Domínios e tabelas FK
+
+Campos controlados por FK ou domínio no Linx não devem permanecer como texto livre no +Compras. Devem ser modeladas estruturas equivalentes de domínio sincronizadas a partir do ERP, por Business Unit e sistema ERP.
+
+Exemplos iniciais:
+- `TipoFornecedor`;
+- `SubtipoFornecedor`;
+- `CondicaoPagamento`;
+- demais domínios identificados na continuidade do levantamento estrutural.
+
+Modelo aprovado:
+
+```text
+ERP Linx
+    |
+    | sincronização
+    v
+Tabela domínio +Compras
+    |
+    | FK
+    v
+Fornecedor
+```
+
+Cada tabela de domínio deverá possuir, no mínimo:
+- `Id`;
+- `CodigoERP`;
+- `Descricao`;
+- `BusinessUnit`;
+- `ErpSistema`;
+- `Status`.
+
+**Consequências:** O modelo atual de fornecedor precisará ser ajustado em sprint posterior para suportar CPF/CNPJ, separar razão social de nome fantasia e substituir textos livres por domínios sincronizados do Linx. Essas mudanças não são executadas na etapa diagnóstica B2.1.2; elas serão planejadas como migrations, ajustes de contrato API e validações de frontend após a conclusão do levantamento estrutural. A regra preserva o Linx como fonte de verdade para `NomeFantasia` e para domínios corporativos, reduzindo risco de rejeição em exportações e divergência operacional.
