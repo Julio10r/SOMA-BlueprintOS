@@ -25,7 +25,7 @@
 
 - **Decisão aceita:** [ADR-0013](./DECISIONS.md) estabelece a evolução em dois momentos: plataforma operacional primeiro e inteligência progressiva sobre dados reais depois.
 - **Princípio obrigatório:** toda operação crítica possui alternativa manual; IA acelera e orienta, mas não é pré-requisito para cadastrar ou selecionar fornecedor/item, criar pedido, enviá-lo ao ERP ou acompanhar a integração.
-- **Portal:** é a interface do próprio +Compras e evolui junto aos módulos, sem constituir produto ou módulo separado.
+- **Portal:** a ADR-0017 definiu o Portal Operacional +Compras como navegação e identidade visual completas, com evolução funcional incremental por domínio. Fornecedores é a primeira vertical slice funcional planejada; não há portal frontend implementado ainda.
 - **B2/B2.1/B2.1.1:** B2 permanece como estrutura inicial de descoberta e score (100/80/60/40). B2.1 concluiu sincronização bidirecional, regra temporal, inativação, auditoria e concorrência; B2.1.1 concluiu o mapeamento canônico ERP → +Compras.
 - **B2.1.2:** em implementação conforme ADR-0016, com documento fiscal `Cnpj_Cpf`, separação de `RazaoSocial`/`NomeFantasia`, proteção do nome fantasia controlado pelo Linx, flags `Beneficiador`/`Licenciado` e estrutura inicial de domínios ERP.
 - **B2.2:** permanece planejada em Draft após B2.1/B2.1.1 e conclusão da análise B2.1.2. Consulta externa será apenas sugestão revisável, com auditoria e sem atualização automática do +Compras ou ERP.
@@ -76,7 +76,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 - Identity, autorização, multi-tenant e Microsoft Entra ID.
 - Planner, Procurement, Notifications, Dashboard e Analytics.
-- Frontend React/TypeScript e portal +COMPRAS; existe apenas contrato TypeScript inicial para fornecedor Linx em `frontend/web`.
+- Frontend React/TypeScript e portal +COMPRAS; a ADR-0017 e os documentos de engenharia/produto definem a estratégia, mas existe apenas contrato TypeScript inicial para fornecedor Linx em `frontend/web`.
 - n8n e APIs corporativas; integração ERP de fornecedores B2.1 está implementada.
 
 ## Agentes e integrações concretos

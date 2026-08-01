@@ -366,3 +366,51 @@ Cada tabela de domínio deverá possuir, no mínimo:
 - `Status`.
 
 **Consequências:** O modelo atual de fornecedor precisará ser ajustado em sprint posterior para suportar CPF/CNPJ, separar razão social de nome fantasia e substituir textos livres por domínios sincronizados do Linx. Essas mudanças não são executadas na etapa diagnóstica B2.1.2; elas serão planejadas como migrations, ajustes de contrato API e validações de frontend após a conclusão do levantamento estrutural. A regra preserva o Linx como fonte de verdade para `NomeFantasia` e para domínios corporativos, reduzindo risco de rejeição em exportações e divergência operacional.
+
+---
+
+## ADR-0017: Estratégia de Construção do Portal Operacional +Compras
+
+**Status:** Aceita
+
+**Data:** 01/08/2026
+
+**Contexto:** O +Compras evolui como uma plataforma operacional integrada aos ERPs das Business Units. O primeiro domínio com integração real é Fornecedores, consolidado nas sprints B2.1 e B2.1.1 e em evolução estrutural na B2.1.2. Construir telas isoladas por sprint fragmentaria a experiência, enquanto tratar módulos ainda não implementados como funcionais criaria uma expectativa incorreta.
+
+**Opções consideradas:**
+
+1. Construir apenas telas isoladas à medida que cada módulo fosse implementado.
+2. Construir um portal completo de navegação e identidade visual desde a primeira versão, evoluindo a capacidade funcional de cada módulo conforme o roadmap.
+
+**Decisão:** A segunda opção foi adotada. O frontend será um Portal Operacional +Compras, com estrutura de navegação, identidade visual e módulos previstos pelo produto desde a primeira versão visual. A presença de um módulo no portal não comprova funcionalidade: cada módulo deve apresentar um estado explícito — `🟢 Funcional`, `🟡 Estrutura visual` ou `⚪ Planejado`.
+
+**Mapa oficial do portal:**
+
+```text
++Compras
+├── Dashboard
+├── Fornecedores
+│   ├── Lista
+│   ├── Cadastro
+│   ├── Detalhes
+│   ├── Sincronização ERP
+│   └── Auditoria
+├── Pedidos
+├── Cotações
+├── Negociações
+├── Contratos
+├── Indicadores
+└── Agentes IA
+```
+
+**Primeira vertical slice funcional:** Fornecedores. Ela reúne consulta, cadastro, edição, detalhes, sincronização ERP, histórico e auditoria e deve consumir os contratos oficiais do backend. Sua evolução acompanha B2.1, B2.1.1, B2.1.2 e B2.2; a ADR não declara que toda essa interface já está implementada.
+
+**Regras arquiteturais:**
+
+- O frontend consome apenas APIs e DTOs oficiais; regras de negócio e regras de integração permanecem no backend.
+- Cada domínio evolui no fluxo `Backend → contrato de API → frontend → experiência operacional`.
+- O portal utiliza o [AZZAS 2154 — GDT Design System](../docs/design-system/README.md); componentes e linguagem visual devem consultar `docs/design-system/` antes de implementação.
+- Autenticação corporativa futura segue Microsoft Entra ID e não é simulada como controle de acesso definitivo no portal.
+- Toda implementação frontend deve ler `.ai/PROJECT.md`, `.ai/ARCHITECTURE.md`, `.ai/DECISIONS.md`, `.ai/CURRENT_SPRINT.md`, `docs/design-system/` e `docs/engineering/`.
+
+**Consequências:** A navegação e a linguagem visual passam a ser planejadas como produto único, enquanto a entrega funcional continua incremental e verificável por domínio. Pedidos, Cotações, Negociações, Contratos e Indicadores terão inicialmente somente estrutura visual; Agentes IA permanece planejado. O Dashboard será a página inicial para visão executiva, indicadores, integrações, alertas e atividades recentes, sem substituir os módulos operacionais. Nenhum código é criado ou alterado por esta ADR.

@@ -47,3 +47,7 @@ Contexto herdado:
 - B2.1.2 em implementação.
 - B2.2 permanece Draft.
 - B3 não iniciada.
+
+Decisão de produto relacionada:
+- A [ADR-0017](./DECISIONS.md) aprovou a estratégia do Portal Operacional +Compras: navegação e identidade visual completas desde a primeira versão visual, com evolução funcional incremental por domínio.
+- Fornecedores é a primeira vertical slice funcional planejada; esta decisão não inicia o frontend nem altera o escopo técnico da B2.1.2.
