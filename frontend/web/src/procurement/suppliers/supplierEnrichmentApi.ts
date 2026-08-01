@@ -12,6 +12,20 @@ type RequestOptions = {
 
 const headers = { "Content-Type": "application/json" };
 
+/**
+ * Base da API +Compras. Em desenvolvimento/testes, permanece vazia por
+ * padrao para que as chamadas usem caminhos relativos (ex: "/fornecedores"),
+ * aproveitando o proxy configurado em vite.config.ts. Quando
+ * VITE_API_BASE_URL estiver definido (ver .env.example), as chamadas
+ * passam a usar essa origem diretamente (util quando frontend e backend
+ * rodam em processos/portas separados sem proxy).
+ */
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+
+function apiUrl(path: string): string {
+  return `${apiBaseUrl}${path}`;
+}
+
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
   if (!response.ok) {
@@ -22,14 +36,23 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export async function searchSupplierByDocument(cnpjCpf: string): Promise<Fornecedor | null> {
-  const suppliers = await request<Fornecedor[]>(`/fornecedores?q=${encodeURIComponent(cnpjCpf)}`);
+  const suppliers = await request<Fornecedor[]>(apiUrl(`/fornecedores?q=${encodeURIComponent(cnpjCpf)}`));
   const normalized = normalizeDocument(cnpjCpf);
   return suppliers.find((supplier) => normalizeDocument(supplier.cnpj_Cpf) === normalized) ?? null;
 }
 
+/**
+ * Lista fornecedores cadastrados (sem filtro), usada apenas para telas de
+ * visao executiva (ex: Dashboard). Reutiliza o mesmo endpoint
+ * GET /fornecedores?q= ja consumido pelo fluxo de cadastro.
+ */
+export async function listSuppliers(): Promise<Fornecedor[]> {
+  return request<Fornecedor[]>(apiUrl("/fornecedores?q="));
+}
+
 export async function createSupplierDraft(cnpjCpf: string, consulta?: ConsultaCnpjResultado): Promise<Fornecedor> {
   const razaoSocial = consulta?.razaoSocial?.trim() || `Fornecedor ${cnpjCpf}`;
-  return request<Fornecedor>("/fornecedores", {
+  return request<Fornecedor>(apiUrl("/fornecedores"), {
     method: "POST",
     headers,
     body: JSON.stringify({
@@ -54,7 +77,7 @@ export async function createSupplierDraft(cnpjCpf: string, consulta?: ConsultaCn
 }
 
 export async function consultCnpj(cnpjCpf: string, options: RequestOptions): Promise<ConsultaCnpjResultado> {
-  return request<ConsultaCnpjResultado>("/fornecedores/consulta-cnpj", {
+  return request<ConsultaCnpjResultado>(apiUrl("/fornecedores/consulta-cnpj"), {
     method: "POST",
     headers,
     body: JSON.stringify({
@@ -71,7 +94,7 @@ export async function analyzeEnrichment(
   consulta: ConsultaCnpjResultado,
   options: RequestOptions
 ): Promise<FornecedorEnriquecimentoAnalise> {
-  return request<FornecedorEnriquecimentoAnalise>(`/fornecedores/${supplierId}/enriquecimento-cnpj`, {
+  return request<FornecedorEnriquecimentoAnalise>(apiUrl(`/fornecedores/${supplierId}/enriquecimento-cnpj`), {
     method: "POST",
     headers,
     body: JSON.stringify({ consulta, consultaId: null, ...toBackendOptions(options) })
@@ -85,7 +108,7 @@ export async function decideEnrichment(
   campos: string[],
   options: RequestOptions
 ): Promise<FornecedorEnriquecimentoAnalise> {
-  return request<FornecedorEnriquecimentoAnalise>(`/fornecedores/${supplierId}/enriquecimento-cnpj/${decision}`, {
+  return request<FornecedorEnriquecimentoAnalise>(apiUrl(`/fornecedores/${supplierId}/enriquecimento-cnpj/${decision}`), {
     method: "POST",
     headers,
     body: JSON.stringify({ consulta, consultaId: null, campos, ...toBackendOptions(options) })

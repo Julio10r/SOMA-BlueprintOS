@@ -209,3 +209,74 @@ th {
   .data-grid { grid-template-columns: 1fr; }
   .actions { flex-direction: column; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   PORTAL SHELL — navegacao entre modulos do +Compras (AppShell.tsx)
+   ══════════════════════════════════════════════════════════════════ */
+
+.app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+
+.app-body { display: flex; flex: 1; min-height: 0; }
+
+.app-sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  flex-shrink: 0;
+  padding: var(--space-5) var(--space-3);
+  width: var(--sidebar-w);
+}
+
+.app-sidebar ul { display: grid; gap: var(--space-1); list-style: none; margin: 0; padding: 0; }
+
+.app-nav-link {
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  display: block;
+  font-weight: 500;
+  padding: var(--space-3) var(--space-4);
+  text-decoration: none;
+  transition: background var(--t-base) ease, color var(--t-base) ease;
+}
+
+.app-nav-link:hover { background: var(--surface-2); color: var(--text-primary); }
+
+.app-nav-link-active { background: var(--accent); color: var(--text-on-dark); }
+.app-nav-link-active:hover { background: var(--accent-hover); color: var(--text-on-dark); }
+
+.app-content { flex: 1; min-width: 0; overflow-y: auto; }
+
+/* Paginas do portal (Dashboard, Pedidos, Negociacoes, Indicadores, Agentes IA, Configuracoes) */
+.page-stack { display: grid; gap: var(--space-5); padding: var(--space-7); }
+
+.page-header p { margin-top: var(--space-2); }
+
+.kpi-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.kpi-card { display: grid; gap: var(--space-2); }
+.kpi-value { font-size: var(--t-h1); }
+
+.supplier-card-list { display: grid; gap: var(--space-4); }
+.supplier-card-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.badge-aceito { background: var(--aprovado-bg); color: var(--aprovado); }
+.badge-rejeitado { background: var(--rejeitado-bg); color: var(--rejeitado); }
+
+.bar-chart { display: grid; gap: var(--space-3); }
+.bar-row { align-items: center; display: grid; gap: var(--space-3); grid-template-columns: 120px minmax(0, 1fr) 48px; }
+.bar-label { color: var(--text-secondary); font-size: var(--t-body-sm); }
+.bar-track { background: var(--surface-2); border-radius: var(--radius-pill); height: 10px; overflow: hidden; }
+.bar-fill { background: var(--accent); border-radius: var(--radius-pill); height: 100%; }
+.bar-value { color: var(--text-muted); text-align: right; }
+
+@media (max-width: 860px) {
+  .app-body { flex-direction: column; }
+  .app-sidebar { border-right: none; border-bottom: 1px solid var(--border); width: 100%; }
+  .app-sidebar ul { display: flex; flex-wrap: wrap; }
+  .page-stack { padding: var(--space-4); }
+  .supplier-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bar-row { grid-template-columns: 80px minmax(0, 1fr) 40px; }
+}

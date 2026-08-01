@@ -55,11 +55,27 @@ if (args.Length > 0 && args[0] == "probe-erp-supplier-integrity")
 
 var builder = WebApplication.CreateBuilder(args);
 
+// CORS — libera a origem do frontend (+Compras Web) em dev/demo.
+// Em producao, configure "Cors:AllowedOrigins" via appsettings ou variavel
+// de ambiente com a lista real de origins; nunca usar "*" com credenciais.
+const string FrontendCorsPolicy = "FrontendCorsPolicy";
+var corsAllowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:5173", "http://127.0.0.1:5173" };
+
 // Services
 builder.Services.AddOpenApi();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentIdentity, DevelopmentRequestIdentity>();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(FrontendCorsPolicy, policy =>
+    {
+        policy.WithOrigins(corsAllowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
@@ -70,6 +86,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors(FrontendCorsPolicy);
 
 // Health Endpoint
 app.MapGet("/health", () =>

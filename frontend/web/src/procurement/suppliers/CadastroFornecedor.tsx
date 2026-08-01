@@ -10,9 +10,11 @@ import {
 import type {
   ConsultaCnpjResultado,
   Fornecedor,
-  FornecedorCampoDivergencia,
   FornecedorEnriquecimentoAnalise
 } from "./linxSupplierContract";
+import { CnpjSearch } from "../../components/CnpjSearch";
+import { SupplierComparison } from "../../components/SupplierComparison";
+import { ApprovalPanel } from "../../components/ApprovalPanel";
 
 const businessUnit = "SOMA";
 const erpSistema = "SOMA_DESENV";
@@ -105,12 +107,6 @@ export function CadastroFornecedor() {
 
   return (
     <main className="supplier-page">
-      <header className="portal-header">
-        <div className="brand-mark">AZZAS 2154</div>
-        <div className="logo-suffix">+Compras · Cadastro de Fornecedor</div>
-        <div className="user-chip">COMPRAS</div>
-      </header>
-
       <section className="workspace">
         <aside className="summary-panel">
           <div className="section-title">B2.2.4</div>
@@ -125,55 +121,29 @@ export function CadastroFornecedor() {
         </aside>
 
         <div className="content">
-          <form className="card form-card" onSubmit={handleConsult}>
-            <label htmlFor="cnpjCpf">Cnpj_Cpf</label>
-            <div className="input-row">
-              <input
-                id="cnpjCpf"
-                value={documento}
-                onChange={(event) => setDocumento(event.target.value)}
-                placeholder="12345678000195"
-                maxLength={18}
-              />
-              <button className="btn btn-primary" disabled={loading} type="submit">
-                <SearchIcon /> Consultar CNPJ
-              </button>
-            </div>
-            {error && <div className="notice notice-crit">{error}</div>}
-          </form>
+          <CnpjSearch value={documento} onChange={setDocumento} onSubmit={handleConsult} loading={loading} error={error} />
 
-          {consulta && <ConsultaPanel consulta={consulta} />}
-
-          {consulta?.situacaoCadastral === "Baixada" && (
-            <div className="notice notice-warn">
-              <strong>Atencao:</strong> Fornecedor possui situacao cadastral BAIXADA. Deseja continuar?
-              <label className="check-line">
-                <input type="checkbox" checked={baixadaConfirmed} onChange={(event) => setBaixadaConfirmed(event.target.checked)} />
-                Confirmar continuidade
-              </label>
-            </div>
+          {consulta && (
+            <SupplierComparison
+              consulta={consulta}
+              divergencias={analise?.divergencias}
+              selectedFields={selectedFields}
+              protectedFields={protectedFields}
+              onToggleField={toggleField}
+            />
           )}
 
           {analise && (
-            <section className="card">
-              <div className="card-heading">
-                <div>
-                  <div className="section-title">Comparacao</div>
-                  <h2>Divergencias encontradas</h2>
-                </div>
-                <span className="badge">{analise.divergencias.length} campos</span>
-              </div>
-              {analise.alertas.map((alerta) => <div className="notice notice-warn" key={alerta}>{alerta}</div>)}
-              <DivergenceTable divergencias={analise.divergencias} selectedFields={selectedFields} onToggle={toggleField} />
-              <div className="actions">
-                <button className="btn btn-secondary" disabled={loading || selectedFields.length === 0} onClick={() => handleDecision("rejeitar")}>
-                  <XIcon /> Rejeitar
-                </button>
-                <button className="btn btn-primary" disabled={loading || selectedFields.length === 0} onClick={() => handleDecision("aprovar")}>
-                  <CheckIcon /> Aceitar
-                </button>
-              </div>
-            </section>
+            <ApprovalPanel
+              alertas={analise.alertas}
+              situacaoCadastral={consulta?.situacaoCadastral}
+              baixadaConfirmed={baixadaConfirmed}
+              onBaixadaConfirmChange={setBaixadaConfirmed}
+              selectedFieldsCount={selectedFields.length}
+              loading={loading}
+              onApprove={() => handleDecision("aprovar")}
+              onReject={() => handleDecision("rejeitar")}
+            />
           )}
         </div>
       </section>
@@ -181,114 +151,7 @@ export function CadastroFornecedor() {
   );
 }
 
-function ConsultaPanel({ consulta }: { consulta: ConsultaCnpjResultado }) {
-  return (
-    <section className="card">
-      <div className="card-heading">
-        <div>
-          <div className="section-title">Consulta realizada</div>
-          <h2>Dados retornados</h2>
-        </div>
-        <span className={`status status-${consulta.situacaoCadastral.toLowerCase()}`}>{consulta.situacaoCadastral}</span>
-      </div>
-      <DataGrid title="Identificacao" items={[
-        ["Cnpj_Cpf", consulta.cnpj_Cpf],
-        ["RazaoSocial", consulta.razaoSocial],
-        ["NomeFantasia", consulta.nomeFantasia],
-        ["TipoPessoa", consulta.tipoPessoa]
-      ]} />
-      <DataGrid title="Situacao" items={[
-        ["SituacaoCadastral", consulta.situacaoCadastral],
-        ["DataSituacaoCadastral", formatDate(consulta.dataSituacaoCadastral)]
-      ]} />
-      <DataGrid title="Endereco" items={[
-        ["Cep", consulta.cep],
-        ["Logradouro", consulta.logradouro],
-        ["Numero", consulta.numero],
-        ["Complemento", consulta.complemento],
-        ["Bairro", consulta.bairro],
-        ["Cidade", consulta.cidade],
-        ["Estado", consulta.estado]
-      ]} />
-      <DataGrid title="Contato" items={[
-        ["Email", consulta.email],
-        ["Telefone", consulta.telefone]
-      ]} />
-    </section>
-  );
-}
-
-function DataGrid({ title, items }: { title: string; items: Array<[string, string | null | undefined]> }) {
-  return (
-    <div className="data-block">
-      <div className="section-title">{title}</div>
-      <div className="data-grid">
-        {items.map(([label, value]) => (
-          <div className="field-readonly" key={label}>
-            <span>{label}</span>
-            <strong>{value || "Nao informado"}</strong>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function DivergenceTable({ divergencias, selectedFields, onToggle }: {
-  divergencias: FornecedorCampoDivergencia[];
-  selectedFields: string[];
-  onToggle: (field: string) => void;
-}) {
-  if (divergencias.length === 0) return <div className="empty-state">Nenhuma divergencia encontrada.</div>;
-  return (
-    <table className="divergence-table">
-      <thead>
-        <tr><th>Usar</th><th>Campo</th><th>Atual</th><th>Sugestao</th><th>Decisao</th></tr>
-      </thead>
-      <tbody>
-        {divergencias.map((item) => {
-          const protectedField = protectedFields.has(item.campo);
-          return (
-            <tr key={item.campo}>
-              <td>
-                <input
-                  aria-label={`Selecionar ${item.campo}`}
-                  type="checkbox"
-                  disabled={protectedField}
-                  checked={!protectedField && selectedFields.includes(item.campo)}
-                  onChange={() => onToggle(item.campo)}
-                />
-              </td>
-              <td>{item.campo}{protectedField && <span className="lock-note">ERP</span>}</td>
-              <td>{item.valorAtual || "Nao informado"}</td>
-              <td>{item.valorSugerido || "Nao informado"}</td>
-              <td><span className="badge">{item.statusDecisao}</span></td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  );
-}
-
-function formatDate(value?: string | null) {
-  if (!value) return "Nao informado";
-  return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
-}
-
 function formatDateTime(value?: string | null) {
   if (!value) return "Aguardando";
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
-}
-
-function SearchIcon() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.35-4.35" /></svg>;
-}
-
-function CheckIcon() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>;
-}
-
-function XIcon() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>;
 }

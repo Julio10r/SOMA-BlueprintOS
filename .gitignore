@@ -75,6 +75,7 @@ node_modules/
 frontend/dist/
 frontend/web/dist/
 *.tsbuildinfo
+*.timestamp-*.mjs
 
 # ==========================================================
 # Environment & Secrets
