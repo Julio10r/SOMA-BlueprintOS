@@ -60,6 +60,7 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<BlueprintOSDbContext>(options => options.UseSqlServer(connectionString));
         services.AddSingleton<B1ConnectivityValidator>();
         services.AddScoped<IFornecedorRepository, FornecedorRepository>();
+        services.AddScoped<IFornecedorCnpjConsultaHistoricoRepository, FornecedorCnpjConsultaHistoricoRepository>();
         services.AddScoped<IErpFornecedorDiscoveryRepository, ErpFornecedorDiscoveryRepository>();
         services.AddScoped<IFornecedorDescobertoRepository, FornecedorDescobertoRepository>();
         services.AddScoped<IFornecedorSincronizacaoRepository, FornecedorSincronizacaoRepository>();

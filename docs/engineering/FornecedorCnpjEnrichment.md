@@ -6,6 +6,8 @@ Definir a arquitetura inicial da capacidade B2.2 — Consulta CNPJ e Enriquecime
 
 A funcionalidade deve permitir que o usuário informe um `Cnpj_Cpf`, acione uma consulta externa e receba dados sugeridos para enriquecer o cadastro de fornecedor no +Compras. A consulta externa não substitui o cadastro e nunca deve atualizar o +Compras ou o ERP Linx sem confirmação humana.
 
+**Estado B2.2.1:** concluída. O contrato, o resultado tipado, a auditoria persistida e os testes unitários foram entregues; a B2.2 continua em andamento e não possui provider externo configurado.
+
 ```text
 Usuário informa Cnpj_Cpf
     ↓
@@ -20,9 +22,20 @@ Salva fornecedor +Compras
 Sincronização ERP
 ```
 
-## Contrato
+## Contrato implementado na B2.2.1
 
-O contrato inicial deve ser independente do provedor externo.
+O contrato é independente do provedor externo e não contém SDK, URL, credencial ou tipo de resposta de uma API específica.
+
+```text
++Compras
+    ↓
+ICnpjConsultaProvider
+    ├── Provider gratuito (B2.2.2)
+    ├── Provider pago (futuro)
+    └── Serviço corporativo (futuro)
+```
+
+`ICnpjConsultaProvider` expõe `FonteConsulta` e `ConsultarAsync(string cnpjCpf, CancellationToken)`, retornando `ConsultaCnpjResultado`. O resultado contém identificação, situação cadastral, endereço, contato, dados adicionais, fonte, data, status e mensagem de erro. A situação cadastral aceita `Ativa`, `Baixada`, `Suspensa`, `Inapta` e `NaoEncontrada`.
 
 Entrada mínima:
 
@@ -104,7 +117,7 @@ Rejeição:
 
 ## Auditoria
 
-Toda consulta deve gerar trilha auditável com:
+Toda consulta realizada pelo caso de uso gera `FornecedorCnpjConsultaHistorico`, persistido em `FornecedoresCnpjConsultas`, com:
 
 - `CorrelationId`;
 - usuário solicitante;
@@ -112,9 +125,10 @@ Toda consulta deve gerar trilha auditável com:
 - provedor utilizado;
 - timestamp da consulta;
 - status e mensagens;
-- campos sugeridos;
-- campos aceitos ou rejeitados pelo usuário;
-- snapshot antes/depois quando houver persistência.
+- resultado da consulta e mensagem de erro normalizada;
+- `BusinessUnit` e `ErpSistema` opcional para futuras configurações por BU.
+
+Campos aceitos/rejeitados e snapshots antes/depois pertencem à futura confirmação e persistência do fornecedor; não são produzidos pela consulta de sugestão.
 
 Dados sensíveis devem ser registrados com mascaramento quando aplicável.
 
@@ -151,7 +165,7 @@ Antes de uso produtivo, será necessário definir:
 
 ## Backlog B2.2
 
-- B2.2.1 — Contrato de consulta CNPJ.
+- B2.2.1 — Concluída: contrato de consulta CNPJ, resultado tipado e auditoria persistida, sem provider externo.
 - B2.2.2 — Integração API externa.
 - B2.2.3 — Normalização de dados.
 - B2.2.4 — Validação de fornecedor.

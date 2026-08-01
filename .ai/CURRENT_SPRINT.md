@@ -52,7 +52,7 @@ Documentação inicial:
 - `docs/engineering/FornecedorCnpjEnrichment.md`
 
 Backlog B2.2:
-- B2.2.1 — Contrato de consulta CNPJ.
+- B2.2.1 — Contrato de consulta CNPJ, concluída: provider desacoplado, resultado tipado, auditoria persistida e 260 testes unitários/4 de integração aprovados, sem API externa.
 - B2.2.2 — Integração API externa.
 - B2.2.3 — Normalização de dados.
 - B2.2.4 — Validação de fornecedor.
