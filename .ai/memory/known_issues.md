@@ -16,8 +16,8 @@
 
 ## B2.1 — Validação Operacional e Sincronização
 
-- A conectividade real com +Compras e `SOMA_DESENV` foi confirmada em 31/07/2026, mas a migration `202607310001_B21FornecedorSynchronization` ainda não foi aplicada porque a mutação do banco compartilhado requer autorização explícita.
-- O ERP não teve o schema de escrita homologado ainda. O adaptador aceita tabela e schema configuráveis e deve ser validado com fornecedor fictício antes de qualquer teste de escrita.
+- A conectividade real, a migration `202607310001_B21FornecedorSynchronization` e os fluxos de leitura/escrita foram confirmados em 31/07/2026.
+- O ERP limita `FORNECEDOR` a 25 caracteres e o mantém como FK para `CADASTRO_CLI_FOR.NOME_CLIFOR`; a sincronização não altera essa chave e atualiza CNPJ como campo corporativo permitido.
 - A identidade de desenvolvimento continua limitando a operação a Development, conforme ADR-0011.
 
 ## Estado consolidado na Sprint A10 — Project State Consolidation

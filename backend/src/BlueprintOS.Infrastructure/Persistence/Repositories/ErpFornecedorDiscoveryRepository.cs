@@ -9,8 +9,8 @@ namespace BlueprintOS.Infrastructure.Persistence.Repositories;
 /// <summary>Adaptador de leitura do ERP; não cria migrations nem executa escrita em SOMA_DESENV.</summary>
 public sealed class ErpFornecedorDiscoveryRepository(IConfiguration configuration) : IErpFornecedorDiscoveryRepository
 {
-    private static readonly string[] NameAliases = ["nome", "nome_fornecedor", "razao_social", "razaosocial", "fornecedor_nome", "fantasia"];
-    private static readonly string[] CnpjAliases = ["cnpj", "cpf_cnpj", "documento"];
+    private static readonly string[] NameAliases = ["nome", "nome_fornecedor", "razao_social", "razaosocial", "fornecedor_nome", "fantasia", "fornecedor"];
+    private static readonly string[] CnpjAliases = ["cnpj", "cpf_cnpj", "cgc_cpf", "documento"];
     private static readonly string[] SupplierCodeAliases = ["codigo_fornecedor", "cod_fornecedor", "id_fornecedor", "fornecedor_id"];
     private static readonly string[] ItemAliases = ["codigo_item", "cod_item", "codigo_produto", "cod_produto", "produto_id", "item_id"];
     private static readonly string[] DescriptionAliases = ["descricao", "descricao_item", "descricao_produto", "produto"];

@@ -22,4 +22,5 @@ Foi aceita a construção incremental: fluxos operacionais completos e manuais d
 - A sincronização usa contratos Application (`IErpFornecedorAdapter` e resolver por BU), mantendo o schema do ERP somente na Infrastructure.
 - A chave de idempotência é `BU + ERP + ErpFornecedorId`; o +Compras mantém status, origem, última execução e histórico de tentativas.
 - A importação atualiza somente campos corporativos explícitos (`Nome`, `Cnpj`, localidade e país); campos próprios do +Compras não são sobrescritos.
-- A aplicação da migration e a validação com escrita real exigem autorização operacional separada; nenhum dado real foi criado ou alterado nesta etapa.
+- A migration foi aplicada somente no +Compras e a escrita real foi executada somente com registros fictícios no `SOMA_DESENV`; nenhuma alteração de schema foi feita no ERP.
+- O adaptador SOMA_DESENV trata `FORNECEDORES.FORNECEDOR` como chave externa imutável por FK e atualiza CNPJ como campo corporativo seguro.

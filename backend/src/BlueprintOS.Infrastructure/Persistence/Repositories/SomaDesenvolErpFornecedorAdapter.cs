@@ -35,19 +35,39 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
         await using var connection = await OpenAsync(ct);
         var shape = await LoadShapeAsync(connection, ct);
         await using var command = connection.CreateCommand(); command.CommandTimeout = TimeoutSeconds;
+        var externalId = fornecedor.Id;
+        if (inserir && shape.IsSomaFornecedores) externalId = await NextSupplierIdAsync(connection, shape, ct);
         if (inserir)
         {
-            command.CommandText = $"INSERT INTO {shape.Table} ({shape.WriteColumns}) VALUES ({shape.WriteValues})";
+            command.CommandText = shape.IsSomaFornecedores
+                ? $"SET XACT_ABORT ON; BEGIN TRAN; INSERT INTO [dbo].[CADASTRO_CLI_FOR] ([NOME_CLIFOR], [CLIFOR], [COD_CLIFOR], [CGC_CPF], [RAZAO_SOCIAL], [RG_IE], [UF], [COBRANCA_UF], [ENTREGA_UF], [COBRANCA_CGC], [CADASTRAMENTO], [COBRANCA_IE], [ENTREGA_CGC], [ENTREGA_IE], [PAIS], [COBRANCA_PAIS], [ENTREGA_PAIS]) VALUES (@nome, @id, @id, @cnpj, @nome, @empty, @uf, @uf, @uf, @cnpj, GETDATE(), @empty, @cnpj, @empty, @paisErp, @paisErp, @paisErp); INSERT INTO {shape.Table} ([COD_FORNECEDOR], [CLIFOR], [FORNECEDOR], [CONDICAO_PGTO], [CGC_CPF], [INATIVO]) VALUES (@id, @id, @nome, '001', @cnpj, 0); COMMIT TRAN"
+                : $"INSERT INTO {shape.Table} ({shape.WriteColumns}) VALUES ({shape.WriteValues})";
         }
         else
         {
-            command.CommandText = $"UPDATE {shape.Table} SET {shape.UpdateSet} WHERE {shape.IdColumn} = @id";
+            command.CommandText = shape.IsSomaFornecedores
+                ? $"SET XACT_ABORT ON; BEGIN TRAN; UPDATE [dbo].[CADASTRO_CLI_FOR] SET [CGC_CPF] = @cnpj, [COBRANCA_CGC] = @cnpj, [ENTREGA_CGC] = @cnpj WHERE [COD_CLIFOR] = @id; UPDATE {shape.Table} SET [CGC_CPF] = @cnpj WHERE [COD_FORNECEDOR] = @id; COMMIT TRAN"
+                : $"UPDATE {shape.Table} SET {shape.UpdateSet} WHERE {shape.IdColumn} = @id";
         }
-        command.Parameters.Add(new SqlParameter("@id", fornecedor.Id)); command.Parameters.Add(new SqlParameter("@nome", fornecedor.Nome));
+        command.Parameters.Add(new SqlParameter("@id", externalId)); command.Parameters.Add(new SqlParameter("@nome", fornecedor.Nome));
         command.Parameters.Add(new SqlParameter("@cnpj", fornecedor.Cnpj)); command.Parameters.Add(new SqlParameter("@cidade", (object?)fornecedor.Cidade ?? DBNull.Value));
         command.Parameters.Add(new SqlParameter("@estado", (object?)fornecedor.Estado ?? DBNull.Value)); command.Parameters.Add(new SqlParameter("@pais", (object?)fornecedor.Pais ?? DBNull.Value));
+        if (inserir && shape.IsSomaFornecedores)
+        {
+            command.Parameters.Add(new SqlParameter("@empty", string.Empty));
+            command.Parameters.Add(new SqlParameter("@uf", string.IsNullOrWhiteSpace(fornecedor.Estado) ? "SP" : fornecedor.Estado));
+            command.Parameters.Add(new SqlParameter("@paisErp", "BRASIL"));
+        }
         if (await command.ExecuteNonQueryAsync(ct) == 0 && !inserir) throw new InvalidOperationException("Fornecedor não encontrado no ERP.");
-        return new(fornecedor.Id, fornecedor.Nome, fornecedor.Cnpj, fornecedor.Cidade, fornecedor.Estado, fornecedor.Pais);
+        return new(externalId, fornecedor.Nome, fornecedor.Cnpj, fornecedor.Cidade, fornecedor.Estado, fornecedor.Pais);
+    }
+
+    private static async Task<string> NextSupplierIdAsync(SqlConnection connection, TableShape shape, CancellationToken ct)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT RIGHT('000000' + CAST(ISNULL(MAX(TRY_CONVERT(int, [COD_FORNECEDOR])), 0) + 1 AS varchar(6)), 6) FROM {shape.Table}";
+        var value = await command.ExecuteScalarAsync(ct);
+        return Convert.ToString(value)?.Trim() ?? throw new InvalidOperationException("Não foi possível gerar o identificador do fornecedor no ERP.");
     }
 
     private async Task<SqlConnection> OpenAsync(CancellationToken ct)
@@ -81,13 +101,14 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
     {
         public string Table { get; } = $"[{schema.Replace("]", "]]", StringComparison.Ordinal)}].[{table.Replace("]", "]]", StringComparison.Ordinal)}]";
         public string? IdColumn => Find("codigo_fornecedor", "cod_fornecedor", "id_fornecedor", "fornecedor_id", "codigo", "id");
-        public string? NameColumn => Find("nome", "nome_fornecedor", "razao_social", "razaosocial", "fantasia");
-        public string? CnpjColumn => Find("cnpj", "cpf_cnpj", "documento");
+        public string? NameColumn => Find("nome", "nome_fornecedor", "razao_social", "razaosocial", "fantasia", "fornecedor");
+        public string? CnpjColumn => Find("cnpj", "cpf_cnpj", "cgc_cpf", "documento");
         public string? CidadeColumn => Find("cidade", "municipio"); public string? EstadoColumn => Find("estado", "uf"); public string? PaisColumn => Find("pais", "país");
         public string SelectList => $"{Q(IdColumn!)} AS Id, {Q(NameColumn!)} AS Nome, {Select(CnpjColumn, "Cnpj")}, {Select(CidadeColumn, "Cidade")}, {Select(EstadoColumn, "Estado")}, {Select(PaisColumn, "Pais")}";
         public string WriteColumns => string.Join(", ", new[] { (IdColumn, "@id"), (NameColumn, "@nome"), (CnpjColumn, "@cnpj"), (CidadeColumn, "@cidade"), (EstadoColumn, "@estado"), (PaisColumn, "@pais") }.Where(x => x.Item1 is not null).Select(x => Q(x.Item1!)));
         public string WriteValues => string.Join(", ", new[] { (IdColumn, "@id"), (NameColumn, "@nome"), (CnpjColumn, "@cnpj"), (CidadeColumn, "@cidade"), (EstadoColumn, "@estado"), (PaisColumn, "@pais") }.Where(x => x.Item1 is not null).Select(x => x.Item2));
         public string UpdateSet => string.Join(", ", new[] { (NameColumn, "@nome"), (CnpjColumn, "@cnpj"), (CidadeColumn, "@cidade"), (EstadoColumn, "@estado"), (PaisColumn, "@pais") }.Where(x => x.Item1 is not null).Select(x => $"{Q(x.Item1!)} = {x.Item2}"));
+        public bool IsSomaFornecedores => string.Equals(table, "FORNECEDORES", StringComparison.OrdinalIgnoreCase) && string.Equals(schema, "dbo", StringComparison.OrdinalIgnoreCase);
         private string? Find(params string[] aliases) => columns.FirstOrDefault(x => aliases.Contains(x, StringComparer.OrdinalIgnoreCase));
         private static string Q(string value) => $"[{value.Replace("]", "]]", StringComparison.Ordinal)}]";
         private static string Select(string? column, string alias) => column is null ? $"NULL AS {alias}" : $"{Q(column)} AS {alias}";

@@ -4,6 +4,7 @@ using BlueprintOS.Api.Identity;
 using BlueprintOS.Api.Negotiations;
 using BlueprintOS.Api.Suppliers;
 using BlueprintOS.Application.Identity.Contracts;
+using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Infrastructure.DependencyInjection;
 using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Publication.Publishers;
@@ -39,6 +40,11 @@ if (args.Length > 0 && args[0] == "validate-maiscompras")
 if (args.Length > 0 && args[0] == "validate-b1-connectivity")
 {
     return await ValidateB1ConnectivityAsync();
+}
+
+if (args.Length > 0 && args[0] == "probe-erp-suppliers")
+{
+    return await ProbeErpSuppliersAsync(args);
 }
 
 var builder = WebApplication.CreateBuilder(args);
@@ -239,6 +245,27 @@ static async Task<int> ValidateB1ConnectivityAsync()
     WriteConnectivityError(maisCompras);
     WriteConnectivityError(erp);
     return maisCompras.IsSuccess && erp.IsSuccess ? 0 : 1;
+}
+
+static async Task<int> ProbeErpSuppliersAsync(string[] args)
+{
+    var term = args.Length > 1 && !string.IsNullOrWhiteSpace(args[1]) ? args[1] : "0";
+    var configuration = BuildDatabaseConfiguration();
+    var services = new ServiceCollection();
+    services.AddInfrastructure(configuration);
+#pragma warning disable ASP0000
+    await using var provider = services.BuildServiceProvider();
+#pragma warning restore ASP0000
+    var candidates = await provider.GetRequiredService<IErpFornecedorDiscoveryRepository>()
+        .DescobrirAsync(new(term, term, term));
+    Console.WriteLine($"Candidatos ERP encontrados: {candidates.Count}");
+    foreach (var candidate in candidates.Take(20))
+    {
+        var id = string.IsNullOrWhiteSpace(candidate.CodigoFornecedor) ? "[sem-id]" : candidate.CodigoFornecedor;
+        var maskedCnpj = string.IsNullOrWhiteSpace(candidate.Cnpj) ? "[sem-documento]" : $"***{candidate.Cnpj[^Math.Min(4, candidate.Cnpj.Length)..]}";
+        Console.WriteLine($"ERP_ID={id}; CNPJ={maskedCnpj}; Nome=[SANITIZADO]");
+    }
+    return 0;
 }
 
 static IConfiguration BuildDatabaseConfiguration() => new ConfigurationBuilder()

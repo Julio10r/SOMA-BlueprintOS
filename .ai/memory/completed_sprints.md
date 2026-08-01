@@ -125,3 +125,15 @@
 **Validação:** build sem erros ou avisos; 240 testes unitários e 2 de integração aprovados.
 
 **Limite operacional:** o ambiente de execução não alcançou o SQL Server ERP (timeout). A validação operacional permanece pendente; o score é estrutura inicial e será evoluído somente quando existirem dados operacionais de itens, pedidos e relacionamentos.
+
+## Sprint B2.1 — Validação Operacional e Sincronização de Fornecedores com ERP
+
+**Status:** Concluída em 31/07/2026.
+
+**Entregas:** contratos ERP por BU/adaptador, adaptador `SOMA_DESENV`, importação e exportação idempotentes, lote controlado, status/origem/última sincronização, histórico de tentativas, correlação, timeout/cancelamento, migration `202607310001_B21FornecedorSynchronization` aplicada no +Compras e endpoints operacionais.
+
+**Evidências reais:** ERP_ID `277459` importado para um único fornecedor do +Compras e repetido sem duplicidade; fornecedor fictício +Compras `59d3f811-23ce-4589-9c15-1679cea59afd` criado no ERP como `999999`, atualizado por CNPJ de final `0195` para `0110` e reexecutado idempotentemente. O histórico do +Compras registrou as tentativas com status sanitizado.
+
+**Validação:** build sem erros/avisos; 245 testes unitários e 3 testes de integração aprovados.
+
+**Limitação conhecida:** `FORNECEDORES.FORNECEDOR` é FK para `CADASTRO_CLI_FOR.NOME_CLIFOR`; o nome não foi alterado para evitar operação destrutiva. O adaptador atualiza CNPJ e campos corporativos compatíveis.

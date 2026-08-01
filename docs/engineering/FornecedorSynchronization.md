@@ -26,4 +26,4 @@ Credenciais devem permanecer em User Secrets ou variáveis de ambiente. Logs reg
 3. Criar no +Compras um fornecedor de teste com identificador rastreável, exportar, consultar o ERP e atualizar somente um campo corporativo permitido; exportar novamente.
 4. Guardar a correlação das respostas, IDs externos e consultas de conferência. Não remover o registro de teste sem registrar o procedimento.
 
-A conectividade foi confirmada em 31/07/2026 para ambos os bancos. A leitura/escrita end-to-end permanece pendente da migration e da homologação do mapeamento da tabela ERP.
+A validação foi concluída em 31/07/2026. A migration foi aplicada no +Compras. O ERP_ID `277459` foi importado duas vezes sem duplicidade; o fornecedor fictício de +Compras recebeu ERP_ID `999999`, teve CNPJ alterado de final `0195` para `0110` e foi sincronizado novamente sem duplicidade. O nome ERP é chave estrangeira para `CADASTRO_CLI_FOR` e permanece imutável nesta etapa; a atualização validada foi CNPJ.

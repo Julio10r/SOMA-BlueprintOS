@@ -12,8 +12,8 @@
 
 - **Data:** 31/07/2026
 - **Branch:** `feature/a13-procurement-vertical-slice`
-- **Commit de referência:** `a19e496` — `feat(B2): implement intelligent supplier discovery`.
-- **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros e 0 avisos; 240 testes unitários e 3 testes de integração aprovados. A conexão SQL ao ERP não estava acessível no ambiente da B2, sem alteração de estado.
+- **Commit de referência:** complementar à implementação B2.1; migration aplicada e validação real executada em 31/07/2026.
+- **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros e 0 avisos; 245 testes unitários e 3 testes de integração aprovados. +Compras e `SOMA_DESENV` foram validados com leitura e escrita fictícias controladas.
 
 ## Sistema de Work Orders
 
@@ -26,7 +26,7 @@
 - **Decisão aceita:** [ADR-0013](./DECISIONS.md) estabelece a evolução em dois momentos: plataforma operacional primeiro e inteligência progressiva sobre dados reais depois.
 - **Princípio obrigatório:** toda operação crítica possui alternativa manual; IA acelera e orienta, mas não é pré-requisito para cadastrar ou selecionar fornecedor/item, criar pedido, enviá-lo ao ERP ou acompanhar a integração.
 - **Portal:** é a interface do próprio +Compras e evolui junto aos módulos, sem constituir produto ou módulo separado.
-- **B2:** permanece concluída como estrutura inicial de descoberta e score (100/80/60/40). A validação operacional de leitura no ERP SOMA_DESENV permanece pendente por timeout de rede; o fluxo é somente leitura e o score completo depende de itens, pedidos e relacionamentos operacionais futuros.
+- **B2/B2.1:** B2 permanece como estrutura inicial de descoberta e score (100/80/60/40); B2.1 validou operacionalmente leitura, escrita, atualização e idempotência de fornecedores.
 
 ## Estratégia de LLM
 
@@ -37,14 +37,14 @@
 
 ## Resumo executivo
 
-O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes simples, conhecimento em Markdown, memória e estratégia de negociação em processo, workflow sequencial e publicação/documentação. O +COMPRAS possui o CRUD de fornecedores implementado e pronto para aplicação da migration, além de um fluxo consultivo de negociação por API; ainda não há autenticação corporativa ou integração ERP.
+O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes simples, conhecimento em Markdown, memória e estratégia de negociação em processo, workflow sequencial e publicação/documentação. O +COMPRAS possui CRUD de fornecedores e sincronização ERP operacional validados; ainda não há autenticação corporativa.
 
 ## Ciclo atual
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
 - **Última sprint comprovadamente concluída:** B2 — Descoberta Inteligente de Fornecedores (30/07/2026).
-- **Sprint atual:** B2.1 em execução. A implementação está concluída; a prova end-to-end depende de autorização para aplicar migrations no +Compras.
-- **Próxima sprint recomendada:** B3 após a conclusão comprovada da B2.1; B3 não foi iniciada.
+- **Sprint atual:** B2.1 concluída. Implementação, migration, leitura/escrita real, idempotência e documentação foram comprovadas.
+- **Próxima sprint recomendada:** B3; B3 não foi iniciada.
 - **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
 ## Capacidades implementadas
@@ -57,7 +57,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 | Negociação | `NegotiationMemory`, regras e `NegotiationStrategy` | Implementado, em memória |
 | API de negociação | `POST /api/v1/negociacoes/recomendacoes` via `NegotiationRecommendationUseCase` | Implementado, consultivo e sem estado |
 | Fornecedores | `Fornecedor`, EF Core/SQL Server sobre `MaisComprasConnection`, migration e `POST/GET/PUT/DELETE /fornecedores` | Implementado |
-| Sincronização de fornecedores | Contratos por adaptador/BU, `SomaDesenvolErpFornecedorAdapter`, importação/exportação, idempotência e histórico | Implementação concluída; validação operacional pendente |
+| Sincronização de fornecedores | Contratos por adaptador/BU, `SomaDesenvolErpFornecedorAdapter`, importação/exportação, idempotência e histórico | Implementado e validado operacionalmente |
 | Descoberta de fornecedores | `FornecedorDescoberto`, score centralizado, leitura `SOMA_DESENV`, persistência +Compras e `/api/fornecedores/descobertas` | Implementado; validação SQL ERP pendente de ambiente com acesso |
 | Workflow | `Workflow` e `WorkflowRunner` sequenciais | Implementado, básico |
 | Documentation | contratos, geradores, publicação Markdown, Git reader e health report | Implementado |
@@ -75,12 +75,12 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 - Identity, autorização, multi-tenant e Microsoft Entra ID.
 - Planner, Procurement, Notifications, Dashboard e Analytics.
 - Frontend React/TypeScript e portal +COMPRAS.
-- Integrações ERP, n8n e APIs corporativas.
+- n8n e APIs corporativas; integração ERP de fornecedores B2.1 está implementada.
 
 ## Agentes e integrações concretos
 
 - **Agentes:** `EchoAgent` e `KnowledgeAgent`. Não existe classe concreta `SeniorBuyerAgent`, `NegotiationAgent`, `ComplianceAgent` ou `RiskAgent`.
-- **Integrações:** OpenAI Chat Completions via `OpenAIProvider`; descoberta ERP somente leitura via `ErpFornecedorDiscoveryRepository` em `SOMA_DESENV`; CLI Git somente para leitura de histórico de documentação.
+- **Integrações:** OpenAI Chat Completions via `OpenAIProvider`; descoberta e sincronização de fornecedores via adaptadores em `SOMA_DESENV`; CLI Git somente para leitura de histórico de documentação.
 - **Identidade temporária:** `DevelopmentRequestIdentity` atende somente Development e alimenta `ICurrentIdentity`; fornecedores persistem esse vínculo sem dependência da implementação concreta.
 
 ## Qualidade
@@ -96,8 +96,7 @@ Build da solution: sucesso, 0 erros e 0 avisos.
 ## Riscos e pendências
 
 - Apenas a recomendação de negociação está exposta por API; os demais domínios de negócio ainda não possuem API ou interface utilizável.
-- A migration B2.1 ainda precisa ser aplicada no +Compras antes da prova end-to-end; o controle de segurança exige autorização explícita para essa mutação persistente.
-- O mapeamento de escrita do ERP é configurável e precisa ser homologado contra a tabela/colunas existentes em `SOMA_DESENV` antes de usar dados de teste.
+- A atualização do nome no ERP permanece limitada pela FK `FORNECEDORES.FORNECEDOR → CADASTRO_CLI_FOR.NOME_CLIFOR`; a B2.1 validou atualização de CNPJ sem operação destrutiva.
 - Dados de negociação e documentação ainda não são duráveis.
 - A configuração da chave OpenAI depende de ambiente e não há tratamento operacional completo para credenciais, rate limits ou telemetria.
 - A arquitetura física diverge do layout alvo; uma migração deve ser planejada somente quando trouxer benefício concreto.
