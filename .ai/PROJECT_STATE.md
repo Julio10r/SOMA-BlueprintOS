@@ -12,7 +12,7 @@
 
 - **Data:** 01/08/2026
 - **Branch:** `feature/a13-procurement-vertical-slice`
-- **Commit de referência:** `b08769f`, `3b6d54b` e `0240c35` para as entregas B2.1 e B2.1.1; B2.1.2 em implementação na branch atual.
+- **Commit de referência:** `b08769f`, `3b6d54b` e `0240c35` para as entregas B2.1 e B2.1.1; `77861eb` para B2.1.2.
 - **Validação desta atualização:** `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros e 0 avisos; 256 testes unitários e 4 testes de integração aprovados. A migration `202608010002_B212FornecedorLinxCanonicalModel` foi aplicada no +Compras dev; nenhuma alteração de schema foi feita no ERP.
 
 ## Sistema de Work Orders
@@ -27,8 +27,8 @@
 - **Princípio obrigatório:** toda operação crítica possui alternativa manual; IA acelera e orienta, mas não é pré-requisito para cadastrar ou selecionar fornecedor/item, criar pedido, enviá-lo ao ERP ou acompanhar a integração.
 - **Portal:** a ADR-0017 definiu o Portal Operacional +Compras como navegação e identidade visual completas, com evolução funcional incremental por domínio. Fornecedores é a primeira vertical slice funcional planejada; não há portal frontend implementado ainda.
 - **B2/B2.1/B2.1.1:** B2 permanece como estrutura inicial de descoberta e score (100/80/60/40). B2.1 concluiu sincronização bidirecional, regra temporal, inativação, auditoria e concorrência; B2.1.1 concluiu o mapeamento canônico ERP → +Compras.
-- **B2.1.2:** em implementação conforme ADR-0016, com documento fiscal `Cnpj_Cpf`, separação de `RazaoSocial`/`NomeFantasia`, proteção do nome fantasia controlado pelo Linx, flags `Beneficiador`/`Licenciado` e estrutura inicial de domínios ERP.
-- **B2.2:** permanece planejada em Draft após B2.1/B2.1.1 e conclusão da análise B2.1.2. Consulta externa será apenas sugestão revisável, com auditoria e sem atualização automática do +Compras ou ERP.
+- **B2.1.2:** concluída conforme ADR-0016, com modelo fornecedor alinhado ao Linx: `Cnpj_Cpf`, `TipoPessoa`, separação de `RazaoSocial`/`NomeFantasia`, proteção do nome fantasia controlado pelo Linx, flags `Beneficiador`/`Licenciado`, domínios ERP estruturados, FKs opcionais e contrato frontend inicial.
+- **B2.2:** iniciada como Consulta CNPJ e Enriquecimento de Fornecedor. Consulta externa será apenas sugestão revisável, com auditoria e sem atualização automática do +Compras ou ERP.
 
 ## Estratégia de LLM
 
@@ -44,9 +44,9 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 ## Ciclo atual
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
-- **Última sprint comprovadamente concluída:** B2.1 — Validação Operacional e Sincronização de Fornecedores com ERP (01/08/2026), incluindo a subetapa B2.1.1.
-- **Sprint atual:** B2.1.2 — Implementação Modelo Canônico Fornecedor ERP Linx, em implementação.
-- **Próxima pendência planejada:** homologar sincronização operacional real dos domínios ERP Linx e concluir a B2.1.2. B2.2 permanece Draft e B3 não foi iniciada.
+- **Última sprint comprovadamente concluída:** B2.1.2 — Modelo Canônico de Fornecedor ERP Linx (01/08/2026).
+- **Sprint atual:** B2.2 — Consulta CNPJ e Enriquecimento de Fornecedor, em andamento.
+- **Próxima pendência planejada:** consolidar contrato, provedor externo, normalização, validação, persistência e auditoria da B2.2. B3 não foi iniciada.
 - **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
 ## Capacidades implementadas
@@ -59,7 +59,8 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 | Negociação | `NegotiationMemory`, regras e `NegotiationStrategy` | Implementado, em memória |
 | API de negociação | `POST /api/v1/negociacoes/recomendacoes` via `NegotiationRecommendationUseCase` | Implementado, consultivo e sem estado |
 | Fornecedores | `Fornecedor`, EF Core/SQL Server sobre `MaisComprasConnection`, migration e `POST/GET/PUT/DELETE /fornecedores` | Implementado |
-| Sincronização de fornecedores | Contrato canônico, adaptadores por BU, importação/exportação/inativação, `LX_SEQUENCIAL`, timestamp Linx, concorrência, idempotência, auditoria append-only e modelo Linx B2.1.2 em evolução | Concluída (B2.1 e B2.1.1); B2.1.2 em implementação |
+| Sincronização de fornecedores | Contrato canônico, adaptadores por BU, importação/exportação/inativação, `LX_SEQUENCIAL`, timestamp Linx, concorrência, idempotência, auditoria append-only e modelo Linx B2.1.2 alinhado ao ERP | Concluída (B2.1, B2.1.1 e B2.1.2) |
+| Enriquecimento de fornecedores por CNPJ | Arquitetura inicial em `docs/engineering/FornecedorCnpjEnrichment.md`; consulta externa definida como sugestão revisável antes de persistência e sincronização ERP | Em andamento (B2.2), sem implementação |
 | Descoberta de fornecedores | `FornecedorDescoberto`, score centralizado, leitura `SOMA_DESENV`, persistência +Compras e `/api/fornecedores/descobertas` | Implementado; validação SQL ERP pendente de ambiente com acesso |
 | Workflow | `Workflow` e `WorkflowRunner` sequenciais | Implementado, básico |
 | Documentation | contratos, geradores, publicação Markdown, Git reader e health report | Implementado |

@@ -147,3 +147,15 @@
 **Entregas:** mapeamento do Linx para identificação, endereço, contatos, dados bancários, comerciais, fiscais e indicadores de fornecimento, sem expor tabelas do ERP à Application.
 
 **Evidência:** `0240c35`; fornecedor ERP fictício `315504` com dados completos e hash persistido. O CNPJ `21855705000160` foi importado com cidade e UF; a reexecução retornou `NenhumaAlteracao`.
+
+## Subetapa B2.1.2 — Modelo Canônico de Fornecedor ERP Linx
+
+**Status:** Concluída em 01/08/2026.
+
+**Resumo:** implementação do modelo canônico de fornecedor integrado ao ERP Linx.
+
+**Entregas:** ADR-0016 criada e aceita; modelo fornecedor alinhado ao Linx; `Cnpj_Cpf` implementado; `TipoPessoa` implementado; `RazaoSocial` separado de `NomeFantasia`; `NomeFantasia` protegido como chave operacional ERP; `Beneficiador` implementado; `Licenciado` implementado; domínios ERP estruturados; FKs opcionais criadas; contrato frontend inicial criado.
+
+**Evidência:** migration `202608010002_B212FornecedorLinxCanonicalModel` aplicada no +Compras dev, sem alteração estrutural no ERP Linx; commit `77861eb`.
+
+**Validação:** build com 0 erros e 0 avisos; 256 testes unitários e 4 testes de integração aprovados.

@@ -1,53 +1,73 @@
-# B2.1.2 - Implementação Modelo Canônico Fornecedor ERP Linx
+# B2.2 - Consulta CNPJ e Enriquecimento de Fornecedor
 
 Status:
-Em implementação
+Em andamento
 
 Objetivo:
-Implementar o alinhamento estrutural entre o ERP Linx e o modelo de fornecedor do +Compras conforme ADR-0016.
+Criar capacidade arquitetural para consultar dados externos de fornecedor a partir do `Cnpj_Cpf` informado pelo usuário, tratando o retorno como sugestão de enriquecimento revisável antes da persistência no +Compras e antes de qualquer sincronização ERP.
 
 Fluxo:
 
 ```text
-Linx ERP
+Usuário informa Cnpj_Cpf
     ↓
-Contrato Canônico Fornecedor
+Serviço de consulta externa
     ↓
-Banco +Compras
+Dados enriquecidos
     ↓
-API
+Usuário valida
     ↓
-Frontend
++Compras salva fornecedor
+    ↓
+Sincronização ERP
 ```
 
-Alterações realizadas:
-- `Cnpj_Cpf` introduzido como documento fiscal compatível com `CGC_CPF`, com `varchar(14)` na persistência.
-- `TipoPessoa` preservado para distinguir `PF`/`PJ`.
-- `RazaoSocial` separado de `NomeFantasia`.
-- `NomeFantasia` protegido contra alteração manual do +Compras; somente importação ERP altera esse campo.
-- `Beneficiador` e `Licenciado` adicionados ao contrato canônico, entidade, banco, API/DTOs, sincronização e auditoria.
-- Tabela `FornecedoresDominiosErp` criada para domínios controlados pelo Linx, com FK opcional em fornecedor para condição de pagamento, tipo e subtipo.
-- Adaptador Linx passou a mapear `BENEFICIADOR` e `LICENCIADO`.
-- Frontend inicial recebeu contrato TypeScript e validações de tamanho/tipo de documento sem listas fixas.
+Regra central:
+- A consulta externa não substitui o cadastro.
+- A API externa é fonte de sugestão de dados.
+- O usuário deve confirmar os dados antes da gravação no +Compras.
+- Não haverá atualização automática do +Compras ou do ERP sem aprovação humana.
 
-Migration:
-- `202608010002_B212FornecedorLinxCanonicalModel`
-- Aplicada no banco dev +Compras via `dotnet run --project backend/src/BlueprintOS.Api -- migrate`.
+Fluxo permitido:
 
-Validação:
-- `dotnet build backend/BlueprintOS.sln --no-restore`: sucesso, 0 erros e 0 avisos.
-- Testes unitários: 256 aprovados.
-- Testes de integração: 4 aprovados.
+```text
+API externa
+    ↓
+Sugestão de dados
+    ↓
+Usuário confirma
+    ↓
++Compras
+```
+
+Fluxo proibido:
+
+```text
+API externa
+    ↓
+Atualização automática sem aprovação
+```
+
+Documentação inicial:
+- `docs/engineering/FornecedorCnpjEnrichment.md`
+
+Backlog B2.2:
+- B2.2.1 — Contrato de consulta CNPJ.
+- B2.2.2 — Integração API externa.
+- B2.2.3 — Normalização de dados.
+- B2.2.4 — Validação de fornecedor.
+- B2.2.5 — Persistência e auditoria.
 
 Contexto herdado:
 - A13 concluída.
 - B1 concluída.
 - B2.1 concluída.
 - B2.1.1 concluída.
-- B2.1.2 em implementação.
-- B2.2 permanece Draft.
+- B2.1.2 concluída.
 - B3 não iniciada.
 
-Decisão de produto relacionada:
-- A [ADR-0017](./DECISIONS.md) aprovou a estratégia do Portal Operacional +Compras: navegação e identidade visual completas desde a primeira versão visual, com evolução funcional incremental por domínio.
-- Fornecedores é a primeira vertical slice funcional planejada; esta decisão não inicia o frontend nem altera o escopo técnico da B2.1.2.
+Limites desta sprint:
+- Não criar frontend ou telas.
+- Não implementar chamadas definitivas para fornecedor externo.
+- Não assumir contratos pagos.
+- Consolidar primeiro a arquitetura e o contrato operacional.
