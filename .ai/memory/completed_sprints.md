@@ -126,7 +126,7 @@
 
 **Limite operacional:** o ambiente de execução não alcançou o SQL Server ERP (timeout). A validação operacional permanece pendente; o score é estrutura inicial e será evoluído somente quando existirem dados operacionais de itens, pedidos e relacionamentos.
 
-## Sprint B2.1 — Validação Operacional e Sincronização de Fornecedores com ERP (conclusão anterior revogada)
+## Sprint B2.1 — Validação Operacional e Sincronização de Fornecedores com ERP
 
 **Status:** Concluída em 31/07/2026.
 
@@ -136,6 +136,14 @@
 
 **Validação:** build sem erros/avisos; 245 testes unitários e 3 testes de integração aprovados.
 
-**Reabertura em 01/08/2026:** o registro acima permanece como entrega técnica anterior, mas não representa conclusão atual. A B2.1 está reaberta para contrato canônico completo, sincronização temporal bidirecional, inativação e auditoria imutável.
+**Conclusão final em 01/08/2026:** a reabertura entregou o contrato canônico completo, sincronização temporal bidirecional, empate favorável ao +Compras, inativação lógica e auditoria append-only com snapshots antes/depois, hashes, `CorrelationId`, histórico e idempotência. `b08769f` e `3b6d54b` registram a implementação. Os CLIFORs reais `315501`, `315502`, `315503` e `315505` foram confirmados em `FORNECEDORES` e `CADASTRO_CLI_FOR`; a concorrência não gerou duplicidade.
 
 **Limitação conhecida:** `FORNECEDORES.FORNECEDOR` é FK para `CADASTRO_CLI_FOR.NOME_CLIFOR`; o nome não foi alterado para evitar operação destrutiva. O adaptador atualiza CNPJ e campos corporativos compatíveis.
+
+## Subetapa B2.1.1 — Completar Mapeamento Canônico ERP → +Compras
+
+**Status:** Concluída em 01/08/2026.
+
+**Entregas:** mapeamento do Linx para identificação, endereço, contatos, dados bancários, comerciais, fiscais e indicadores de fornecimento, sem expor tabelas do ERP à Application.
+
+**Evidência:** `0240c35`; fornecedor ERP fictício `315504` com dados completos e hash persistido. O CNPJ `21855705000160` foi importado com cidade e UF; a reexecução retornou `NenhumaAlteracao`.

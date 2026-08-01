@@ -1,10 +1,10 @@
 Sprint: B2.1 — Validação Operacional e Sincronização de Fornecedores com ERP
 
 Status:
-VALIDAÇÃO TÉCNICA COMPLETA em 01/08/2026 — sprint permanece aberta para revisão formal do relatório
+CONCLUÍDA em 01/08/2026
 
 Subetapa B2.1.1:
-IMPLEMENTADA E VALIDADA — mapeamento canônico ERP → +Compras completo; encerramento formal depende da revisão do relatório.
+CONCLUÍDA — mapeamento canônico ERP → +Compras completo e validado.
 
 Objetivo:
 Completar o contrato canônico e validar a sincronização bidirecional completa de fornecedores entre o +Compras e o ERP configurado por BU, incluindo atualização, inativação, regra temporal, empate favorável ao +Compras, auditoria imutável e idempotência.
@@ -19,7 +19,7 @@ Entrega técnica desta etapa:
 - Migration `202607310001_B21FornecedorSynchronization`, aplicada somente no banco de desenvolvimento +Compras, sem alterações destrutivas.
 
 - Build da solution: sucesso, 0 erros e 0 avisos.
-- Testes unitários: 249 aprovados.
+- Testes unitários: 250 aprovados.
 - Testes de integração: 3 aprovados.
 - Cobertura nova: seleção por BU, mapeamento, importação, exportação, duplicidade, reexecução idempotente, falha sanitizada, cancelamento e isolamento.
 
@@ -31,6 +31,7 @@ Validação operacional concluída nesta reabertura:
 - Auditoria consultada por endpoint somente leitura: 15 eventos, 0 falhas, 15 correlações e 11 eventos com snapshots antes/depois.
 - `CLIFOR` real `315501` foi retornado por `LX_SEQUENCIAL` e confirmado em `FORNECEDORES.COD_FORNECEDOR/CLIFOR` e `CADASTRO_CLI_FOR.COD_CLIFOR/CLIFOR`; a exportação foi reconciliada sem gerar novo código.
 - Criações concorrentes reais retornaram `315502` e `315503`, distintos, confirmados nas duas tabelas e sem duplicidade.
+- O CLIFOR real `315505` também foi confirmado em `FORNECEDORES` e `CADASTRO_CLI_FOR`.
 - O timestamp real foi validado em `CADASTRO_CLI_FOR.DATA_PARA_TRANSFERENCIA`, com fallback/espelho em `FORNECEDORES.DATA_PARA_TRANSFERENCIA`; a leitura normaliza para `America/Sao_Paulo` com precisão de segundo.
 - O registro inválido `00000*` foi inativado, sem exclusão física, com correlação `b21-invalid-clifor-inactivate-final-erp`; estado final `INATIVO=True`.
 - Reexecução, atualização e inativação do fornecedor `315501` reutilizaram o mesmo identificador; auditoria registrou as correlações e os snapshots.
@@ -48,6 +49,6 @@ Limites:
 - A procedure `LX_AZZ_GERAR_FORNECEDOR_LINX` é apenas referência funcional; não será chamada nem copiada.
 - O ERP SOMA_DESENV mantém a limitação de FK entre `FORNECEDORES.FORNECEDOR` e `CADASTRO_CLI_FOR.NOME_CLIFOR`; o adaptador deve preservar chaves físicas e atualizar somente campos suportados.
 
-Próxima sprint planejada:
-- B2.1.2 — Alinhamento Estrutural ERP Linx x +Compras, em `Draft`, como próxima pendência da B2.1. A atividade somente compara e planeja correções de tipo, tamanho, nullable, collation e validações; não cria migration nesta etapa.
-- B2.2 — Enriquecimento Cadastral de Fornecedores por CNPJ permanece em `Draft`, após B2.1/B2.1.2. A consulta externa será apenas sugestão revisável; não haverá atualização automática do cadastro ou do ERP.
+Próximas evoluções planejadas:
+- B2.1.2 — Alinhamento Estrutural ERP Linx x +Compras, em `Draft`. A atividade somente compara e planeja correções de tipo, tamanho, nullable, collation e validações; não cria migration nesta etapa.
+- B2.2 — Enriquecimento Cadastral de Fornecedores por CNPJ, em `Draft`, como próxima evolução após B2.1/B2.1.1 e a pendência estrutural B2.1.2. A consulta externa será apenas sugestão revisável; não haverá atualização automática do cadastro ou do ERP.

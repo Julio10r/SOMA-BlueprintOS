@@ -64,7 +64,7 @@ A [ADR-0013](./DECISIONS.md) organiza a evolução em dois blocos sem alterar as
 1. **Operacional:** fornecedores, itens, compras/pedidos, portal como interface integrada, adaptadores ERP por BU e fluxo ponta a ponta com auditoria básica.
 2. **Inteligente:** inteligência de fornecedores, itens e compras; negociação, orçamento, auditoria, compliance e autonomia progressiva.
 
-O portal não é uma fase isolada: ele evolui com os módulos. Operações críticas mantêm caminho manual e confirmação humana; IA não é a única forma de concluí-las. B2.1 foi reaberta em 01/08/2026 para completar contrato canônico, sincronização bidirecional, inativação, regra temporal e auditoria imutável. A pendência B2.1.2 está em Draft para alinhar estruturalmente o ERP Linx ao contrato canônico antes de qualquer correção por migration ou validação adicional. B2.2 permanece em Draft, após B2.1/B2.1.2, para enriquecimento cadastral por CNPJ; B3 não está iniciada.
+O portal não é uma fase isolada: ele evolui com os módulos. Operações críticas mantêm caminho manual e confirmação humana; IA não é a única forma de concluí-las. B2.1 e sua subetapa B2.1.1 foram concluídas em 01/08/2026, com sincronização bidirecional, regra temporal, inativação, auditoria, concorrência e mapeamento canônico ERP → +Compras validados. A pendência B2.1.2 permanece em Draft para alinhar estruturalmente o ERP Linx ao contrato canônico antes de qualquer correção por migration ou validação adicional. B2.2 é a próxima evolução, em Draft, para enriquecimento cadastral por CNPJ; B3 não está iniciada.
 
 ---
 

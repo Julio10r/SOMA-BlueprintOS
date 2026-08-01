@@ -17,8 +17,8 @@
 ## B2.1 — Validação Operacional e Sincronização
 
 - A migration `202607310001_B21FornecedorSynchronization` foi aplicada em 31/07/2026 e a complementar `202608010001_B21CanonicalSupplierSynchronization` em 01/08/2026, ambas somente no +Compras dev.
-- A sprint foi reaberta e a validação técnica foi concluída em 01/08/2026; o encerramento formal aguarda revisão do relatório.
-- `LX_SEQUENCIAL` retornou `315501`, `315502` e `315503` em criações reais; os códigos foram confirmados nas tabelas `FORNECEDORES` e `CADASTRO_CLI_FOR`, inclusive em execução concorrente.
+- A B2.1 foi concluída em 01/08/2026 após a validação operacional e técnica da sincronização bidirecional.
+- `LX_SEQUENCIAL` retornou `315501`, `315502`, `315503` e `315505` em criações reais; os códigos foram confirmados nas tabelas `FORNECEDORES` e `CADASTRO_CLI_FOR`, inclusive em execução concorrente.
 - O timestamp efetivo foi identificado em `CADASTRO_CLI_FOR.DATA_PARA_TRANSFERENCIA`, com `FORNECEDORES.DATA_PARA_TRANSFERENCIA` como espelho/fallback, normalizado em `America/Sao_Paulo` até o segundo.
 - O registro inválido `00000*` foi preservado e inativado; correlação da correção: `b21-invalid-clifor-inactivate-final-erp`.
 - B2.1.1 corrigiu o preenchimento do contrato canônico ERP → +Compras. O fornecedor fictício `315504` confirmou persistência de endereço, contatos, dados bancários/fiscais/comerciais, indicadores e hash. Classificações `TIPO`/`SUBTIPO_FORNECEDOR` são protegidas por FKs no ERP e devem usar valores válidos, nunca valores inventados no teste.

@@ -25,3 +25,10 @@ Foi aceita a construção incremental: fluxos operacionais completos e manuais d
 - A migration foi aplicada somente no +Compras e a escrita real foi executada somente com registros fictícios no `SOMA_DESENV`; nenhuma alteração de schema foi feita no ERP.
 - O adaptador SOMA_DESENV trata `FORNECEDORES.FORNECEDOR` como chave externa imutável por FK e atualiza CNPJ como campo corporativo seguro.
 - ADR-0015 reabriu a sprint para contrato canônico completo, sincronização temporal bidirecional, empate favorável ao +Compras, inativação lógica e auditoria append-only.
+
+## B2.1 — Conclusão da sincronização de fornecedores
+
+- B2.1 foi concluída em 01/08/2026: a sincronização permanece desacoplada por contrato e adaptador de BU, com importação, exportação, atualizações e inativações nos dois sentidos.
+- A precedência temporal é normalizada em `America/Sao_Paulo` até o segundo; no empate, a decisão favorece o +Compras.
+- Auditoria append-only preserva snapshots antes/depois, hashes, `CorrelationId`, histórico e idempotência. A geração de CLIFOR usa `LX_SEQUENCIAL`, inclusive sob concorrência.
+- B2.1.1 foi concluída com o mapeamento canônico Linx → +Compras. B2.1.2 permanece Draft para validação estrutural futura; B2.2 permanece Draft como próxima evolução.

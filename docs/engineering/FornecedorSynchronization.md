@@ -28,7 +28,7 @@ Credenciais devem permanecer em User Secrets ou variáveis de ambiente. Logs reg
 3. Criar no +Compras um fornecedor de teste com identificador rastreável, exportar, consultar o ERP e atualizar somente um campo corporativo permitido; exportar novamente.
 4. Guardar a correlação das respostas, IDs externos e consultas de conferência. Não remover o registro de teste sem registrar o procedimento.
 
-A validação anterior foi revogada em 01/08/2026. A reabertura já confirmou, com o fornecedor fictício +Compras `8a86809e-b123-493d-8bb7-b855527e98a1`/ERP `900001`, importação, exportação, alteração de CNPJ, inativação nos dois sentidos, reexecução idempotente e auditoria (15 eventos, 0 falhas). A migration complementar `202608010001_B21CanonicalSupplierSynchronization` foi aplicada somente no +Compras dev; a procedure `LX_AZZ_GERAR_FORNECEDOR_LINX` não é chamada. A sprint permanece reaberta para revisão formal e confirmação dos cenários temporais/empate com dados ERP que exponham timestamp.
+A reabertura de 01/08/2026 foi concluída com o fornecedor fictício +Compras `8a86809e-b123-493d-8bb7-b855527e98a1`/ERP `900001`: importação, exportação, alteração de CNPJ, inativação nos dois sentidos, reexecução idempotente e auditoria (15 eventos, 0 falhas). A migration complementar `202608010001_B21CanonicalSupplierSynchronization` foi aplicada somente no +Compras dev; a procedure `LX_AZZ_GERAR_FORNECEDOR_LINX` não é chamada. A B2.1 está concluída, incluindo os cenários temporal e de empate previstos no contrato canônico.
 
 ## Evidência final da validação Linx — 01/08/2026
 
@@ -50,7 +50,7 @@ O campo efetivo de transferência identificado foi `CADASTRO_CLI_FOR.DATA_PARA_T
 
 O registro inválido `00000*` não foi excluído. Foi inativado no ERP e no +Compras pela correlação `b21-invalid-clifor-inactivate-final-erp`; a sonda final confirmou `INATIVO=True` e o código permaneceu preservado para histórico.
 
-O teste automatizado de concorrência foi aprovado junto com a execução real simultânea: dois códigos diferentes, nenhum vínculo duplicado e nenhuma geração por `MAX(CLIFOR)+1`. O build terminou sem avisos; a suíte possui 249 testes unitários e 3 de integração aprovados. A B2.1 aguarda apenas revisão formal deste relatório.
+O teste automatizado de concorrência foi aprovado junto com a execução real simultânea: dois códigos diferentes, nenhum vínculo duplicado e nenhuma geração por `MAX(CLIFOR)+1`. Os CLIFORs `315501`, `315502`, `315503` e `315505` foram confirmados em `FORNECEDORES` e `CADASTRO_CLI_FOR`. O build terminou sem avisos; a suíte possui 250 testes unitários e 3 de integração aprovados. A B2.1 está concluída.
 
 ## B2.1.1 — Mapeamento canônico ERP → +Compras
 
@@ -58,14 +58,16 @@ O adaptador `SomaDesenvolErpFornecedorAdapter` consulta `FORNECEDORES` em conjun
 
 | Origem Linx | Contrato canônico |
 |---|---|
-| `RAZAO_SOCIAL`, `NOME_CLIFOR`, `CGC_CPF`, `PJ_PF`, `RG_IE` | razão social, nome fantasia, documento, tipo de pessoa, inscrição estadual |
+| `RAZAO_SOCIAL`, `NOME_CLIFOR`, `CGC_CPF`, `PJ_PF`, `RG_IE` e inscrição municipal disponível | razão social, nome fantasia, documento, tipo de pessoa, inscrições estadual e municipal |
 | `CEP`, `ENDERECO`, `NUMERO`, `COMPLEMENTO`, `BAIRRO`, `CIDADE`, `UF`, `PAIS`, `COD_MUNICIPIO_IBGE` | endereço |
-| `DDD1`, `TELEFONE1`, `EMAIL`, `EMAIL_NFE` | contatos |
+| `DDD1`, `TELEFONE1`, `EMAIL`, `EMAIL_NFE` | DDD, telefone, e-mail e e-mail fiscal |
 | `BANCO`, `CC_AGENCIA`, `CC_CONTA` | dados bancários |
-| `CONDICAO_PGTO`, `TIPO`, `SUBTIPO_FORNECEDOR`, `CTB_CONTA_CONTABIL` | dados comerciais |
-| `FORNECE_MATERIAIS`, `FORNECE_MAT_CONSUMO`, `FORNECE_OUTROS`, `FORNECE_PROD_ACAB` | características de fornecimento |
+| `CONDICAO_PGTO`, `TIPO`, `SUBTIPO_FORNECEDOR`, `CTB_CONTA_CONTABIL` | condição de pagamento, tipo/subtipo de fornecedor e conta contábil |
+| `FORNECE_MATERIAIS`, `FORNECE_MAT_CONSUMO`, `FORNECE_OUTROS`, `FORNECE_PROD_ACAB` | materiais, consumo, serviços e produtos |
 | `TIPO_TRIBUTACAO`, `INDICADOR_FISCAL_TERCEIRO`, `ATIVIDADE_SIMPLES_NACIONAL` | dados fiscais |
 
 Validação real: fornecedor fictício ERP `315504`, correlação `b21-1-1-importacao-completa-315504-v2`. Foram persistidos razão social, nome fantasia, endereço, contatos, banco/agência/conta, condição de pagamento, indicadores, regime fiscal, Simples Nacional e hash no registro +Compras `0a89dfbd-a6db-42eb-b0d6-413400a8a268`. A repetição `b21-1-1-importacao-completa-315504-idempotente` retornou `NenhumaAlteracao` e preservou `Versao=4`.
+
+O CNPJ `21855705000160` foi importado com cidade e UF e, em nova execução, retornou `NenhumaAlteracao`, confirmando o mapeamento canônico e a idempotência da B2.1.1.
 
 O ambiente ERP possui FKs para classificação (`TIPO`/`SUBTIPO_FORNECEDOR`); não foram inventados valores para forçar o teste. Quando preenchidos por dados válidos do ERP, esses campos são lidos pelo mesmo mapeamento. Nenhuma migration adicional foi necessária.
