@@ -12,7 +12,7 @@
 
 - **Data:** 01/08/2026
 - **Branch:** `feature/a13-procurement-vertical-slice`
-- **Commit de referência:** `b08769f`, `3b6d54b` e `0240c35` para as entregas B2.1 e B2.1.1; `77861eb` para B2.1.2; B2.2.4 em andamento pendente de commit nesta atualização.
+- **Commit de referência:** `b08769f`, `3b6d54b` e `0240c35` para as entregas B2.1 e B2.1.1; `77861eb` para B2.1.2; `5a6aab8`, `234906c` e `32c9971` para B2.2.
 - **Validação desta atualização:** `dotnet test backend/BlueprintOS.sln --no-restore`, 269 testes unitários e 4 testes de integração aprovados; `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros/0 avisos; `npm test` em `frontend/web`, 4 testes aprovados; `npm run build` em `frontend/web` concluído.
 
 ## Sistema de Work Orders
@@ -25,10 +25,10 @@
 
 - **Decisão aceita:** [ADR-0013](./DECISIONS.md) estabelece a evolução em dois momentos: plataforma operacional primeiro e inteligência progressiva sobre dados reais depois.
 - **Princípio obrigatório:** toda operação crítica possui alternativa manual; IA acelera e orienta, mas não é pré-requisito para cadastrar ou selecionar fornecedor/item, criar pedido, enviá-lo ao ERP ou acompanhar a integração.
-- **Portal:** a ADR-0017 definiu o Portal Operacional +Compras como navegação e identidade visual completas, com evolução funcional incremental por domínio. B2.2.4 iniciou a primeira vertical slice funcional em React com a tela `CadastroFornecedor`.
+- **Portal:** a ADR-0017 definiu o Portal Operacional +Compras como navegação e identidade visual completas, com evolução funcional incremental por domínio. B2.2.4 concluiu a primeira vertical slice funcional em React com a tela `CadastroFornecedor`. A próxima frente formal é o Portal +Compras Frontend, a ser executada pelo Claude Code.
 - **B2/B2.1/B2.1.1:** B2 permanece como estrutura inicial de descoberta e score (100/80/60/40). B2.1 concluiu sincronização bidirecional, regra temporal, inativação, auditoria e concorrência; B2.1.1 concluiu o mapeamento canônico ERP → +Compras.
 - **B2.1.2:** concluída conforme ADR-0016, com modelo fornecedor alinhado ao Linx: `Cnpj_Cpf`, `TipoPessoa`, separação de `RazaoSocial`/`NomeFantasia`, proteção do nome fantasia controlado pelo Linx, flags `Beneficiador`/`Licenciado`, domínios ERP estruturados, FKs opcionais e contrato frontend inicial.
-- **B2.2:** em andamento como Consulta CNPJ e Enriquecimento de Fornecedor. A B2.2.1 foi concluída com contrato `ICnpjConsultaProvider`, retorno tipado e auditoria persistida. A B2.2.2 implementou `BrasilApiCnpjProvider` como adaptador gratuito BrasilAPI. A B2.2.3 concluiu comparação campo a campo, aprovação/rejeição, atualização seletiva, auditoria de decisões e proteção `NomeFantasia`/Linx. A B2.2.4 iniciou o portal funcional de cadastro, consulta, divergências e decisão humana.
+- **B2.2:** concluída como Enriquecimento Inteligente de Fornecedor. O módulo de fornecedores possui cadastro, consulta CNPJ, enriquecimento, aprovação, rejeição, integração ERP e auditoria. A B2.2.1 foi concluída com contrato `ICnpjConsultaProvider`, retorno tipado e auditoria persistida. A B2.2.2 implementou `BrasilApiCnpjProvider` como adaptador gratuito BrasilAPI. A B2.2.3 concluiu comparação campo a campo, aprovação/rejeição, atualização seletiva, auditoria de decisões e proteção `NomeFantasia`/Linx. A B2.2.4 concluiu o portal funcional de cadastro, consulta, divergências e decisão humana.
 
 ## Estratégia de LLM
 
@@ -44,9 +44,9 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 ## Ciclo atual
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
-- **Última sprint comprovadamente concluída:** B2.2.3 — Validação e Aprovação de Dados Enriquecidos de Fornecedor (01/08/2026).
-- **Sprint atual:** B2.2.4 — Portal Cadastro Fornecedor Enriquecimento CNPJ, em andamento.
-- **Próxima pendência planejada:** consolidar aceite da jornada B2.2.4 e preservar próximas etapas da B2.2. B3 não foi iniciada.
+- **Última sprint comprovadamente concluída:** B2.2 — Enriquecimento Inteligente de Fornecedor (01/08/2026).
+- **Sprint atual:** transição para Portal +Compras Frontend.
+- **Próxima pendência planejada:** iniciar a Work Order `docs/work-orders/PortalMaisComprasFrontend.md`; B2.2.5 permanece preservada caso siga no roadmap; B3 não foi iniciada.
 - **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
 ## Capacidades implementadas
@@ -60,7 +60,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 | API de negociação | `POST /api/v1/negociacoes/recomendacoes` via `NegotiationRecommendationUseCase` | Implementado, consultivo e sem estado |
 | Fornecedores | `Fornecedor`, EF Core/SQL Server sobre `MaisComprasConnection`, migration e `POST/GET/PUT/DELETE /fornecedores` | Implementado |
 | Sincronização de fornecedores | Contrato canônico, adaptadores por BU, importação/exportação/inativação, `LX_SEQUENCIAL`, timestamp Linx, concorrência, idempotência, auditoria append-only e modelo Linx B2.1.2 alinhado ao ERP | Concluída (B2.1, B2.1.1 e B2.1.2) |
-| Enriquecimento de fornecedores por CNPJ | `ICnpjConsultaProvider`, `ConsultaCnpjResultado`, `BrasilApiCnpjProvider`, análise de divergências, aprovação/rejeição, atualização seletiva, `FornecedorEnriquecimentoAnalise`, endpoint `POST /fornecedores/consulta-cnpj` e tela React `CadastroFornecedor` | B2.2.4 em andamento |
+| Enriquecimento de fornecedores por CNPJ | `ICnpjConsultaProvider`, `ConsultaCnpjResultado`, `BrasilApiCnpjProvider`, análise de divergências, aprovação/rejeição, atualização seletiva, `FornecedorEnriquecimentoAnalise`, endpoint `POST /fornecedores/consulta-cnpj` e tela React `CadastroFornecedor` | B2.2 concluída |
 | Descoberta de fornecedores | `FornecedorDescoberto`, score centralizado, leitura `SOMA_DESENV`, persistência +Compras e `/api/fornecedores/descobertas` | Implementado; validação SQL ERP pendente de ambiente com acesso |
 | Workflow | `Workflow` e `WorkflowRunner` sequenciais | Implementado, básico |
 | Documentation | contratos, geradores, publicação Markdown, Git reader e health report | Implementado |
@@ -77,7 +77,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 - Identity, autorização, multi-tenant e Microsoft Entra ID.
 - Planner, Procurement, Notifications, Dashboard e Analytics.
-- Portal +COMPRAS completo; B2.2.4 iniciou somente a primeira tela funcional de fornecedores em `frontend/web`.
+- Portal +COMPRAS completo; somente fornecedor está funcional e conectado ao backend em `frontend/web`.
 - n8n e APIs corporativas; integração ERP de fornecedores B2.1 está implementada.
 
 ## Agentes e integrações concretos

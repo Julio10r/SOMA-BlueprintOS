@@ -55,7 +55,7 @@ Objetivo: conectar a plataforma a processos de negócio reais e sistemas externo
 - **Notifications** — notificações e comunicação com usuários e sistemas externos.
 - Integrações externas (ERPs, n8n, APIs corporativas).
 
-> Estado real: há persistência própria de fornecedores, APIs REST, descoberta de fornecedores somente leitura no ERP SOMA_DESENV e a primeira tela funcional de cadastro/enriquecimento de fornecedor iniciada em B2.2.4. Procurement completo, itens, pedidos, notificações e n8n não foram iniciados.
+> Estado real: há persistência própria de fornecedores, APIs REST, descoberta de fornecedores somente leitura no ERP SOMA_DESENV e a primeira tela funcional de cadastro/enriquecimento de fornecedor concluída em B2.2.4. Procurement completo, itens, pedidos, notificações e n8n não foram iniciados.
 
 ## Reorientação do roadmap do +Compras
 
@@ -64,7 +64,14 @@ A [ADR-0013](./DECISIONS.md) organiza a evolução em dois blocos sem alterar as
 1. **Operacional:** fornecedores, itens, compras/pedidos, portal como interface integrada, adaptadores ERP por BU e fluxo ponta a ponta com auditoria básica.
 2. **Inteligente:** inteligência de fornecedores, itens e compras; negociação, orçamento, auditoria, compliance e autonomia progressiva.
 
-O portal não é uma fase isolada: ele evolui com os módulos. A ADR-0017 aprovou a estrutura completa de navegação e identidade visual desde a primeira versão visual, sem antecipar a funcionalidade dos domínios; Fornecedores é a primeira vertical slice funcional. Operações críticas mantêm caminho manual e confirmação humana; IA não é a única forma de concluí-las. B2.1 e sua subetapa B2.1.1 foram concluídas em 01/08/2026, com sincronização bidirecional, regra temporal, inativação, auditoria, concorrência e mapeamento canônico ERP → +Compras validados. B2.1.2 também foi concluída em 01/08/2026, alinhando o modelo canônico de fornecedor ao ERP Linx conforme ADR-0016, sem alteração estrutural no ERP. B2.2 está em andamento para Consulta CNPJ e Enriquecimento de Fornecedor; B2.2.4 iniciou a tela React `CadastroFornecedor`, consumindo consulta, análise, aprovação e rejeição. A consulta externa continua apenas sugestão revisável, sem atualização automática. B3 não está iniciada.
+O portal não é uma fase isolada: ele evolui com os módulos. A ADR-0017 aprovou a estrutura completa de navegação e identidade visual desde a primeira versão visual, sem antecipar a funcionalidade dos domínios; Fornecedores é a primeira vertical slice funcional. Operações críticas mantêm caminho manual e confirmação humana; IA não é a única forma de concluí-las. B2.1 e sua subetapa B2.1.1 foram concluídas em 01/08/2026, com sincronização bidirecional, regra temporal, inativação, auditoria, concorrência e mapeamento canônico ERP → +Compras validados. B2.1.2 também foi concluída em 01/08/2026, alinhando o modelo canônico de fornecedor ao ERP Linx conforme ADR-0016, sem alteração estrutural no ERP. B2.2 foi concluída para Enriquecimento Inteligente de Fornecedor; B2.2.4 entregou a tela React `CadastroFornecedor`, consumindo consulta, análise, aprovação e rejeição. A consulta externa continua apenas sugestão revisável, sem atualização automática. B3 não está iniciada.
+
+### Portal +Compras Frontend
+
+- **Status:** nova frente preparada.
+- **Executor:** Claude Code.
+- **Work Order:** `docs/work-orders/PortalMaisComprasFrontend.md`.
+- **Regra:** somente Fornecedor deve estar conectado ao backend nesta etapa; Dashboard, Pedidos, Negociações, Indicadores, Agentes IA e Configurações podem existir como telas demonstrativas preparadas para evolução, sem funcionalidades falsas.
 
 ---
 
