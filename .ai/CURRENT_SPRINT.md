@@ -49,4 +49,5 @@ Limites:
 - O ERP SOMA_DESENV mantém a limitação de FK entre `FORNECEDORES.FORNECEDOR` e `CADASTRO_CLI_FOR.NOME_CLIFOR`; o adaptador deve preservar chaves físicas e atualizar somente campos suportados.
 
 Próxima sprint planejada:
-- B2.2 — Enriquecimento Cadastral de Fornecedores por CNPJ, em `Draft`, dependente da conclusão da B2.1. A consulta externa será apenas sugestão revisável; não haverá atualização automática do cadastro ou do ERP.
+- B2.1.2 — Alinhamento Estrutural ERP Linx x +Compras, em `Draft`, como próxima pendência da B2.1. A atividade somente compara e planeja correções de tipo, tamanho, nullable, collation e validações; não cria migration nesta etapa.
+- B2.2 — Enriquecimento Cadastral de Fornecedores por CNPJ permanece em `Draft`, após B2.1/B2.1.2. A consulta externa será apenas sugestão revisável; não haverá atualização automática do cadastro ou do ERP.

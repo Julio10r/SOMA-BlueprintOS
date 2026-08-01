@@ -27,7 +27,8 @@
 - **Princípio obrigatório:** toda operação crítica possui alternativa manual; IA acelera e orienta, mas não é pré-requisito para cadastrar ou selecionar fornecedor/item, criar pedido, enviá-lo ao ERP ou acompanhar a integração.
 - **Portal:** é a interface do próprio +Compras e evolui junto aos módulos, sem constituir produto ou módulo separado.
 - **B2/B2.1:** B2 permanece como estrutura inicial de descoberta e score (100/80/60/40); B2.1 validou operacionalmente leitura, escrita, atualização e idempotência de fornecedores.
-- **B2.2:** planejada em Draft após a B2.1 para enriquecimento cadastral por CNPJ. Consulta externa será apenas sugestão revisável, com auditoria e sem atualização automática do +Compras ou ERP.
+- **B2.1.2:** planejada em Draft como pendência estrutural da B2.1 para comparar o ERP Linx, contrato canônico, banco, API e frontend antes de futuras migrations ou validações.
+- **B2.2:** permanece planejada em Draft após B2.1/B2.1.2 para enriquecimento cadastral por CNPJ. Consulta externa será apenas sugestão revisável, com auditoria e sem atualização automática do +Compras ou ERP.
 
 ## Estratégia de LLM
 
@@ -45,7 +46,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
 - **Última sprint comprovadamente concluída:** B2 — Descoberta Inteligente de Fornecedores (30/07/2026).
 - **Sprint atual:** B2.1/B2.1.1 com validação técnica completa em 01/08/2026, incluindo mapeamento canônico ERP → +Compras, aguardando revisão formal antes do encerramento. B2.2 permanece em Draft e B3 não foi iniciada.
-- **Próxima sprint planejada:** B2.2 — Enriquecimento Cadastral de Fornecedores por CNPJ, em Draft e condicionada à conclusão da B2.1. B3 não foi iniciada.
+- **Próxima pendência planejada:** B2.1.2 — Alinhamento Estrutural ERP Linx x +Compras, em Draft e vinculada à B2.1. B2.2 permanece Draft e B3 não foi iniciada.
 - **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
 ## Capacidades implementadas
