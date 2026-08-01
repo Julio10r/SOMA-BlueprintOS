@@ -24,3 +24,14 @@ public sealed class FornecedorRepository(BlueprintOSDbContext context) : IFornec
     public Task<bool> ExisteAsync(string cnpj, CancellationToken cancellationToken = default) =>
         context.Fornecedores.AnyAsync(x => x.Cnpj == cnpj, cancellationToken);
 }
+
+public sealed class FornecedorSincronizacaoRepository(BlueprintOSDbContext context) : IFornecedorSincronizacaoRepository
+{
+    public Task<Fornecedor?> ObterPorChaveErpAsync(string businessUnit, string erpSistema, string erpFornecedorId,
+        Guid userId, CancellationToken cancellationToken = default) => context.Fornecedores.SingleOrDefaultAsync(x =>
+        x.BusinessUnit == businessUnit && x.ErpSistema == erpSistema && x.ErpFornecedorId == erpFornecedorId && x.TemporaryUserId == userId,
+        cancellationToken);
+
+    public async Task AdicionarAsync(FornecedorSincronizacao sincronizacao, CancellationToken cancellationToken = default)
+    { await context.FornecedoresSincronizacoes.AddAsync(sincronizacao, cancellationToken); await context.SaveChangesAsync(cancellationToken); }
+}

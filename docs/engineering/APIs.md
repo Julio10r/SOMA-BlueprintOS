@@ -28,7 +28,13 @@ GET /api/fornecedores/descobertas
 
 GET /api/fornecedores/descobertas/{id}
   -> 200 OK descoberta persistida ou 404
+
+POST /api/fornecedores/sincronizar
+  -> 200 OK resultado com status, correlação, BU e identificador externo
+
+POST /api/fornecedores/sincronizar/lote
+  -> 200 OK resultados controlados (máximo de 100 fornecedores)
 ```
 
 OpenAPI (`AddOpenApi`/`MapOpenApi`) está habilitado em ambiente de desenvolvimento.
-Os endpoints delegam aos casos de uso Application. A descoberta lê exclusivamente `SOMA_DESENV` e persiste no +Compras.
+Os endpoints delegam aos casos de uso Application. A descoberta e o adaptador de sincronização usam exclusivamente `SOMA_DESENV`; a sincronização persiste estado e histórico no +Compras.

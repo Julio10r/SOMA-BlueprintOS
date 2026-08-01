@@ -7,6 +7,7 @@ public sealed class BlueprintOSDbContext(DbContextOptions<BlueprintOSDbContext> 
 {
     public DbSet<Fornecedor> Fornecedores => Set<Fornecedor>();
     public DbSet<FornecedorDescoberto> FornecedoresDescobertos => Set<FornecedorDescoberto>();
+    public DbSet<FornecedorSincronizacao> FornecedoresSincronizacoes => Set<FornecedorSincronizacao>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

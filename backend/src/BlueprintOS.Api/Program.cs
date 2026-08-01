@@ -74,6 +74,7 @@ app.MapGet("/health", () =>
 app.MapNegotiationRecommendation();
 app.MapFornecedores();
 app.MapFornecedorDiscovery();
+app.MapFornecedorSync();
 
 app.Run();
 return 0;

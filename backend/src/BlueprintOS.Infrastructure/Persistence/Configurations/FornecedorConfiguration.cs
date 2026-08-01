@@ -24,7 +24,15 @@ public sealed class FornecedorConfiguration : IEntityTypeConfiguration<Fornecedo
         builder.Property(x => x.TemporaryUserId).IsRequired();
         builder.Property(x => x.CreatedAt).IsRequired();
         builder.Property(x => x.UpdatedAt).IsRequired();
+        builder.Property(x => x.BusinessUnit).HasMaxLength(80);
+        builder.Property(x => x.ErpSistema).HasMaxLength(80);
+        builder.Property(x => x.ErpFornecedorId).HasMaxLength(120);
+        builder.Property(x => x.OrigemInformacao).HasMaxLength(30).IsRequired();
+        builder.Property(x => x.StatusSincronizacao).HasMaxLength(30).IsRequired();
+        builder.Property(x => x.MensagemErroSincronizacao).HasMaxLength(500);
         builder.HasIndex(x => x.Cnpj).IsUnique();
+        builder.HasIndex(x => new { x.BusinessUnit, x.ErpSistema, x.ErpFornecedorId }).IsUnique()
+            .HasFilter("[BusinessUnit] IS NOT NULL AND [ErpSistema] IS NOT NULL AND [ErpFornecedorId] IS NOT NULL");
         builder.HasIndex(x => x.Nome);
         builder.HasIndex(x => x.TemporaryUserId);
     }

@@ -14,6 +14,12 @@
 - A validação operacional de leitura no ERP SOMA_DESENV permanece pendente por timeout de rede no ambiente de execução; o adaptador é somente leitura.
 - O score 100/80/60/40 é estrutura inicial. Relacionamentos fornecedor × item/família/categoria e histórico de pedidos ainda dependem dos módulos operacionais futuros.
 
+## B2.1 — Validação Operacional e Sincronização
+
+- A conectividade real com +Compras e `SOMA_DESENV` foi confirmada em 31/07/2026, mas a migration `202607310001_B21FornecedorSynchronization` ainda não foi aplicada porque a mutação do banco compartilhado requer autorização explícita.
+- O ERP não teve o schema de escrita homologado ainda. O adaptador aceita tabela e schema configuráveis e deve ser validado com fornecedor fictício antes de qualquer teste de escrita.
+- A identidade de desenvolvimento continua limitando a operação a Development, conforme ADR-0011.
+
 ## Estado consolidado na Sprint A10 — Project State Consolidation
 
 - **Fonte operacional de estado criada.** `.ai/PROJECT_STATE.md` passou a registrar a evidência atual de código, testes e Git. `CURRENT_SPRINT.md`, `ROADMAP.md` e o histórico de sprints foram alinhados a ela.

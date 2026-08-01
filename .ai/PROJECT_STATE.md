@@ -43,8 +43,8 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
 - **Última sprint comprovadamente concluída:** B2 — Descoberta Inteligente de Fornecedores (30/07/2026).
-- **Sprint atual:** B2 concluída. `CURRENT_SPRINT.md` registra a entrega e suas limitações operacionais.
-- **Próxima sprint recomendada:** B2.1 — Validação Operacional e Sincronização de Fornecedores com ERP, em `Draft`; B3 não foi iniciada.
+- **Sprint atual:** B2.1 em execução. A implementação está concluída; a prova end-to-end depende de autorização para aplicar migrations no +Compras.
+- **Próxima sprint recomendada:** B3 após a conclusão comprovada da B2.1; B3 não foi iniciada.
 - **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
 ## Capacidades implementadas
@@ -57,6 +57,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 | Negociação | `NegotiationMemory`, regras e `NegotiationStrategy` | Implementado, em memória |
 | API de negociação | `POST /api/v1/negociacoes/recomendacoes` via `NegotiationRecommendationUseCase` | Implementado, consultivo e sem estado |
 | Fornecedores | `Fornecedor`, EF Core/SQL Server sobre `MaisComprasConnection`, migration e `POST/GET/PUT/DELETE /fornecedores` | Implementado |
+| Sincronização de fornecedores | Contratos por adaptador/BU, `SomaDesenvolErpFornecedorAdapter`, importação/exportação, idempotência e histórico | Implementação concluída; validação operacional pendente |
 | Descoberta de fornecedores | `FornecedorDescoberto`, score centralizado, leitura `SOMA_DESENV`, persistência +Compras e `/api/fornecedores/descobertas` | Implementado; validação SQL ERP pendente de ambiente com acesso |
 | Workflow | `Workflow` e `WorkflowRunner` sequenciais | Implementado, básico |
 | Documentation | contratos, geradores, publicação Markdown, Git reader e health report | Implementado |
@@ -86,15 +87,17 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 | Suíte | Executados | Aprovados | Ignorados | Falhos |
 |---|---:|---:|---:|---:|
-| Unitários | 240 | 240 | 0 | 0 |
+| Unitários | 245 | 245 | 0 | 0 |
 | Integração | 3 | 3 | 0 | 0 |
-| Total | 243 | 243 | 0 | 0 |
+| Total | 248 | 248 | 0 | 0 |
 
 Build da solution: sucesso, 0 erros e 0 avisos.
 
 ## Riscos e pendências
 
 - Apenas a recomendação de negociação está exposta por API; os demais domínios de negócio ainda não possuem API ou interface utilizável.
+- A migration B2.1 ainda precisa ser aplicada no +Compras antes da prova end-to-end; o controle de segurança exige autorização explícita para essa mutação persistente.
+- O mapeamento de escrita do ERP é configurável e precisa ser homologado contra a tabela/colunas existentes em `SOMA_DESENV` antes de usar dados de teste.
 - Dados de negociação e documentação ainda não são duráveis.
 - A configuração da chave OpenAI depende de ambiente e não há tratamento operacional completo para credenciais, rate limits ou telemetria.
 - A arquitetura física diverge do layout alvo; uma migração deve ser planejada somente quando trouxer benefício concreto.
