@@ -11,6 +11,7 @@ public static class FornecedoresController
         var group = endpoints.MapGroup("/fornecedores").WithTags("Fornecedores");
         group.MapPost("", Create);
         group.MapGet("", Search);
+        group.MapPost("/consulta-cnpj", ConsultCnpj);
         group.MapGet("/{id:guid}", GetById);
         group.MapPut("/{id:guid}", Update);
         group.MapDelete("/{id:guid}", Delete);
@@ -34,6 +35,13 @@ public static class FornecedoresController
     }
 
     private static async Task<IResult> Search(string? q, IPesquisarFornecedorUseCase useCase, CancellationToken ct) => Results.Ok(await useCase.ExecuteAsync(q, ct));
+    private static async Task<IResult> ConsultCnpj(FornecedorConsultaCnpjRequest? request, IConsultarCnpjFornecedorUseCase useCase, CancellationToken ct)
+    {
+        if (request is null) return Results.BadRequest(new { code = "invalid_request", message = "Request body is required." });
+        try { return Results.Ok(await useCase.ExecuteAsync(request.ToDto(), ct)); }
+        catch (ArgumentException ex) { return Results.BadRequest(new { code = "validation_error", message = ex.Message }); }
+    }
+
     private static async Task<IResult> GetById(Guid id, IObterFornecedorUseCase useCase, CancellationToken ct) =>
         await useCase.ExecuteAsync(id, ct) is { } supplier ? Results.Ok(supplier) : Results.NotFound();
     private static async Task<IResult> Update(Guid id, AtualizarFornecedorRequest? request, IAtualizarFornecedorUseCase useCase, CancellationToken ct)

@@ -21,6 +21,72 @@ export type LinxSupplierFormModel = {
   subtipoFornecedorDominioId?: string;
 };
 
+export type Fornecedor = {
+  id: string;
+  razaoSocial: string;
+  nomeFantasia?: string | null;
+  cnpj_Cpf: string;
+  tipoPessoa?: TipoPessoa | null;
+  cep?: string | null;
+  logradouro?: string | null;
+  numero?: string | null;
+  complemento?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+  email?: string | null;
+  telefone?: string | null;
+};
+
+export type SituacaoCadastralCnpj = "Ativa" | "Baixada" | "Suspensa" | "Inapta" | "NaoEncontrada" | string;
+export type StatusConsultaCnpj = "Sucesso" | "Falha" | string;
+export type FornecedorCampoDecisao = "Pendente" | "Aceito" | "Rejeitado" | string;
+
+export type ConsultaCnpjResultado = {
+  cnpj_Cpf: string;
+  razaoSocial?: string | null;
+  nomeFantasia?: string | null;
+  tipoPessoa?: TipoPessoa | null;
+  situacaoCadastral: SituacaoCadastralCnpj;
+  dataSituacaoCadastral?: string | null;
+  dataAbertura?: string | null;
+  cep?: string | null;
+  logradouro?: string | null;
+  numero?: string | null;
+  complemento?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+  pais?: string | null;
+  email?: string | null;
+  telefone?: string | null;
+  naturezaJuridica?: string | null;
+  porteEmpresa?: string | null;
+  fonteConsulta: string;
+  dataConsulta: string;
+  statusConsulta: StatusConsultaCnpj;
+  mensagemErro?: string | null;
+  sucesso: boolean;
+};
+
+export type FornecedorCampoDivergencia = {
+  campo: string;
+  valorAtual?: string | null;
+  valorSugerido?: string | null;
+  origem: string;
+  statusDecisao: FornecedorCampoDecisao;
+};
+
+export type FornecedorEnriquecimentoAnalise = {
+  fornecedorId: string;
+  cnpj_Cpf: string;
+  consultaId?: string | null;
+  fonteConsulta: string;
+  correlationId: string;
+  divergencias: FornecedorCampoDivergencia[];
+  alertas: string[];
+};
+
 export type LinxSupplierValidationResult = {
   field: keyof LinxSupplierFormModel;
   message: string;

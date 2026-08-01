@@ -2,6 +2,15 @@ using BlueprintOS.Application.Procurement.Suppliers.Models;
 
 namespace BlueprintOS.Api.Suppliers;
 
+public sealed record FornecedorConsultaCnpjRequest(
+    string Cnpj_Cpf,
+    string BusinessUnit,
+    string? ErpSistema,
+    string? CorrelationId)
+{
+    public ConsultarCnpjFornecedorDto ToDto() => new(Cnpj_Cpf, BusinessUnit, ErpSistema, CorrelationId);
+}
+
 public sealed record FornecedorEnriquecimentoRequest(
     ConsultaCnpjResultado Consulta,
     Guid? ConsultaId,

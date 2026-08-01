@@ -73,6 +73,8 @@ BenchmarkDotNet.Artifacts/
 
 node_modules/
 frontend/dist/
+frontend/web/dist/
+*.tsbuildinfo
 
 # ==========================================================
 # Environment & Secrets

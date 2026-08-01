@@ -8,6 +8,8 @@ A funcionalidade deve permitir que o usuário informe um `Cnpj_Cpf`, acione uma 
 
 **Estado B2.2.3:** concluída. O contrato, o resultado tipado, a auditoria persistida da consulta, o provider gratuito e o fluxo backend de comparação/aprovação/rejeição foram entregues; a consulta continua sendo sugestão revisável e não cria fornecedor automaticamente.
 
+**Estado B2.2.4:** em andamento. A primeira experiência funcional do portal +Compras foi iniciada com a tela React `CadastroFornecedor`, consumindo o backend de fornecedores para consulta CNPJ, criação de rascunho quando necessário, comparação, aprovação/rejeição e persistência seletiva no +Compras.
+
 ```text
 Usuário informa Cnpj_Cpf
     ↓
@@ -169,6 +171,7 @@ FornecedorEnriquecimentoAnalise
 
 Endpoints adicionados:
 
+- `POST /fornecedores/consulta-cnpj`: executa `ConsultarCnpjFornecedorUseCase`, registra a consulta em `FornecedoresCnpjConsultas` e retorna `ConsultaCnpjResultado`.
 - `POST /fornecedores/{id}/enriquecimento-cnpj`: compara o fornecedor atual com um `ConsultaCnpjResultado` e retorna divergências/alertas.
 - `POST /fornecedores/{id}/enriquecimento-cnpj/aprovar`: registra decisão `Aceito` e aplica somente os campos aprovados.
 - `POST /fornecedores/{id}/enriquecimento-cnpj/rejeitar`: registra decisão `Rejeitado` sem alterar o fornecedor.
@@ -182,6 +185,66 @@ Modelo de divergência:
 - `ValorSugerido`;
 - `Origem` = `ConsultaCnpj`;
 - `StatusDecisao`: `Pendente`, `Aceito` ou `Rejeitado`.
+
+## Fluxo frontend B2.2.4
+
+A tela `CadastroFornecedor` foi criada em `frontend/web/src/procurement/suppliers/CadastroFornecedor.tsx` como primeira jornada funcional do portal +Compras. Ela aplica os tokens do AZZAS 2154 - GDT Design System por `frontend/web/src/styles.css`, sem CSS paralelo fora do frontend.
+
+Jornada implementada:
+
+```text
+Usuario informa Cnpj_Cpf
+    ↓
+Frontend normaliza formato alfanumerico ate 14 caracteres
+    ↓
+GET /fornecedores?q={Cnpj_Cpf}
+    ↓
+POST /fornecedores/consulta-cnpj
+    ↓
+Se fornecedor nao existir, POST /fornecedores cria rascunho minimo no +Compras
+    ↓
+POST /fornecedores/{id}/enriquecimento-cnpj calcula divergencias
+    ↓
+Usuario seleciona campos
+    ↓
+POST /fornecedores/{id}/enriquecimento-cnpj/aprovar ou /rejeitar
+```
+
+Tela:
+
+- Entrada: campo `Cnpj_Cpf` e botao `Consultar CNPJ`.
+- Dados retornados: identificacao, situacao cadastral, endereco e contato.
+- Divergencias: tabela com `Campo`, `Atual`, `Sugestao` e `StatusDecisao`.
+- Decisao: botoes `Aceitar` e `Rejeitar`.
+- Auditoria visivel: fonte, data/hora, usuario de desenvolvimento e `CorrelationId`.
+- Situacao `Baixada`: aviso explicito e confirmacao obrigatoria antes da decisao.
+- `NomeFantasia`: exibido como divergencia protegida, marcado como `ERP`, sem selecao para aprovacao automatica.
+
+Descricao visual da jornada:
+
+- Cabecalho branco com marca textual AZZAS 2154, modulo `+Compras · Cadastro de Fornecedor` e chip `COMPRAS`.
+- Coluna lateral de resumo com status operacional, fonte da consulta, timestamp, usuario e `CorrelationId`.
+- Area principal com card de consulta, card de dados retornados e card de comparacao de divergencias.
+- Estados semanticos usam os tokens GDT (`--aprovado`, `--warn`, `--rejeitado`, `--border`, `--surface`, `--bg`).
+
+## Contratos frontend B2.2.4
+
+O arquivo `frontend/web/src/procurement/suppliers/linxSupplierContract.ts` foi evoluido para incluir:
+
+- `Fornecedor`;
+- `ConsultaCnpjResultado`;
+- `FornecedorCampoDivergencia`;
+- `FornecedorEnriquecimentoAnalise`;
+- enums textuais para `SituacaoCadastralCnpj`, `StatusConsultaCnpj` e `FornecedorCampoDecisao`.
+
+O cliente HTTP fica em `frontend/web/src/procurement/suppliers/supplierEnrichmentApi.ts` e consome:
+
+- `GET /fornecedores?q={termo}`;
+- `POST /fornecedores`;
+- `POST /fornecedores/consulta-cnpj`;
+- `POST /fornecedores/{id}/enriquecimento-cnpj`;
+- `POST /fornecedores/{id}/enriquecimento-cnpj/aprovar`;
+- `POST /fornecedores/{id}/enriquecimento-cnpj/rejeitar`.
 
 ## Regras por campo B2.2.3
 
