@@ -144,6 +144,29 @@ public sealed class Fornecedor
     public void AtualizarDocumento(string documentoFiscal, string? tipoPessoa, DateTimeOffset alteradoEm)
     { Cnpj_Cpf = DocumentoFiscal.Create(documentoFiscal).Value; TipoPessoa = tipoPessoa?.Trim() ?? TipoPessoa; UpdatedAt = alteradoEm; OrigemUltimaAlteracao = "MaisCompras"; Versao++; }
 
+    public void AplicarEnriquecimentoCnpj(IReadOnlyDictionary<string, string?> campos, DateTimeOffset alteradoEm)
+    {
+        foreach (var campo in campos)
+        {
+            var valor = campo.Value?.Trim();
+            switch (campo.Key)
+            {
+                case nameof(RazaoSocial) when !string.IsNullOrWhiteSpace(valor): RazaoSocial = valor; break;
+                case nameof(Cep): Cep = valor; break;
+                case nameof(Logradouro): Logradouro = valor; break;
+                case nameof(Numero): Numero = valor; break;
+                case nameof(Complemento): Complemento = valor; break;
+                case nameof(Bairro): Bairro = valor; break;
+                case nameof(Cidade): Cidade = valor; break;
+                case nameof(Estado): Estado = valor; break;
+                case nameof(Email): Email = valor; break;
+                case nameof(Telefone): Telefone = valor; break;
+            }
+        }
+
+        UpdatedAt = alteradoEm; OrigemUltimaAlteracao = "ConsultaCnpj"; Versao++;
+    }
+
     public void VincularDominios(Guid? condicaoPagamentoId, Guid? tipoFornecedorId, Guid? subtipoFornecedorId, DateTimeOffset alteradoEm)
     {
         CondicaoPagamentoDominioId = condicaoPagamentoId; TipoFornecedorDominioId = tipoFornecedorId; SubtipoFornecedorDominioId = subtipoFornecedorId;

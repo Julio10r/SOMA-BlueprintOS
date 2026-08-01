@@ -62,6 +62,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<B1ConnectivityValidator>();
         services.AddScoped<IFornecedorRepository, FornecedorRepository>();
         services.AddScoped<IFornecedorCnpjConsultaHistoricoRepository, FornecedorCnpjConsultaHistoricoRepository>();
+        services.AddScoped<IFornecedorEnriquecimentoAnaliseRepository, FornecedorEnriquecimentoAnaliseRepository>();
         services.AddScoped<IErpFornecedorDiscoveryRepository, ErpFornecedorDiscoveryRepository>();
         services.AddScoped<IFornecedorDescobertoRepository, FornecedorDescobertoRepository>();
         services.AddScoped<IFornecedorSincronizacaoRepository, FornecedorSincronizacaoRepository>();
@@ -76,6 +77,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDescobrirFornecedoresUseCase, DescobrirFornecedoresUseCase>();
         services.AddScoped<IListarDescobertasUseCase, ListarDescobertasUseCase>();
         services.AddScoped<IConsultarCnpjFornecedorUseCase, ConsultarCnpjFornecedorUseCase>();
+        services.AddScoped<IAnalisarEnriquecimentoFornecedorUseCase, AnalisarEnriquecimentoFornecedorUseCase>();
+        services.AddScoped<IAprovarEnriquecimentoFornecedorUseCase, AprovarEnriquecimentoFornecedorUseCase>();
+        services.AddScoped<IRejeitarEnriquecimentoFornecedorUseCase, RejeitarEnriquecimentoFornecedorUseCase>();
 
         services.Configure<CnpjConsultaOptions>(configuration.GetSection(CnpjConsultaOptions.SectionName));
         services.AddHttpClient<ICnpjConsultaProvider, BrasilApiCnpjProvider>((provider, client) =>

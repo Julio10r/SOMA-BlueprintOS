@@ -6,7 +6,7 @@ Definir a arquitetura inicial da capacidade B2.2 — Consulta CNPJ e Enriquecime
 
 A funcionalidade deve permitir que o usuário informe um `Cnpj_Cpf`, acione uma consulta externa e receba dados sugeridos para enriquecer o cadastro de fornecedor no +Compras. A consulta externa não substitui o cadastro e nunca deve atualizar o +Compras ou o ERP Linx sem confirmação humana.
 
-**Estado B2.2.2:** concluída. O contrato, o resultado tipado, a auditoria persistida e o primeiro provider externo gratuito foram entregues; a consulta continua sendo sugestão revisável e não cria fornecedor automaticamente.
+**Estado B2.2.3:** concluída. O contrato, o resultado tipado, a auditoria persistida da consulta, o provider gratuito e o fluxo backend de comparação/aprovação/rejeição foram entregues; a consulta continua sendo sugestão revisável e não cria fornecedor automaticamente.
 
 ```text
 Usuário informa Cnpj_Cpf
@@ -15,7 +15,9 @@ Serviço de consulta externa
     ↓
 Dados enriquecidos
     ↓
-Usuário valida
+Comparação campo a campo
+    ↓
+Usuário aprova/rejeita campos
     ↓
 Salva fornecedor +Compras
     ↓
@@ -143,6 +145,61 @@ Mapeamento para o +Compras:
 - `NomeFantasia` deve respeitar a proteção operacional ERP definida na B2.1.2.
 - Campos de domínio controlados pelo ERP Linx não devem ser sobrescritos por fonte externa.
 
+## Fluxo de aprovação B2.2.3
+
+O backend expõe o processo de validação antes de alterar o fornecedor:
+
+```text
+Fornecedor existente
+    ↓
+Consulta CNPJ externa
+    ↓
+ConsultaCnpjResultado
+    ↓
+Comparação campo a campo
+    ↓
+Divergências pendentes
+    ↓
+Aprovação ou rejeição por usuário
+    ↓
+Atualização somente dos campos aceitos
+    ↓
+FornecedorEnriquecimentoAnalise
+```
+
+Endpoints adicionados:
+
+- `POST /fornecedores/{id}/enriquecimento-cnpj`: compara o fornecedor atual com um `ConsultaCnpjResultado` e retorna divergências/alertas.
+- `POST /fornecedores/{id}/enriquecimento-cnpj/aprovar`: registra decisão `Aceito` e aplica somente os campos aprovados.
+- `POST /fornecedores/{id}/enriquecimento-cnpj/rejeitar`: registra decisão `Rejeitado` sem alterar o fornecedor.
+
+O corpo recebe `Consulta`, `ConsultaId`, `BusinessUnit`, `ErpSistema`, `CorrelationId` e, nas decisões, a lista `Campos`. Quando `Campos` vem vazia, a decisão é aplicada às divergências retornadas pela análise.
+
+Modelo de divergência:
+
+- `Campo`;
+- `ValorAtual`;
+- `ValorSugerido`;
+- `Origem` = `ConsultaCnpj`;
+- `StatusDecisao`: `Pendente`, `Aceito` ou `Rejeitado`.
+
+## Regras por campo B2.2.3
+
+Campos comparados inicialmente:
+
+- Identificação: `RazaoSocial`, `NomeFantasia` e consistência de `Cnpj_Cpf`.
+- Endereço: `Cep`, `Logradouro`, `Numero`, `Complemento`, `Bairro`, `Cidade`, `Estado`.
+- Contatos: `Email`, `Telefone`.
+- Situação cadastral: `SituacaoCadastral`, `DataSituacaoCadastral` como informação/alerta.
+
+Regras:
+
+- `Cnpj_Cpf` nunca é atualizado pela consulta CNPJ; divergência gera alerta de consistência.
+- `RazaoSocial` pode ser atualizada somente após aprovação.
+- `NomeFantasia` é protegido por regra Linx (`NomeFantasia = NOME_CLIFOR = FORNECEDOR`) e não é alterado pela consulta CNPJ, mesmo se aprovado; a decisão é auditada.
+- Endereço e contatos podem ser atualizados somente quando aprovados.
+- Situação cadastral não bloqueia cadastro; situações como `Baixada`, `Suspensa` e `Inapta` geram alerta informativo.
+
 ## Regras de Aceite e Rejeição
 
 Aceite:
@@ -151,7 +208,7 @@ Aceite:
 - provedor respondeu com status válido;
 - dados retornados são apresentados como sugestão;
 - usuário confirma explicitamente os campos a aplicar;
-- persistência registra origem, data e responsável.
+- persistência registra origem, data, responsável, decisão e `CorrelationId`.
 
 Rejeição:
 
@@ -175,7 +232,23 @@ Toda consulta realizada pelo caso de uso gera `FornecedorCnpjConsultaHistorico`,
 - resultado da consulta e mensagem de erro normalizada;
 - `BusinessUnit` e `ErpSistema` opcional para futuras configurações por BU.
 
-Campos aceitos/rejeitados e snapshots antes/depois pertencem à futura confirmação e persistência do fornecedor; não são produzidos pela consulta de sugestão.
+As decisões de campo geram `FornecedorEnriquecimentoAnalise`, persistido em `FornecedoresEnriquecimentoAnalises`, com:
+
+- `FornecedorId`;
+- `Cnpj_Cpf`;
+- `ConsultaId`;
+- `Campo`;
+- `ValorAnterior`;
+- `ValorNovo`;
+- `Decisao`;
+- `Usuario`;
+- `DataHora`;
+- `CorrelationId`;
+- `BusinessUnit`;
+- `ErpSistema`;
+- `Fonte`.
+
+Essa trilha responde quem aprovou ou rejeitou cada alteração, quando, em qual BU/ERP e com qual correlação.
 
 Dados sensíveis devem ser registrados com mascaramento quando aplicável.
 
@@ -226,6 +299,6 @@ Antes de uso produtivo, será necessário definir:
 
 - B2.2.1 — Concluída: contrato de consulta CNPJ, resultado tipado e auditoria persistida, sem provider externo.
 - B2.2.2 — Concluída: provider BrasilAPI, configuração externa, timeout, cancelamento, normalização e testes.
-- B2.2.3 — Normalização de dados.
+- B2.2.3 — Concluída: comparação campo a campo, aprovação/rejeição, atualização seletiva, proteção `NomeFantasia`/Linx e auditoria de decisões.
 - B2.2.4 — Validação de fornecedor.
-- B2.2.5 — Persistência e auditoria.
+- B2.2.5 — Persistência e auditoria complementar.
