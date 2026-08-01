@@ -15,6 +15,7 @@ public sealed class CadastrarFornecedorUseCase(IFornecedorRepository repository,
         if (await repository.ExisteAsync(cnpj.Value, cancellationToken)) throw new InvalidOperationException("CNPJ already exists.");
         var fornecedor = new Fornecedor(Guid.NewGuid(), dto.Nome, cnpj, dto.Categoria, dto.Email, dto.Telefone,
             dto.Website, dto.Cidade, dto.Estado, dto.Pais, dto.Status ?? "Ativo", dto.ScoreIA, user, DateTimeOffset.UtcNow);
+        if (dto.DadosCanonicos is not null) fornecedor.AplicarContratoCanonico(dto.DadosCanonicos, "MaisCompras", DateTimeOffset.UtcNow);
         await repository.AdicionarAsync(fornecedor, cancellationToken);
         return FornecedorMapper.ToDto(fornecedor);
     }
@@ -29,6 +30,8 @@ public sealed class AtualizarFornecedorUseCase(IFornecedorRepository repository,
         if (fornecedor is null) return null;
         fornecedor.Atualizar(dto.Nome, dto.Categoria, dto.Email, dto.Telefone, dto.Website, dto.Cidade, dto.Estado,
             dto.Pais, dto.Status ?? "Ativo", dto.ScoreIA, DateTimeOffset.UtcNow);
+        if (!string.IsNullOrWhiteSpace(dto.Cnpj) && dto.Cnpj != fornecedor.Cnpj) fornecedor.AtualizarDocumento(dto.Cnpj, DateTimeOffset.UtcNow);
+        if (dto.DadosCanonicos is not null) fornecedor.AplicarContratoCanonico(dto.DadosCanonicos, "MaisCompras", DateTimeOffset.UtcNow);
         await repository.AtualizarAsync(fornecedor, cancellationToken);
         return FornecedorMapper.ToDto(fornecedor);
     }
@@ -67,5 +70,10 @@ internal static class FornecedorMapper
 {
     public static FornecedorDto ToDto(Fornecedor value) => new(value.Id, value.Nome, value.Cnpj, value.Categoria, value.Email,
         value.Telefone, value.Website, value.Cidade, value.Estado, value.Pais, value.Status, value.ScoreIA,
-        value.TemporaryUserId, value.CreatedAt, value.UpdatedAt);
+        value.TemporaryUserId, value.CreatedAt, value.UpdatedAt, value.NomeFantasia, value.TipoPessoa, value.InscricaoEstadual,
+        value.InscricaoMunicipal, value.Cep, value.Logradouro, value.Numero, value.Complemento, value.Bairro, value.CodigoMunicipio,
+        value.Ddd, value.EmailFiscal, value.Banco, value.Agencia, value.Conta, value.DigitosConta, value.CondicaoPagamento,
+        value.TipoFornecedor, value.SubtipoFornecedor, value.ContaContabil, value.RegimeFiscal, value.SimplesNacional,
+        value.CategoriasFornecimento, value.ForneceMateriais, value.ForneceConsumo, value.ForneceServicos, value.ForneceProdutos,
+        value.BusinessUnit, value.ErpSistema, value.ErpFornecedorId, value.Versao, value.HashDadosSincronizaveis);
 }

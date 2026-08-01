@@ -30,6 +30,25 @@ public sealed class FornecedorConfiguration : IEntityTypeConfiguration<Fornecedo
         builder.Property(x => x.OrigemInformacao).HasMaxLength(30).IsRequired();
         builder.Property(x => x.StatusSincronizacao).HasMaxLength(30).IsRequired();
         builder.Property(x => x.MensagemErroSincronizacao).HasMaxLength(500);
+        builder.Property(x => x.NomeFantasia).HasMaxLength(200);
+        builder.Property(x => x.TipoPessoa).HasMaxLength(20);
+        builder.Property(x => x.InscricaoEstadual).HasMaxLength(40);
+        builder.Property(x => x.InscricaoMunicipal).HasMaxLength(40);
+        builder.Property(x => x.Cep).HasMaxLength(12);
+        builder.Property(x => x.Logradouro).HasMaxLength(200);
+        builder.Property(x => x.Numero).HasMaxLength(30);
+        builder.Property(x => x.Complemento).HasMaxLength(100);
+        builder.Property(x => x.Bairro).HasMaxLength(100);
+        builder.Property(x => x.CodigoMunicipio).HasMaxLength(30);
+        builder.Property(x => x.Ddd).HasMaxLength(5);
+        builder.Property(x => x.EmailFiscal).HasMaxLength(254);
+        builder.Property(x => x.Banco).HasMaxLength(20); builder.Property(x => x.Agencia).HasMaxLength(20);
+        builder.Property(x => x.Conta).HasMaxLength(30); builder.Property(x => x.DigitosConta).HasMaxLength(5);
+        builder.Property(x => x.CondicaoPagamento).HasMaxLength(80); builder.Property(x => x.TipoFornecedor).HasMaxLength(80);
+        builder.Property(x => x.SubtipoFornecedor).HasMaxLength(80); builder.Property(x => x.ContaContabil).HasMaxLength(80);
+        builder.Property(x => x.RegimeFiscal).HasMaxLength(80); builder.Property(x => x.CategoriasFornecimento).HasMaxLength(500);
+        builder.Property(x => x.HashDadosSincronizaveis).HasMaxLength(128); builder.Property(x => x.OrigemUltimaAlteracao).HasMaxLength(30);
+        builder.Property(x => x.Versao).IsRequired();
         builder.HasIndex(x => x.Cnpj).IsUnique();
         builder.HasIndex(x => new { x.BusinessUnit, x.ErpSistema, x.ErpFornecedorId }).IsUnique()
             .HasFilter("[BusinessUnit] IS NOT NULL AND [ErpSistema] IS NOT NULL AND [ErpFornecedorId] IS NOT NULL");

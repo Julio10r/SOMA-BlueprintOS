@@ -16,10 +16,11 @@ O `BlueprintOSDbContext` usa exclusivamente `MaisComprasConnection` para persist
 
 - `Fornecedores`: agregado persistente entregue na B1.
 - `FornecedoresDescobertos`: resultados da descoberta B2, vinculados a `TemporaryUserId`.
-- `FornecedoresSincronizacoes`: histórico de tentativas, direção, status, correlação e erro sanitizado.
+- `FornecedoresSincronizacoes`: trilha append-only de sincronização com direção, origem/destino, timestamps, decisão, snapshots, hashes, tentativa, duração, correlação e erro sanitizado.
 - `Fornecedores`: vínculo externo opcional por `BusinessUnit`, `ErpSistema` e `ErpFornecedorId`, com status/origem da sincronização.
 - Migration B2: `202607300002_B2FornecedorDiscovery`.
 - Migration B2.1: `202607310001_B21FornecedorSynchronization` (aplicada no banco de desenvolvimento +Compras em 31/07/2026).
+- Migration complementar B2.1: `202608010001_B21CanonicalSupplierSynchronization` (aplicada somente no banco de desenvolvimento +Compras em 01/08/2026; rollback remove apenas as colunas adicionadas por ela).
 
 ### ERP SOMA_DESENV
 

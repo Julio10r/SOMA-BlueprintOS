@@ -39,7 +39,7 @@ public sealed class SincronizarFornecedorUseCaseTests
         var first = await useCase.ExecuteAsync(new("BU-A", "SOMA_DESENV", null, local.Id, DirecaoSincronizacao.MaisComprasParaErp, null));
         var second = await useCase.ExecuteAsync(new("BU-A", "SOMA_DESENV", null, local.Id, DirecaoSincronizacao.MaisComprasParaErp, null));
 
-        Assert.Equal("Sincronizado", first.Status); Assert.Equal("Sincronizado", second.Status); Assert.Equal(1, adapter.CreateCount); Assert.Equal(1, adapter.UpdateCount);
+        Assert.Equal("Sincronizado", first.Status); Assert.Equal("Sincronizado", second.Status); Assert.Equal(1, adapter.CreateCount); Assert.Equal(0, adapter.UpdateCount);
         Assert.Equal("ERP-NEW", (await context.Fornecedores.SingleAsync()).ErpFornecedorId);
     }
 
@@ -70,6 +70,35 @@ public sealed class SincronizarFornecedorUseCaseTests
         Assert.Throws<InvalidOperationException>(() => new ErpFornecedorAdapterResolver([new FakeAdapter()], config).Resolver("BU-B", "SOMA_DESENV"));
     }
 
+    [Fact]
+    public async Task Import_Should_Apply_ERP_When_ERP_Timestamp_Is_Newer()
+    {
+        await using var context = NewContext(); var user = new FakeIdentity(); var local = new Fornecedor(Guid.NewGuid(), "Local", Cnpj.Create("12345678000195"), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow.AddMinutes(-5), "BU-A", "SOMA_DESENV", "ERP-1");
+        await new FornecedorRepository(context).AdicionarAsync(local);
+        var adapter = new FakeAdapter { Current = new("ERP-1", "ERP Atualizado", "12345678000195", "São Paulo", "SP", "BR", true, DateTimeOffset.UtcNow.AddMinutes(5)) };
+        var result = await Create(context, user, adapter).ExecuteAsync(new("BU-A", "SOMA_DESENV", "ERP-1", null, DirecaoSincronizacao.ErpParaMaisCompras, "newer"));
+        Assert.Equal("Sincronizado", result.Status); Assert.Equal("ERP Atualizado", (await context.Fornecedores.SingleAsync()).Nome);
+    }
+
+    [Fact]
+    public async Task Export_Inactivation_Should_Be_Idempotent_And_Audited()
+    {
+        await using var context = NewContext(); var user = new FakeIdentity(); var local = new Fornecedor(Guid.NewGuid(), "Teste", Cnpj.Create("12345678000195"), null, null, null, null, null, "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow, "BU-A", "SOMA_DESENV", "ERP-1");
+        await new FornecedorRepository(context).AdicionarAsync(local); var adapter = new FakeAdapter { Current = new("ERP-1", "Teste", "12345678000195", null, "SP", "BR") };
+        var useCase = Create(context, user, adapter); var dto = new SincronizarFornecedorDto("BU-A", "SOMA_DESENV", null, local.Id, DirecaoSincronizacao.MaisComprasParaErp, "inactive", OperacaoFornecedor.Inativar);
+        var first = await useCase.ExecuteAsync(dto); var second = await useCase.ExecuteAsync(dto);
+        Assert.Equal("Sincronizado", first.Status); Assert.Equal("Inativo", (await context.Fornecedores.SingleAsync()).Status); Assert.Equal(2, await context.FornecedoresSincronizacoes.CountAsync());
+    }
+
+    [Fact]
+    public async Task Equal_Timestamp_With_Different_Data_Should_Preserve_MaisCompras()
+    {
+        await using var context = NewContext(); var user = new FakeIdentity(); var timestamp = DateTimeOffset.UtcNow; var local = new Fornecedor(Guid.NewGuid(), "Local", Cnpj.Create("12345678000195"), null, null, null, null, null, "SP", "BR", "Ativo", null, user.UserId, timestamp, "BU-A", "SOMA_DESENV", "ERP-1");
+        await new FornecedorRepository(context).AdicionarAsync(local); var adapter = new FakeAdapter { Current = new("ERP-1", "ERP", "12345678000195", null, "SP", "BR", true, timestamp) };
+        await Create(context, user, adapter).ExecuteAsync(new("BU-A", "SOMA_DESENV", "ERP-1", null, DirecaoSincronizacao.ErpParaMaisCompras, "tie"));
+        Assert.Equal("Local", (await context.Fornecedores.SingleAsync()).Nome); Assert.Equal(0, adapter.UpdateCount);
+    }
+
     private static SincronizarFornecedorUseCase Create(BlueprintOSDbContext context, FakeIdentity identity, FakeAdapter adapter) =>
         new(new FornecedorRepository(context), new FornecedorSincronizacaoRepository(context), new FakeResolver(adapter), identity);
     private static BlueprintOSDbContext NewContext() => new(new DbContextOptionsBuilder<BlueprintOSDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
@@ -80,9 +109,10 @@ public sealed class SincronizarFornecedorUseCaseTests
     private sealed class FakeAdapter : IErpFornecedorAdapter
     {
         public string ErpSistema => "SOMA_DESENV"; public ErpFornecedorDto? Current { get; set; } public Exception? Error { get; set; }
-        public int CreateCount { get; private set; } public int UpdateCount { get; private set; }
+        public int CreateCount { get; private set; } public int UpdateCount { get; private set; } public int InactivateCount { get; private set; }
         public Task<ErpFornecedorDto?> ObterAsync(string id, CancellationToken ct = default) { ct.ThrowIfCancellationRequested(); if (Error is not null) throw Error; return Task.FromResult(Current?.Id == id ? Current : null); }
         public Task<ErpFornecedorDto> CriarAsync(ErpFornecedorParaEscrita f, CancellationToken ct = default) { ct.ThrowIfCancellationRequested(); CreateCount++; Current = new("ERP-NEW", f.Nome, f.Cnpj, f.Cidade, f.Estado, f.Pais); return Task.FromResult(Current); }
         public Task<ErpFornecedorDto> AtualizarAsync(ErpFornecedorParaEscrita f, CancellationToken ct = default) { ct.ThrowIfCancellationRequested(); UpdateCount++; Current = new(f.Id, f.Nome, f.Cnpj, f.Cidade, f.Estado, f.Pais); return Task.FromResult(Current); }
+        public Task<ErpFornecedorDto> InativarAsync(string id, CancellationToken ct = default) { ct.ThrowIfCancellationRequested(); InactivateCount++; Current = Current is null ? new(id, "Inativo", "00000000000000", null, null, null, false) : Current with { Id = id, Ativo = false, UltimaAlteracaoEm = DateTimeOffset.UtcNow }; return Task.FromResult(Current); }
     }
 }

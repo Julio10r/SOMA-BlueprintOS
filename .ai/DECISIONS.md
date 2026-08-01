@@ -251,3 +251,21 @@ O adaptador `OpenAIProvider` existente é uma implementação de Infrastructure 
 **Trade-offs:** adaptadores precisam manter paridade de contratos e capacidades; qualidade do modelo local pode ser inferior; configuração, telemetria, credenciais e limites de cada ambiente exigirão uma Work Order futura.
 
 **Regras:** nenhum código fora de Infrastructure acessa API de IA diretamente; nenhum adaptador é assumido pela regra de negócio; a troca de fornecedor não altera o Domain; e integrações devem permanecer Ports & Adapters, configuradas por ambiente.
+
+---
+
+## ADR-0015: Contrato canônico e sincronização bidirecional de fornecedores
+
+**Status:** Aceito para a reabertura da B2.1
+
+**Data:** 01/08/2026
+
+**Contexto:** A primeira entrega da B2.1 sincronizava somente um subconjunto corporativo e não representava a atualização, inativação, conflito temporal e auditoria exigidos pelo contrato operacional. A procedure `LX_AZZ_GERAR_FORNECEDOR_LINX` é apenas referência funcional; não pode ser dependência da aplicação.
+
+**Decisão:** O Domain mantém `FornecedorCanonico` sem nomes físicos de ERP. A Application usa `IIntegracaoFornecedorErp`/`IErpFornecedorAdapter` e resolve o adaptador por BU; tabelas, procedures, connection strings e regras físicas ficam exclusivamente na Infrastructure. O modelo canônico cobre identificação, endereço, contatos, fiscal, bancário, comercial, classificação, categorias e indicadores de fornecimento.
+
+**Regra temporal:** timestamps são normalizados para `America/Sao_Paulo` e comparados até o segundo. Registro ERP mais recente atualiza o +Compras; registro +Compras mais recente atualiza o ERP; empate com dados divergentes favorece o +Compras; empate com dados iguais não altera nenhum sistema.
+
+**Auditoria e idempotência:** cada operação gera evento imutável em `FornecedoresSincronizacoes`, com origem/destino, timestamps originais e normalizados, decisão, antes/depois, hashes, tentativa, duração, erro sanitizado e `CorrelationId`. Reexecuções sem mudança não repetem escrita nem alteram o timestamp; consultas e nenhuma alteração continuam auditáveis.
+
+**Consequências:** o +Compras passa a preservar campos exclusivos e o vínculo externo por BU/ERP/ID; fornecedores são inativados logicamente e nunca removidos pela sincronização. A migration complementar altera somente o banco +Compras. O adaptador SOMA_DESENV traduz apenas os campos que o ERP suporta e preserva chaves protegidas por FK.

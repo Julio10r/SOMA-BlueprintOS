@@ -16,7 +16,9 @@
 
 ## B2.1 — Validação Operacional e Sincronização
 
-- A conectividade real, a migration `202607310001_B21FornecedorSynchronization` e os fluxos de leitura/escrita foram confirmados em 31/07/2026.
+- A migration `202607310001_B21FornecedorSynchronization` foi aplicada em 31/07/2026 e a complementar `202608010001_B21CanonicalSupplierSynchronization` em 01/08/2026, ambas somente no +Compras dev.
+- A sprint foi reaberta: atualização e inativação bidirecionais já foram comprovadas; permanecem para revisão formal os cenários temporais/empate com timestamp ERP exposto e a conferência dos snapshots completos.
+- A validação da reabertura confirmou importação, exportação, atualização de CNPJ e inativação nos dois sentidos no registro fictício `900001`; a aprovação formal da sprint aguarda revisão do relatório e uma decisão sobre a preservação do registro de teste que expôs o overflow `00000*`.
 - O ERP limita `FORNECEDOR` a 25 caracteres e o mantém como FK para `CADASTRO_CLI_FOR.NOME_CLIFOR`; a sincronização não altera essa chave e atualiza CNPJ como campo corporativo permitido.
 - A identidade de desenvolvimento continua limitando a operação a Development, conforme ADR-0011.
 

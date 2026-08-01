@@ -24,3 +24,4 @@ Foi aceita a construção incremental: fluxos operacionais completos e manuais d
 - A importação atualiza somente campos corporativos explícitos (`Nome`, `Cnpj`, localidade e país); campos próprios do +Compras não são sobrescritos.
 - A migration foi aplicada somente no +Compras e a escrita real foi executada somente com registros fictícios no `SOMA_DESENV`; nenhuma alteração de schema foi feita no ERP.
 - O adaptador SOMA_DESENV trata `FORNECEDORES.FORNECEDOR` como chave externa imutável por FK e atualiza CNPJ como campo corporativo seguro.
+- ADR-0015 reabriu a sprint para contrato canônico completo, sincronização temporal bidirecional, empate favorável ao +Compras, inativação lógica e auditoria append-only.

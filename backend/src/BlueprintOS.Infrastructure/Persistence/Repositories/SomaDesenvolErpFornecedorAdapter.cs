@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace BlueprintOS.Infrastructure.Persistence.Repositories;
 
 /// <summary>Adaptador isolado do SOMA_DESENV. O schema do ERP não atravessa esta fronteira.</summary>
-public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuration, ILogger<SomaDesenvolErpFornecedorAdapter> logger) : IErpFornecedorAdapter
+public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuration, ILogger<SomaDesenvolErpFornecedorAdapter> logger) : IIntegracaoFornecedorErp
 {
     public string ErpSistema => "SOMA_DESENV";
 
@@ -27,8 +27,25 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
     public Task<ErpFornecedorDto> CriarAsync(ErpFornecedorParaEscrita fornecedor, CancellationToken cancellationToken = default) =>
         EscreverAsync(fornecedor, inserir: true, cancellationToken);
 
+    public Task<ErpFornecedorDto?> ConsultarAsync(IdentificacaoFornecedorErp identificacao, CancellationToken cancellationToken = default) => ObterAsync(identificacao.IdentificadorExterno, cancellationToken);
+    public Task<ErpFornecedorDto> CriarAsync(FornecedorParaErpDto fornecedor, CancellationToken cancellationToken = default) => EscreverAsync(new ErpFornecedorParaEscrita(fornecedor.Id, fornecedor.Nome, fornecedor.Cnpj, fornecedor.Cidade, fornecedor.Estado, fornecedor.Pais, fornecedor.Ativo, fornecedor.UltimaAlteracaoEm, fornecedor.HashDadosSincronizaveis, fornecedor.DadosCanonicos), inserir: true, cancellationToken);
+    public Task<ErpFornecedorDto> AtualizarAsync(FornecedorParaErpDto fornecedor, CancellationToken cancellationToken = default) => EscreverAsync(new ErpFornecedorParaEscrita(fornecedor.Id, fornecedor.Nome, fornecedor.Cnpj, fornecedor.Cidade, fornecedor.Estado, fornecedor.Pais, fornecedor.Ativo, fornecedor.UltimaAlteracaoEm, fornecedor.HashDadosSincronizaveis, fornecedor.DadosCanonicos), inserir: false, cancellationToken);
+    public Task<ErpFornecedorDto> InativarAsync(IdentificacaoFornecedorErp identificacao, CancellationToken cancellationToken = default) => InativarAsync(identificacao.IdentificadorExterno, cancellationToken);
+
     public Task<ErpFornecedorDto> AtualizarAsync(ErpFornecedorParaEscrita fornecedor, CancellationToken cancellationToken = default) =>
         EscreverAsync(fornecedor, inserir: false, cancellationToken);
+
+    public async Task<ErpFornecedorDto> InativarAsync(string identificador, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        var shape = await LoadShapeAsync(connection, cancellationToken);
+        await using var command = connection.CreateCommand(); command.CommandTimeout = TimeoutSeconds;
+        if (shape.InativoColumn is null) throw new InvalidOperationException("O ERP não expõe o indicador de inativação configurado.");
+        command.CommandText = $"UPDATE {shape.Table} SET {shape.Quote(shape.InativoColumn)} = 1{(shape.UltimaAlteracaoColumn is null ? string.Empty : $", {shape.Quote(shape.UltimaAlteracaoColumn)} = GETDATE()")} WHERE {shape.Quote(shape.IdColumn!)} = @id";
+        command.Parameters.Add(new SqlParameter("@id", identificador));
+        if (await command.ExecuteNonQueryAsync(cancellationToken) == 0) throw new InvalidOperationException("Fornecedor não encontrado no ERP.");
+        return await ObterAsync(identificador, cancellationToken) ?? throw new InvalidOperationException("Fornecedor não encontrado no ERP após inativação.");
+    }
 
     private async Task<ErpFornecedorDto> EscreverAsync(ErpFornecedorParaEscrita fornecedor, bool inserir, CancellationToken ct)
     {
@@ -46,12 +63,13 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
         else
         {
             command.CommandText = shape.IsSomaFornecedores
-                ? $"SET XACT_ABORT ON; BEGIN TRAN; UPDATE [dbo].[CADASTRO_CLI_FOR] SET [CGC_CPF] = @cnpj, [COBRANCA_CGC] = @cnpj, [ENTREGA_CGC] = @cnpj WHERE [COD_CLIFOR] = @id; UPDATE {shape.Table} SET [CGC_CPF] = @cnpj WHERE [COD_FORNECEDOR] = @id; COMMIT TRAN"
+                ? $"SET XACT_ABORT ON; BEGIN TRAN; UPDATE [dbo].[CADASTRO_CLI_FOR] SET [CGC_CPF] = @cnpj, [COBRANCA_CGC] = @cnpj, [ENTREGA_CGC] = @cnpj WHERE [COD_CLIFOR] = @id; UPDATE {shape.Table} SET [CGC_CPF] = @cnpj, [INATIVO] = @inativo WHERE [COD_FORNECEDOR] = @id; COMMIT TRAN"
                 : $"UPDATE {shape.Table} SET {shape.UpdateSet} WHERE {shape.IdColumn} = @id";
         }
         command.Parameters.Add(new SqlParameter("@id", externalId)); command.Parameters.Add(new SqlParameter("@nome", fornecedor.Nome));
         command.Parameters.Add(new SqlParameter("@cnpj", fornecedor.Cnpj)); command.Parameters.Add(new SqlParameter("@cidade", (object?)fornecedor.Cidade ?? DBNull.Value));
         command.Parameters.Add(new SqlParameter("@estado", (object?)fornecedor.Estado ?? DBNull.Value)); command.Parameters.Add(new SqlParameter("@pais", (object?)fornecedor.Pais ?? DBNull.Value));
+        if (shape.IsSomaFornecedores) command.Parameters.Add(new SqlParameter("@inativo", fornecedor.Ativo ? 0 : 1));
         if (inserir && shape.IsSomaFornecedores)
         {
             command.Parameters.Add(new SqlParameter("@empty", string.Empty));
@@ -65,7 +83,7 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
     private static async Task<string> NextSupplierIdAsync(SqlConnection connection, TableShape shape, CancellationToken ct)
     {
         await using var command = connection.CreateCommand();
-        command.CommandText = $"SELECT RIGHT('000000' + CAST(ISNULL(MAX(TRY_CONVERT(int, [COD_FORNECEDOR])), 0) + 1 AS varchar(6)), 6) FROM {shape.Table}";
+        command.CommandText = $"WITH Numbers AS (SELECT TOP (100000) 900000 + ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS N FROM sys.all_objects a CROSS JOIN sys.all_objects b) SELECT TOP (1) RIGHT('000000' + CONVERT(varchar(6), N), 6) FROM Numbers WHERE N < 1000000 AND NOT EXISTS (SELECT 1 FROM {shape.Table} existing WHERE TRY_CONVERT(int, existing.[COD_FORNECEDOR]) = N) ORDER BY N";
         var value = await command.ExecuteScalarAsync(ct);
         return Convert.ToString(value)?.Trim() ?? throw new InvalidOperationException("Não foi possível gerar o identificador do fornecedor no ERP.");
     }
@@ -93,8 +111,10 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
         return shape;
     }
 
-    private static ErpFornecedorDto Map(IDataRecord reader, TableShape shape) => new(Convert.ToString(reader["Id"])!, Convert.ToString(reader["Nome"])!.Trim(), Nullable(reader, "Cnpj"), Nullable(reader, "Cidade"), Nullable(reader, "Estado"), Nullable(reader, "Pais"));
+    private static ErpFornecedorDto Map(IDataRecord reader, TableShape shape) => new(Convert.ToString(reader["Id"])!, Convert.ToString(reader["Nome"])!.Trim(), Nullable(reader, "Cnpj"), Nullable(reader, "Cidade"), Nullable(reader, "Estado"), Nullable(reader, "Pais"),
+        !string.Equals(Nullable(reader, "Ativo"), "1", StringComparison.OrdinalIgnoreCase) && !string.Equals(Nullable(reader, "Ativo"), "True", StringComparison.OrdinalIgnoreCase), ParseDate(reader, "UltimaAlteracao"));
     private static string? Nullable(IDataRecord reader, string name) => reader[name] is DBNull ? null : Convert.ToString(reader[name])?.Trim();
+    private static DateTimeOffset? ParseDate(IDataRecord reader, string name) => reader[name] is DBNull ? null : Convert.ToDateTime(reader[name]).ToUniversalTime();
     private int TimeoutSeconds => int.TryParse(configuration["ErpIntegration:TimeoutSeconds"], out var value) ? Math.Clamp(value, 1, 120) : 30;
 
     private sealed class TableShape(string schema, string table, IReadOnlyList<string> columns)
@@ -104,12 +124,15 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
         public string? NameColumn => Find("nome", "nome_fornecedor", "razao_social", "razaosocial", "fantasia", "fornecedor");
         public string? CnpjColumn => Find("cnpj", "cpf_cnpj", "cgc_cpf", "documento");
         public string? CidadeColumn => Find("cidade", "municipio"); public string? EstadoColumn => Find("estado", "uf"); public string? PaisColumn => Find("pais", "país");
-        public string SelectList => $"{Q(IdColumn!)} AS Id, {Q(NameColumn!)} AS Nome, {Select(CnpjColumn, "Cnpj")}, {Select(CidadeColumn, "Cidade")}, {Select(EstadoColumn, "Estado")}, {Select(PaisColumn, "Pais")}";
+        public string? InativoColumn => Find("inativo", "ativo", "situacao");
+        public string? UltimaAlteracaoColumn => Find("data_para_transferencia", "ultima_alteracao", "updated_at", "data_alteracao");
+        public string SelectList => $"{Q(IdColumn!)} AS Id, {Q(NameColumn!)} AS Nome, {Select(CnpjColumn, "Cnpj")}, {Select(CidadeColumn, "Cidade")}, {Select(EstadoColumn, "Estado")}, {Select(PaisColumn, "Pais")}, {Select(InativoColumn, "Ativo")}, {Select(UltimaAlteracaoColumn, "UltimaAlteracao")}";
         public string WriteColumns => string.Join(", ", new[] { (IdColumn, "@id"), (NameColumn, "@nome"), (CnpjColumn, "@cnpj"), (CidadeColumn, "@cidade"), (EstadoColumn, "@estado"), (PaisColumn, "@pais") }.Where(x => x.Item1 is not null).Select(x => Q(x.Item1!)));
         public string WriteValues => string.Join(", ", new[] { (IdColumn, "@id"), (NameColumn, "@nome"), (CnpjColumn, "@cnpj"), (CidadeColumn, "@cidade"), (EstadoColumn, "@estado"), (PaisColumn, "@pais") }.Where(x => x.Item1 is not null).Select(x => x.Item2));
         public string UpdateSet => string.Join(", ", new[] { (NameColumn, "@nome"), (CnpjColumn, "@cnpj"), (CidadeColumn, "@cidade"), (EstadoColumn, "@estado"), (PaisColumn, "@pais") }.Where(x => x.Item1 is not null).Select(x => $"{Q(x.Item1!)} = {x.Item2}"));
         public bool IsSomaFornecedores => string.Equals(table, "FORNECEDORES", StringComparison.OrdinalIgnoreCase) && string.Equals(schema, "dbo", StringComparison.OrdinalIgnoreCase);
         private string? Find(params string[] aliases) => columns.FirstOrDefault(x => aliases.Contains(x, StringComparer.OrdinalIgnoreCase));
+        public string Quote(string value) => Q(value);
         private static string Q(string value) => $"[{value.Replace("]", "]]", StringComparison.Ordinal)}]";
         private static string Select(string? column, string alias) => column is null ? $"NULL AS {alias}" : $"{Q(column)} AS {alias}";
     }

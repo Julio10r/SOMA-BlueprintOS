@@ -34,4 +34,6 @@ public sealed class FornecedorSincronizacaoRepository(BlueprintOSDbContext conte
 
     public async Task AdicionarAsync(FornecedorSincronizacao sincronizacao, CancellationToken cancellationToken = default)
     { await context.FornecedoresSincronizacoes.AddAsync(sincronizacao, cancellationToken); await context.SaveChangesAsync(cancellationToken); }
+    public async Task<IReadOnlyList<FornecedorSincronizacao>> ListarPorFornecedorAsync(Guid fornecedorId, CancellationToken cancellationToken = default) =>
+        await context.FornecedoresSincronizacoes.AsNoTracking().Where(x => x.FornecedorId == fornecedorId).OrderBy(x => x.ExecutadaEm).ToListAsync(cancellationToken);
 }

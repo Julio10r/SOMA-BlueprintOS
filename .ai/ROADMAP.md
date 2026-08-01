@@ -64,7 +64,7 @@ A [ADR-0013](./DECISIONS.md) organiza a evolução em dois blocos sem alterar as
 1. **Operacional:** fornecedores, itens, compras/pedidos, portal como interface integrada, adaptadores ERP por BU e fluxo ponta a ponta com auditoria básica.
 2. **Inteligente:** inteligência de fornecedores, itens e compras; negociação, orçamento, auditoria, compliance e autonomia progressiva.
 
-O portal não é uma fase isolada: ele evolui com os módulos. Operações críticas mantêm caminho manual e confirmação humana; IA não é a única forma de concluí-las. B2.1 foi concluída com migration, leitura/escrita real no ERP, persistência, atualização e idempotência comprovadas; B3 não está iniciada.
+O portal não é uma fase isolada: ele evolui com os módulos. Operações críticas mantêm caminho manual e confirmação humana; IA não é a única forma de concluí-las. B2.1 foi reaberta em 01/08/2026 para completar contrato canônico, sincronização bidirecional, inativação, regra temporal e auditoria imutável; B3 não está iniciada.
 
 ---
 

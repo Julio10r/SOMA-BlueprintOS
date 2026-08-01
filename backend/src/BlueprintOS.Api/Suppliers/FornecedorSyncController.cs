@@ -10,6 +10,7 @@ public static class FornecedorSyncController
         var group = endpoints.MapGroup("/api/fornecedores").WithTags("Sincronização de Fornecedores");
         group.MapPost("/sincronizar", Sync);
         group.MapPost("/sincronizar/lote", SyncBatch);
+        group.MapGet("/{fornecedorId:guid}/sincronizacoes", Audit);
         return endpoints;
     }
 
@@ -27,12 +28,15 @@ public static class FornecedorSyncController
         try { return Results.Ok(await useCase.ExecutarLoteAsync(request.ToDto(), ct)); }
         catch (ArgumentException ex) { return Results.BadRequest(new { code = "validation_error", message = ex.Message }); }
     }
+
+    private static async Task<IResult> Audit(Guid fornecedorId, IFornecedorSincronizacaoRepository repository, CancellationToken ct) =>
+        Results.Ok(await repository.ListarPorFornecedorAsync(fornecedorId, ct));
 }
 
 public sealed record SincronizarFornecedorRequest(string BusinessUnit, string ErpSistema, string? ErpFornecedorId,
-    Guid? FornecedorId, DirecaoSincronizacao Direcao, string? CorrelationId)
+    Guid? FornecedorId, DirecaoSincronizacao Direcao, string? CorrelationId, OperacaoFornecedor Operacao = OperacaoFornecedor.Sincronizar)
 {
-    public SincronizarFornecedorDto ToDto() => new(BusinessUnit, ErpSistema, ErpFornecedorId, FornecedorId, Direcao, CorrelationId);
+    public SincronizarFornecedorDto ToDto() => new(BusinessUnit, ErpSistema, ErpFornecedorId, FornecedorId, Direcao, CorrelationId, Operacao);
 }
 
 public sealed record SincronizarFornecedoresLoteRequest(string BusinessUnit, string ErpSistema, IReadOnlyList<Guid> FornecedorIds,

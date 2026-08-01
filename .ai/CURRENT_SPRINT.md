@@ -1,10 +1,10 @@
 Sprint: B2.1 — Validação Operacional e Sincronização de Fornecedores com ERP
 
 Status:
-CONCLUÍDA em 31/07/2026
+REABERTA em 01/08/2026 — conclusão anterior revogada até validação bidirecional completa
 
 Objetivo:
-Validar a integração segura, observável e idempotente de fornecedores entre o +Compras e o ERP SOMA_DESENV, com resolução de adaptador por BU.
+Completar o contrato canônico e validar a sincronização bidirecional completa de fornecedores entre o +Compras e o ERP configurado por BU, incluindo atualização, inativação, regra temporal, empate favorável ao +Compras, auditoria imutável e idempotência.
 
 Entrega técnica desta etapa:
 - Contratos `IErpFornecedorAdapter`, `IErpFornecedorAdapterResolver` e `ISincronizarFornecedorUseCase` na Application.
@@ -17,18 +17,26 @@ Entrega técnica desta etapa:
 
 Validação automatizada:
 - Build da solution: sucesso, 0 erros e 0 avisos.
-- Testes unitários: 245 aprovados.
+- Testes unitários: 248 aprovados.
 - Testes de integração: 3 aprovados.
 - Cobertura nova: seleção por BU, mapeamento, importação, exportação, duplicidade, reexecução idempotente, falha sanitizada, cancelamento e isolamento.
 
-Validação operacional:
-- Conectividade real confirmada para +Compras e `SOMA_DESENV` em 31/07/2026.
+Validação operacional parcial desta reabertura:
+- Conectividade real confirmada para +Compras e `SOMA_DESENV` em 01/08/2026.
 - ERP_ID `277459` importado para um único fornecedor do +Compras e repetido sem duplicidade.
-- Fornecedor fictício +Compras `59d3f811-23ce-4589-9c15-1679cea59afd` criado no ERP como `999999`; CNPJ atualizado de final `0195` para `0110` e confirmado diretamente no ERP.
-- +Compras confirmou vínculos únicos e histórico persistido; as reexecuções retornaram status `Sincronizado`.
+- Fornecedor fictício `8a86809e-b123-493d-8bb7-b855527e98a1` exportado como ERP_ID `900001`; atualização de CNPJ para final `0110` confirmada por consulta posterior.
+- Inativação +Compras→ERP e ERP→+Compras confirmada; estado final no +Compras: `Inativo`, CNPJ final `0110` e vínculo `900001`.
+- Auditoria consultada por endpoint somente leitura: 15 eventos, 0 falhas, 15 correlações e 11 eventos com snapshots antes/depois.
+- Um primeiro teste controlado encontrou overflow no gerador de chave quando o ERP estava no limite de seis posições (`00000*`); o adaptador foi corrigido para escolher o primeiro código livre na faixa `900000–999999`, sem remover o registro fictício criado.
+
+Escopo desta reabertura:
+- ampliar o agregado e DTOs para identificação, endereço, contato, fiscal, bancário, comercial, classificação, BU e estado de sincronização;
+- criar contrato genérico de integração, comparação temporal em `America/Sao_Paulo` com precisão de segundo e operações de inativação;
+- substituir o histórico mínimo por auditoria imutável com antes/depois, hashes, decisão, conflito, tentativa e reprocessamento;
+- criar migration complementar somente no +Compras e executar validação end-to-end com dados fictícios.
 
 Limites:
-- B3 não foi iniciada.
+- B3 não foi iniciada e permanece fora do escopo.
 - Não há remoção automática de fornecedores.
-- Escritas no ERP ficam disponíveis somente pelo adaptador selecionado e pelo endpoint operacional, sob confirmação do operador.
-- Limitação ERP: `FORNECEDORES.FORNECEDOR` é FK para `CADASTRO_CLI_FOR.NOME_CLIFOR`; o nome não foi alterado para evitar operação destrutiva. A atualização validada usou CNPJ.
+- A procedure `LX_AZZ_GERAR_FORNECEDOR_LINX` é apenas referência funcional; não será chamada nem copiada.
+- O ERP SOMA_DESENV mantém a limitação de FK entre `FORNECEDORES.FORNECEDOR` e `CADASTRO_CLI_FOR.NOME_CLIFOR`; o adaptador deve preservar chaves físicas e atualizar somente campos suportados.
