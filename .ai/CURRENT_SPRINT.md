@@ -55,3 +55,33 @@ Transição:
 - Próxima frente: Portal +Compras Frontend.
 - Executor planejado: Claude Code.
 - B3 permanece não iniciada.
+
+---
+
+# Portal +Compras Frontend
+
+Status:
+Concluída tecnicamente no frontend (commit `8ee8f4e`, branch `feature/a13-procurement-vertical-slice`); validação de backend pendente.
+
+Objetivo concluído:
+Construir o portal visual +Compras (React, TypeScript, GDT Design System AZZAS 2154), transformando a tela funcional de fornecedor em uma experiência navegável, preservando a integração real já existente e sem simular funcionalidades ainda não implementadas nos demais módulos.
+
+Evidências:
+
+- Portal criado: shell de navegação (AppShell) e rotas React Router.
+- Módulo Fornecedores funcional e integrado à API real: cadastro, consulta CNPJ, enriquecimento, aprovação e rejeição de divergências.
+- Demais módulos (Pedidos, Negociações, Indicadores, Agentes IA, Configurações) implementados como telas demonstrativas, sem persistência simulada.
+- Design System AZZAS 2154 / GDT aplicado (tokens, UI kit `portal-gdt`).
+- Build frontend aprovado: `tsc` + `vite build`, 4/4 testes aprovados.
+- Backend: `dotnet build`/`dotnet test` **não executados neste ciclo** por ausência do SDK .NET no ambiente de validação usado — pendente validação local antes de considerar a frente encerrada de ponta a ponta.
+- Revisão manual de código confirmou (sem execução): endpoints `POST/GET /fornecedores`, `POST /fornecedores/consulta-cnpj`, `POST/{id}/enriquecimento-cnpj` (+ `/aprovar` e `/rejeitar`) batendo com as chamadas do frontend em `supplierEnrichmentApi.ts`; `Cnpj_Cpf` persistido como `varchar(14)` alfanumérico; `NomeFantasia` protegido e só atualizado quando origem é ERP; alerta de situação cadastral `Baixada/Suspensa/Inapta` presente em `ApprovalPanel.tsx` sem bloquear o fluxo; CORS configurável via `Cors:AllowedOrigins`, sem `AllowAnyOrigin` irrestrito e sem segredos hardcoded em `Program.cs`/`appsettings.Development.json`.
+
+Documentação:
+
+- `docs/work-orders/PortalMaisComprasFrontend.md`
+- `docs/demo/PortalMaisComprasDemo.md` (novo — roteiro de demonstração executiva)
+
+Transição:
+
+- Próxima pendência: executar `dotnet build`/`dotnet test` localmente (ambiente com SDK .NET) para fechar a validação de backend desta frente.
+- B3 permanece não iniciada.
