@@ -1,6 +1,6 @@
 namespace BlueprintOS.Domain.Procurement.Suppliers;
 
-/// <summary>Identificador fiscal brasileiro normalizado para persistência e comparação.</summary>
+/// <summary>Identificador fiscal brasileiro legado para compatibilidade com contratos antigos.</summary>
 public sealed record Cnpj
 {
     public string Value { get; }

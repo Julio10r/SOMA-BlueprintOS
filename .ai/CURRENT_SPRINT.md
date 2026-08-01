@@ -1,12 +1,12 @@
-# B2.1.2 - Alinhamento Estrutural ERP Linx x +Compras
+# B2.1.2 - Implementação Modelo Canônico Fornecedor ERP Linx
 
 Status:
-Em andamento
+Em implementação
 
 Objetivo:
-Comparar e alinhar o contrato estrutural de fornecedores entre Linx e +Compras.
+Implementar o alinhamento estrutural entre o ERP Linx e o modelo de fornecedor do +Compras conforme ADR-0016.
 
-Fluxo avaliado:
+Fluxo:
 
 ```text
 Linx ERP
@@ -20,29 +20,30 @@ API
 Frontend
 ```
 
-Escopo desta etapa:
-- Diagnóstico de tipos, tamanhos, nullable, collation, validações e limitações operacionais.
-- Levantamento das tabelas Linx `CADASTRO_CLI_FOR`, `FORNECEDORES` e `PROP_FORNECEDORES`.
-- Comparação com `FornecedorCanonico`, agregado `Fornecedor`, DTOs, API e tabela `Fornecedores`.
-- Registro de divergências e recomendações em `docs/engineering/B21.2-EstruturaFornecedorERP.md`.
+Alterações realizadas:
+- `Cnpj_Cpf` introduzido como documento fiscal compatível com `CGC_CPF`, com `varchar(14)` na persistência.
+- `TipoPessoa` preservado para distinguir `PF`/`PJ`.
+- `RazaoSocial` separado de `NomeFantasia`.
+- `NomeFantasia` protegido contra alteração manual do +Compras; somente importação ERP altera esse campo.
+- `Beneficiador` e `Licenciado` adicionados ao contrato canônico, entidade, banco, API/DTOs, sincronização e auditoria.
+- Tabela `FornecedoresDominiosErp` criada para domínios controlados pelo Linx, com FK opcional em fornecedor para condição de pagamento, tipo e subtipo.
+- Adaptador Linx passou a mapear `BENEFICIADOR` e `LICENCIADO`.
+- Frontend inicial recebeu contrato TypeScript e validações de tamanho/tipo de documento sem listas fixas.
 
-Fora de escopo:
-- Alteração de código.
-- Criação de migration.
-- Alteração de banco.
-- Alteração frontend.
-- Alteração de arquitetura.
+Migration:
+- `202608010002_B212FornecedorLinxCanonicalModel`
+- Aplicada no banco dev +Compras via `dotnet run --project backend/src/BlueprintOS.Api -- migrate`.
+
+Validação:
+- `dotnet build backend/BlueprintOS.sln --no-restore`: sucesso, 0 erros e 0 avisos.
+- Testes unitários: 256 aprovados.
+- Testes de integração: 4 aprovados.
 
 Contexto herdado:
 - A13 concluída.
 - B1 concluída.
 - B2.1 concluída.
 - B2.1.1 concluída.
-- B2.1.2 iniciada em 01/08/2026.
+- B2.1.2 em implementação.
 - B2.2 permanece Draft.
 - B3 não iniciada.
-
-Evidência inicial:
-- Branch: `feature/a13-procurement-vertical-slice`.
-- Repositório limpo no início da etapa.
-- Acesso direto ao SQL Server `SOMA_DESENV` tentou consulta somente leitura via `sqlcmd`, mas falhou por timeout de rede; o diagnóstico inicial usa evidências versionadas da B2.1/B2.1.1 e contratos locais.

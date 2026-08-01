@@ -84,7 +84,7 @@ public sealed class SincronizarFornecedorUseCaseTests
     public async Task Import_Should_Persist_Complete_Canonical_Contract_And_Remain_Idempotent()
     {
         await using var context = NewContext(); var user = new FakeIdentity();
-        var canonical = new FornecedorCanonico("Razão Social Completa", "Fantasia Completa", "12345678000195", "PJ", "BR", "IE-123", "IM-456", "01001000", "Rua Central", "100", "Sala 2", "Centro", "São Paulo", "SP", "3550308", "11", "999999999", "comercial@example.invalid", "fiscal@example.invalid", "001", "1234", "56789", "0", "030", "Industrial", "Têxtil", "4.1.2", "NORMAL", true, "CAT-1", true, true, true, true, true, DateTimeOffset.UtcNow, "hash-completo");
+        var canonical = new FornecedorCanonico("Razão Social Completa", "Fantasia Completa", "12345678000195", "PJ", "BR", "IE-123", "IM-456", "01001000", "Rua Central", "100", "Sala 2", "Centro", "São Paulo", "SP", "3550308", "11", "999999999", "comercial@example.invalid", "fiscal@example.invalid", "001", "1234", "56789", "0", "030", "Industrial", "Têxtil", "4.1.2", "NORMAL", true, "CAT-1", true, true, true, true, true, true, true, DateTimeOffset.UtcNow, "hash-completo");
         var adapter = new FakeAdapter { Current = new("ERP-COMPLETE", canonical.RazaoSocial, canonical.DocumentoFiscal, canonical.Cidade, canonical.Uf, canonical.Pais, true, canonical.DataUltimaAlteracao, canonical.HashDadosSincronizaveis, canonical) };
         var useCase = Create(context, user, adapter);
 
@@ -98,7 +98,36 @@ public sealed class SincronizarFornecedorUseCaseTests
         Assert.Equal(canonical.Numero, stored.Numero); Assert.Equal(canonical.Bairro, stored.Bairro); Assert.Equal(canonical.Ddd, stored.Ddd); Assert.Equal(canonical.EmailFiscal, stored.EmailFiscal);
         Assert.Equal(canonical.Banco, stored.Banco); Assert.Equal(canonical.Agencia, stored.Agencia); Assert.Equal(canonical.Conta, stored.Conta); Assert.Equal(canonical.CondicaoPagamento, stored.CondicaoPagamento);
         Assert.Equal(canonical.TipoFornecedor, stored.TipoFornecedor); Assert.Equal(canonical.RegimeFiscal, stored.RegimeFiscal); Assert.Equal(canonical.SimplesNacional, stored.SimplesNacional); Assert.Equal(canonical.HashDadosSincronizaveis, stored.HashDadosSincronizaveis);
+        Assert.True(stored.Beneficiador); Assert.True(stored.Licenciado);
         Assert.Single(await context.Fornecedores.ToListAsync());
+    }
+
+    [Fact]
+    public async Task Import_Should_Allow_Cpf_And_Alphanumeric_Document()
+    {
+        await using var context = NewContext(); var user = new FakeIdentity();
+        var canonical = new FornecedorCanonico("Pessoa Física", "PF ERP", "AB12345678901", "PF", "BR", null, null, null, null, null, null, null, null, "SP", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, false, false, false, false, false, true, DateTimeOffset.UtcNow, "hash-pf");
+        var adapter = new FakeAdapter { Current = new("ERP-PF", canonical.RazaoSocial, canonical.DocumentoFiscal, null, "SP", "BR", true, canonical.DataUltimaAlteracao, canonical.HashDadosSincronizaveis, canonical) };
+
+        await Create(context, user, adapter).ExecuteAsync(new("BU-A", "SOMA_DESENV", "ERP-PF", null, DirecaoSincronizacao.ErpParaMaisCompras, "pf"));
+
+        var stored = await context.Fornecedores.SingleAsync();
+        Assert.Equal("AB12345678901", stored.Cnpj_Cpf);
+        Assert.Equal("PF", stored.TipoPessoa);
+    }
+
+    [Fact]
+    public async Task Manual_Update_Should_Not_Change_NomeFantasia()
+    {
+        await using var context = NewContext(); var user = new FakeIdentity();
+        var supplier = new Fornecedor(Guid.NewGuid(), "Razão", DocumentoFiscal.Create("12345678901"), "PF", null, null, null, null, null, "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow);
+        supplier.AplicarContratoCanonico(new("Razão", "Fantasia ERP", "12345678901", "PF", "BR", null, null, null, null, null, null, null, null, "SP", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, false, false, false, false, false, true, DateTimeOffset.UtcNow, "hash"), "ERP", DateTimeOffset.UtcNow);
+        await new FornecedorRepository(context).AdicionarAsync(supplier);
+
+        supplier.AplicarContratoCanonico(new("Razão Manual", "Fantasia Manual", "12345678901", "PF", "BR", null, null, null, null, null, null, null, null, "SP", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, false, false, false, false, false, true, DateTimeOffset.UtcNow, "hash2"), "MaisCompras", DateTimeOffset.UtcNow);
+
+        Assert.Equal("Fantasia ERP", supplier.NomeFantasia);
+        Assert.Equal("Razão Manual", supplier.RazaoSocial);
     }
 
     [Fact]

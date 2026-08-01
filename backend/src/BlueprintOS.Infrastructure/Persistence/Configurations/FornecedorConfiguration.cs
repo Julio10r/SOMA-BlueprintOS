@@ -10,8 +10,10 @@ public sealed class FornecedorConfiguration : IEntityTypeConfiguration<Fornecedo
     {
         builder.ToTable("Fornecedores");
         builder.HasKey(x => x.Id);
-        builder.Property(x => x.Nome).HasMaxLength(200).IsRequired();
-        builder.Property(x => x.Cnpj).HasMaxLength(14).IsRequired();
+        builder.Property(x => x.RazaoSocial).HasMaxLength(200).IsRequired();
+        builder.Ignore(x => x.Nome);
+        builder.Property(x => x.Cnpj_Cpf).HasColumnName("Cnpj_Cpf").HasColumnType("varchar(14)").HasMaxLength(14).IsRequired();
+        builder.Ignore(x => x.Cnpj);
         builder.Property(x => x.Categoria).HasMaxLength(100);
         builder.Property(x => x.Email).HasMaxLength(254);
         builder.Property(x => x.Telefone).HasMaxLength(30);
@@ -48,11 +50,16 @@ public sealed class FornecedorConfiguration : IEntityTypeConfiguration<Fornecedo
         builder.Property(x => x.SubtipoFornecedor).HasMaxLength(80); builder.Property(x => x.ContaContabil).HasMaxLength(80);
         builder.Property(x => x.RegimeFiscal).HasMaxLength(80); builder.Property(x => x.CategoriasFornecimento).HasMaxLength(500);
         builder.Property(x => x.HashDadosSincronizaveis).HasMaxLength(128); builder.Property(x => x.OrigemUltimaAlteracao).HasMaxLength(30);
+        builder.Property(x => x.Beneficiador).IsRequired();
+        builder.Property(x => x.Licenciado).IsRequired();
         builder.Property(x => x.Versao).IsRequired();
-        builder.HasIndex(x => x.Cnpj).IsUnique();
+        builder.HasOne<FornecedorDominioErp>().WithMany().HasForeignKey(x => x.CondicaoPagamentoDominioId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<FornecedorDominioErp>().WithMany().HasForeignKey(x => x.TipoFornecedorDominioId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<FornecedorDominioErp>().WithMany().HasForeignKey(x => x.SubtipoFornecedorDominioId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(x => x.Cnpj_Cpf).IsUnique();
         builder.HasIndex(x => new { x.BusinessUnit, x.ErpSistema, x.ErpFornecedorId }).IsUnique()
             .HasFilter("[BusinessUnit] IS NOT NULL AND [ErpSistema] IS NOT NULL AND [ErpFornecedorId] IS NOT NULL");
-        builder.HasIndex(x => x.Nome);
+        builder.HasIndex(x => x.RazaoSocial);
         builder.HasIndex(x => x.TemporaryUserId);
     }
 }

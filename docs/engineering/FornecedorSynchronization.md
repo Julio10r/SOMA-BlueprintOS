@@ -71,3 +71,31 @@ Validação real: fornecedor fictício ERP `315504`, correlação `b21-1-1-impor
 O CNPJ `21855705000160` foi importado com cidade e UF e, em nova execução, retornou `NenhumaAlteracao`, confirmando o mapeamento canônico e a idempotência da B2.1.1.
 
 O ambiente ERP possui FKs para classificação (`TIPO`/`SUBTIPO_FORNECEDOR`); não foram inventados valores para forçar o teste. Quando preenchidos por dados válidos do ERP, esses campos são lidos pelo mesmo mapeamento. Nenhuma migration adicional foi necessária.
+
+## B2.1.2 — Modelo canônico integrado ao Linx
+
+A ADR-0016 foi implementada na estrutura de fornecedor do +Compras.
+
+Mudanças principais:
+
+| Área | Implementação |
+|---|---|
+| Documento fiscal | `Cnpj_Cpf` substitui o conceito persistente de `Cnpj`, com coluna `varchar(14)` e compatibilidade com `CADASTRO_CLI_FOR.CGC_CPF`. O contrato legado `Cnpj` continua aceito na API e é normalizado para manter compatibilidade. |
+| Tipo de pessoa | `TipoPessoa` permanece no modelo e distingue `PF`/`PJ`; validações de formato ficam na API/frontend. |
+| Nomes | `RazaoSocial` representa `CADASTRO_CLI_FOR.RAZAO_SOCIAL`; `NomeFantasia` representa `CADASTRO_CLI_FOR.NOME_CLIFOR`/`FORNECEDORES.FORNECEDOR`. `NomeFantasia` só é alterado quando a origem do contrato canônico é `ERP`. |
+| Flags Linx | `Beneficiador` e `Licenciado` foram adicionados ao contrato canônico, agregado, banco, DTOs, sincronização e snapshot de auditoria. |
+| Domínios ERP | `FornecedoresDominiosErp` armazena domínios sincronizados por `Tipo`, `CodigoERP`, `Descricao`, `BusinessUnit`, `ErpSistema`, `Status` e timestamps. `Fornecedores` possui FKs opcionais para condição de pagamento, tipo e subtipo. |
+| Frontend | `frontend/web/src/procurement/suppliers/linxSupplierContract.ts` define contrato e validações iniciais sem listas fixas de domínio. |
+
+Migration aplicada no +Compras dev:
+
+```text
+202608010002_B212FornecedorLinxCanonicalModel
+```
+
+Validação técnica:
+- `dotnet build backend/BlueprintOS.sln --no-restore`: sucesso, 0 erros e 0 avisos.
+- Testes unitários: 256 aprovados.
+- Testes de integração: 4 aprovados.
+
+Limite pendente: a estrutura de domínios ERP foi criada, mas a homologação operacional de sincronização dos domínios reais Linx ainda precisa ser executada com acesso ao `SOMA_DESENV`.

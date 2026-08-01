@@ -21,4 +21,23 @@ public sealed class FornecedorRepositoryIntegrationTests
         await repository.ExcluirAsync(supplier);
         Assert.Empty(await repository.ListarAsync(user));
     }
+
+    [Fact]
+    public async Task Supplier_Should_Link_To_Erp_Domain_Records()
+    {
+        var options = new DbContextOptionsBuilder<BlueprintOSDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+        await using var context = new BlueprintOSDbContext(options);
+        var syncedAt = DateTimeOffset.UtcNow;
+        var domain = new FornecedorDominioErp(Guid.NewGuid(), "TipoFornecedor", "IND", "Industrial", "BU-A", "SOMA_DESENV", "Ativo", syncedAt);
+        var supplier = new Fornecedor(Guid.NewGuid(), "Alpha Suprimentos", DocumentoFiscal.Create("12345678901"), "PF", null, null, null, null, null, "SP", "BR", "Ativo", null, Guid.NewGuid(), syncedAt);
+        supplier.VincularDominios(null, domain.Id, null, syncedAt);
+
+        await context.FornecedoresDominiosErp.AddAsync(domain);
+        await context.Fornecedores.AddAsync(supplier);
+        await context.SaveChangesAsync();
+
+        var stored = await context.Fornecedores.SingleAsync();
+        Assert.Equal(domain.Id, stored.TipoFornecedorDominioId);
+        Assert.Equal("IND", (await context.FornecedoresDominiosErp.SingleAsync()).CodigoERP);
+    }
 }

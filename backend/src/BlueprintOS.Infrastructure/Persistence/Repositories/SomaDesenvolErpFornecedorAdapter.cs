@@ -180,7 +180,8 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
         EmailComercial: Nullable(reader, "CanonicalEmailComercial"), EmailFiscal: Nullable(reader, "CanonicalEmailFiscal"), Banco: Nullable(reader, "CanonicalBanco"), Agencia: Nullable(reader, "CanonicalAgencia"), Conta: Nullable(reader, "CanonicalConta"), DigitosConta: null,
         CondicaoPagamento: Nullable(reader, "CanonicalCondicaoPagamento"), TipoFornecedor: Nullable(reader, "CanonicalTipoFornecedor"), SubtipoFornecedor: Nullable(reader, "CanonicalSubtipoFornecedor"), ContaContabil: Nullable(reader, "CanonicalContaContabil"), RegimeFiscal: Nullable(reader, "CanonicalRegimeFiscal"),
         SimplesNacional: BoolNullable(reader, "CanonicalSimplesNacional"), CategoriasFornecimento: Nullable(reader, "CanonicalCategorias"), ForneceMateriais: Bool(reader, "CanonicalForneceMateriais"), ForneceConsumo: Bool(reader, "CanonicalForneceConsumo"), ForneceServicos: Bool(reader, "CanonicalForneceServicos"), ForneceProdutos: Bool(reader, "CanonicalForneceProdutos"),
-        Ativo: true, DataUltimaAlteracao: ParseDate(reader, "UltimaAlteracao") ?? DateTimeOffset.UtcNow, HashDadosSincronizaveis: string.Empty);
+        Beneficiador: Bool(reader, "CanonicalBeneficiador"), Licenciado: Bool(reader, "CanonicalLicenciado"), Ativo: true,
+        DataUltimaAlteracao: ParseDate(reader, "UltimaAlteracao") ?? DateTimeOffset.UtcNow, HashDadosSincronizaveis: string.Empty);
     private static string? Nullable(IDataRecord reader, string name) => reader[name] is DBNull ? null : Convert.ToString(reader[name])?.Trim();
     private static bool Bool(IDataRecord reader, string name) => ParseBool(reader[name]) == true;
     private static bool? BoolNullable(IDataRecord reader, string name) => ParseBool(reader[name]);
@@ -221,7 +222,8 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
             Select(C("DDD1"), "CanonicalDdd"), Select(C("TELEFONE1"), "CanonicalTelefone"), Select(C("EMAIL"), "CanonicalEmailComercial"), Select(C("EMAIL_NFE"), "CanonicalEmailFiscal"), Select(C("BANCO"), "CanonicalBanco"), Select(C("CC_AGENCIA"), "CanonicalAgencia"), Select(C("CC_CONTA"), "CanonicalConta"),
             Select(F("CONDICAO_PGTO"), "CanonicalCondicaoPagamento"), Select(F("TIPO"), "CanonicalTipoFornecedor"), Select(F("SUBTIPO_FORNECEDOR"), "CanonicalSubtipoFornecedor"), Select(Coalesce(C("CTB_CONTA_CONTABIL"), F("CTB_CONTA_CONTABIL")), "CanonicalContaContabil"), Select(Coalesce(C("TIPO_TRIBUTACAO"), ConvertString(C("INDICADOR_FISCAL_TERCEIRO"))), "CanonicalRegimeFiscal"),
             Select(Case(C("ATIVIDADE_SIMPLES_NACIONAL"), "1", "0"), "CanonicalSimplesNacional"), Select(C("ID_CLASIF_CLIFOR"), "CanonicalCategorias"),
-            Select(F("FORNECE_MATERIAIS"), "CanonicalForneceMateriais"), Select(F("FORNECE_MAT_CONSUMO"), "CanonicalForneceConsumo"), Select(F("FORNECE_OUTROS"), "CanonicalForneceServicos"), Select(F("FORNECE_PROD_ACAB"), "CanonicalForneceProdutos")
+            Select(F("FORNECE_MATERIAIS"), "CanonicalForneceMateriais"), Select(F("FORNECE_MAT_CONSUMO"), "CanonicalForneceConsumo"), Select(F("FORNECE_OUTROS"), "CanonicalForneceServicos"), Select(F("FORNECE_PROD_ACAB"), "CanonicalForneceProdutos"),
+            Select(F("BENEFICIADOR"), "CanonicalBeneficiador"), Select(F("LICENCIADO"), "CanonicalLicenciado")
         });
         public string WriteColumns => string.Join(", ", new[] { (IdColumn, "@id"), (NameColumn, "@nome"), (CnpjColumn, "@cnpj"), (CidadeColumn, "@cidade"), (EstadoColumn, "@estado"), (PaisColumn, "@pais") }.Where(x => x.Item1 is not null).Select(x => Q(x.Item1!)));
         public string WriteValues => string.Join(", ", new[] { (IdColumn, "@id"), (NameColumn, "@nome"), (CnpjColumn, "@cnpj"), (CidadeColumn, "@cidade"), (EstadoColumn, "@estado"), (PaisColumn, "@pais") }.Where(x => x.Item1 is not null).Select(x => x.Item2));

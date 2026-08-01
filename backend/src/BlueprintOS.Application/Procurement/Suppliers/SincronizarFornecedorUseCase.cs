@@ -52,7 +52,7 @@ public sealed class SincronizarFornecedorUseCase(
         var erpDados = Canonical(externo);
         if (local is null)
         {
-            local = new Fornecedor(Guid.NewGuid(), externo.Nome, Cnpj.Create(externo.Cnpj ?? "00000000000000"), null, null, null, null,
+            local = new Fornecedor(Guid.NewGuid(), erpDados.RazaoSocial, DocumentoFiscal.Create(erpDados.DocumentoFiscal), erpDados.TipoPessoa, null, null, null, null,
                 externo.Cidade, externo.Estado, externo.Pais, externo.Ativo ? "Ativo" : "Inativo", null, userId, Now(),
                 dto.BusinessUnit, dto.ErpSistema, externo.Id);
             local.AplicarContratoCanonico(erpDados, "ERP", Normalize(externo.UltimaAlteracaoEm ?? Now()));
@@ -131,25 +131,28 @@ public sealed class SincronizarFornecedorUseCase(
         EmailComercial: null, EmailFiscal: null, Banco: null, Agencia: null, Conta: null, DigitosConta: null, CondicaoPagamento: null,
         TipoFornecedor: null, SubtipoFornecedor: null, ContaContabil: null, RegimeFiscal: null, SimplesNacional: null,
         CategoriasFornecimento: null, ForneceMateriais: false, ForneceConsumo: false, ForneceServicos: false, ForneceProdutos: false,
+        Beneficiador: false, Licenciado: false,
         Ativo: value.Ativo, DataUltimaAlteracao: value.UltimaAlteracaoEm ?? DateTimeOffset.UtcNow,
         HashDadosSincronizaveis: value.HashDadosSincronizaveis ?? string.Empty);
         var hash = string.IsNullOrWhiteSpace(value.HashDadosSincronizaveis) ? Hash(JsonSerializer.Serialize(canonical with { HashDadosSincronizaveis = string.Empty })) : value.HashDadosSincronizaveis;
         return canonical with { Ativo = value.Ativo, DataUltimaAlteracao = value.UltimaAlteracaoEm ?? canonical.DataUltimaAlteracao, HashDadosSincronizaveis = hash };
     }
-    private static FornecedorCanonico Canonical(Fornecedor value) => new(value.Nome, value.NomeFantasia, value.Cnpj, value.TipoPessoa, value.Pais, value.InscricaoEstadual, value.InscricaoMunicipal,
+    private static FornecedorCanonico Canonical(Fornecedor value) => new(value.RazaoSocial, null, value.Cnpj_Cpf, value.TipoPessoa, value.Pais, value.InscricaoEstadual, value.InscricaoMunicipal,
         value.Cep, value.Logradouro, value.Numero, value.Complemento, value.Bairro, value.Cidade, value.Estado, value.CodigoMunicipio, value.Ddd, value.Telefone, value.Email, value.EmailFiscal,
         value.Banco, value.Agencia, value.Conta, value.DigitosConta, value.CondicaoPagamento, value.TipoFornecedor, value.SubtipoFornecedor, value.ContaContabil, value.RegimeFiscal,
-        value.SimplesNacional, value.CategoriasFornecimento, value.ForneceMateriais, value.ForneceConsumo, value.ForneceServicos, value.ForneceProdutos, value.Status != "Inativo", value.UpdatedAt, value.HashDadosSincronizaveis ?? string.Empty);
+        value.SimplesNacional, value.CategoriasFornecimento, value.ForneceMateriais, value.ForneceConsumo, value.ForneceServicos,
+        value.ForneceProdutos, value.Beneficiador, value.Licenciado, value.Status != "Inativo", value.UpdatedAt,
+        value.HashDadosSincronizaveis ?? string.Empty);
     private static ErpFornecedorParaEscrita ToWrite(FornecedorCanonico data, string id) => new(id, data.RazaoSocial, data.DocumentoFiscal, data.Cidade, data.Uf, data.Pais, data.Ativo, data.DataUltimaAlteracao, data.HashDadosSincronizaveis, data);
     private static bool Same(Fornecedor local, FornecedorCanonico remoto, bool contratoCompleto)
     {
-        if (!contratoCompleto) return local.Nome == remoto.RazaoSocial && local.Cnpj == remoto.DocumentoFiscal && (local.Status != "Inativo") == remoto.Ativo && local.Cidade == remoto.Cidade && local.Estado == remoto.Uf;
+        if (!contratoCompleto) return local.RazaoSocial == remoto.RazaoSocial && local.Cnpj_Cpf == remoto.DocumentoFiscal && (local.Status != "Inativo") == remoto.Ativo && local.Cidade == remoto.Cidade && local.Estado == remoto.Uf;
         if (!string.IsNullOrWhiteSpace(local.HashDadosSincronizaveis) && local.HashDadosSincronizaveis == remoto.HashDadosSincronizaveis) return true;
         var localData = Canonical(local) with { DataUltimaAlteracao = default, HashDadosSincronizaveis = string.Empty };
         var remoteData = remoto with { DataUltimaAlteracao = default, HashDadosSincronizaveis = string.Empty };
         return localData == remoteData;
     }
-    private static string Snapshot(Fornecedor x) => JsonSerializer.Serialize(new { x.Id, x.Nome, x.Cnpj, x.Status, x.UpdatedAt, x.BusinessUnit, x.ErpSistema, x.ErpFornecedorId, x.Versao });
+    private static string Snapshot(Fornecedor x) => JsonSerializer.Serialize(new { x.Id, x.RazaoSocial, x.NomeFantasia, x.Cnpj_Cpf, x.TipoPessoa, x.Beneficiador, x.Licenciado, x.Status, x.UpdatedAt, x.BusinessUnit, x.ErpSistema, x.ErpFornecedorId, x.Versao });
     private static string Hash(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
     private static DateTimeOffset Normalize(DateTimeOffset value) => TimeZoneInfo.ConvertTime(value, SaoPaulo);
     private static DateTimeOffset Now() => DateTimeOffset.UtcNow;
