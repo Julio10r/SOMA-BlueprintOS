@@ -269,3 +269,27 @@ O adaptador `OpenAIProvider` existente é uma implementação de Infrastructure 
 **Auditoria e idempotência:** cada operação gera evento imutável em `FornecedoresSincronizacoes`, com origem/destino, timestamps originais e normalizados, decisão, antes/depois, hashes, tentativa, duração, erro sanitizado e `CorrelationId`. Reexecuções sem mudança não repetem escrita nem alteram o timestamp; consultas e nenhuma alteração continuam auditáveis.
 
 **Consequências:** o +Compras passa a preservar campos exclusivos e o vínculo externo por BU/ERP/ID; fornecedores são inativados logicamente e nunca removidos pela sincronização. A migration complementar altera somente o banco +Compras. O adaptador SOMA_DESENV traduz apenas os campos que o ERP suporta e preserva chaves protegidas por FK.
+
+## ADR-0016: Sequencial Linx e timestamp efetivo do fornecedor
+
+**Status:** Aceito para a validação operacional final da B2.1
+
+**Data:** 01/08/2026
+
+**Decisão:** A criação no adaptador Linx usa exclusivamente `LX_SEQUENCIAL` para `FORNECEDORES.CLIFOR`, com `@EMPRESA = 1`, dentro da transação controlada que grava `CADASTRO_CLI_FOR` e `FORNECEDORES`. O domínio e a Application recebem somente o identificador externo retornado. Não são permitidos `MAX + 1`, contador local, valor fixo, prefixo ou reaproveitamento.
+
+O timestamp primário de transferência confirmado no cadastro Linx é `CADASTRO_CLI_FOR.DATA_PARA_TRANSFERENCIA`; `FORNECEDORES.DATA_PARA_TRANSFERENCIA` é consultado como espelho/fallback. Ambos são normalizados para `America/Sao_Paulo`, com precisão até o segundo, e a auditoria preserva os valores original e normalizado. A confirmação remota precede a persistência do vínculo; se a persistência local falhar, a reconciliação consulta o identificador externo já confirmado.
+
+**Consequências:** concorrência depende do mecanismo oficial do ERP e não duplica códigos; falhas não criam vínculo falso; o registro inválido `00000*` permanece preservado e é tratado por inativação lógica; nenhuma transação distribuída entre os bancos é introduzida.
+
+## ADR-0016: Sequencial Linx e timestamp efetivo do fornecedor
+
+**Status:** Aceito para a validação operacional final da B2.1
+
+**Data:** 01/08/2026
+
+**Decisão:** A criação no adaptador Linx usa exclusivamente `LX_SEQUENCIAL` para `FORNECEDORES.CLIFOR`, com `@EMPRESA = 1`, dentro da transação controlada que grava `CADASTRO_CLI_FOR` e `FORNECEDORES`. O domínio e a Application recebem somente o identificador externo retornado. Não são permitidos `MAX + 1`, contador local, valor fixo, prefixo ou reaproveitamento.
+
+O timestamp primário de transferência confirmado no cadastro Linx é `CADASTRO_CLI_FOR.DATA_PARA_TRANSFERENCIA`; `FORNECEDORES.DATA_PARA_TRANSFERENCIA` é consultado como espelho/fallback. Ambos são normalizados para `America/Sao_Paulo`, com precisão até o segundo, e a auditoria preserva os valores original e normalizado. A confirmação remota precede a persistência do vínculo; se a persistência local falhar, a reconciliação consulta o identificador externo já confirmado.
+
+**Consequências:** concorrência depende do mecanismo oficial do ERP e não duplica códigos; falhas não criam vínculo falso; o registro inválido `00000*` permanece preservado e é tratado por inativação lógica; nenhuma transação distribuída entre os bancos é introduzida.

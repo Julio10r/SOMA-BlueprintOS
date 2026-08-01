@@ -60,6 +60,9 @@ public sealed class SincronizarFornecedorUseCase(
             return await FinishAsync(dto, local, externo, correlationId, "Importado", "ERP", "+Compras", "ERP mais recente", started, snapshotAntes, ct);
         }
 
+        // A importação também consolida o vínculo externo; isso permite reconciliar uma criação
+        // confirmada no ERP quando a persistência local falhou após o commit remoto.
+        local.RegistrarVinculoErp(dto.BusinessUnit, dto.ErpSistema, externo.Id);
         var localTime = Normalize(local.UpdatedAt); var erpTime = Normalize(externo.UltimaAlteracaoEm ?? localTime);
         var same = Same(local, erpDados);
         if (!externo.Ativo && local.Status != "Inativo") { local.AlterarStatus(false, erpTime, "ERP"); await fornecedorRepository.AtualizarAsync(local, ct); }

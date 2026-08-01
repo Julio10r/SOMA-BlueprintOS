@@ -13,15 +13,23 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
 
     public async Task<ErpFornecedorDto?> ObterAsync(string identificador, CancellationToken cancellationToken = default)
     {
-        await using var connection = await OpenAsync(cancellationToken);
-        logger.LogInformation("Consulta de fornecedor no ERP iniciada. ERP {ErpSistema}, Operação Consulta", ErpSistema);
-        var shape = await LoadShapeAsync(connection, cancellationToken);
-        await using var command = connection.CreateCommand();
-        command.CommandTimeout = TimeoutSeconds;
-        command.CommandText = $"SELECT TOP (1) {shape.SelectList} FROM {shape.Table} WHERE {shape.IdColumn} = @id";
-        command.Parameters.Add(new SqlParameter("@id", identificador));
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-        return await reader.ReadAsync(cancellationToken) ? Map(reader, shape) : null;
+        try
+        {
+            await using var connection = await OpenAsync(cancellationToken);
+            logger.LogInformation("Consulta de fornecedor no ERP iniciada. ERP {ErpSistema}, Operação Consulta", ErpSistema);
+            var shape = await LoadShapeAsync(connection, cancellationToken);
+            await using var command = connection.CreateCommand();
+            command.CommandTimeout = TimeoutSeconds;
+            command.CommandText = $"SELECT TOP (1) {shape.SelectList} FROM {shape.FromClause} WHERE {shape.IdPredicate} = @id";
+            command.Parameters.Add(new SqlParameter("@id", identificador));
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            return await reader.ReadAsync(cancellationToken) ? Map(reader, shape) : null;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Falha na consulta de fornecedor ERP. ERP {ErpSistema}", ErpSistema);
+            throw;
+        }
     }
 
     public Task<ErpFornecedorDto> CriarAsync(ErpFornecedorParaEscrita fornecedor, CancellationToken cancellationToken = default) =>
@@ -41,51 +49,82 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
         var shape = await LoadShapeAsync(connection, cancellationToken);
         await using var command = connection.CreateCommand(); command.CommandTimeout = TimeoutSeconds;
         if (shape.InativoColumn is null) throw new InvalidOperationException("O ERP não expõe o indicador de inativação configurado.");
-        command.CommandText = $"UPDATE {shape.Table} SET {shape.Quote(shape.InativoColumn)} = 1{(shape.UltimaAlteracaoColumn is null ? string.Empty : $", {shape.Quote(shape.UltimaAlteracaoColumn)} = GETDATE()")} WHERE {shape.Quote(shape.IdColumn!)} = @id";
+        command.CommandText = shape.IsSomaFornecedores
+            ? $"UPDATE {shape.Table} SET {shape.Quote(shape.InativoColumn)} = 1{shape.TimestampUpdate} WHERE {shape.Quote(shape.IdColumn!)} = @id; UPDATE [dbo].[CADASTRO_CLI_FOR] SET [DATA_PARA_TRANSFERENCIA] = GETDATE() WHERE [COD_CLIFOR] = @id"
+            : $"UPDATE {shape.Table} SET {shape.Quote(shape.InativoColumn)} = 1{shape.TimestampUpdate} WHERE {shape.Quote(shape.IdColumn!)} = @id";
         command.Parameters.Add(new SqlParameter("@id", identificador));
+        logger.LogInformation("Inativação ERP executada. ERP {ErpSistema}, Tabela {Tabela}, ColunaId {ColunaId}, ColunaInativo {ColunaInativo}, Identificador externo {IdentificadorExterno}", ErpSistema, shape.Table, shape.IdColumn, shape.InativoColumn, identificador);
         if (await command.ExecuteNonQueryAsync(cancellationToken) == 0) throw new InvalidOperationException("Fornecedor não encontrado no ERP.");
         return await ObterAsync(identificador, cancellationToken) ?? throw new InvalidOperationException("Fornecedor não encontrado no ERP após inativação.");
     }
 
     private async Task<ErpFornecedorDto> EscreverAsync(ErpFornecedorParaEscrita fornecedor, bool inserir, CancellationToken ct)
     {
+        logger.LogInformation("Operação de escrita de fornecedor ERP iniciada. ERP {ErpSistema}, Inserir {Inserir}", ErpSistema, inserir);
         await using var connection = await OpenAsync(ct);
+        logger.LogInformation("Conexão ERP aberta. ERP {ErpSistema}", ErpSistema);
         var shape = await LoadShapeAsync(connection, ct);
-        await using var command = connection.CreateCommand(); command.CommandTimeout = TimeoutSeconds;
-        var externalId = fornecedor.Id;
-        if (inserir && shape.IsSomaFornecedores) externalId = await NextSupplierIdAsync(connection, shape, ct);
-        if (inserir)
+        logger.LogInformation("Metadados ERP carregados. ERP {ErpSistema}, Tabela {Tabela}", ErpSistema, shape.Table);
+        await using var transaction = await connection.BeginTransactionAsync(ct);
+        logger.LogInformation("Transação ERP iniciada. ERP {ErpSistema}, Inserir {Inserir}", ErpSistema, inserir);
+        try
         {
-            command.CommandText = shape.IsSomaFornecedores
-                ? $"SET XACT_ABORT ON; BEGIN TRAN; INSERT INTO [dbo].[CADASTRO_CLI_FOR] ([NOME_CLIFOR], [CLIFOR], [COD_CLIFOR], [CGC_CPF], [RAZAO_SOCIAL], [RG_IE], [UF], [COBRANCA_UF], [ENTREGA_UF], [COBRANCA_CGC], [CADASTRAMENTO], [COBRANCA_IE], [ENTREGA_CGC], [ENTREGA_IE], [PAIS], [COBRANCA_PAIS], [ENTREGA_PAIS]) VALUES (@nome, @id, @id, @cnpj, @nome, @empty, @uf, @uf, @uf, @cnpj, GETDATE(), @empty, @cnpj, @empty, @paisErp, @paisErp, @paisErp); INSERT INTO {shape.Table} ([COD_FORNECEDOR], [CLIFOR], [FORNECEDOR], [CONDICAO_PGTO], [CGC_CPF], [INATIVO]) VALUES (@id, @id, @nome, '001', @cnpj, 0); COMMIT TRAN"
-                : $"INSERT INTO {shape.Table} ({shape.WriteColumns}) VALUES ({shape.WriteValues})";
+            await using var command = connection.CreateCommand(); command.CommandTimeout = TimeoutSeconds; command.Transaction = (SqlTransaction)transaction;
+            var externalId = fornecedor.Id;
+            if (inserir && shape.IsSomaFornecedores) externalId = await NextCliforAsync(connection, command.Transaction, ct);
+            if (inserir)
+            {
+                command.CommandText = shape.IsSomaFornecedores
+                    ? $"INSERT INTO [dbo].[CADASTRO_CLI_FOR] ([NOME_CLIFOR], [CLIFOR], [COD_CLIFOR], [CGC_CPF], [RAZAO_SOCIAL], [RG_IE], [UF], [COBRANCA_UF], [ENTREGA_UF], [COBRANCA_CGC], [CADASTRAMENTO], [COBRANCA_IE], [ENTREGA_CGC], [ENTREGA_IE], [PAIS], [COBRANCA_PAIS], [ENTREGA_PAIS]{shape.CadastroTimestampInsertColumn}) VALUES (@nome, @id, @id, @cnpj, @nome, @empty, @uf, @uf, @uf, @cnpj, GETDATE(), @empty, @cnpj, @empty, @paisErp, @paisErp, @paisErp{shape.CadastroTimestampInsertValue}); INSERT INTO {shape.Table} ([COD_FORNECEDOR], [CLIFOR], [FORNECEDOR], [CONDICAO_PGTO], [CGC_CPF], [INATIVO]{shape.TimestampInsertColumn}) VALUES (@id, @id, @nome, '001', @cnpj, 0{shape.TimestampInsertValue})"
+                    : $"INSERT INTO {shape.Table} ({shape.WriteColumns}) VALUES ({shape.WriteValues})";
+            }
+            else
+            {
+                command.CommandText = shape.IsSomaFornecedores
+                    ? $"UPDATE [dbo].[CADASTRO_CLI_FOR] SET [CGC_CPF] = @cnpj, [COBRANCA_CGC] = @cnpj, [ENTREGA_CGC] = @cnpj{shape.CadastroTimestampUpdate} WHERE [COD_CLIFOR] = @id; UPDATE {shape.Table} SET [CGC_CPF] = @cnpj, [INATIVO] = @inativo{shape.TimestampUpdate} WHERE [COD_FORNECEDOR] = @id"
+                    : $"UPDATE {shape.Table} SET {shape.UpdateSet} WHERE {shape.IdColumn} = @id";
+            }
+            command.Parameters.Add(new SqlParameter("@id", externalId)); command.Parameters.Add(new SqlParameter("@nome", fornecedor.Nome));
+            command.Parameters.Add(new SqlParameter("@cnpj", fornecedor.Cnpj)); command.Parameters.Add(new SqlParameter("@cidade", (object?)fornecedor.Cidade ?? DBNull.Value));
+            command.Parameters.Add(new SqlParameter("@estado", (object?)fornecedor.Estado ?? DBNull.Value)); command.Parameters.Add(new SqlParameter("@pais", (object?)fornecedor.Pais ?? DBNull.Value));
+            if (shape.IsSomaFornecedores) command.Parameters.Add(new SqlParameter("@inativo", fornecedor.Ativo ? 0 : 1));
+            if (inserir && shape.IsSomaFornecedores)
+            {
+                command.Parameters.Add(new SqlParameter("@empty", string.Empty));
+                command.Parameters.Add(new SqlParameter("@uf", string.IsNullOrWhiteSpace(fornecedor.Estado) ? "SP" : fornecedor.Estado));
+                command.Parameters.Add(new SqlParameter("@paisErp", "BRASIL"));
+            }
+            if (await command.ExecuteNonQueryAsync(ct) == 0 && !inserir) throw new InvalidOperationException("Fornecedor não encontrado no ERP.");
+            await transaction.CommitAsync(ct);
+            var confirmado = await ObterAsync(externalId, ct);
+            if (confirmado is null) throw new InvalidOperationException("O ERP não confirmou o cadastro do fornecedor.");
+            return confirmado;
         }
-        else
+        catch
         {
-            command.CommandText = shape.IsSomaFornecedores
-                ? $"SET XACT_ABORT ON; BEGIN TRAN; UPDATE [dbo].[CADASTRO_CLI_FOR] SET [CGC_CPF] = @cnpj, [COBRANCA_CGC] = @cnpj, [ENTREGA_CGC] = @cnpj WHERE [COD_CLIFOR] = @id; UPDATE {shape.Table} SET [CGC_CPF] = @cnpj, [INATIVO] = @inativo WHERE [COD_FORNECEDOR] = @id; COMMIT TRAN"
-                : $"UPDATE {shape.Table} SET {shape.UpdateSet} WHERE {shape.IdColumn} = @id";
+            try { await transaction.RollbackAsync(CancellationToken.None); } catch (Exception rollbackError) { logger.LogWarning(rollbackError, "Falha ao desfazer transação ERP de fornecedor. ERP {ErpSistema}", ErpSistema); }
+            throw;
         }
-        command.Parameters.Add(new SqlParameter("@id", externalId)); command.Parameters.Add(new SqlParameter("@nome", fornecedor.Nome));
-        command.Parameters.Add(new SqlParameter("@cnpj", fornecedor.Cnpj)); command.Parameters.Add(new SqlParameter("@cidade", (object?)fornecedor.Cidade ?? DBNull.Value));
-        command.Parameters.Add(new SqlParameter("@estado", (object?)fornecedor.Estado ?? DBNull.Value)); command.Parameters.Add(new SqlParameter("@pais", (object?)fornecedor.Pais ?? DBNull.Value));
-        if (shape.IsSomaFornecedores) command.Parameters.Add(new SqlParameter("@inativo", fornecedor.Ativo ? 0 : 1));
-        if (inserir && shape.IsSomaFornecedores)
-        {
-            command.Parameters.Add(new SqlParameter("@empty", string.Empty));
-            command.Parameters.Add(new SqlParameter("@uf", string.IsNullOrWhiteSpace(fornecedor.Estado) ? "SP" : fornecedor.Estado));
-            command.Parameters.Add(new SqlParameter("@paisErp", "BRASIL"));
-        }
-        if (await command.ExecuteNonQueryAsync(ct) == 0 && !inserir) throw new InvalidOperationException("Fornecedor não encontrado no ERP.");
-        return new(externalId, fornecedor.Nome, fornecedor.Cnpj, fornecedor.Cidade, fornecedor.Estado, fornecedor.Pais);
     }
 
-    private static async Task<string> NextSupplierIdAsync(SqlConnection connection, TableShape shape, CancellationToken ct)
+    private async Task<string> NextCliforAsync(SqlConnection connection, SqlTransaction transaction, CancellationToken ct)
     {
         await using var command = connection.CreateCommand();
-        command.CommandText = $"WITH Numbers AS (SELECT TOP (100000) 900000 + ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS N FROM sys.all_objects a CROSS JOIN sys.all_objects b) SELECT TOP (1) RIGHT('000000' + CONVERT(varchar(6), N), 6) FROM Numbers WHERE N < 1000000 AND NOT EXISTS (SELECT 1 FROM {shape.Table} existing WHERE TRY_CONVERT(int, existing.[COD_FORNECEDOR]) = N) ORDER BY N";
-        var value = await command.ExecuteScalarAsync(ct);
-        return Convert.ToString(value)?.Trim() ?? throw new InvalidOperationException("Não foi possível gerar o identificador do fornecedor no ERP.");
+        command.Transaction = transaction; command.CommandTimeout = TimeoutSeconds;
+        command.CommandText = "DECLARE @CLIFOR CHAR(6); EXEC LX_SEQUENCIAL @TABELA_COLUNA = 'FORNECEDORES.CLIFOR', @EMPRESA = 1, @SEQUENCIA = @CLIFOR OUTPUT, @UPDATE_SEQUENCIAL = 1; SELECT @CLIFOR AS CLIFOR;";
+        try
+        {
+            var value = await command.ExecuteScalarAsync(ct);
+            var clifor = Convert.ToString(value)?.Trim();
+            if (string.IsNullOrWhiteSpace(clifor) || clifor.Length != 6 || clifor.Contains('*')) throw new InvalidOperationException("O mecanismo sequencial do ERP retornou um CLIFOR inválido.");
+            logger.LogInformation("CLIFOR gerado pelo mecanismo sequencial do ERP. ERP {ErpSistema}, Operação Criação", ErpSistema);
+            return clifor;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Falha ao executar o mecanismo sequencial do ERP. ERP {ErpSistema}", ErpSistema);
+            throw;
+        }
     }
 
     private async Task<SqlConnection> OpenAsync(CancellationToken ct)
@@ -106,7 +145,17 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
         command.Parameters.Add(new SqlParameter("@schema", schema)); command.Parameters.Add(new SqlParameter("@table", table));
         var columns = new List<string>(); await using var reader = await command.ExecuteReaderAsync(ct);
         while (await reader.ReadAsync(ct)) columns.Add(reader.GetString(0));
-        var shape = new TableShape(schema, table, columns);
+        await reader.DisposeAsync();
+        var cadastroColumns = new List<string>();
+        if (string.Equals(table, "FORNECEDORES", StringComparison.OrdinalIgnoreCase) && string.Equals(schema, "dbo", StringComparison.OrdinalIgnoreCase))
+        {
+            await using var cadastroCommand = connection.CreateCommand(); cadastroCommand.CommandTimeout = TimeoutSeconds;
+            cadastroCommand.CommandText = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'CADASTRO_CLI_FOR' ORDER BY ORDINAL_POSITION";
+            await using var cadastroReader = await cadastroCommand.ExecuteReaderAsync(ct);
+            while (await cadastroReader.ReadAsync(ct)) cadastroColumns.Add(cadastroReader.GetString(0));
+            await cadastroReader.DisposeAsync();
+        }
+        var shape = new TableShape(schema, table, columns, cadastroColumns);
         if (shape.IdColumn is null || shape.NameColumn is null || shape.CnpjColumn is null) throw new InvalidOperationException("Tabela de fornecedores do ERP não possui o mapeamento configurado.");
         return shape;
     }
@@ -114,10 +163,16 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
     private static ErpFornecedorDto Map(IDataRecord reader, TableShape shape) => new(Convert.ToString(reader["Id"])!, Convert.ToString(reader["Nome"])!.Trim(), Nullable(reader, "Cnpj"), Nullable(reader, "Cidade"), Nullable(reader, "Estado"), Nullable(reader, "Pais"),
         !string.Equals(Nullable(reader, "Ativo"), "1", StringComparison.OrdinalIgnoreCase) && !string.Equals(Nullable(reader, "Ativo"), "True", StringComparison.OrdinalIgnoreCase), ParseDate(reader, "UltimaAlteracao"));
     private static string? Nullable(IDataRecord reader, string name) => reader[name] is DBNull ? null : Convert.ToString(reader[name])?.Trim();
-    private static DateTimeOffset? ParseDate(IDataRecord reader, string name) => reader[name] is DBNull ? null : Convert.ToDateTime(reader[name]).ToUniversalTime();
+    private static DateTimeOffset? ParseDate(IDataRecord reader, string name)
+    {
+        if (reader[name] is DBNull) return null;
+        var local = DateTime.SpecifyKind(Convert.ToDateTime(reader[name]), DateTimeKind.Unspecified);
+        var zone = TimeZoneInfo.FindSystemTimeZoneById(OperatingSystem.IsWindows() ? "E. South America Standard Time" : "America/Sao_Paulo");
+        return new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(local, zone));
+    }
     private int TimeoutSeconds => int.TryParse(configuration["ErpIntegration:TimeoutSeconds"], out var value) ? Math.Clamp(value, 1, 120) : 30;
 
-    private sealed class TableShape(string schema, string table, IReadOnlyList<string> columns)
+    private sealed class TableShape(string schema, string table, IReadOnlyList<string> columns, IReadOnlyList<string> cadastroColumns)
     {
         public string Table { get; } = $"[{schema.Replace("]", "]]", StringComparison.Ordinal)}].[{table.Replace("]", "]]", StringComparison.Ordinal)}]";
         public string? IdColumn => Find("codigo_fornecedor", "cod_fornecedor", "id_fornecedor", "fornecedor_id", "codigo", "id");
@@ -125,15 +180,27 @@ public sealed class SomaDesenvolErpFornecedorAdapter(IConfiguration configuratio
         public string? CnpjColumn => Find("cnpj", "cpf_cnpj", "cgc_cpf", "documento");
         public string? CidadeColumn => Find("cidade", "municipio"); public string? EstadoColumn => Find("estado", "uf"); public string? PaisColumn => Find("pais", "país");
         public string? InativoColumn => Find("inativo", "ativo", "situacao");
-        public string? UltimaAlteracaoColumn => Find("data_para_transferencia", "ultima_alteracao", "updated_at", "data_alteracao");
-        public string SelectList => $"{Q(IdColumn!)} AS Id, {Q(NameColumn!)} AS Nome, {Select(CnpjColumn, "Cnpj")}, {Select(CidadeColumn, "Cidade")}, {Select(EstadoColumn, "Estado")}, {Select(PaisColumn, "Pais")}, {Select(InativoColumn, "Ativo")}, {Select(UltimaAlteracaoColumn, "UltimaAlteracao")}";
+        public string? UltimaAlteracaoColumn => Find(columns, "data_para_transferencia", "ultima_alteracao", "updated_at", "data_alteracao", "ultima_alteracao_em");
+        public string? CadastroUltimaAlteracaoColumn => Find(cadastroColumns, "data_para_transferencia", "ultima_alteracao", "updated_at", "data_alteracao", "ultima_alteracao_em");
+        public string CadastroTimestampInsertColumn => CadastroUltimaAlteracaoColumn is null ? string.Empty : $", {Q(CadastroUltimaAlteracaoColumn)}";
+        public string CadastroTimestampInsertValue => CadastroUltimaAlteracaoColumn is null ? string.Empty : ", GETDATE()";
+        public string CadastroTimestampUpdate => CadastroUltimaAlteracaoColumn is null ? string.Empty : $", {Q(CadastroUltimaAlteracaoColumn)} = GETDATE()";
+        public string TimestampInsertColumn => UltimaAlteracaoColumn is null ? string.Empty : $", {Q(UltimaAlteracaoColumn)}";
+        public string TimestampInsertValue => UltimaAlteracaoColumn is null ? string.Empty : ", GETDATE()";
+        public string TimestampUpdate => UltimaAlteracaoColumn is null ? string.Empty : $", {Q(UltimaAlteracaoColumn)} = GETDATE()";
+        public string FromClause => IsSomaFornecedores ? $"{Table} f LEFT JOIN [dbo].[CADASTRO_CLI_FOR] c ON c.[COD_CLIFOR] = f.[CLIFOR]" : Table;
+        public string IdPredicate => IsSomaFornecedores ? "f.[COD_FORNECEDOR]" : IdColumn!;
+        public string SelectList => $"{Prefix(IdColumn, "f")} AS Id, {Prefix(NameColumn, "f")} AS Nome, {Select(Prefix(CnpjColumn, "f"), "Cnpj")}, {Select(Prefix(CidadeColumn, "f"), "Cidade")}, {Select(Prefix(EstadoColumn, "f"), "Estado")}, {Select(Prefix(PaisColumn, "f"), "Pais")}, {Select(Prefix(InativoColumn, "f"), "Ativo")}, {SelectTimestamp()}";
         public string WriteColumns => string.Join(", ", new[] { (IdColumn, "@id"), (NameColumn, "@nome"), (CnpjColumn, "@cnpj"), (CidadeColumn, "@cidade"), (EstadoColumn, "@estado"), (PaisColumn, "@pais") }.Where(x => x.Item1 is not null).Select(x => Q(x.Item1!)));
         public string WriteValues => string.Join(", ", new[] { (IdColumn, "@id"), (NameColumn, "@nome"), (CnpjColumn, "@cnpj"), (CidadeColumn, "@cidade"), (EstadoColumn, "@estado"), (PaisColumn, "@pais") }.Where(x => x.Item1 is not null).Select(x => x.Item2));
         public string UpdateSet => string.Join(", ", new[] { (NameColumn, "@nome"), (CnpjColumn, "@cnpj"), (CidadeColumn, "@cidade"), (EstadoColumn, "@estado"), (PaisColumn, "@pais") }.Where(x => x.Item1 is not null).Select(x => $"{Q(x.Item1!)} = {x.Item2}"));
         public bool IsSomaFornecedores => string.Equals(table, "FORNECEDORES", StringComparison.OrdinalIgnoreCase) && string.Equals(schema, "dbo", StringComparison.OrdinalIgnoreCase);
-        private string? Find(params string[] aliases) => columns.FirstOrDefault(x => aliases.Contains(x, StringComparer.OrdinalIgnoreCase));
+        private string? Find(IReadOnlyList<string> source, params string[] aliases) => source.FirstOrDefault(x => aliases.Contains(x, StringComparer.OrdinalIgnoreCase));
+        private string? Find(params string[] aliases) => Find(columns, aliases);
+        private string? Prefix(string? column, string prefix) => column is null ? null : IsSomaFornecedores ? $"{prefix}.{Q(column)}" : Q(column);
+        private string SelectTimestamp() => UltimaAlteracaoColumn is null && CadastroUltimaAlteracaoColumn is null ? "NULL AS UltimaAlteracao" : IsSomaFornecedores ? $"COALESCE({(CadastroUltimaAlteracaoColumn is null ? "NULL" : $"c.{Q(CadastroUltimaAlteracaoColumn)}")}, {(UltimaAlteracaoColumn is null ? "NULL" : $"f.{Q(UltimaAlteracaoColumn)}")}) AS UltimaAlteracao" : $"{Q(UltimaAlteracaoColumn!)} AS UltimaAlteracao";
         public string Quote(string value) => Q(value);
         private static string Q(string value) => $"[{value.Replace("]", "]]", StringComparison.Ordinal)}]";
-        private static string Select(string? column, string alias) => column is null ? $"NULL AS {alias}" : $"{Q(column)} AS {alias}";
+        private static string Select(string? column, string alias) => column is null ? $"NULL AS {alias}" : $"{column} AS {alias}";
     }
 }

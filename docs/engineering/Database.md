@@ -22,6 +22,10 @@ O `BlueprintOSDbContext` usa exclusivamente `MaisComprasConnection` para persist
 - Migration B2.1: `202607310001_B21FornecedorSynchronization` (aplicada no banco de desenvolvimento +Compras em 31/07/2026).
 - Migration complementar B2.1: `202608010001_B21CanonicalSupplierSynchronization` (aplicada somente no banco de desenvolvimento +Compras em 01/08/2026; rollback remove apenas as colunas adicionadas por ela).
 
+### Evidência ERP da B2.1
+
+O schema do ERP não é alterado pelas migrations do +Compras. No `SOMA_DESENV`, o cadastro foi confirmado nas tabelas `FORNECEDORES` e `CADASTRO_CLI_FOR`. O identificador é gerado por `LX_SEQUENCIAL` para `FORNECEDORES.CLIFOR`; `CADASTRO_CLI_FOR.DATA_PARA_TRANSFERENCIA` é o timestamp primário da sincronização, com `FORNECEDORES.DATA_PARA_TRANSFERENCIA` consultado como espelho/fallback. O registro de teste inválido `00000*` foi preservado e inativado, sem exclusão física.
+
 ### ERP SOMA_DESENV
 
 `ErpFornecedorDiscoveryRepository` usa `ErpConnection` para leitura de metadados e dados operacionais.

@@ -10,6 +10,7 @@ using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Publication.Publishers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Data.SqlClient;
 using System.Text.RegularExpressions;
 
 if (args.Length > 0 && args[0] == "publish")
@@ -45,6 +46,11 @@ if (args.Length > 0 && args[0] == "validate-b1-connectivity")
 if (args.Length > 0 && args[0] == "probe-erp-suppliers")
 {
     return await ProbeErpSuppliersAsync(args);
+}
+
+if (args.Length > 0 && args[0] == "probe-erp-supplier-integrity")
+{
+    return await ProbeErpSupplierIntegrityAsync();
 }
 
 var builder = WebApplication.CreateBuilder(args);
@@ -265,6 +271,53 @@ static async Task<int> ProbeErpSuppliersAsync(string[] args)
         var maskedCnpj = string.IsNullOrWhiteSpace(candidate.Cnpj) ? "[sem-documento]" : $"***{candidate.Cnpj[^Math.Min(4, candidate.Cnpj.Length)..]}";
         Console.WriteLine($"ERP_ID={id}; CNPJ={maskedCnpj}; Nome=[SANITIZADO]");
     }
+    return 0;
+}
+
+static async Task<int> ProbeErpSupplierIntegrityAsync()
+{
+    var connectionString = BuildDatabaseConfiguration().GetConnectionString("ErpConnection");
+    if (string.IsNullOrWhiteSpace(connectionString)) throw new InvalidOperationException("ERP não configurado.");
+    var builder = new SqlConnectionStringBuilder(connectionString);
+    if (!string.Equals(builder.InitialCatalog, "SOMA_DESENV", StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("O probe exige SOMA_DESENV.");
+    await using var connection = new SqlConnection(connectionString);
+    await connection.OpenAsync();
+    await using var metadata = connection.CreateCommand();
+    metadata.CommandText = "SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME IN ('FORNECEDORES','CADASTRO_CLI_FOR') AND (COLUMN_NAME LIKE '%DATA%' OR COLUMN_NAME LIKE '%ALTER%' OR COLUMN_NAME LIKE '%UPDATE%' OR COLUMN_NAME LIKE '%TRANSFER%') ORDER BY TABLE_NAME, ORDINAL_POSITION";
+    await using var reader = await metadata.ExecuteReaderAsync();
+    Console.WriteLine("Timestamp candidates:");
+    while (await reader.ReadAsync()) Console.WriteLine($"{reader.GetString(0)}.{reader.GetString(1)}.{reader.GetString(2)} ({reader.GetString(3)})");
+    await reader.DisposeAsync();
+    await using var invalid = connection.CreateCommand();
+    invalid.CommandText = "SELECT TOP (10) COD_FORNECEDOR, CLIFOR, INATIVO, FORNECEDOR FROM dbo.FORNECEDORES WHERE COD_FORNECEDOR = @id OR CLIFOR = @id";
+    invalid.Parameters.Add(new SqlParameter("@id", "00000*"));
+    await using var invalidReader = await invalid.ExecuteReaderAsync();
+    Console.WriteLine("Invalid-key records:");
+    while (await invalidReader.ReadAsync()) Console.WriteLine($"COD_FORNECEDOR={invalidReader[0]}; CLIFOR={invalidReader[1]}; INATIVO={invalidReader[2]}; NOME=[SANITIZADO]");
+    await invalidReader.DisposeAsync();
+    await using var timestamps = connection.CreateCommand();
+    timestamps.CommandText = "SELECT f.COD_FORNECEDOR, f.DATA_PARA_TRANSFERENCIA AS FORNECEDOR_TIMESTAMP, c.DATA_PARA_TRANSFERENCIA AS CADASTRO_TIMESTAMP FROM dbo.FORNECEDORES f LEFT JOIN dbo.CADASTRO_CLI_FOR c ON c.COD_CLIFOR = f.CLIFOR WHERE f.COD_FORNECEDOR IN ('900001', '00000*')";
+    await using var timestampReader = await timestamps.ExecuteReaderAsync();
+    Console.WriteLine("Timestamp samples:");
+    while (await timestampReader.ReadAsync()) Console.WriteLine($"COD_FORNECEDOR={timestampReader[0]}; FORNECEDORES.DATA_PARA_TRANSFERENCIA={timestampReader[1]}; CADASTRO_CLI_FOR.DATA_PARA_TRANSFERENCIA={timestampReader[2]}");
+    await timestampReader.DisposeAsync();
+    await using var fictitious = connection.CreateCommand();
+    fictitious.CommandText = "SELECT f.COD_FORNECEDOR, f.CLIFOR, f.CGC_CPF, f.INATIVO, c.COD_CLIFOR, c.CGC_CPF FROM dbo.FORNECEDORES f LEFT JOIN dbo.CADASTRO_CLI_FOR c ON c.COD_CLIFOR = f.CLIFOR WHERE f.CGC_CPF IN ('52345678000195', '62345678000195', '72345678000195', '82345678000195') OR f.COD_FORNECEDOR IN ('315501', '315502', '315503') ORDER BY f.COD_FORNECEDOR";
+    await using var fictitiousReader = await fictitious.ExecuteReaderAsync();
+    Console.WriteLine("Fictitious supplier keys:");
+    while (await fictitiousReader.ReadAsync()) Console.WriteLine($"COD_FORNECEDOR={fictitiousReader[0]}; CLIFOR={fictitiousReader[1]}; FORNECEDORES.CGC_CPF={fictitiousReader[2]}; INATIVO={fictitiousReader[3]}; CADASTRO_CLI_FOR.COD_CLIFOR={fictitiousReader[4]}; CADASTRO_CLI_FOR.CGC_CPF={fictitiousReader[5]}");
+    await fictitiousReader.DisposeAsync();
+    await using var confirmation = connection.CreateCommand();
+    confirmation.CommandText = "SELECT TOP (1) f.COD_FORNECEDOR, f.FORNECEDOR, f.CGC_CPF, f.INATIVO, f.DATA_PARA_TRANSFERENCIA, c.COD_CLIFOR, c.NOME_CLIFOR, c.CGC_CPF, c.DATA_PARA_TRANSFERENCIA FROM dbo.FORNECEDORES f LEFT JOIN dbo.CADASTRO_CLI_FOR c ON c.COD_CLIFOR = f.CLIFOR WHERE f.COD_FORNECEDOR = @id";
+    confirmation.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@id", "315501"));
+    await using var confirmationReader = await confirmation.ExecuteReaderAsync();
+    while (await confirmationReader.ReadAsync()) Console.WriteLine($"Confirmation sample: FORNECEDORES.COD_FORNECEDOR={confirmationReader[0]}; FORNECEDORES.FORNECEDOR={confirmationReader[1]}; FORNECEDORES.CGC_CPF={confirmationReader[2]}; INATIVO={confirmationReader[3]}; CADASTRO_CLI_FOR.COD_CLIFOR={confirmationReader[5]}; CADASTRO_CLI_FOR.NOME_CLIFOR={confirmationReader[6]}");
+    await confirmationReader.DisposeAsync();
+    await using var procedure = connection.CreateCommand();
+    procedure.CommandText = "SELECT OBJECT_DEFINITION(OBJECT_ID('dbo.LX_AZZ_GERAR_FORNECEDOR_LINX'))";
+    var definition = Convert.ToString(await procedure.ExecuteScalarAsync()) ?? string.Empty;
+    Console.WriteLine("Reference procedure markers:");
+    foreach (var line in definition.Split('\n').Where(x => x.Contains("DATA_PARA_TRANSFERENCIA", StringComparison.OrdinalIgnoreCase) || x.Contains("LX_SEQUENCIAL", StringComparison.OrdinalIgnoreCase) || x.Contains("CLIFOR", StringComparison.OrdinalIgnoreCase)).Take(30)) Console.WriteLine(line.Trim());
     return 0;
 }
 

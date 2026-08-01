@@ -44,7 +44,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
 - **Última sprint comprovadamente concluída:** B2 — Descoberta Inteligente de Fornecedores (30/07/2026).
-- **Sprint atual:** B2.1 reaberta. A conclusão anterior foi revogada para ampliar o contrato canônico e comprovar sincronização bidirecional completa, inativação, regra temporal e auditoria imutável.
+- **Sprint atual:** B2.1 com validação técnica completa em 01/08/2026, aguardando revisão formal do relatório antes do encerramento. B2.2 permanece em Draft e B3 não foi iniciada.
 - **Próxima sprint planejada:** B2.2 — Enriquecimento Cadastral de Fornecedores por CNPJ, em Draft e condicionada à conclusão da B2.1. B3 não foi iniciada.
 - **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
@@ -58,7 +58,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 | Negociação | `NegotiationMemory`, regras e `NegotiationStrategy` | Implementado, em memória |
 | API de negociação | `POST /api/v1/negociacoes/recomendacoes` via `NegotiationRecommendationUseCase` | Implementado, consultivo e sem estado |
 | Fornecedores | `Fornecedor`, EF Core/SQL Server sobre `MaisComprasConnection`, migration e `POST/GET/PUT/DELETE /fornecedores` | Implementado |
-| Sincronização de fornecedores | Contrato canônico, adaptadores por BU, importação/exportação/inativação, regra temporal, idempotência e auditoria append-only | Implementação ampliada; validação operacional bidirecional pendente |
+| Sincronização de fornecedores | Contrato canônico, adaptadores por BU, importação/exportação/inativação, `LX_SEQUENCIAL`, timestamp Linx, concorrência, idempotência e auditoria append-only | Validação técnica completa; aguardando revisão formal |
 | Descoberta de fornecedores | `FornecedorDescoberto`, score centralizado, leitura `SOMA_DESENV`, persistência +Compras e `/api/fornecedores/descobertas` | Implementado; validação SQL ERP pendente de ambiente com acesso |
 | Workflow | `Workflow` e `WorkflowRunner` sequenciais | Implementado, básico |
 | Documentation | contratos, geradores, publicação Markdown, Git reader e health report | Implementado |
@@ -88,9 +88,9 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 | Suíte | Executados | Aprovados | Ignorados | Falhos |
 |---|---:|---:|---:|---:|
-| Unitários | 248 | 248 | 0 | 0 |
+| Unitários | 249 | 249 | 0 | 0 |
 | Integração | 3 | 3 | 0 | 0 |
-| Total | 251 | 251 | 0 | 0 |
+| Total | 252 | 252 | 0 | 0 |
 
 Build da solution: sucesso, 0 erros e 0 avisos.
 
