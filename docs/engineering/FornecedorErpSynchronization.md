@@ -36,7 +36,9 @@ Componentes principais:
 GET /api/fornecedores/sincronizar-erp?businessUnit=DEFAULT&limite=500
 ```
 
-`limite` define o tamanho do lote. O endpoint e a rota foram preservados.
+`limite` define o **teto TOTAL de fornecedores processados nesta execucao** (clamped entre 1 e 5000), nao o tamanho de pagina. A leitura paginada continua acontecendo internamente (ate 500 registros por pagina contra o ERP), mas o loop externo para assim que o total consultado atinge `limite`, mesmo que o ERP tenha mais registros disponiveis.
+
+> **Correcao de 02/08/2026:** antes desta correcao, `limite` era usado apenas como tamanho de pagina dentro de um loop que so parava quando o ERP retornava uma pagina vazia — ou seja, `limite=50` acabava varrendo a tabela inteira de fornecedores do ERP. Ver `.ai/memory/completed_sprints.md` (Sprint B2.1.3) para o historico completo.
 
 Resposta:
 
@@ -75,6 +77,19 @@ Tabelas:
 - `SincronizacoesFornecedores`: sistema origem, BU, inicio/fim, status, totais e duracao.
 - `ErrosSincronizacoesFornecedores`: execucao, identificacao tecnica do fornecedor, mensagem sanitizada, stack trace resumida e data/hora.
 
+## Tratamento de Erros Parciais
+
+Quando `SaveChangesAsync` falha para um fornecedor especifico (ex.: violacao de indice unico de CNPJ), o loop de sincronizacao:
+
+1. Captura a excecao no `catch` do use case, sem interromper o processamento dos demais fornecedores do lote.
+2. Chama `context.ChangeTracker.Clear()` **antes** de seguir adiante. Sem essa limpeza, a entidade que falhou continua rastreada como `Added`/`Modified` pelo `DbContext`, e o proximo `SaveChangesAsync` — inclusive o final, ao persistir o registro `SincronizacaoFornecedor` — tenta salva-la de novo e repete o mesmo erro, agora fora do bloco de tratamento, derrubando a execucao inteira com HTTP 500.
+3. Registra o erro em `ErrosSincronizacoesFornecedores`, com identificacao tecnica do fornecedor e mensagem sanitizada (sem CNPJ/dados sensiveis).
+4. Continua a sincronizacao dos fornecedores restantes normalmente.
+
+A execucao finaliza com `Status = "Parcial"` quando ha ao menos um erro e ao menos um sucesso, e `SincronizacoesFornecedores` e sempre gravada ao final, independente de erros parciais terem ocorrido.
+
+> Esse comportamento so se manifesta contra um SQL Server real com indices unicos aplicados — o provider EF Core InMemory usado nos testes unitarios nao impõe essas restricoes por padrao. O teste `Execute_Should_Finish_As_Parcial_And_Persist_Execucao_When_Individual_SaveChanges_Fails` cobre esse cenario com um repositorio de teste que simula a falha real de `SaveChangesAsync`.
+
 ## Regras Preservadas
 
 - `NomeFantasia` continua protegido e so e atualizado quando a origem e `ERP`.
@@ -93,7 +108,7 @@ A rotina usa `ILogger` padrao ASP.NET Core para:
 
 ## Validacao
 
-Com VPN ativa e connection strings configuradas:
+Com VPN ativa e connection strings configuradas (User Secrets local ou variaveis de ambiente no Docker):
 
 ```bash
 dotnet build backend/BlueprintOS.sln
@@ -107,8 +122,20 @@ Validar no banco `MaisCompras`:
 - execucao criada em `SincronizacoesFornecedores`;
 - erros parciais em `ErrosSincronizacoesFornecedores`, quando aplicavel.
 
+### Validacao real executada em 02/08/2026
+
+A rotina foi validada de ponta a ponta rodando a API em Docker (`docker compose up -d api`, sem depender do SQL Server local opcional) contra o ERP corporativo `SOMA_DESENV` e o banco `MaisCompras`, via VPN:
+
+```bash
+curl -H "X-Development-User-Id: 00000000-0000-0000-0000-000000000001" \
+     -H "X-Development-Role: Buyer" \
+     "http://localhost:8080/api/fornecedores/sincronizar-erp?businessUnit=DEFAULT&limite=50"
+```
+
+Resultado real: `200 OK`, `{"status":"Parcial","consultados":50,"incluidos":48,"atualizados":1,"erros":1}` — exatamente 50 fornecedores consultados, respeitando o teto. Confirmado via `sqlcmd` direto no `MaisCompras`: o registro de execucao foi gravado em `SincronizacoesFornecedores` com os mesmos totais, e o erro parcial foi gravado em `ErrosSincronizacoesFornecedores`, vinculado pela FK correta.
+
 ## Limitacoes Conhecidas
 
-- Testes reais de integracao dependem de VPN e secrets locais.
+- Testes reais de integracao dependem de VPN e secrets locais (User Secrets para `dotnet run`, variaveis de ambiente `ConnectionStrings__*` para Docker).
 - A rotina ainda e acionada via endpoint manual; agendamento operacional fica para sprint futura.
-- O ambiente de sandbox pode bloquear `dotnet test` por named pipes do MSBuild.
+- O SQL Server em `infrastructure/docker/docker-compose.yml` e um ambiente local opcional e isolado (ADR-0018); a API sempre aponta para o banco corporativo via `ConnectionStrings`, nunca para esse container.

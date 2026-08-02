@@ -16,23 +16,27 @@ public sealed class SincronizarFornecedoresErpUseCase(
     ILogger<SincronizarFornecedoresErpUseCase> logger) : ISincronizarFornecedoresErpUseCase
 {
     private const string ErpSistema = "SOMA_DESENV";
+    private const int TamanhoPaginaPadrao = 500;
 
     public async Task<SincronizacaoFornecedoresErpResumo> ExecuteAsync(SincronizarFornecedoresErpDto dto, CancellationToken cancellationToken = default)
     {
         var userId = identity.GetRequired().UserId;
         var correlationId = string.IsNullOrWhiteSpace(dto.CorrelationId) ? Guid.NewGuid().ToString("N") : dto.CorrelationId.Trim()[..Math.Min(dto.CorrelationId.Trim().Length, 100)];
         var businessUnit = string.IsNullOrWhiteSpace(dto.BusinessUnit) ? "DEFAULT" : dto.BusinessUnit.Trim();
-        var tamanhoLote = Math.Clamp(dto.Limite <= 0 ? 500 : dto.Limite, 1, 5000);
+        // Limite representa o teto TOTAL de fornecedores processados nesta execucao, nao o tamanho de pagina.
+        var limiteTotal = Math.Clamp(dto.Limite <= 0 ? 500 : dto.Limite, 1, 5000);
         var inicio = DateTimeOffset.UtcNow;
         var execucao = new SincronizacaoFornecedor(Guid.NewGuid(), ErpSistema, businessUnit, inicio);
 
-        logger.LogInformation("Sincronizacao de fornecedores ERP iniciada. ExecucaoId {ExecucaoId}. BusinessUnit {BusinessUnit}. TamanhoLote {TamanhoLote}. CorrelationId {CorrelationId}",
-            execucao.Id, businessUnit, tamanhoLote, correlationId);
+        logger.LogInformation("Sincronizacao de fornecedores ERP iniciada. ExecucaoId {ExecucaoId}. BusinessUnit {BusinessUnit}. LimiteTotal {LimiteTotal}. CorrelationId {CorrelationId}",
+            execucao.Id, businessUnit, limiteTotal, correlationId);
 
         var skip = 0;
-        while (true)
+        while (execucao.TotalConsultado < limiteTotal)
         {
-            var lote = await reader.BuscarFornecedoresAsync(skip, tamanhoLote, cancellationToken);
+            var restante = limiteTotal - execucao.TotalConsultado;
+            var tamanhoPagina = Math.Min(TamanhoPaginaPadrao, restante);
+            var lote = await reader.BuscarFornecedoresAsync(skip, tamanhoPagina, cancellationToken);
             if (lote.Count == 0) break;
 
             foreach (var externo in lote)
@@ -44,6 +48,11 @@ public sealed class SincronizarFornecedoresErpUseCase(
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
+                    // Uma entidade cujo SaveChangesAsync falhou continua rastreada como Added/Modified.
+                    // Sem limpar o ChangeTracker, o proximo SaveChangesAsync (inclusive o final, ao
+                    // persistir a SincronizacaoFornecedor) tenta salva-la de novo e repete a falha,
+                    // transformando um erro parcial em erro fatal para a execucao inteira.
+                    context.ChangeTracker.Clear();
                     execucao.RegistrarErro(Identificar(externo), ex, DateTimeOffset.UtcNow);
                     logger.LogError(ex, "Erro parcial na sincronizacao de fornecedor ERP. ExecucaoId {ExecucaoId}. Fornecedor {FornecedorIdentificacao}",
                         execucao.Id, Identificar(externo));
@@ -52,7 +61,7 @@ public sealed class SincronizarFornecedoresErpUseCase(
 
             logger.LogInformation("Lote de fornecedores ERP processado. ExecucaoId {ExecucaoId}. Skip {Skip}. ProcessadosNoLote {ProcessadosNoLote}. Consultados {Consultados}. Erros {Erros}",
                 execucao.Id, skip, lote.Count, execucao.TotalConsultado, execucao.TotalErro);
-            skip += tamanhoLote;
+            skip += lote.Count;
         }
 
         var fim = DateTimeOffset.UtcNow;

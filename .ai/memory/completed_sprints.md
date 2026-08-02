@@ -159,3 +159,26 @@
 **Evidência:** migration `202608010002_B212FornecedorLinxCanonicalModel` aplicada no +Compras dev, sem alteração estrutural no ERP Linx; commit `77861eb`.
 
 **Validação:** build com 0 erros e 0 avisos; 256 testes unitários e 4 testes de integração aprovados.
+
+## Sprint B2.1.3 — Endurecimento da Integração ERP de Fornecedores
+
+**Status:** Concluída em 02/08/2026, com validação real contra API em Docker, VPN corporativa e banco `MaisCompras`.
+
+**Escopo:** transformar a sincronização ERP SOMA → +Compras em rotina operacional rastreável, paginada e resiliente a erros parciais: leitura paginada (`IFornecedorErpReader`/`SomaFornecedorReader` com `OFFSET/FETCH`), orquestração em lotes (`SincronizarFornecedoresErpUseCase`), histórico de execução (`SincronizacaoFornecedor`) e erros parciais persistidos (`ErroSincronizacaoFornecedor`), migration `202608020001_B213FornecedorErpSyncHardening`, logs estruturados e retorno detalhado do endpoint `GET /api/fornecedores/sincronizar-erp`.
+
+**Correções pós-entrega inicial (paginação):** dois bugs reais no loop de paginação, encontrados pelo teste `Execute_Should_Process_Multiple_Batches_And_Calculate_Totals`, foram corrigidos sem alterar regra de negócio: parada prematura quando o lote vinha menor que o esperado (commit `21f1a67`) e cálculo não determinístico do offset de paginação (commit `ca48dc3`).
+
+**Hardening de execução real (02/08/2026):** a pedido explícito do Product Owner, a sprint foi revalidada rodando a API em Docker contra o ERP corporativo (`SOMA_DESENV`) e o banco `MaisCompras` reais, via VPN. Essa validação expôs e corrigiu três problemas adicionais:
+
+1. **Docker bloqueava a subida da API:** `docker-compose.yml` tinha `depends_on: sqlserver: condition: service_healthy` no serviço `api`, obrigando-o a esperar o SQL Server local **opcional** (não usado pela aplicação, que sempre aponta para o banco corporativo). Sem `SA_PASSWORD` definido, o container `sqlserver` nunca ficava saudável e a API nunca subia. Corrigido removendo a dependência obrigatória; o serviço `sqlserver` permanece disponível como ambiente isolado opcional (ADR-0018). Criado `infrastructure/docker/.env.example` sem segredos reais.
+2. **`limite` era tamanho de página, não teto total:** `SincronizarFornecedoresErpUseCase` usava `dto.Limite` apenas como tamanho de lote dentro de um `while(true)` que só parava com página vazia — `limite=50` varria a tabela inteira de fornecedores do ERP (confirmado na prática: 2.812 fornecedores processados antes de a chamada de teste ser interrompida manualmente). Corrigido para que `limite` seja o teto total de fornecedores processados na execução, com paginação interna preservada.
+3. **Erro parcial de persistência virava HTTP 500:** quando `SaveChangesAsync` falhava para um fornecedor (ex.: violação de índice único de CNPJ), a entidade continuava rastreada no `DbContext`, e o `SaveChangesAsync` final (ao persistir `SincronizacaoFornecedor`) tentava salvá-la de novo, repetindo o erro fora do bloco de tratamento e derrubando a requisição inteira — mesmo com a maioria dos fornecedores processados com sucesso. Esse comportamento só aparecia contra SQL Server real; os testes unitários usam EF InMemory, que não impõe índices únicos. Corrigido com `context.ChangeTracker.Clear()` no `catch`, garantindo que a execução finalize como `Parcial` com o erro registrado e o histórico salvo.
+
+**Evidência real:** `docker compose config` sem erros; API sobe isolada via `docker compose up -d api`; `GET /health` retornou `200 OK`; `GET /api/fornecedores/sincronizar-erp?businessUnit=DEFAULT&limite=50` contra ERP/`MaisCompras` reais retornou `{"status":"Parcial","consultados":50,"incluidos":48,"atualizados":1,"erros":1}`; consulta direta via `sqlcmd` confirmou o registro em `SincronizacoesFornecedores` (execução `49A9474D-6CDB-44C2-8D7E-165F79E3CFF7`) e o erro correspondente em `ErrosSincronizacoesFornecedores`.
+
+**Validação:** `dotnet build backend/BlueprintOS.sln` com 0 erros e 0 avisos; `dotnet test backend/BlueprintOS.sln` com 282 testes aprovados (277 unitários + 5 integração), 0 falhas — incluindo o novo teste `Execute_Should_Finish_As_Parcial_And_Persist_Execucao_When_Individual_SaveChanges_Fails`, que simula uma falha real de `SaveChangesAsync` para reproduzir em teste unitário o comportamento antes só visível contra SQL Server real.
+
+**Aprendizados:**
+- O parâmetro `limite` de uma sincronização em lote deve sempre representar um teto operacional total, nunca apenas o tamanho de página — a ambiguidade permite que uma chamada aparentemente limitada varra a base inteira de um sistema externo.
+- Tratamento de erro parcial em rotinas que usam EF Core precisa considerar o estado do `ChangeTracker`: uma entidade que falhou ao salvar continua rastreada e pode contaminar o próximo `SaveChangesAsync`, transformando um erro pontual em falha total.
+- Testes com EF Core InMemory podem não reproduzir restrições reais do SQL Server (índices únicos, por exemplo); o comportamento de erro parcial deve ser coberto com um teste que simule a falha de persistência explicitamente, e idealmente confirmado contra o banco real antes de fechar a sprint.

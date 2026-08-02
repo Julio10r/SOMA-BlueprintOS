@@ -1,5 +1,6 @@
 using BlueprintOS.Application.Identity.Contracts;
 using BlueprintOS.Application.Identity.Models;
+using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Application.Procurement.Suppliers.Models;
 using BlueprintOS.Domain.Procurement.Suppliers;
 using BlueprintOS.Infrastructure.Integrations.ERP.Contracts;
@@ -91,7 +92,7 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
     }
 
     [Fact]
-    public async Task Execute_Should_Process_Multiple_Batches_And_Calculate_Totals()
+    public async Task Execute_Should_Process_All_Available_When_Below_Limite()
     {
         await using var context = NewContext();
         var identity = new FakeIdentity();
@@ -112,14 +113,34 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
             new("ERP-2", "SOMA_DESENV", changed with { HashDadosSincronizaveis = "new" }, DateTimeOffset.UtcNow),
             new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor Novo", "Fantasia Nova", "99888777000166", "hash-3"), DateTimeOffset.UtcNow));
 
-        var result = await Create(context, identity, reader).ExecuteAsync(new("BU-A", 2, null));
+        var result = await Create(context, identity, reader).ExecuteAsync(new("BU-A", 10, null));
 
         Assert.Equal(3, result.Consultados);
         Assert.Equal(1, result.Incluidos);
         Assert.Equal(1, result.Atualizados);
         Assert.Equal(1, result.SemAlteracao);
         Assert.Equal(0, result.Erros);
-        Assert.Equal(new[] { (0, 2), (2, 2), (4, 2) }, reader.Calls);
+        Assert.Equal(new[] { (0, 10), (3, 7) }, reader.Calls);
+    }
+
+    [Fact]
+    public async Task Execute_Should_Never_Process_More_Than_Limite_Even_When_Erp_Has_More_Records()
+    {
+        await using var context = NewContext();
+        var identity = new FakeIdentity();
+        var reader = new FakeReader(
+            new("ERP-1", "SOMA_DESENV", Canonical("Fornecedor 1", "Fantasia 1", "12345678000195", "hash-1"), DateTimeOffset.UtcNow),
+            new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor 2", "Fantasia 2", "11222333000181", "hash-2"), DateTimeOffset.UtcNow),
+            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor 3", "Fantasia 3", "99888777000166", "hash-3"), DateTimeOffset.UtcNow),
+            new("ERP-4", "SOMA_DESENV", Canonical("Fornecedor 4", "Fantasia 4", "22333444000172", "hash-4"), DateTimeOffset.UtcNow),
+            new("ERP-5", "SOMA_DESENV", Canonical("Fornecedor 5", "Fantasia 5", "33444555000163", "hash-5"), DateTimeOffset.UtcNow));
+
+        var result = await Create(context, identity, reader).ExecuteAsync(new("BU-A", 3, null));
+
+        Assert.Equal(3, result.Consultados);
+        Assert.Equal(3, result.Incluidos);
+        Assert.Equal(3, await context.Fornecedores.CountAsync());
+        Assert.Equal(new[] { (0, 3) }, reader.Calls);
     }
 
     [Fact]
@@ -131,7 +152,7 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
             new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor Erro", "Fantasia Erro", "documento-invalido", "hash-2"), DateTimeOffset.UtcNow),
             new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor OK 2", "Fantasia OK 2", "99888777000166", "hash-3"), DateTimeOffset.UtcNow));
 
-        var result = await Create(context, new FakeIdentity(), reader).ExecuteAsync(new("BU-A", 2, null));
+        var result = await Create(context, new FakeIdentity(), reader).ExecuteAsync(new("BU-A", 10, null));
 
         Assert.Equal("Parcial", result.Status);
         Assert.Equal(3, result.Consultados);
@@ -141,8 +162,37 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         Assert.Equal(1, await context.ErrosSincronizacoesFornecedores.CountAsync());
     }
 
-    private static SincronizarFornecedoresErpUseCase Create(BlueprintOSDbContext context, FakeIdentity identity, FakeReader reader) =>
-        new(reader, new FornecedorRepository(context), identity, context, NullLogger<SincronizarFornecedoresErpUseCase>.Instance);
+    [Fact]
+    public async Task Execute_Should_Finish_As_Parcial_And_Persist_Execucao_When_Individual_SaveChanges_Fails()
+    {
+        await using var context = NewContext();
+        var identity = new FakeIdentity();
+        var innerRepository = new FornecedorRepository(context);
+
+        // Simula o cenario real observado contra SQL Server: o repositorio rastreia a entidade
+        // no DbContext e o SaveChangesAsync falha (ex.: violacao de indice unico). Sem limpar o
+        // ChangeTracker apos o erro, a entidade problematica permanece "Added" e faz o proximo
+        // SaveChangesAsync (inclusive o final, ao persistir a SincronizacaoFornecedor) falhar tambem.
+        var repository = new ThrowingOnceFornecedorRepository(context, innerRepository, cnpjQueFalha: "12345678000195");
+
+        var reader = new FakeReader(
+            new("ERP-1", "SOMA_DESENV", Canonical("Fornecedor Falho", "Fantasia Falha", "12345678000195", "hash-falha"), DateTimeOffset.UtcNow),
+            new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor OK", "Fantasia OK", "99888777000166", "hash-ok"), DateTimeOffset.UtcNow));
+
+        var result = await Create(context, identity, reader, repository).ExecuteAsync(new("BU-A", 10, null));
+
+        Assert.Equal("Parcial", result.Status);
+        Assert.Equal(2, result.Consultados);
+        Assert.Equal(1, result.Incluidos);
+        Assert.Equal(1, result.Erros);
+        Assert.Equal(1, await context.ErrosSincronizacoesFornecedores.CountAsync());
+        Assert.Equal(1, await context.SincronizacoesFornecedores.CountAsync());
+        Assert.Equal("Fornecedor OK", (await context.Fornecedores.SingleAsync(x => x.TemporaryUserId == identity.UserId)).RazaoSocial);
+    }
+
+    private static SincronizarFornecedoresErpUseCase Create(BlueprintOSDbContext context, FakeIdentity identity, FakeReader reader,
+        IFornecedorRepository? repository = null) =>
+        new(reader, repository ?? new FornecedorRepository(context), identity, context, NullLogger<SincronizarFornecedoresErpUseCase>.Instance);
 
     private static BlueprintOSDbContext NewContext() =>
         new(new DbContextOptionsBuilder<BlueprintOSDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
@@ -152,6 +202,33 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
             "Sao Paulo", "SP", null, "11", "999999999", "erp@example.invalid", "fiscal@example.invalid", null, null, null,
             null, "001", "Fornecedor", null, null, "Normal", false, null, true, false, true, false, false, false, true,
             DateTimeOffset.UtcNow, hash);
+
+    /// <summary>
+    /// Reproduz uma falha real de SaveChangesAsync (ex.: violacao de indice unico no SQL Server):
+    /// a entidade fica rastreada como Added no DbContext e a chamada lanca uma excecao, sem chamar
+    /// SaveChangesAsync com sucesso.
+    /// </summary>
+    private sealed class ThrowingOnceFornecedorRepository(BlueprintOSDbContext context, IFornecedorRepository inner, string cnpjQueFalha) : IFornecedorRepository
+    {
+        public async Task AdicionarAsync(Fornecedor fornecedor, CancellationToken cancellationToken = default)
+        {
+            if (fornecedor.Cnpj_Cpf == DocumentoFiscal.Create(cnpjQueFalha).Value)
+            {
+                await context.Fornecedores.AddAsync(fornecedor, cancellationToken);
+                throw new DbUpdateException("Simulated unique index violation for tests.");
+            }
+
+            await inner.AdicionarAsync(fornecedor, cancellationToken);
+        }
+
+        public Task AtualizarAsync(Fornecedor fornecedor, CancellationToken cancellationToken = default) => inner.AtualizarAsync(fornecedor, cancellationToken);
+        public Task ExcluirAsync(Fornecedor fornecedor, CancellationToken cancellationToken = default) => inner.ExcluirAsync(fornecedor, cancellationToken);
+        public Task<Fornecedor?> ObterPorIdAsync(Guid id, Guid temporaryUserId, CancellationToken cancellationToken = default) => inner.ObterPorIdAsync(id, temporaryUserId, cancellationToken);
+        public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid temporaryUserId, CancellationToken cancellationToken = default) => inner.ObterPorCnpjAsync(cnpj, temporaryUserId, cancellationToken);
+        public Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string termo, Guid temporaryUserId, CancellationToken cancellationToken = default) => inner.PesquisarAsync(termo, temporaryUserId, cancellationToken);
+        public Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid temporaryUserId, CancellationToken cancellationToken = default) => inner.ListarAsync(temporaryUserId, cancellationToken);
+        public Task<bool> ExisteAsync(string documentoFiscal, CancellationToken cancellationToken = default) => inner.ExisteAsync(documentoFiscal, cancellationToken);
+    }
 
     private sealed class FakeIdentity : ICurrentIdentity
     {

@@ -53,20 +53,23 @@ services:
   api:
     image: blueprintos/api:dev
     container_name: blueprintos-api
+    # Sem depends_on do "sqlserver": a API aponta para o SQL Server
+    # corporativo (MAISCOMPRAS/SOMA_DESENV), nao para o container local.
 
     build:
       context: ../../
       dockerfile: backend/src/BlueprintOS.Api/Dockerfile
 
-    depends_on:
-      sqlserver:
-        condition: service_healthy
-
     ports:
       - "8080:8080"
 
+    env_file:
+      - .env
+
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ConnectionStrings__MaisComprasConnection: ${ConnectionStrings__MaisComprasConnection}
+      ConnectionStrings__ErpConnection: ${ConnectionStrings__ErpConnection}
 
     networks:
       - blueprintos-network
