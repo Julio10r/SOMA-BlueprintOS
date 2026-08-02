@@ -13,16 +13,21 @@ namespace BlueprintOS.Infrastructure.Integrations.ERP.Soma;
 public sealed class SomaFornecedorReader(IConfiguration configuration, ILogger<SomaFornecedorReader> logger) : IFornecedorErpReader
 {
     public async Task<IReadOnlyList<FornecedorErpIntegracaoDto>> BuscarFornecedoresAsync(int limite, CancellationToken cancellationToken = default)
+        => await BuscarFornecedoresAsync(0, limite, cancellationToken);
+
+    public async Task<IReadOnlyList<FornecedorErpIntegracaoDto>> BuscarFornecedoresAsync(int skip, int take, CancellationToken cancellationToken = default)
     {
-        var take = Math.Clamp(limite <= 0 ? 100 : limite, 1, 1000);
+        var offset = Math.Max(0, skip);
+        var pageSize = Math.Clamp(take <= 0 ? 100 : take, 1, 5000);
         await using var connection = await OpenAsync(cancellationToken);
         var shape = await LoadShapeAsync(connection, cancellationToken);
         await using var command = connection.CreateCommand();
         command.CommandTimeout = TimeoutSeconds;
-        command.CommandText = $"SELECT TOP (@limite) {shape.SelectList} FROM {shape.FromClause} WHERE {shape.CnpjPredicate} IS NOT NULL ORDER BY {shape.OrderBy}";
-        command.Parameters.Add(new SqlParameter("@limite", SqlDbType.Int) { Value = take });
+        command.CommandText = $"SELECT {shape.SelectList} FROM {shape.FromClause} WHERE {shape.CnpjPredicate} IS NOT NULL ORDER BY {shape.OrderBy} OFFSET @skip ROWS FETCH NEXT @take ROWS ONLY";
+        command.Parameters.Add(new SqlParameter("@skip", SqlDbType.Int) { Value = offset });
+        command.Parameters.Add(new SqlParameter("@take", SqlDbType.Int) { Value = pageSize });
 
-        logger.LogInformation("Leitura operacional de fornecedores SOMA iniciada. Limite {Limite}", take);
+        logger.LogInformation("Leitura operacional de fornecedores SOMA iniciada. Skip {Skip}. Take {Take}", offset, pageSize);
         var fornecedores = new List<FornecedorErpIntegracaoDto>();
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken)) fornecedores.Add(Map(reader));

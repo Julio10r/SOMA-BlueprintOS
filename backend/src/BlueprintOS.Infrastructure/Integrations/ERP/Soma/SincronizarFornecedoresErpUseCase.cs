@@ -3,62 +3,112 @@ using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Application.Procurement.Suppliers.Models;
 using BlueprintOS.Domain.Procurement.Suppliers;
 using BlueprintOS.Infrastructure.Integrations.ERP.Contracts;
+using BlueprintOS.Infrastructure.Persistence;
+using Microsoft.Extensions.Logging;
 
 namespace BlueprintOS.Infrastructure.Integrations.ERP.Soma;
 
 public sealed class SincronizarFornecedoresErpUseCase(
     IFornecedorErpReader reader,
     IFornecedorRepository repository,
-    ICurrentIdentity identity) : ISincronizarFornecedoresErpUseCase
+    ICurrentIdentity identity,
+    BlueprintOSDbContext context,
+    ILogger<SincronizarFornecedoresErpUseCase> logger) : ISincronizarFornecedoresErpUseCase
 {
+    private const string ErpSistema = "SOMA_DESENV";
+
     public async Task<SincronizacaoFornecedoresErpResumo> ExecuteAsync(SincronizarFornecedoresErpDto dto, CancellationToken cancellationToken = default)
     {
         var userId = identity.GetRequired().UserId;
         var correlationId = string.IsNullOrWhiteSpace(dto.CorrelationId) ? Guid.NewGuid().ToString("N") : dto.CorrelationId.Trim()[..Math.Min(dto.CorrelationId.Trim().Length, 100)];
         var businessUnit = string.IsNullOrWhiteSpace(dto.BusinessUnit) ? "DEFAULT" : dto.BusinessUnit.Trim();
-        var consultados = await reader.BuscarFornecedoresAsync(dto.Limite, cancellationToken);
-        var incluidos = 0;
-        var atualizados = 0;
-        var semAlteracao = 0;
+        var tamanhoLote = Math.Clamp(dto.Limite <= 0 ? 500 : dto.Limite, 1, 5000);
+        var inicio = DateTimeOffset.UtcNow;
+        var execucao = new SincronizacaoFornecedor(Guid.NewGuid(), ErpSistema, businessUnit, inicio);
 
-        foreach (var externo in consultados)
+        logger.LogInformation("Sincronizacao de fornecedores ERP iniciada. ExecucaoId {ExecucaoId}. BusinessUnit {BusinessUnit}. TamanhoLote {TamanhoLote}. CorrelationId {CorrelationId}",
+            execucao.Id, businessUnit, tamanhoLote, correlationId);
+
+        var skip = 0;
+        while (true)
         {
-            var dados = externo.Dados;
-            if (string.IsNullOrWhiteSpace(dados.RazaoSocial) || string.IsNullOrWhiteSpace(dados.DocumentoFiscal)) continue;
+            var lote = await reader.BuscarFornecedoresAsync(skip, tamanhoLote, cancellationToken);
+            if (lote.Count == 0) break;
 
-            var local = await repository.ObterPorCnpjAsync(DocumentoFiscal.Create(dados.DocumentoFiscal).Value, userId, cancellationToken);
-            var alteradoEm = externo.UltimaAlteracaoEm ?? DateTimeOffset.UtcNow;
-            if (local is null)
+            foreach (var externo in lote)
             {
-                local = new Fornecedor(Guid.NewGuid(), dados.RazaoSocial, DocumentoFiscal.Create(dados.DocumentoFiscal), dados.TipoPessoa, null,
-                    dados.EmailComercial, dados.Telefone, null, dados.Cidade, dados.Uf, dados.Pais, dados.Ativo ? "Ativo" : "Inativo", null,
-                    userId, alteradoEm, businessUnit, externo.ErpSistema, externo.ErpFornecedorId);
-                local.AplicarContratoCanonico(dados, "ERP", alteradoEm);
-                local.RegistrarVinculoErp(businessUnit, externo.ErpSistema, externo.ErpFornecedorId);
-                local.RegistrarSincronizacao("Sincronizado", DateTimeOffset.UtcNow);
-                await repository.AdicionarAsync(local, cancellationToken);
-                incluidos++;
-                continue;
+                execucao.RegistrarConsultado();
+                try
+                {
+                    await SincronizarFornecedorAsync(externo, businessUnit, userId, execucao, cancellationToken);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    execucao.RegistrarErro(Identificar(externo), ex, DateTimeOffset.UtcNow);
+                    logger.LogError(ex, "Erro parcial na sincronizacao de fornecedor ERP. ExecucaoId {ExecucaoId}. Fornecedor {FornecedorIdentificacao}",
+                        execucao.Id, Identificar(externo));
+                }
             }
 
-            local.RegistrarVinculoErp(businessUnit, externo.ErpSistema, externo.ErpFornecedorId);
-            if (EstaSemAlteracao(local, dados))
-            {
-                local.RegistrarSincronizacao("Sincronizado", DateTimeOffset.UtcNow);
-                await repository.AtualizarAsync(local, cancellationToken);
-                semAlteracao++;
-                continue;
-            }
+            logger.LogInformation("Lote de fornecedores ERP processado. ExecucaoId {ExecucaoId}. Skip {Skip}. ProcessadosNoLote {ProcessadosNoLote}. Consultados {Consultados}. Erros {Erros}",
+                execucao.Id, skip, lote.Count, execucao.TotalConsultado, execucao.TotalErro);
+            skip += lote.Count;
+            if (lote.Count < tamanhoLote) break;
+        }
 
+        var fim = DateTimeOffset.UtcNow;
+        execucao.Finalizar(fim);
+        await context.SincronizacoesFornecedores.AddAsync(execucao, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Sincronizacao de fornecedores ERP finalizada. ExecucaoId {ExecucaoId}. Status {Status}. Consultados {Consultados}. Incluidos {Incluidos}. Atualizados {Atualizados}. SemAlteracao {SemAlteracao}. Erros {Erros}. DuracaoMs {DuracaoMs}",
+            execucao.Id, execucao.Status, execucao.TotalConsultado, execucao.TotalIncluido, execucao.TotalAtualizado, execucao.TotalSemAlteracao, execucao.TotalErro, execucao.TempoExecucaoMs);
+
+        return new(execucao.Id, execucao.Status, inicio, fim, execucao.TotalConsultado, execucao.TotalIncluido,
+            execucao.TotalAtualizado, execucao.TotalSemAlteracao, execucao.TotalErro, execucao.TempoExecucaoMs,
+            businessUnit, ErpSistema, correlationId, fim);
+    }
+
+    private async Task SincronizarFornecedorAsync(FornecedorErpIntegracaoDto externo, string businessUnit, Guid userId,
+        SincronizacaoFornecedor execucao, CancellationToken cancellationToken)
+    {
+        var dados = externo.Dados;
+        if (string.IsNullOrWhiteSpace(dados.RazaoSocial)) throw new ArgumentException("RazaoSocial do fornecedor ERP e obrigatoria.");
+        if (string.IsNullOrWhiteSpace(dados.DocumentoFiscal)) throw new ArgumentException("DocumentoFiscal do fornecedor ERP e obrigatorio.");
+
+        var local = await repository.ObterPorCnpjAsync(DocumentoFiscal.Create(dados.DocumentoFiscal).Value, userId, cancellationToken);
+        var alteradoEm = externo.UltimaAlteracaoEm ?? DateTimeOffset.UtcNow;
+        if (local is null)
+        {
+            local = new Fornecedor(Guid.NewGuid(), dados.RazaoSocial, DocumentoFiscal.Create(dados.DocumentoFiscal), dados.TipoPessoa, null,
+                dados.EmailComercial, dados.Telefone, null, dados.Cidade, dados.Uf, dados.Pais, dados.Ativo ? "Ativo" : "Inativo", null,
+                userId, alteradoEm, businessUnit, externo.ErpSistema, externo.ErpFornecedorId);
             local.AplicarContratoCanonico(dados, "ERP", alteradoEm);
             local.RegistrarVinculoErp(businessUnit, externo.ErpSistema, externo.ErpFornecedorId);
             local.RegistrarSincronizacao("Sincronizado", DateTimeOffset.UtcNow);
-            await repository.AtualizarAsync(local, cancellationToken);
-            atualizados++;
+            await repository.AdicionarAsync(local, cancellationToken);
+            execucao.RegistrarIncluido();
+            return;
         }
 
-        return new(consultados.Count, incluidos, atualizados, semAlteracao, businessUnit, "SOMA_DESENV", correlationId, DateTimeOffset.UtcNow);
+        local.RegistrarVinculoErp(businessUnit, externo.ErpSistema, externo.ErpFornecedorId);
+        if (EstaSemAlteracao(local, dados))
+        {
+            local.RegistrarSincronizacao("Sincronizado", DateTimeOffset.UtcNow);
+            await repository.AtualizarAsync(local, cancellationToken);
+            execucao.RegistrarSemAlteracao();
+            return;
+        }
+
+        local.AplicarContratoCanonico(dados, "ERP", alteradoEm);
+        local.RegistrarVinculoErp(businessUnit, externo.ErpSistema, externo.ErpFornecedorId);
+        local.RegistrarSincronizacao("Sincronizado", DateTimeOffset.UtcNow);
+        await repository.AtualizarAsync(local, cancellationToken);
+        execucao.RegistrarAtualizado();
     }
+
+    private static string Identificar(FornecedorErpIntegracaoDto externo) =>
+        string.Join(" | ", new[] { externo.ErpSistema, externo.ErpFornecedorId, externo.Dados.DocumentoFiscal }.Where(x => !string.IsNullOrWhiteSpace(x)));
 
     private static bool EstaSemAlteracao(Fornecedor local, FornecedorCanonico dados)
     {

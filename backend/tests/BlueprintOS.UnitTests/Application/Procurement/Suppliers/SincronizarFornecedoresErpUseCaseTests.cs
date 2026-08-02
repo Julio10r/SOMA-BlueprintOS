@@ -7,6 +7,7 @@ using BlueprintOS.Infrastructure.Integrations.ERP.Soma;
 using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BlueprintOS.UnitTests.Application.Procurement.Suppliers;
 
@@ -22,6 +23,9 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         var result = await Create(context, identity, reader).ExecuteAsync(new("BU-A", 100, "corr-erp"));
 
         var stored = await context.Fornecedores.SingleAsync();
+        var execucao = await context.SincronizacoesFornecedores.SingleAsync();
+        Assert.Equal(result.ExecucaoId, execucao.Id);
+        Assert.Equal("Sucesso", result.Status);
         Assert.Equal(1, result.Consultados);
         Assert.Equal(1, result.Incluidos);
         Assert.Equal("Fornecedor ERP", stored.RazaoSocial);
@@ -71,8 +75,74 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         Assert.Equal(0, result.Atualizados);
     }
 
+    [Fact]
+    public async Task Execute_Should_Register_Success_When_No_Records()
+    {
+        await using var context = NewContext();
+
+        var result = await Create(context, new FakeIdentity(), new FakeReader())
+            .ExecuteAsync(new("BU-A", 2, null));
+
+        Assert.Equal("Sucesso", result.Status);
+        Assert.Equal(0, result.Consultados);
+        Assert.Equal(0, result.Incluidos);
+        Assert.Equal(0, result.Erros);
+        Assert.Equal("Sucesso", (await context.SincronizacoesFornecedores.SingleAsync()).Status);
+    }
+
+    [Fact]
+    public async Task Execute_Should_Process_Multiple_Batches_And_Calculate_Totals()
+    {
+        await using var context = NewContext();
+        var identity = new FakeIdentity();
+        var unchanged = Canonical("Fornecedor Igual", "Fantasia Igual", "12345678000195", "hash-1");
+        var existing = new Fornecedor(Guid.NewGuid(), unchanged.RazaoSocial, DocumentoFiscal.Create(unchanged.DocumentoFiscal), unchanged.TipoPessoa,
+            null, null, null, null, unchanged.Cidade, unchanged.Uf, unchanged.Pais, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow);
+        existing.AplicarContratoCanonico(unchanged, "ERP", DateTimeOffset.UtcNow);
+        await new FornecedorRepository(context).AdicionarAsync(existing);
+
+        var changed = Canonical("Fornecedor Alterado", "Fantasia Alterada", "11222333000181", "old");
+        var existingChanged = new Fornecedor(Guid.NewGuid(), "Fornecedor Antes", DocumentoFiscal.Create(changed.DocumentoFiscal), changed.TipoPessoa,
+            null, null, null, null, changed.Cidade, changed.Uf, changed.Pais, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow);
+        existingChanged.AplicarContratoCanonico(changed with { RazaoSocial = "Fornecedor Antes", HashDadosSincronizaveis = "old" }, "ERP", DateTimeOffset.UtcNow);
+        await new FornecedorRepository(context).AdicionarAsync(existingChanged);
+
+        var reader = new FakeReader(
+            new("ERP-1", "SOMA_DESENV", unchanged, DateTimeOffset.UtcNow),
+            new("ERP-2", "SOMA_DESENV", changed with { HashDadosSincronizaveis = "new" }, DateTimeOffset.UtcNow),
+            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor Novo", "Fantasia Nova", "99888777000166", "hash-3"), DateTimeOffset.UtcNow));
+
+        var result = await Create(context, identity, reader).ExecuteAsync(new("BU-A", 2, null));
+
+        Assert.Equal(3, result.Consultados);
+        Assert.Equal(1, result.Incluidos);
+        Assert.Equal(1, result.Atualizados);
+        Assert.Equal(1, result.SemAlteracao);
+        Assert.Equal(0, result.Erros);
+        Assert.Equal(new[] { (0, 2), (2, 2), (4, 2) }, reader.Calls);
+    }
+
+    [Fact]
+    public async Task Execute_Should_Register_Partial_Error_And_Continue()
+    {
+        await using var context = NewContext();
+        var reader = new FakeReader(
+            new("ERP-1", "SOMA_DESENV", Canonical("Fornecedor OK", "Fantasia OK", "12345678000195", "hash-1"), DateTimeOffset.UtcNow),
+            new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor Erro", "Fantasia Erro", "documento-invalido", "hash-2"), DateTimeOffset.UtcNow),
+            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor OK 2", "Fantasia OK 2", "99888777000166", "hash-3"), DateTimeOffset.UtcNow));
+
+        var result = await Create(context, new FakeIdentity(), reader).ExecuteAsync(new("BU-A", 2, null));
+
+        Assert.Equal("Parcial", result.Status);
+        Assert.Equal(3, result.Consultados);
+        Assert.Equal(2, result.Incluidos);
+        Assert.Equal(1, result.Erros);
+        Assert.Equal(2, await context.Fornecedores.CountAsync());
+        Assert.Equal(1, await context.ErrosSincronizacoesFornecedores.CountAsync());
+    }
+
     private static SincronizarFornecedoresErpUseCase Create(BlueprintOSDbContext context, FakeIdentity identity, FakeReader reader) =>
-        new(reader, new FornecedorRepository(context), identity);
+        new(reader, new FornecedorRepository(context), identity, context, NullLogger<SincronizarFornecedoresErpUseCase>.Instance);
 
     private static BlueprintOSDbContext NewContext() =>
         new(new DbContextOptionsBuilder<BlueprintOSDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
@@ -91,7 +161,15 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
 
     private sealed class FakeReader(params FornecedorErpIntegracaoDto[] fornecedores) : IFornecedorErpReader
     {
+        public List<(int Skip, int Take)> Calls { get; } = [];
+
         public Task<IReadOnlyList<FornecedorErpIntegracaoDto>> BuscarFornecedoresAsync(int limite, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<FornecedorErpIntegracaoDto>>(fornecedores.Take(limite).ToList());
+            BuscarFornecedoresAsync(0, limite, cancellationToken);
+
+        public Task<IReadOnlyList<FornecedorErpIntegracaoDto>> BuscarFornecedoresAsync(int skip, int take, CancellationToken cancellationToken = default)
+        {
+            Calls.Add((skip, take));
+            return Task.FromResult<IReadOnlyList<FornecedorErpIntegracaoDto>>(fornecedores.Skip(skip).Take(take).ToList());
+        }
     }
 }

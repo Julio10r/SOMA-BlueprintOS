@@ -21,7 +21,7 @@ public sealed class SomaFornecedorSynchronizationIntegrationTests
         }
 
         var reader = new SomaFornecedorReader(configuration, NullLogger<SomaFornecedorReader>.Instance);
-        var fornecedores = await reader.BuscarFornecedoresAsync(1);
+        var fornecedores = await reader.BuscarFornecedoresAsync(0, 1);
 
         Assert.True(fornecedores.Count <= 1);
         Assert.All(fornecedores, fornecedor =>

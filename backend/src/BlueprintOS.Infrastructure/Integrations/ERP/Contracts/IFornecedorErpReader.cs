@@ -7,6 +7,11 @@ public interface IFornecedorErpReader
     Task<IReadOnlyList<FornecedorErpIntegracaoDto>> BuscarFornecedoresAsync(
         int limite,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<FornecedorErpIntegracaoDto>> BuscarFornecedoresAsync(
+        int skip,
+        int take,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record FornecedorErpIntegracaoDto(
