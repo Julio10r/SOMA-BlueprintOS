@@ -53,7 +53,6 @@ public sealed class SincronizarFornecedoresErpUseCase(
             logger.LogInformation("Lote de fornecedores ERP processado. ExecucaoId {ExecucaoId}. Skip {Skip}. ProcessadosNoLote {ProcessadosNoLote}. Consultados {Consultados}. Erros {Erros}",
                 execucao.Id, skip, lote.Count, execucao.TotalConsultado, execucao.TotalErro);
             skip += lote.Count;
-            if (lote.Count < tamanhoLote) break;
         }
 
         var fim = DateTimeOffset.UtcNow;
