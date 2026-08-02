@@ -1,60 +1,20 @@
-# Ambiente Docker local/opcional (ver ADR-0018 em .ai/DECISIONS.md).
+# Ambiente Docker de execucao da API (ver ADR-0018 em .ai/DECISIONS.md).
 #
-# O serviço "sqlserver" abaixo e um SQL Server em container, util para
-# desenvolvimento isolado/offline ou testes pontuais, mas NAO e o banco
-# oficial de desenvolvimento do +Compras. O ambiente oficial de
-# desenvolvimento usa o SQL Server corporativo (ambiente SOMA_DESENV),
-# acessado via VPN, configurado via ConnectionStrings:MaisComprasConnection
-# / ErpConnection (user-secrets ou variavel de ambiente), nunca hardcoded.
+# Docker aqui serve apenas para empacotar e executar a API. Nao ha SQL
+# Server local: o ambiente oficial de desenvolvimento usa o SQL Server
+# corporativo (bancos MAISCOMPRAS e SOMA_DESENV), acessado via VPN,
+# configurado via ConnectionStrings:MaisComprasConnection / ErpConnection
+# (user-secrets para "dotnet run" ou variavel de ambiente para Docker),
+# nunca hardcoded.
 #
 # O servico "api" pode rodar via este Docker Compose (porta 8080) ou via
-# "dotnet run" local (porta 5262/7127, ver launchSettings.json) apontando
-# para o SQL Server corporativo em vez do container "sqlserver" abaixo.
+# "dotnet run" local (porta 5262/7127, ver launchSettings.json) — em
+# ambos os casos apontando para o SQL Server corporativo.
 services:
-
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: blueprintos-sqlserver
-
-    environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: ${SA_PASSWORD}
-
-    ports:
-      - "1433:1433"
-
-    volumes:
-      - blueprintos_sql:/var/opt/mssql
-
-    restart: unless-stopped
-
-    networks:
-      - blueprintos-network
-
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "/opt/mssql-tools18/bin/sqlcmd",
-          "-S",
-          "localhost",
-          "-U",
-          "sa",
-          "-P",
-          "${SA_PASSWORD}",
-          "-C",
-          "-Q",
-          "SELECT 1"
-        ]
-      interval: 15s
-      timeout: 5s
-      retries: 10
 
   api:
     image: blueprintos/api:dev
     container_name: blueprintos-api
-    # Sem depends_on do "sqlserver": a API aponta para o SQL Server
-    # corporativo (MAISCOMPRAS/SOMA_DESENV), nao para o container local.
 
     build:
       context: ../../
@@ -76,6 +36,3 @@ services:
 
 networks:
   blueprintos-network:
-
-volumes:
-  blueprintos_sql:
