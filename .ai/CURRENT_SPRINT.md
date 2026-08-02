@@ -32,4 +32,12 @@ Correcao pos-sprint (falha de teste):
 - Teste `SincronizarFornecedoresErpUseCaseTests.Execute_Should_Process_Multiple_Batches_And_Calculate_Totals` falhava: esperava 3 chamadas de leitura paginada `(0,2), (2,2), (4,2)` e o codigo fazia apenas 2 `(0,2), (2,2)`.
 - Causa: o loop de paginacao em `SincronizarFornecedoresErpUseCase.ExecuteAsync` encerrava cedo quando o lote retornado era menor que o tamanho do lote (`lote.Count < tamanhoLote`), presumindo que um lote parcial sempre significa "ultima pagina". Isso e uma suposicao invalida em geral (um ERP pode retornar exatamente `tamanhoLote` itens na ultima pagina), entao a condicao de parada correta e apenas quando o lote vier vazio.
 - Correcao: removida a condicao `if (lote.Count < tamanhoLote) break;`; o loop agora depende somente de `if (lote.Count == 0) break;` para encerrar. Nenhuma regra de negocio foi alterada — apenas o controle de paginacao do loop de leitura.
+- Commit: `21f1a67`.
+
+Segunda correcao pos-sprint (offset de paginacao):
+
+- Apos a primeira correcao, o mesmo teste voltou a falhar: esperado `(0,2), (2,2), (4,2)`, obtido `(0,2), (2,2), (3,2)`.
+- Causa: o offset era incrementado pela quantidade de itens retornados no lote (`skip += lote.Count`), entao um lote parcial (ex.: 1 item) fazia o proximo offset comecar em `3` em vez de `4`. Isso e paginacao nao deterministica: depende de quantos itens vieram, nao de quantos foram pedidos.
+- Correcao: `skip += tamanhoLote` (incrementa sempre pelo tamanho do lote solicitado, nao pelo retornado). Regra de parada mantida: somente `lote.Count == 0`. Nenhuma regra de negocio foi alterada.
+- Commit: `ca48dc3`.
 - `dotnet build`/`dotnet test` nao puderam ser executados neste ciclo por ausencia de SDK .NET no ambiente de revisao usado; pendente de execucao local antes de fechar a validacao.

@@ -13,7 +13,7 @@
 - **Data:** 02/08/2026
 - **Branch:** `feature/a13-procurement-vertical-slice`
 - **Commit de referência:** `b08769f`, `3b6d54b` e `0240c35` para as entregas B2.1 e B2.1.1; `77861eb` para B2.1.2 estrutural; `5a6aab8`, `234906c` e `32c9971` para B2.2.
-- **Validação desta atualização:** B2.1.3 concluída em código; `dotnet build backend/BlueprintOS.sln` aprovado. `dotnet test backend/BlueprintOS.sln` foi bloqueado pelo sandbox em named pipes do MSBuild; validação real de API/VPN/banco permanece pendente em ambiente local corporativo.
+- **Validação desta atualização:** B2.1.3 concluída em código; `dotnet build backend/BlueprintOS.sln` aprovado (histórico). `dotnet test backend/BlueprintOS.sln` completo ainda não foi executado em nenhum ambiente disponível desde a B2.1.3 (o sandbox atual não possui SDK .NET); dois bugs de paginação no teste de múltiplos lotes foram encontrados e corrigidos por inspeção de código (commits `21f1a67`, `ca48dc3`) sem confirmação por execução real da suíte. Validação real de API/VPN/banco permanece pendente em ambiente local corporativo. Auditoria completa em `docs/audits/B-Series-Reconciliation.md` (02/08/2026).
 
 ## Sistema de Work Orders
 
@@ -28,7 +28,7 @@
 - **Portal:** a ADR-0017 definiu o Portal Operacional +Compras como navegação e identidade visual completas, com evolução funcional incremental por domínio. B2.2.4 concluiu a primeira vertical slice funcional em React com a tela `CadastroFornecedor`. A próxima frente formal é o Portal +Compras Frontend, a ser executada pelo Claude Code.
 - **B2/B2.1/B2.1.1:** B2 permanece como estrutura inicial de descoberta e score (100/80/60/40). B2.1 concluiu sincronização bidirecional, regra temporal, inativação, auditoria e concorrência; B2.1.1 concluiu o mapeamento canônico ERP → +Compras.
 - **B2.1.2 estrutural:** concluída conforme ADR-0016, com modelo fornecedor alinhado ao Linx: `Cnpj_Cpf`, `TipoPessoa`, separação de `RazaoSocial`/`NomeFantasia`, proteção do nome fantasia controlado pelo Linx, flags `Beneficiador`/`Licenciado`, domínios ERP estruturados, FKs opcionais e contrato frontend inicial.
-- **B2.1.3 operacional:** concluída em código para endurecer o fluxo ERP SOMA → +Compras: leitura paginada/lotes, histórico de execução, erros parciais persistidos, logs estruturados, métricas de sincronização e retorno detalhado em `GET /api/fornecedores/sincronizar-erp`.
+- **B2.1.3 operacional:** concluída em código para endurecer o fluxo ERP SOMA → +Compras: leitura paginada/lotes, histórico de execução, erros parciais persistidos, logs estruturados, métricas de sincronização e retorno detalhado em `GET /api/fornecedores/sincronizar-erp`. Pós-entrega, dois bugs reais no loop de paginação foram encontrados pelo teste `Execute_Should_Process_Multiple_Batches_And_Calculate_Totals` e corrigidos: parada prematura em lote parcial (`21f1a67`) e cálculo não determinístico do offset (`ca48dc3`, `skip += tamanhoLote` em vez de `skip += lote.Count`). Nenhuma regra de negócio foi alterada; `dotnet test` completo ainda não foi executado para confirmar 0 falhas.
 - **B2.2:** concluída como Enriquecimento Inteligente de Fornecedor. O módulo de fornecedores possui cadastro, consulta CNPJ, enriquecimento, aprovação, rejeição, integração ERP e auditoria. A B2.2.1 foi concluída com contrato `ICnpjConsultaProvider`, retorno tipado e auditoria persistida. A B2.2.2 implementou `BrasilApiCnpjProvider` como adaptador gratuito BrasilAPI. A B2.2.3 concluiu comparação campo a campo, aprovação/rejeição, atualização seletiva, auditoria de decisões e proteção `NomeFantasia`/Linx. A B2.2.4 concluiu o portal funcional de cadastro, consulta, divergências e decisão humana.
 - **Portal +Compras Frontend:** concluído tecnicamente no frontend (commit `8ee8f4e`, branch `feature/a13-procurement-vertical-slice`). Shell de navegação (AppShell) e rotas React Router criados; módulo Fornecedores integrado à API real (cadastro, consulta CNPJ, enriquecimento, aprovação/rejeição); demais módulos (Pedidos, Negociações, Indicadores, Agentes IA, Configurações) implementados como telas demonstrativas honestas, sem persistência simulada; Design System AZZAS 2154/GDT aplicado. Build frontend aprovado (`tsc` + `vite build`, 4/4 testes). Revisão manual de código confirmou os endpoints de fornecedores, a regra `Cnpj_Cpf` (`varchar(14)` alfanumérico), a proteção de `NomeFantasia` (só editável quando origem é ERP) e o alerta não bloqueante de situação cadastral `Baixada/Suspensa/Inapta`. Validação de backend (`dotnet build`/`dotnet test`) **não foi executada neste ciclo** por ausência do SDK .NET no ambiente de revisão; permanece pendente de execução local. Roteiro de demonstração em `docs/demo/PortalMaisComprasDemo.md`.
 
@@ -97,7 +97,9 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 | Integração | 4 | 4 | 0 | 0 |
 | Total | 273 | 273 | 0 | 0 |
 
-Build da solution: sucesso, 0 erros e 0 avisos.
+> **Tabela desatualizada / não reverificada.** Estes números refletem a última execução real de `dotnet test` registrada, anterior à B2.1.3. Desde então, a sprint B2.1.3 adicionou testes (`SincronizarFornecedoresErpUseCaseTests`, 6 `[Fact]`, mais teste de integração condicionado a VPN) e dois bugs reais de paginação foram encontrados e corrigidos por inspeção estática (commits `21f1a67` e `ca48dc3`) **sem que `dotnet test` tenha sido executado** para confirmar — nenhum ambiente disponível desde então teve SDK .NET instalado. A auditoria de 02/08/2026 (`docs/audits/B-Series-Reconciliation.md`) estimou por leitura de código ~266 testes unitários + 5 de integração (~271 total), divergindo da contagem acima; nenhuma das duas contagens deve ser tratada como confirmada até rodar `dotnet test backend/BlueprintOS.sln` localmente.
+
+Build da solution: última execução real registrada foi sucesso (0 erros/avisos), também anterior à B2.1.3; não reexecutado desde então neste ambiente.
 
 ## Riscos e pendências
 
@@ -108,6 +110,7 @@ Build da solution: sucesso, 0 erros e 0 avisos.
 - A arquitetura física diverge do layout alvo; uma migração deve ser planejada somente quando trouxer benefício concreto.
 - Métricas e estado de documentação exigem atualização a cada sprint até existir automação de CI.
 - Portal +Compras Frontend (commit `8ee8f4e`) teve apenas o frontend validado (`tsc`/`vite build`, 4/4 testes) neste ciclo; `dotnet build`/`dotnet test` do backend não foram executados por falta de SDK .NET no ambiente de revisão e seguem pendentes de execução local antes de encerrar a frente.
+- B2.1.3: dois bugs de paginação corrigidos por inspeção de código, sem confirmação por `dotnet test` real (nenhum ambiente com SDK .NET disponível desde a entrega). A tabela de qualidade acima está desatualizada. Ver `docs/audits/B-Series-Reconciliation.md` para o levantamento completo de 02/08/2026.
 
 ## Ambiente de execução
 
