@@ -421,6 +421,8 @@ Cada tabela de domínio deverá possuir, no mínimo:
 
 **Status:** Aceito
 
+**Registro:** Desenvolvimento local definido como padrão. Tentativa de publicação n8n descartada como estratégia de desenvolvimento.
+
 **Contexto:** Uma tentativa inicial de publicar o frontend do Portal +Compras como demo pública usou o n8n como servidor de HTML estático (via webhook), com o backend exposto temporariamente por túnel ngrok. Essa estratégia esbarrou em limitações reais: o n8n só serve HTML como string única (sem suporte nativo a uma pasta `dist/` com múltiplos assets), o backend não tinha nenhum ambiente publicado além de localhost, e o túnel ngrok é temporário e inadequado para o ciclo de desenvolvimento corrente. Diante disso, foi decidido tratar o ambiente atual do projeto como Desenvolvimento Local, adiando a publicação externa.
 
 **Decisão:** Desenvolvimento ocorre localmente no Mac com frontend React e API .NET. Persistência utiliza SQL Server corporativo acessível via VPN. Homologação futura será realizada em Windows Server/IIS.

@@ -1,3 +1,15 @@
+# Ambiente Docker local/opcional (ver ADR-0018 em .ai/DECISIONS.md).
+#
+# O serviço "sqlserver" abaixo e um SQL Server em container, util para
+# desenvolvimento isolado/offline ou testes pontuais, mas NAO e o banco
+# oficial de desenvolvimento do +Compras. O ambiente oficial de
+# desenvolvimento usa o SQL Server corporativo (ambiente SOMA_DESENV),
+# acessado via VPN, configurado via ConnectionStrings:MaisComprasConnection
+# / ErpConnection (user-secrets ou variavel de ambiente), nunca hardcoded.
+#
+# O servico "api" pode rodar via este Docker Compose (porta 8080) ou via
+# "dotnet run" local (porta 5262/7127, ver launchSettings.json) apontando
+# para o SQL Server corporativo em vez do container "sqlserver" abaixo.
 services:
 
   sqlserver:
