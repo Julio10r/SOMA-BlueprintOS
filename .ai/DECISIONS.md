@@ -414,3 +414,26 @@ Cada tabela de domínio deverá possuir, no mínimo:
 - Toda implementação frontend deve ler `.ai/PROJECT.md`, `.ai/ARCHITECTURE.md`, `.ai/DECISIONS.md`, `.ai/CURRENT_SPRINT.md`, `docs/design-system/` e `docs/engineering/`.
 
 **Consequências:** A navegação e a linguagem visual passam a ser planejadas como produto único, enquanto a entrega funcional continua incremental e verificável por domínio. Pedidos, Cotações, Negociações, Contratos e Indicadores terão inicialmente somente estrutura visual; Agentes IA permanece planejado. O Dashboard será a página inicial para visão executiva, indicadores, integrações, alertas e atividades recentes, sem substituir os módulos operacionais. Nenhum código é criado ou alterado por esta ADR.
+
+---
+
+## ADR-0018: Ambiente de execução do Portal +Compras é Desenvolvimento Local (Mac)
+
+**Status:** Aceito
+
+**Contexto:** Uma tentativa inicial de publicar o frontend do Portal +Compras como demo pública usou o n8n como servidor de HTML estático (via webhook), com o backend exposto temporariamente por túnel ngrok. Essa estratégia esbarrou em limitações reais: o n8n só serve HTML como string única (sem suporte nativo a uma pasta `dist/` com múltiplos assets), o backend não tinha nenhum ambiente publicado além de localhost, e o túnel ngrok é temporário e inadequado para o ciclo de desenvolvimento corrente. Diante disso, foi decidido tratar o ambiente atual do projeto como Desenvolvimento Local, adiando a publicação externa.
+
+**Decisão:** Desenvolvimento ocorre localmente no Mac com frontend React e API .NET. Persistência utiliza SQL Server corporativo acessível via VPN. Homologação futura será realizada em Windows Server/IIS.
+
+Detalhamento:
+- Frontend: React + TypeScript via Vite, `npm run dev`, URL padrão `http://localhost:5173`.
+- Backend: API .NET executando localmente via Docker (`infrastructure/docker/docker-compose.yml`, porta `8080`) ou via `dotnet run` (perfil `http` do `launchSettings.json`, porta `5262`).
+- Dados: não usar SQL Server em Docker para o fluxo principal; o banco oficial de desenvolvimento é o SQL Server corporativo (ambiente `SOMA_DESENV`), acessado via VPN. Connection strings permanecem configuráveis via user-secrets/variáveis de ambiente (`ConnectionStrings:MaisComprasConnection`, `ConnectionStrings:ErpConnection`), sem valores hardcoded no repositório.
+- CORS do backend liberado apenas para as origens de desenvolvimento local: `http://localhost:5173` e `http://127.0.0.1:5173`.
+- Publicação via n8n/GCP passa a ser tratada como opção futura de homologação/demonstração, não como ambiente corrente.
+
+**Consequências:**
+- Simplifica o ciclo de desenvolvimento: sem dependência de túneis temporários (ngrok) ou de um servidor de HTML estático improvisado (n8n).
+- Demonstrações completas (Fornecedores, consulta CNPJ, enriquecimento, aprovação/rejeição) exigem VPN corporativa ativa e o backend rodando localmente — não há URL pública permanente neste momento.
+- Homologação/demo formal fica registrada como pendência futura, a ser resolvida com um ambiente Windows Server/IIS dedicado (fora do escopo desta ADR).
+- Nenhuma regra de negócio existente foi alterada; apenas configuração de ambiente (portas, CORS, `.env.example`) e remoção de artefatos específicos da tentativa de publicação via n8n.

@@ -108,6 +108,13 @@ Build da solution: sucesso, 0 erros e 0 avisos.
 - Métricas e estado de documentação exigem atualização a cada sprint até existir automação de CI.
 - Portal +Compras Frontend (commit `8ee8f4e`) teve apenas o frontend validado (`tsc`/`vite build`, 4/4 testes) neste ciclo; `dotnet build`/`dotnet test` do backend não foram executados por falta de SDK .NET no ambiente de revisão e seguem pendentes de execução local antes de encerrar a frente.
 
+## Ambiente de execução
+
+- **Decisão vigente (ADR-0018):** o Portal +Compras é desenvolvido e validado em ambiente de **Desenvolvimento Local**, no Mac do desenvolvedor — frontend React via Vite (`http://localhost:5173`) e API .NET via Docker (`http://localhost:8080`) ou `dotnet run` (`http://localhost:5262`).
+- Persistência aponta para o SQL Server corporativo (`SOMA_DESENV`), acessado via VPN; não se usa SQL Server em container para o fluxo principal. Connection strings seguem configuráveis via user-secrets/variáveis de ambiente, sem valores fixos no repositório.
+- CORS do backend liberado apenas para as origens locais `http://localhost:5173` e `http://127.0.0.1:5173`.
+- Uma tentativa anterior de publicar o frontend via n8n (com backend exposto por túnel ngrok) foi revertida: o n8n só serve HTML como string única e não havia ambiente de backend publicado além de localhost. Publicação via n8n/GCP passa a ser tratada como opção futura de homologação, não como ambiente corrente.
+
 ## Divergências ainda abertas
 
 - O roadmap estratégico de apresentação +COMPRAS continua sem atualização visual; as correções necessárias estão listadas em `docs/presentations/ROADMAP_UPDATE.md`.

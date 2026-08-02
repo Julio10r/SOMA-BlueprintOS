@@ -58,6 +58,28 @@ Transição:
 
 ---
 
+# Ambiente de Execução — Desenvolvimento Local (ADR-0018)
+
+Status:
+Aceito.
+
+Decisão:
+Desenvolvimento ocorre localmente no Mac com frontend React e API .NET. Persistência utiliza SQL Server corporativo acessível via VPN (`SOMA_DESENV`). Homologação futura será realizada em Windows Server/IIS.
+
+Contexto:
+Uma tentativa de publicar o frontend do Portal +Compras via n8n (com backend exposto temporariamente por túnel ngrok) foi revertida — o n8n só serve HTML como string única (sem suporte a pasta `dist/` com múltiplos assets) e não havia nenhum backend publicado além de localhost. Publicação via n8n/GCP fica registrada como opção futura de homologação/demonstração.
+
+Ajustes decorrentes:
+- `frontend/web/.env.example`: `VITE_API_BASE_URL` padrão ajustado para `http://localhost:8080` (Docker) com nota sobre `http://localhost:5262` (`dotnet run`).
+- `frontend/web/vite.config.ts`: revertido para a forma original (sem `vite-plugin-singlefile`); proxy de dev aponta para `http://127.0.0.1:8080`.
+- `backend/src/BlueprintOS.Api/appsettings.Development.json`: `Cors:AllowedOrigins` restrito a `http://localhost:5173` e `http://127.0.0.1:5173`.
+- Removido header específico de bypass do ngrok em `supplierEnrichmentApi.ts` (não é mais necessário).
+- Nenhuma regra de negócio foi alterada.
+
+Ver ADR-0018 em `.ai/DECISIONS.md` para o detalhamento completo.
+
+---
+
 # Portal +Compras Frontend
 
 Status:

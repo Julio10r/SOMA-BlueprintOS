@@ -13,14 +13,6 @@ type RequestOptions = {
 const headers = { "Content-Type": "application/json" };
 
 /**
- * Cabecalho exigido pelo tunel ngrok (usado no ambiente de teste/demo via
- * n8n) para pular a pagina de aviso HTML que o ngrok injeta em requisicoes
- * sem esse header, mesmo para chamadas fetch/XHR. Inofensivo em backends
- * que nao usam ngrok (ignorado pelo servidor).
- */
-const ngrokBypassHeaders = { "ngrok-skip-browser-warning": "true" };
-
-/**
  * Base da API +Compras. Em desenvolvimento/testes, permanece vazia por
  * padrao para que as chamadas usem caminhos relativos (ex: "/fornecedores"),
  * aproveitando o proxy configurado em vite.config.ts. Quando
@@ -35,10 +27,7 @@ function apiUrl(path: string): string {
 }
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    ...init,
-    headers: { ...ngrokBypassHeaders, ...(init?.headers ?? {}) }
-  });
+  const response = await fetch(url, init);
   if (!response.ok) {
     const body = await response.json().catch(() => null);
     throw new Error(body?.message ?? `Falha HTTP ${response.status}`);
