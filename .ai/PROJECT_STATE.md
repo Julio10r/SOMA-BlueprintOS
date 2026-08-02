@@ -10,10 +10,10 @@
 
 ## Atualização
 
-- **Data:** 01/08/2026
+- **Data:** 02/08/2026
 - **Branch:** `feature/a13-procurement-vertical-slice`
-- **Commit de referência:** `b08769f`, `3b6d54b` e `0240c35` para as entregas B2.1 e B2.1.1; `77861eb` para B2.1.2; `5a6aab8`, `234906c` e `32c9971` para B2.2.
-- **Validação desta atualização:** `dotnet test backend/BlueprintOS.sln --no-restore`, 269 testes unitários e 4 testes de integração aprovados; `dotnet build backend/BlueprintOS.sln --no-restore`, 0 erros/0 avisos; `npm test` em `frontend/web`, 4 testes aprovados; `npm run build` em `frontend/web` concluído.
+- **Commit de referência:** `b08769f`, `3b6d54b` e `0240c35` para as entregas B2.1 e B2.1.1; `77861eb` para B2.1.2 estrutural; `5a6aab8`, `234906c` e `32c9971` para B2.2.
+- **Validação desta atualização:** B2.1.2 operacional em implementação; `dotnet build backend/BlueprintOS.sln` aprovado, validação completa pendente de `dotnet test`, API local, VPN e consulta ao banco `MaisCompras`.
 
 ## Sistema de Work Orders
 
@@ -27,7 +27,8 @@
 - **Princípio obrigatório:** toda operação crítica possui alternativa manual; IA acelera e orienta, mas não é pré-requisito para cadastrar ou selecionar fornecedor/item, criar pedido, enviá-lo ao ERP ou acompanhar a integração.
 - **Portal:** a ADR-0017 definiu o Portal Operacional +Compras como navegação e identidade visual completas, com evolução funcional incremental por domínio. B2.2.4 concluiu a primeira vertical slice funcional em React com a tela `CadastroFornecedor`. A próxima frente formal é o Portal +Compras Frontend, a ser executada pelo Claude Code.
 - **B2/B2.1/B2.1.1:** B2 permanece como estrutura inicial de descoberta e score (100/80/60/40). B2.1 concluiu sincronização bidirecional, regra temporal, inativação, auditoria e concorrência; B2.1.1 concluiu o mapeamento canônico ERP → +Compras.
-- **B2.1.2:** concluída conforme ADR-0016, com modelo fornecedor alinhado ao Linx: `Cnpj_Cpf`, `TipoPessoa`, separação de `RazaoSocial`/`NomeFantasia`, proteção do nome fantasia controlado pelo Linx, flags `Beneficiador`/`Licenciado`, domínios ERP estruturados, FKs opcionais e contrato frontend inicial.
+- **B2.1.2 estrutural:** concluída conforme ADR-0016, com modelo fornecedor alinhado ao Linx: `Cnpj_Cpf`, `TipoPessoa`, separação de `RazaoSocial`/`NomeFantasia`, proteção do nome fantasia controlado pelo Linx, flags `Beneficiador`/`Licenciado`, domínios ERP estruturados, FKs opcionais e contrato frontend inicial.
+- **B2.1.2 operacional:** em execução para validar o primeiro fluxo real ERP SOMA → +Compras: reader desacoplado `IFornecedorErpReader`, implementação `SomaFornecedorReader`, use case `SincronizarFornecedoresErpUseCase` e endpoint `GET /api/fornecedores/sincronizar-erp`.
 - **B2.2:** concluída como Enriquecimento Inteligente de Fornecedor. O módulo de fornecedores possui cadastro, consulta CNPJ, enriquecimento, aprovação, rejeição, integração ERP e auditoria. A B2.2.1 foi concluída com contrato `ICnpjConsultaProvider`, retorno tipado e auditoria persistida. A B2.2.2 implementou `BrasilApiCnpjProvider` como adaptador gratuito BrasilAPI. A B2.2.3 concluiu comparação campo a campo, aprovação/rejeição, atualização seletiva, auditoria de decisões e proteção `NomeFantasia`/Linx. A B2.2.4 concluiu o portal funcional de cadastro, consulta, divergências e decisão humana.
 - **Portal +Compras Frontend:** concluído tecnicamente no frontend (commit `8ee8f4e`, branch `feature/a13-procurement-vertical-slice`). Shell de navegação (AppShell) e rotas React Router criados; módulo Fornecedores integrado à API real (cadastro, consulta CNPJ, enriquecimento, aprovação/rejeição); demais módulos (Pedidos, Negociações, Indicadores, Agentes IA, Configurações) implementados como telas demonstrativas honestas, sem persistência simulada; Design System AZZAS 2154/GDT aplicado. Build frontend aprovado (`tsc` + `vite build`, 4/4 testes). Revisão manual de código confirmou os endpoints de fornecedores, a regra `Cnpj_Cpf` (`varchar(14)` alfanumérico), a proteção de `NomeFantasia` (só editável quando origem é ERP) e o alerta não bloqueante de situação cadastral `Baixada/Suspensa/Inapta`. Validação de backend (`dotnet build`/`dotnet test`) **não foi executada neste ciclo** por ausência do SDK .NET no ambiente de revisão; permanece pendente de execução local. Roteiro de demonstração em `docs/demo/PortalMaisComprasDemo.md`.
 
@@ -46,8 +47,8 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
 - **Última sprint comprovadamente concluída:** B2.2 — Enriquecimento Inteligente de Fornecedor (01/08/2026).
-- **Sprint atual:** transição para Portal +Compras Frontend.
-- **Próxima pendência planejada:** iniciar a Work Order `docs/work-orders/PortalMaisComprasFrontend.md`; B2.2.5 permanece preservada caso siga no roadmap; B3 não foi iniciada.
+- **Sprint atual:** B2.1.2 — Validação Operacional e Sincronização de Fornecedores com ERP.
+- **Próxima pendência planejada:** concluir validação operacional com VPN, endpoint e dados persistidos em `MaisCompras`; B3 não foi iniciada.
 - **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
 ## Capacidades implementadas
@@ -60,7 +61,7 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 | Negociação | `NegotiationMemory`, regras e `NegotiationStrategy` | Implementado, em memória |
 | API de negociação | `POST /api/v1/negociacoes/recomendacoes` via `NegotiationRecommendationUseCase` | Implementado, consultivo e sem estado |
 | Fornecedores | `Fornecedor`, EF Core/SQL Server sobre `MaisComprasConnection`, migration e `POST/GET/PUT/DELETE /fornecedores` | Implementado |
-| Sincronização de fornecedores | Contrato canônico, adaptadores por BU, importação/exportação/inativação, `LX_SEQUENCIAL`, timestamp Linx, concorrência, idempotência, auditoria append-only e modelo Linx B2.1.2 alinhado ao ERP | Concluída (B2.1, B2.1.1 e B2.1.2) |
+| Sincronização de fornecedores | Contrato canônico, adaptadores por BU, importação/exportação/inativação, `LX_SEQUENCIAL`, timestamp Linx, concorrência, idempotência, auditoria append-only, modelo Linx alinhado e fluxo operacional ERP SOMA → +Compras em validação | Em execução para B2.1.2 operacional |
 | Enriquecimento de fornecedores por CNPJ | `ICnpjConsultaProvider`, `ConsultaCnpjResultado`, `BrasilApiCnpjProvider`, análise de divergências, aprovação/rejeição, atualização seletiva, `FornecedorEnriquecimentoAnalise`, endpoint `POST /fornecedores/consulta-cnpj` e tela React `CadastroFornecedor` | B2.2 concluída |
 | Portal +Compras (frontend) | AppShell, rotas React Router, `ApprovalPanel.tsx`, `SupplierComparison.tsx`, módulo Fornecedores conectado à API real; demais módulos demonstrativos | Concluído no frontend (commit `8ee8f4e`); backend não revalidado neste ciclo (sem SDK .NET no ambiente) |
 | Descoberta de fornecedores | `FornecedorDescoberto`, score centralizado, leitura `SOMA_DESENV`, persistência +Compras e `/api/fornecedores/descobertas` | Implementado; validação SQL ERP pendente de ambiente com acesso |

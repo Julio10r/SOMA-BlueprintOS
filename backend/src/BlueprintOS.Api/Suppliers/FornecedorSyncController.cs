@@ -10,6 +10,7 @@ public static class FornecedorSyncController
         var group = endpoints.MapGroup("/api/fornecedores").WithTags("Sincronização de Fornecedores");
         group.MapPost("/sincronizar", Sync);
         group.MapPost("/sincronizar/lote", SyncBatch);
+        group.MapGet("/sincronizar-erp", SyncErp);
         group.MapGet("/{fornecedorId:guid}/sincronizacoes", Audit);
         return endpoints;
     }
@@ -27,6 +28,14 @@ public static class FornecedorSyncController
         if (request is null) return Results.BadRequest(new { code = "invalid_request", message = "Request body is required." });
         try { return Results.Ok(await useCase.ExecutarLoteAsync(request.ToDto(), ct)); }
         catch (ArgumentException ex) { return Results.BadRequest(new { code = "validation_error", message = ex.Message }); }
+    }
+
+    private static async Task<IResult> SyncErp(string? businessUnit, int? limite, string? correlationId,
+        ISincronizarFornecedoresErpUseCase useCase, CancellationToken ct)
+    {
+        try { return Results.Ok(await useCase.ExecuteAsync(new(businessUnit ?? "DEFAULT", limite ?? 100, correlationId), ct)); }
+        catch (ArgumentException ex) { return Results.BadRequest(new { code = "validation_error", message = ex.Message }); }
+        catch (InvalidOperationException ex) { return Results.BadRequest(new { code = "erp_configuration_error", message = ex.Message }); }
     }
 
     private static async Task<IResult> Audit(Guid fornecedorId, IFornecedorSincronizacaoRepository repository, CancellationToken ct) =>

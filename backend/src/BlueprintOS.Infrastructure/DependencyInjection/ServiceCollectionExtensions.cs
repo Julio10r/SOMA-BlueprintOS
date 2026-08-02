@@ -25,6 +25,8 @@ using BlueprintOS.Infrastructure.Documentation.Generators.Client;
 using BlueprintOS.Infrastructure.Documentation.Generators.Engineering;
 using BlueprintOS.Infrastructure.Documentation.Generators.Executive;
 using BlueprintOS.Infrastructure.Documentation.Publishing;
+using BlueprintOS.Infrastructure.Integrations.ERP.Contracts;
+using BlueprintOS.Infrastructure.Integrations.ERP.Soma;
 using BlueprintOS.Infrastructure.Integrations.CnpjConsulta;
 using BlueprintOS.Infrastructure.Integrations.OpenAI;
 using BlueprintOS.Infrastructure.Knowledge;
@@ -68,7 +70,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFornecedorSincronizacaoRepository, FornecedorSincronizacaoRepository>();
         services.AddScoped<IErpFornecedorAdapter, SomaDesenvolErpFornecedorAdapter>();
         services.AddScoped<IErpFornecedorAdapterResolver, ErpFornecedorAdapterResolver>();
+        services.AddScoped<IFornecedorErpReader, SomaFornecedorReader>();
         services.AddScoped<ISincronizarFornecedorUseCase, SincronizarFornecedorUseCase>();
+        services.AddScoped<ISincronizarFornecedoresErpUseCase, SincronizarFornecedoresErpUseCase>();
         services.AddScoped<ICadastrarFornecedorUseCase, CadastrarFornecedorUseCase>();
         services.AddScoped<IAtualizarFornecedorUseCase, AtualizarFornecedorUseCase>();
         services.AddScoped<IExcluirFornecedorUseCase, ExcluirFornecedorUseCase>();
