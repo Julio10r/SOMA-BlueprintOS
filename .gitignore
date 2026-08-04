@@ -152,6 +152,7 @@ kubeconfig
 *.tar
 *.tar.gz
 *.7z
+.myNotes
 
 # ==========================================================
 # Miscellaneous
