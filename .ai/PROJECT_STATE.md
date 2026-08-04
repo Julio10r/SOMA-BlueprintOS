@@ -10,10 +10,10 @@
 
 ## Atualização
 
-- **Data:** 02/08/2026
+- **Data:** 03/08/2026
 - **Branch:** `feature/a13-procurement-vertical-slice`
-- **Commit de referência:** `b08769f`, `3b6d54b` e `0240c35` para as entregas B2.1 e B2.1.1; `77861eb` para B2.1.2 estrutural; `5a6aab8`, `234906c` e `32c9971` para B2.2; hardening Docker/limite/ChangeTracker da B2.1.3 registrado nesta atualização.
-- **Validação desta atualização:** B2.1.3 concluída com validação real. `dotnet build backend/BlueprintOS.sln` e `dotnet test backend/BlueprintOS.sln` aprovados localmente: 282 testes (277 unitários + 5 integração), 0 falhas, 0 avisos. A API foi validada rodando em Docker (`docker compose up -d api`), com `GET /health` retornando 200 e o endpoint `GET /api/fornecedores/sincronizar-erp?limite=50` executado contra o ERP corporativo real (`SOMA_DESENV`) e o banco `MaisCompras`, confirmado por consulta direta via `sqlcmd` nas tabelas `SincronizacoesFornecedores` e `ErrosSincronizacoesFornecedores`. Essa validação encontrou e corrigiu três problemas reais: dependência Docker `api → sqlserver` que impedia a API de subir, parâmetro `limite` tratado como tamanho de página em vez de teto total, e erro parcial de persistência (`ChangeTracker` poluído) que virava HTTP 500. Detalhes em `.ai/CURRENT_SPRINT.md` e `.ai/memory/completed_sprints.md`. Auditoria anterior em `docs/audits/B-Series-Reconciliation.md` (02/08/2026) permanece como registro histórico do estado antes desta validação.
+- **Commit de referência:** `601d937` e `7bf3bf4` para a remoção do Docker e consolidação do ambiente local; `b08769f`, `3b6d54b` e `0240c35` para as entregas B2.1 e B2.1.1; `77861eb` para B2.1.2 estrutural; `5a6aab8`, `234906c` e `32c9971` para B2.2; hardening limite/ChangeTracker da B2.1.3 registrado na atualização anterior.
+- **Validação desta atualização:** Sprint de infraestrutura "Remoção do Docker e Consolidação do Ambiente Local" concluída e auditada. `dotnet build backend/BlueprintOS.sln` aprovado, 0 erros e 0 avisos. `dotnet test backend/BlueprintOS.sln` aprovado: 286 testes (281 unitários + 5 integração), 0 falhas. `npm run build` do frontend (`tsc -b && vite build`) aprovado. Scripts de desenvolvimento local (`start-dev.sh`/`stop-dev.sh`/`health-check.sh`) validados. Docker, `Makefile`, `Dockerfile` e `docker-compose.yml` foram removidos do fluxo de desenvolvimento; o ambiente oficial passa a ser 100% local, sem containers (ver ADR-0018 atualizada em `.ai/DECISIONS.md`). Auditoria final não encontrou resíduo funcional, referência quebrada ou documento contraditório. Detalhes em `.ai/CURRENT_SPRINT.md` e `.ai/memory/completed_sprints.md`.
 
 ## Sistema de Work Orders
 
@@ -46,7 +46,8 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 ## Ciclo atual
 
 - **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
-- **Última sprint comprovadamente concluída:** B2.1.3 — Endurecimento da Integração ERP de Fornecedores (02/08/2026), com validação real contra Docker/VPN/`MaisCompras`.
+- **Última sprint comprovadamente concluída:** Remoção do Docker e Consolidação do Ambiente Local (03/08/2026), sprint de infraestrutura sem escopo funcional, com auditoria final aprovada (build, testes e scripts validados).
+- **Sprint funcional comprovadamente concluída anterior:** B2.1.3 — Endurecimento da Integração ERP de Fornecedores (02/08/2026), com validação real contra VPN/`MaisCompras`.
 - **Sprint atual:** nenhuma em andamento; aguardando aprovação explícita da próxima Work Order.
 - **Próxima pendência planejada:** B3 não foi iniciada; depende de decisão explícita do Product Owner.
 - **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
@@ -93,13 +94,13 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 | Suíte | Executados | Aprovados | Ignorados | Falhos |
 |---|---:|---:|---:|---:|
-| Unitários | 277 | 277 | 0 | 0 |
+| Unitários | 281 | 281 | 0 | 0 |
 | Integração | 5 | 5 | 0 | 0 |
-| Total | 282 | 282 | 0 | 0 |
+| Total | 286 | 286 | 0 | 0 |
 
-> Tabela atualizada em 02/08/2026 por execução real de `dotnet test backend/BlueprintOS.sln` (não estimativa), após o hardening Docker/limite/ChangeTracker da B2.1.3. Inclui os testes de paginação (commits `21f1a67`, `ca48dc3`), o teste de teto total do `limite` e o novo teste de falha parcial de persistência (`Execute_Should_Finish_As_Parcial_And_Persist_Execucao_When_Individual_SaveChanges_Fails`).
+> Tabela atualizada em 03/08/2026 por execução real de `dotnet test backend/BlueprintOS.sln` (não estimativa), após a remoção do Docker e a limpeza do projeto de testes (`BlueprintOS.UnitTests.csproj`, sem alteração de regra de negócio). Inclui os testes de paginação (commits `21f1a67`, `ca48dc3`), o teste de teto total do `limite` e o teste de falha parcial de persistência (`Execute_Should_Finish_As_Parcial_And_Persist_Execucao_When_Individual_SaveChanges_Fails`).
 
-Build da solution: `dotnet build backend/BlueprintOS.sln` executado em 02/08/2026, sucesso, 0 erros e 0 avisos.
+Build da solution: `dotnet build backend/BlueprintOS.sln` executado em 03/08/2026, sucesso, 0 erros e 0 avisos. Build do frontend: `npm run build` (`tsc -b && vite build`) executado em 03/08/2026, sucesso.
 
 ## Riscos e pendências
 
@@ -110,11 +111,12 @@ Build da solution: `dotnet build backend/BlueprintOS.sln` executado em 02/08/202
 - A arquitetura física diverge do layout alvo; uma migração deve ser planejada somente quando trouxer benefício concreto.
 - Métricas e estado de documentação exigem atualização a cada sprint até existir automação de CI.
 - Portal +Compras Frontend (commit `8ee8f4e`) teve apenas o frontend validado (`tsc`/`vite build`, 4/4 testes) neste ciclo; `dotnet build`/`dotnet test` do backend não foram executados por falta de SDK .NET no ambiente de revisão e seguem pendentes de execução local antes de encerrar a frente.
-- B2.1.3: concluída e validada em 02/08/2026 (build, testes e execução real contra Docker/VPN/`MaisCompras`). Ver `.ai/CURRENT_SPRINT.md` para o detalhamento dos três problemas encontrados e corrigidos nesta validação, e `docs/audits/B-Series-Reconciliation.md` para o levantamento anterior (histórico, pré-validação real).
+- B2.1.3: concluída e validada em 02/08/2026 (build, testes e execução real contra VPN/`MaisCompras`, à época via Docker). Ver `.ai/memory/completed_sprints.md` para o detalhamento dos três problemas encontrados e corrigidos nessa validação, e `docs/audits/B-Series-Reconciliation.md` para o levantamento anterior (histórico, pré-validação real).
+- Remoção do Docker (03/08/2026): concluída e auditada. Docker deixou de ser parte do fluxo de desenvolvimento; o ambiente oficial é local, sem containers (ADR-0018 atualizada). Nenhum resíduo funcional foi encontrado na auditoria final.
 
 ## Ambiente de execução
 
-- **Decisão vigente (ADR-0018):** o Portal +Compras é desenvolvido e validado em ambiente de **Desenvolvimento Local**, no Mac do desenvolvedor — frontend React via Vite (`http://localhost:5173`) e API .NET via Docker (`http://localhost:8080`) ou `dotnet run` (`http://localhost:5262`).
+- **Decisão vigente (ADR-0018):** o Portal +Compras é desenvolvido e validado em ambiente de **Desenvolvimento Local**, no Mac do desenvolvedor — frontend React via Vite (`http://localhost:5173`) e API .NET via `dotnet run` (`http://localhost:5262`), sem Docker.
 - Persistência aponta para o SQL Server corporativo (`SOMA_DESENV`), acessado via VPN; não se usa SQL Server em container para o fluxo principal. Connection strings seguem configuráveis via user-secrets/variáveis de ambiente, sem valores fixos no repositório.
 - CORS do backend liberado apenas para as origens locais `http://localhost:5173` e `http://127.0.0.1:5173`.
 - Uma tentativa anterior de publicar o frontend via n8n (com backend exposto por túnel ngrok) foi revertida: o n8n só serve HTML como string única e não havia ambiente de backend publicado além de localhost. Publicação via n8n/GCP passa a ser tratada como opção futura de homologação, não como ambiente corrente.

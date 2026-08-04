@@ -62,7 +62,7 @@ Dentro de `Core`/`Infrastructure`, cada módulo segue `{Módulo}/{Contracts,Mode
 | Frontend | React, TypeScript (ainda não iniciado) |
 | Banco de dados | SQL Server + Entity Framework Core (oficial; ainda não integrado no código) |
 | Autenticação | Microsoft Entra ID (planejado, Fase 1) |
-| Infraestrutura | Docker Compose ativo; GCP planejado, ainda não configurado no repositório |
+| Infraestrutura | Ambiente local sem Docker (ver ADR-0018 em `.ai/DECISIONS.md`); GCP planejado, ainda não configurado no repositório |
 | PDF | QuestPDF (biblioteca .NET pura) |
 | QR Code | QRCoder (`PngByteQRCode`, sem dependência de `System.Drawing`) |
 | Testes | xUnit, fakes manuais (sem framework de mocking) |
@@ -74,17 +74,17 @@ Ver [`.ai/PROJECT.md`](../.ai/PROJECT.md) §4 para a lista oficial completa.
 ## Ambiente
 
 ```bash
-# Subir a infraestrutura (Docker)
-make up
+# Subir backend e frontend em segundo plano (sem Docker)
+./scripts/start-dev.sh
 
 # Parar
-make down
+./scripts/stop-dev.sh
 
 # Ver status
-make status
+./scripts/health-check.sh
 ```
 
-Variáveis de ambiente sensíveis (ex.: `AI__OpenAI__ApiKey`) seguem o padrão `.env.example` / `infrastructure/docker/.env.docker.example` — nunca commitadas com valor real.
+Variáveis de ambiente sensíveis (ex.: `AI__OpenAI__ApiKey`) seguem o padrão `.env.example` — nunca commitadas com valor real.
 
 Para rodar o backend localmente:
 
@@ -157,7 +157,7 @@ backend/
 docs/                # documentação permanente (este arquivo, Executive Report, Product Blueprint)
 .ai/                  # estado operacional da AI Factory (governança, roadmap, decisões, memória)
 infrastructure/
-  docker/             # docker-compose ativo
+  docker/             # reservado (não usado no ambiente local; ver ADR-0018)
   terraform/          # reservado (vazio)
   kubernetes/         # reservado (vazio)
   nginx/              # reservado (vazio)
@@ -181,4 +181,4 @@ dotnet test backend/BlueprintOS.sln
 
 ## Deploy
 
-Hoje o deploy é local, via Docker Compose (`make up`), usando `infrastructure/docker/docker-compose.yml`. A composição inclui API e SQL Server, mas a API ainda não usa SQL Server. Terraform, Kubernetes, Nginx, observabilidade, CI/CD e GCP estão planejados ou reservados, sem implementação no repositório (ver Roadmap, Fase 4).
+Hoje o deploy é local, sem Docker (ver ADR-0018 em `.ai/DECISIONS.md`): backend via `dotnet run` e frontend via `npm run dev`, ambos orquestrados por `./scripts/start-dev.sh`. Terraform, Kubernetes, Nginx, observabilidade, CI/CD e GCP estão planejados ou reservados, sem implementação no repositório (ver Roadmap, Fase 4).

@@ -235,10 +235,7 @@ SOMA-BlueprintOS
 │   └── web/
 ├── infrastructure/
 │   ├── docker/
-│   │   ├── .dockerignore
-│   │   ├── .env.docker
-│   │   ├── .env.docker.example
-│   │   └── docker-compose.yml
+│   │   └── .env.example
 │   ├── kubernetes/
 │   ├── monitoring/
 │   ├── nginx/

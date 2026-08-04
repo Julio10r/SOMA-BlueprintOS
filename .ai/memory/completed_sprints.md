@@ -182,3 +182,23 @@
 - O parâmetro `limite` de uma sincronização em lote deve sempre representar um teto operacional total, nunca apenas o tamanho de página — a ambiguidade permite que uma chamada aparentemente limitada varra a base inteira de um sistema externo.
 - Tratamento de erro parcial em rotinas que usam EF Core precisa considerar o estado do `ChangeTracker`: uma entidade que falhou ao salvar continua rastreada e pode contaminar o próximo `SaveChangesAsync`, transformando um erro pontual em falha total.
 - Testes com EF Core InMemory podem não reproduzir restrições reais do SQL Server (índices únicos, por exemplo); o comportamento de erro parcial deve ser coberto com um teste que simule a falha de persistência explicitamente, e idealmente confirmado contra o banco real antes de fechar a sprint.
+
+## Sprint de Infraestrutura — Remoção do Docker e Consolidação do Ambiente Local
+
+**Status:** Concluída e encerrada em 03/08/2026.
+
+**Objetivo:** Remover o Docker do fluxo de desenvolvimento e consolidar o ambiente local (sem containers) como ambiente oficial, mantendo a documentação de engenharia consistente.
+
+**Entregas:**
+
+- `Makefile`, `backend/src/BlueprintOS.Api/Dockerfile` e `infrastructure/docker/docker-compose.yml` removidos (`601d937`, `7bf3bf4`).
+- Dependência opcional de SQL Server local em Docker removida antes da remoção completa (`601d937`).
+- Scripts locais (`start-dev.sh`, `stop-dev.sh`, `health-check.sh`) confirmados como caminho oficial de orquestração de backend/frontend.
+- `frontend/web/.env.example` atualizado para `http://localhost:5262` (API via `dotnet run`).
+- `BlueprintOS.UnitTests.csproj` limpo de referências de pacote não utilizadas.
+- Documentação de engenharia atualizada: `docs/Engineering Handbook.md`, `docs/INDEX.md`, `docs/assets/solution-tree.md`, `docs/engineering/Deploy.md`, `docs/engineering/FornecedorErpSynchronization.md`, `.ai/ENGINEERING_BLUEPRINT.md`, `.ai/content/engineering/08-devops.md`.
+- ADR-0018 (`.ai/DECISIONS.md`) atualizada para remover a opção Docker do ambiente de execução.
+
+**Validação:** `dotnet build backend/BlueprintOS.sln` com 0 erros e 0 avisos; `dotnet test backend/BlueprintOS.sln` com 286 testes aprovados (281 unitários + 5 integração), 0 falhas; `npm run build` do frontend (`tsc -b && vite build`) aprovado; scripts de desenvolvimento verificados como funcionais; branch sincronizada e working tree limpo antes do encerramento.
+
+**Resultado:** Docker deixou de ser parte do fluxo de desenvolvimento. Nenhuma regra de negócio, contrato de API ou comportamento funcional foi alterado — escopo exclusivamente de infraestrutura e documentação. Projeto estável e apto para iniciar a próxima sprint funcional.

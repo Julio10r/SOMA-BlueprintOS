@@ -57,7 +57,7 @@ Responsabilidades: Api hospeda endpoints e CLIs; Application e Domain são scaff
 | Banco | Implementado parcialmente: EF Core/SQL Server, `BlueprintOSDbContext`, migration de fornecedores e banco próprio +Compras |
 | Agentes | Implementado: EchoAgent e KnowledgeAgent |
 | Storage | Parcial: Markdown e memória em processo |
-| Docker | Implementado: API e SQL Server via Compose |
+| Docker | Não usado no ambiente local (ver ADR-0018); reservado sem implementação ativa |
 | Cloud | Planejado: GCP sem configuração rastreada |
 | Integrações | Parcial: OpenAI, leitura de Git e descoberta de fornecedores somente leitura no ERP SOMA_DESENV; validação operacional pendente |
 
@@ -144,11 +144,11 @@ Há endpoint de health e métricas de qualidade durante publicação. Logging es
 
 ## 14. Estratégia de Testes
 
-Suíte atual: xUnit com fakes manuais, 240 testes unitários e 2 de integração aprovados na última validação. Cobertura futura: Application/Domain, integração, arquitetura, contrato e E2E. E2E, testes de contrato e testes arquiteturais não existem.
+Suíte atual: xUnit com fakes manuais, 281 testes unitários e 5 de integração aprovados na última validação (03/08/2026). Cobertura futura: Application/Domain, integração, arquitetura, contrato e E2E. E2E, testes de contrato e testes arquiteturais não existem.
 
 ## 15. Estratégia de Deploy
 
-Docker Compose é o único caminho implementado. CI/CD, ambientes, promoção, versionamento operacional, Kubernetes e GCP são planejados. A API e SQL Server sobem em containers, embora a API ainda não persista dados no SQL Server.
+O ambiente local roda sem Docker (backend via `dotnet run`, frontend via `npm run dev`; ver ADR-0018). CI/CD, ambientes, promoção, versionamento operacional, Kubernetes e GCP são planejados.
 
 ## 16. Roadmap Técnico
 

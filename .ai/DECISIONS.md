@@ -429,10 +429,12 @@ Cada tabela de domínio deverá possuir, no mínimo:
 
 Detalhamento:
 - Frontend: React + TypeScript via Vite, `npm run dev`, URL padrão `http://localhost:5173`.
-- Backend: API .NET executando localmente via Docker (`infrastructure/docker/docker-compose.yml`, porta `8080`) ou via `dotnet run` (perfil `http` do `launchSettings.json`, porta `5262`).
-- Dados: não usar SQL Server em Docker para o fluxo principal; o banco oficial de desenvolvimento é o SQL Server corporativo (ambiente `SOMA_DESENV`), acessado via VPN. Connection strings permanecem configuráveis via user-secrets/variáveis de ambiente (`ConnectionStrings:MaisComprasConnection`, `ConnectionStrings:ErpConnection`), sem valores hardcoded no repositório.
+- Backend: API .NET executando localmente via `dotnet run` (perfil `http` do `launchSettings.json`, porta `5262`).
+- Dados: o banco oficial de desenvolvimento é o SQL Server corporativo (ambiente `SOMA_DESENV`), acessado via VPN. Connection strings permanecem configuráveis via user-secrets/variáveis de ambiente (`ConnectionStrings:MaisComprasConnection`, `ConnectionStrings:ErpConnection`), sem valores hardcoded no repositório.
 - CORS do backend liberado apenas para as origens de desenvolvimento local: `http://localhost:5173` e `http://127.0.0.1:5173`.
 - Publicação via n8n/GCP passa a ser tratada como opção futura de homologação/demonstração, não como ambiente corrente.
+
+**Atualização (03/08/2026):** Docker foi removido do fluxo de desenvolvimento (commits `601d937`, `7bf3bf4`). `Makefile`, `Dockerfile` e `docker-compose.yml` foram descontinuados; scripts locais (`start-dev.sh`, `stop-dev.sh`, `health-check.sh`) passam a orquestrar backend e frontend. O ambiente oficial de Desenvolvimento Local é, a partir desta data, 100% sem containers.
 
 **Consequências:**
 - Simplifica o ciclo de desenvolvimento: sem dependência de túneis temporários (ngrok) ou de um servidor de HTML estático improvisado (n8n).

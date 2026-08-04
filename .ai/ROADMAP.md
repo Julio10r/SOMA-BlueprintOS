@@ -16,7 +16,7 @@ Objetivo: estabelecer as bases de arquitetura, padrões, processo e infraestrutu
 - Padrões de engenharia (STANDARDS.md) e workflow da AI Factory (WORKFLOW.md).
 - Engineering Handbook (`.ai/`) completo e navegável.
 - Estrutura alvo de pastas `/src/Apps`, `/src/BuildingBlocks`, `/src/Modules` definida, mas **ainda não adotada fisicamente**. O backend real está em `backend/src/BlueprintOS.{Api,Application,Core,Domain,Infrastructure,Shared}`.
-- Infraestrutura básica: Docker Compose com SQL Server e API. Pipeline de CI e ambiente GCP inicial ainda não estão implementados.
+- Infraestrutura básica: ambiente de desenvolvimento local sem Docker (ver ADR-0018), backend via `dotnet run` e frontend via `npm run dev`. Pipeline de CI e ambiente GCP inicial ainda não estão implementados.
 
 - Portal de documentação viva (dashboards, guias, changelog, ADRs) publicado automaticamente em `docs/` (Sprint A8).
 - **EPIC de documentação: concluído (23/07/2026).** A7 implementou o módulo Documentation; A8 comprovadamente adicionou publicadores por público e o Portal de Documentação Viva; A9 implementou o Publication Engine. A10–A12 consolidaram a governança e a especificação documental em 30/07/2026. Ver `.ai/memory/completed_sprints.md` e `.ai/PROJECT_STATE.md`.

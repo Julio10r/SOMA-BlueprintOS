@@ -32,3 +32,9 @@ Foi aceita a construção incremental: fluxos operacionais completos e manuais d
 - A precedência temporal é normalizada em `America/Sao_Paulo` até o segundo; no empate, a decisão favorece o +Compras.
 - Auditoria append-only preserva snapshots antes/depois, hashes, `CorrelationId`, histórico e idempotência. A geração de CLIFOR usa `LX_SEQUENCIAL`, inclusive sob concorrência.
 - B2.1.1 foi concluída com o mapeamento canônico Linx → +Compras. B2.1.2 permanece Draft para validação estrutural futura; B2.2 permanece Draft como próxima evolução.
+
+## Remoção do Docker do fluxo de desenvolvimento (03/08/2026)
+
+- Docker foi removido do fluxo de desenvolvimento do BlueprintOS/+Compras: `Makefile`, `Dockerfile` e `docker-compose.yml` foram descontinuados (commits `601d937`, `7bf3bf4`).
+- O ambiente oficial de Desenvolvimento Local passa a ser 100% sem containers: backend via `dotnet run`, frontend via `npm run dev`, banco SQL Server corporativo via VPN, orquestrados pelos scripts `start-dev.sh`/`stop-dev.sh`/`health-check.sh`.
+- ADR-0018 (`.ai/DECISIONS.md`) foi atualizada para refletir esta decisão; não foi criada uma nova ADR, pois se trata de consolidação de uma decisão já aceita.

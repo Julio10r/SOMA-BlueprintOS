@@ -10,14 +10,16 @@
 
 ## Deploy
 
-O deploy do BlueprintOS é baseado em containers Docker:
+O ambiente oficial de desenvolvimento do BlueprintOS não usa Docker (ver
+ADR-0018 em `.ai/DECISIONS.md`):
 
-- **`backend/src/BlueprintOS.Api/Dockerfile`** — build multi-stage: publica
-  `BlueprintOS.Api` com o SDK .NET 9 e executa a imagem publicada sobre
-  `mcr.microsoft.com/dotnet/aspnet:9.0`, expondo a porta `8080`
-  (`ASPNETCORE_URLS=http://+:8080`).
-- **`infrastructure/docker/docker-compose.yml`** e
-  **`docker-compose.override.yml`** — orquestração local dos serviços.
+- **Backend** — API .NET executada diretamente via `dotnet run`
+  (`backend/src/BlueprintOS.Api`), perfil `http` (`launchSettings.json`),
+  porta `5262`.
+- **Frontend** — React/Vite executado via `npm run dev`
+  (`frontend/web`), porta `5173`.
+- **Banco de dados** — sempre SQL Server externo (bancos corporativos
+  `MAISCOMPRAS`/`SOMA_DESENV`, acessado via VPN), nunca um container local.
 
-Não há, até o momento, pipeline de CI/CD (ex.: GitHub Actions) configurado no
-repositório.
+Não há, até o momento, pipeline de CI/CD (ex.: GitHub Actions) nem ambiente
+de homologação configurado no repositório.

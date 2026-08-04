@@ -46,7 +46,7 @@ Este documento é o índice oficial da documentação versionada em `docs/`. As 
 
 ## Infraestrutura
 
-- `infrastructure/docker/` — Docker Compose e Dockerfile versionados.
+- `infrastructure/docker/` — reservado (não usado no ambiente local; ver ADR-0018 em `.ai/DECISIONS.md`).
 - `kubernetes/`, `monitoring/`, `nginx/` e `terraform/` — estruturas locais vazias e planejadas; não há implementação versionada.
 
 ## Fontes canônicas e histórico

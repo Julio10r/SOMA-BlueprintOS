@@ -138,4 +138,4 @@ Resultado real: `200 OK`, `{"status":"Parcial","consultados":50,"incluidos":48,"
 
 - Testes reais de integracao dependem de VPN e secrets locais (User Secrets para `dotnet run`).
 - A rotina ainda e acionada via endpoint manual; agendamento operacional fica para sprint futura.
-- O ambiente de desenvolvimento nao usa Docker nem SQL Server local (ver ADR-0019); a API sempre aponta para o banco corporativo via `ConnectionStrings`.
+- O ambiente de desenvolvimento nao usa Docker nem SQL Server local (ver ADR-0018); a API sempre aponta para o banco corporativo via `ConnectionStrings`.
