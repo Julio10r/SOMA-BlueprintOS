@@ -76,6 +76,28 @@ public sealed class BrasilApiCnpjProviderTests
     }
 
     [Fact]
+    public async Task ConsultarAsync_Should_Return_NotFound_Failure()
+    {
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.NotFound, "{}"));
+
+        var result = await provider.ConsultarAsync("12345678000195");
+
+        Assert.False(result.Sucesso);
+        Assert.Equal("CNPJ não encontrado.", result.MensagemErro);
+    }
+
+    [Fact]
+    public async Task ConsultarAsync_Should_Return_Invalid_Format_Failure_Without_Calling_Provider()
+    {
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.OK, "{}"));
+
+        var result = await provider.ConsultarAsync("123");
+
+        Assert.False(result.Sucesso);
+        Assert.Equal("CNPJ inválido para consulta.", result.MensagemErro);
+    }
+
+    [Fact]
     public async Task ConsultarAsync_Should_Respect_CancellationToken()
     {
         var provider = CreateProvider(new DelayedHandler(TimeSpan.FromSeconds(5)), timeoutSeconds: 10);

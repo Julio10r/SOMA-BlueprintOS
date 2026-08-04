@@ -3,9 +3,11 @@ using BlueprintOS.Application.Identity.Models;
 using BlueprintOS.Application.Procurement.Suppliers;
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Application.Procurement.Suppliers.Models;
+using BlueprintOS.Domain.Procurement.Suppliers;
 using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BlueprintOS.UnitTests.Application.Procurement.Suppliers;
 
@@ -65,8 +67,45 @@ public sealed class ConsultarCnpjFornecedorUseCaseTests
         Assert.Throws<ArgumentException>(() => ConsultaCnpjResultado.CriarFalha("12345678000195", "ConsultaTeste", DateTimeOffset.UtcNow, ""));
     }
 
+    [Fact]
+    public async Task Execute_Should_Return_Success_When_History_Persistence_Fails()
+    {
+        // Regressao: se o registro de auditoria do historico falhar (ex: banco
+        // corporativo indisponivel), a consulta em si (ja obtida com sucesso do
+        // provider) deve continuar sendo retornada ao chamador em vez de estourar
+        // uma excecao nao tratada (HTTP 500).
+        var result = ConsultaCnpjResultado.CriarSucesso("12345678000195", "ConsultaTeste", SituacaoCadastralCnpj.Ativa,
+            DateTimeOffset.UtcNow, razaoSocial: "Fornecedor Teste");
+
+        var useCase = new ConsultarCnpjFornecedorUseCase(new FakeProvider(result), new ThrowingHistoricoRepository(),
+            new FakeIdentity(), NullLogger<ConsultarCnpjFornecedorUseCase>.Instance);
+
+        var response = await useCase.ExecuteAsync(new("12345678000195", "BU-A", "SOMA_DESENV", "corr-cnpj-db-down"));
+
+        Assert.True(response.Sucesso);
+        Assert.Equal("Fornecedor Teste", response.RazaoSocial);
+    }
+
+    [Fact]
+    public async Task Execute_Should_Return_Failure_Result_When_History_Persistence_Fails_And_Identity_Is_Unavailable()
+    {
+        // Regressao: falha ao obter a identidade atual (ex: header de
+        // desenvolvimento ausente) ao registrar o historico tambem nao pode
+        // derrubar a resposta da consulta.
+        var result = ConsultaCnpjResultado.CriarFalha("12345678000195", "ConsultaTeste", DateTimeOffset.UtcNow, "CNPJ não encontrado.");
+
+        var useCase = new ConsultarCnpjFornecedorUseCase(new FakeProvider(result), new ThrowingHistoricoRepository(),
+            new ThrowingIdentity(), NullLogger<ConsultarCnpjFornecedorUseCase>.Instance);
+
+        var response = await useCase.ExecuteAsync(new("12345678000195", "BU-A", null, "corr-cnpj-no-identity"));
+
+        Assert.False(response.Sucesso);
+        Assert.Equal("CNPJ não encontrado.", response.MensagemErro);
+    }
+
     private static ConsultarCnpjFornecedorUseCase Create(BlueprintOSDbContext context, ICnpjConsultaProvider provider) =>
-        new(provider, new FornecedorCnpjConsultaHistoricoRepository(context), new FakeIdentity());
+        new(provider, new FornecedorCnpjConsultaHistoricoRepository(context), new FakeIdentity(),
+            NullLogger<ConsultarCnpjFornecedorUseCase>.Instance);
 
     private static BlueprintOSDbContext NewContext() => new(new DbContextOptionsBuilder<BlueprintOSDbContext>()
         .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
@@ -94,5 +133,16 @@ public sealed class ConsultarCnpjFornecedorUseCaseTests
             cancellationToken.ThrowIfCancellationRequested();
             throw new InvalidOperationException("CancellationToken was not propagated.");
         }
+    }
+
+    private sealed class ThrowingHistoricoRepository : IFornecedorCnpjConsultaHistoricoRepository
+    {
+        public Task AdicionarAsync(FornecedorCnpjConsultaHistorico consulta, CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException("Simulated database connectivity failure while persisting audit history.");
+    }
+
+    private sealed class ThrowingIdentity : ICurrentIdentity
+    {
+        public RequestIdentity GetRequired() => throw new IdentityUnavailableException("A valid development identity is required.", false);
     }
 }
