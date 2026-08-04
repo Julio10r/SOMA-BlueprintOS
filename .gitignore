@@ -165,3 +165,4 @@ kubeconfig
 # Relatórios de auditoria gerados automaticamente
 # ==========================================================
 docs/audits/
+scripts/*.pid
