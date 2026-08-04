@@ -5,11 +5,14 @@ namespace BlueprintOS.UnitTests.Infrastructure.Documentation.Generators.Engineer
 public class DeployGeneratorTests
 {
     [Fact]
-    public async Task GenerateAsync_Should_Reference_Real_Dockerfile_Path()
+    public async Task GenerateAsync_Should_Reference_Dotnet_Run_And_External_SqlServer()
     {
         var result = await new DeployGenerator().GenerateAsync();
 
-        Assert.Contains("BlueprintOS.Api/Dockerfile", result);
-        Assert.Contains("docker-compose", result);
+        Assert.Contains("dotnet run", result);
+        Assert.Contains("npm run dev", result);
+        Assert.Contains("SQL Server externo", result);
+        Assert.DoesNotContain("Dockerfile", result);
+        Assert.DoesNotContain("docker-compose", result);
     }
 }

@@ -1,8 +1,8 @@
 namespace BlueprintOS.Core.Documentation.Contracts.Engineering;
 
 /// <summary>
-/// Define o contrato do gerador de documentação de deploy, refletindo os artefatos reais
-/// de containerização (<c>Dockerfile</c>, <c>docker-compose</c>) presentes no repositório.
+/// Define o contrato do gerador de documentação de deploy, refletindo o ambiente de
+/// desenvolvimento real do repositório (sem Docker — ver ADR-0019).
 /// </summary>
 public interface IDeployGenerator
 {

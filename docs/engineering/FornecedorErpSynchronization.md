@@ -108,7 +108,7 @@ A rotina usa `ILogger` padrao ASP.NET Core para:
 
 ## Validacao
 
-Com VPN ativa e connection strings configuradas (User Secrets local ou variaveis de ambiente no Docker):
+Com VPN ativa e connection strings configuradas via User Secrets (`dotnet run`):
 
 ```bash
 dotnet build backend/BlueprintOS.sln
@@ -124,7 +124,7 @@ Validar no banco `MaisCompras`:
 
 ### Validacao real executada em 02/08/2026
 
-A rotina foi validada de ponta a ponta rodando a API em Docker (`docker compose up -d api`, sem depender do SQL Server local opcional) contra o ERP corporativo `SOMA_DESENV` e o banco `MaisCompras`, via VPN:
+A rotina foi validada de ponta a ponta rodando a API em Docker (`docker compose up -d api`) contra o ERP corporativo `SOMA_DESENV` e o banco `MaisCompras`, via VPN:
 
 ```bash
 curl -H "X-Development-User-Id: 00000000-0000-0000-0000-000000000001" \
@@ -136,6 +136,6 @@ Resultado real: `200 OK`, `{"status":"Parcial","consultados":50,"incluidos":48,"
 
 ## Limitacoes Conhecidas
 
-- Testes reais de integracao dependem de VPN e secrets locais (User Secrets para `dotnet run`, variaveis de ambiente `ConnectionStrings__*` para Docker).
+- Testes reais de integracao dependem de VPN e secrets locais (User Secrets para `dotnet run`).
 - A rotina ainda e acionada via endpoint manual; agendamento operacional fica para sprint futura.
-- O SQL Server em `infrastructure/docker/docker-compose.yml` e um ambiente local opcional e isolado (ADR-0018); a API sempre aponta para o banco corporativo via `ConnectionStrings`, nunca para esse container.
+- O ambiente de desenvolvimento nao usa Docker nem SQL Server local (ver ADR-0019); a API sempre aponta para o banco corporativo via `ConnectionStrings`.
