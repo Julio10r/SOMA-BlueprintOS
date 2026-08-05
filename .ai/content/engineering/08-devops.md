@@ -1,8 +1,8 @@
 # DevOps e Operação
 
-A plataforma é preparada para operação em contêineres, o que permite empacotar a aplicação e suas dependências de forma consistente entre ambientes de desenvolvimento, homologação e produção.
+A plataforma é projetada para eventualmente operar em contêineres na nuvem de produção, o que permitiria empacotar a aplicação e suas dependências de forma consistente entre ambientes.
 
-Hoje, o ambiente local de desenvolvimento já conta com uma configuração de containerização para os principais serviços de apoio da plataforma, servindo como base para a evolução futura de um pipeline de integração e entrega contínuas mais completo.
+Hoje, o ambiente local de desenvolvimento roda sem containers — backend e frontend executados diretamente na máquina do desenvolvedor (ver ADR-0018) —, servindo essa decisão como base para a evolução futura de um pipeline de integração e entrega contínuas mais completo.
 
 A direção de evolução prevista para operação inclui automação completa de build, testes e publicação a cada mudança relevante, promovendo versões de forma controlada entre ambientes, com portões de qualidade que impedem que mudanças não validadas cheguem à produção.
 

@@ -9,6 +9,22 @@
 - A recomendação de negociação não persiste histórico, fornecedores ou resultados; a memória existente é transitória.
 - A identidade temporária aceita apenas em `Development` bloqueia a operação em Production até a futura implementação de identidade corporativa.
 
+## B2 — Descoberta Inicial de Fornecedores
+
+- A validação operacional de leitura no ERP SOMA_DESENV permanece pendente por timeout de rede no ambiente de execução; o adaptador é somente leitura.
+- O score 100/80/60/40 é estrutura inicial. Relacionamentos fornecedor × item/família/categoria e histórico de pedidos ainda dependem dos módulos operacionais futuros.
+
+## B2.1 — Validação Operacional e Sincronização
+
+- A migration `202607310001_B21FornecedorSynchronization` foi aplicada em 31/07/2026 e a complementar `202608010001_B21CanonicalSupplierSynchronization` em 01/08/2026, ambas somente no +Compras dev.
+- A B2.1 foi concluída em 01/08/2026 após a validação operacional e técnica da sincronização bidirecional.
+- `LX_SEQUENCIAL` retornou `315501`, `315502`, `315503` e `315505` em criações reais; os códigos foram confirmados nas tabelas `FORNECEDORES` e `CADASTRO_CLI_FOR`, inclusive em execução concorrente.
+- O timestamp efetivo foi identificado em `CADASTRO_CLI_FOR.DATA_PARA_TRANSFERENCIA`, com `FORNECEDORES.DATA_PARA_TRANSFERENCIA` como espelho/fallback, normalizado em `America/Sao_Paulo` até o segundo.
+- O registro inválido `00000*` foi preservado e inativado; correlação da correção: `b21-invalid-clifor-inactivate-final-erp`.
+- B2.1.1 corrigiu o preenchimento do contrato canônico ERP → +Compras. O fornecedor fictício `315504` confirmou persistência de endereço, contatos, dados bancários/fiscais/comerciais, indicadores e hash. Classificações `TIPO`/`SUBTIPO_FORNECEDOR` são protegidas por FKs no ERP e devem usar valores válidos, nunca valores inventados no teste.
+- O ERP limita `FORNECEDOR` a 25 caracteres e o mantém como FK para `CADASTRO_CLI_FOR.NOME_CLIFOR`; a sincronização não altera essa chave e atualiza CNPJ como campo corporativo permitido.
+- A identidade de desenvolvimento continua limitando a operação a Development, conforme ADR-0011.
+
 ## Estado consolidado na Sprint A10 — Project State Consolidation
 
 - **Fonte operacional de estado criada.** `.ai/PROJECT_STATE.md` passou a registrar a evidência atual de código, testes e Git. `CURRENT_SPRINT.md`, `ROADMAP.md` e o histórico de sprints foram alinhados a ela.

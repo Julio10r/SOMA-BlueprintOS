@@ -45,5 +45,5 @@ public sealed class DocumentationOptions
     /// - GDT Design System), consumido pelo Publication Engine como única fonte de cores,
     /// tipografia e demais tokens visuais.
     /// </summary>
-    public string DesignSystemRootPath { get; set; } = "docs/design-system";
+    public string DesignSystemRootPath { get; set; } = "resources/design-system";
 }

@@ -9,9 +9,19 @@ public sealed class FornecedorConfiguration : IEntityTypeConfiguration<Fornecedo
     public void Configure(EntityTypeBuilder<Fornecedor> builder)
     {
         builder.ToTable("Fornecedores");
+
         builder.HasKey(x => x.Id);
-        builder.Property(x => x.Nome).HasMaxLength(200).IsRequired();
-        builder.Property(x => x.Cnpj).HasMaxLength(14).IsRequired();
+
+        builder.Property(x => x.RazaoSocial)
+            .HasColumnName("Nome")
+            .HasMaxLength(200)
+            .IsRequired();
+
+        builder.Property(x => x.Cnpj_Cpf)
+            .HasColumnName("Cnpj")
+            .HasMaxLength(14)
+            .IsRequired();
+
         builder.Property(x => x.Categoria).HasMaxLength(100);
         builder.Property(x => x.Email).HasMaxLength(254);
         builder.Property(x => x.Telefone).HasMaxLength(30);
@@ -24,8 +34,12 @@ public sealed class FornecedorConfiguration : IEntityTypeConfiguration<Fornecedo
         builder.Property(x => x.TemporaryUserId).IsRequired();
         builder.Property(x => x.CreatedAt).IsRequired();
         builder.Property(x => x.UpdatedAt).IsRequired();
-        builder.HasIndex(x => x.Cnpj).IsUnique();
-        builder.HasIndex(x => x.Nome);
+
+        builder.Ignore(x => x.Nome);
+        builder.Ignore(x => x.Cnpj);
+
+        builder.HasIndex(x => x.Cnpj_Cpf).IsUnique();
+        builder.HasIndex(x => x.RazaoSocial);
         builder.HasIndex(x => x.TemporaryUserId);
     }
 }

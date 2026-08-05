@@ -73,6 +73,10 @@ BenchmarkDotNet.Artifacts/
 
 node_modules/
 frontend/dist/
+frontend/web/dist/
+frontend/web/dist_old_*/
+*.tsbuildinfo
+*.timestamp-*.mjs
 
 # ==========================================================
 # Environment & Secrets
@@ -148,6 +152,7 @@ kubeconfig
 *.tar
 *.tar.gz
 *.7z
+.myNotes
 
 # ==========================================================
 # Miscellaneous
@@ -156,3 +161,9 @@ kubeconfig
 *.bak
 *.orig
 *.rej
+
+# ==========================================================
+# Relatórios de auditoria gerados automaticamente
+# ==========================================================
+docs/audits/
+scripts/*.pid

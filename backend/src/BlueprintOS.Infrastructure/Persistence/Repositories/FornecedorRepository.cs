@@ -15,12 +15,12 @@ public sealed class FornecedorRepository(BlueprintOSDbContext context) : IFornec
     public Task<Fornecedor?> ObterPorIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default) =>
         context.Fornecedores.SingleOrDefaultAsync(x => x.Id == id && x.TemporaryUserId == userId, cancellationToken);
     public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid userId, CancellationToken cancellationToken = default) =>
-        context.Fornecedores.SingleOrDefaultAsync(x => x.Cnpj == cnpj && x.TemporaryUserId == userId, cancellationToken);
+        context.Fornecedores.SingleOrDefaultAsync(x => x.Cnpj_Cpf == cnpj && x.TemporaryUserId == userId, cancellationToken);
     public async Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string termo, Guid userId, CancellationToken cancellationToken = default) =>
         await context.Fornecedores.AsNoTracking().Where(x => x.TemporaryUserId == userId &&
-            (x.Nome.Contains(termo) || x.Cnpj.Contains(termo))).OrderBy(x => x.Nome).ToListAsync(cancellationToken);
+            (x.RazaoSocial.Contains(termo) || x.Cnpj_Cpf.Contains(termo))).OrderBy(x => x.RazaoSocial).ToListAsync(cancellationToken);
     public async Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid userId, CancellationToken cancellationToken = default) =>
-        await context.Fornecedores.AsNoTracking().Where(x => x.TemporaryUserId == userId).OrderBy(x => x.Nome).ToListAsync(cancellationToken);
+        await context.Fornecedores.AsNoTracking().Where(x => x.TemporaryUserId == userId).OrderBy(x => x.RazaoSocial).ToListAsync(cancellationToken);
     public Task<bool> ExisteAsync(string cnpj, CancellationToken cancellationToken = default) =>
-        context.Fornecedores.AnyAsync(x => x.Cnpj == cnpj, cancellationToken);
+        context.Fornecedores.AnyAsync(x => x.Cnpj_Cpf == cnpj, cancellationToken);
 }

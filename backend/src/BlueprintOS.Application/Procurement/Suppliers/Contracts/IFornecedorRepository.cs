@@ -11,5 +11,5 @@ public interface IFornecedorRepository
     Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid temporaryUserId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string termo, Guid temporaryUserId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid temporaryUserId, CancellationToken cancellationToken = default);
-    Task<bool> ExisteAsync(string cnpj, CancellationToken cancellationToken = default);
+    Task<bool> ExisteAsync(string documentoFiscal, CancellationToken cancellationToken = default);
 }

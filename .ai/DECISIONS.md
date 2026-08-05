@@ -180,3 +180,289 @@ Formato de cada ADR:
 **Decisão:** O agregado `Fornecedor` permanece no Domain; Application depende de `IFornecedorRepository` e `ICurrentIdentity`; Infrastructure implementa o repositório com EF Core/SQL Server e mantém `TemporaryUserId` em cada registro. Consultas sempre recebem o identificador atual e são filtradas por ele. CNPJ possui índice único e é normalizado por value object. A ConnectionString `MaisComprasConnection` é a única usada pelo DbContext e pelas migrations; `ErpConnection` permanece isolada, sem acesso nesta sprint.
 
 **Consequências:** A troca do adaptador de Development por Entra ID não altera entidades, contratos ou casos de uso. A migration inicial estabelece os índices de CNPJ, nome e identidade temporária. A13 não foi alterada e sua lógica de IA continua consultiva.
+
+---
+
+## ADR-0013: Estratégia de Evolução Incremental da Plataforma Operacional e Inteligente do +Compras
+
+**Status:** Aceito
+
+**Data:** 31/07/2026
+
+**Contexto:** O roadmap inicial antecipava capacidades inteligentes antes de uma base operacional completa de fornecedores, itens e pedidos. O ERP mantém os cadastros corporativos, mas não possui os relacionamentos fornecedor × item, família e categoria necessários ao mecanismo completo de descoberta. Esses relacionamentos, assim como dados próprios de operação, precisam existir no +Compras; o histórico de compras será obtido progressivamente pelos pedidos do ERP. O produto deve entregar valor e manter operações críticas mesmo quando o modelo, o provedor de IA ou um agente estiver indisponível.
+
+**Opções consideradas:**
+
+1. Priorizar inteligência avançada antes dos fluxos operacionais — descartada por depender de dados inexistentes e tornar a operação crítica dependente de IA.
+2. Construir a plataforma operacional primeiro e evoluir a inteligência sobre dados reais — adotada.
+
+**Decisão:** O +Compras será construído inicialmente como uma plataforma operacional completa, composta pelo portal web, APIs, banco próprio, integrações ERP, módulos operacionais, workflows, auditoria e agentes do SOMA BlueprintOS. O portal é a interface do próprio +Compras, não um produto ou módulo separado.
+
+Fornecedores, itens e pedidos terão fluxos básicos completos antes da inteligência avançada. Agentes atuam inicialmente como operadores assistidos: interpretam solicitações, consultam dados, preenchem informações, apresentam opções, criam rascunhos e executam somente operações confirmadas pelo usuário. Decisões críticas exigem confirmação humana.
+
+Toda funcionalidade inteligente deve possuir alternativa operacional manual equivalente. A indisponibilidade de IA não pode impedir cadastrar ou selecionar fornecedor e item, criar pedido, enviá-lo ao ERP ou acompanhar a integração. Agentes usam contratos e casos de uso da Application; não acessam diretamente banco ou ERP.
+
+Cada BU pode possuir um ERP distinto. Integrações permanecem desacopladas por adaptadores vinculados à BU. O banco +Compras armazena dados da aplicação e relacionamentos ausentes no ERP; capacidades inteligentes são acrescentadas progressivamente sobre dados operacionais reais.
+
+**Fontes de verdade iniciais:**
+
+| Sistema | Fonte de verdade |
+|---|---|
+| ERP | códigos externos e cadastro corporativo de fornecedor/item, pedidos efetivamente registrados, dados fiscais e transacionais oficiais |
+| +Compras | sites e canais comerciais, catálogos, relacionamentos fornecedor × item/família/categoria, scores, recomendações, solicitações e rascunhos, contexto conversacional, evidências de agentes, status de integração, auditoria e decisões assistidas |
+
+Essa divisão será refinada por ADRs futuras conforme os módulos forem implementados.
+
+**Consequências positivas:** entrega antecipada de valor, homologação progressiva com compradores, geração de dados reais para inteligência, menor dependência de IA, testes mais objetivos, isolamento de falhas entre portal, aplicação, banco e ERP, e continuidade operacional sem IA.
+
+**Trade-offs:** inteligência avançada é postergada; CRUDs e fluxos operacionais precedem automações; estruturas de B2 permanecem iniciais até haver dados reais; modelos podem ser ajustados quando Compras for detalhado; haverá duplicidade controlada e será necessário definir a fonte de verdade de cada campo.
+
+**Ações posteriores:** reorganizar Work Orders futuras para fornecedores, itens, pedidos, portal integrado e integrações; validar B2.1 em ambiente com acesso ao ERP; não iniciar B3 sem aprovação.
+
+---
+
+## ADR-0014: Estratégia de LLM para Desenvolvimento e Produção
+
+**Status:** Aceito
+
+**Data:** 31/07/2026
+
+**Contexto:** O +Compras utilizará agentes de IA em diversos módulos. Depender de APIs pagas ou de um fornecedor específico durante o desenvolvimento aumenta custos, dificulta testes locais e cria lock-in. Em homologação e produção, o consumo de IA será padronizado e governado pela Infraestrutura/Arquitetura Corporativa, cuja plataforma pode mudar ao longo do tempo.
+
+**Opções consideradas:**
+
+1. Acoplar a aplicação a um fornecedor de IA — descartada, pois exige alteração de regras de negócio a cada troca de fornecedor e contraria Clean Architecture.
+2. Consumir modelos por contratos de aplicação e adaptadores de infraestrutura configurados por ambiente — adotada.
+
+**Decisão:** Toda comunicação com LLMs ocorre exclusivamente pelos contratos existentes `IAIProvider` e `IAIRuntime`. O runtime seleciona um adaptador pelo identificador de provedor presente no modelo solicitado. Domain, Application, agentes e regras de negócio não podem conhecer SDKs, APIs, tipos ou credenciais de OpenAI, Azure OpenAI, Claude, Gemini, Llama, Qwen, Mistral, DeepSeek ou qualquer outro fornecedor. Implementações específicas pertencem somente à Infrastructure e são registradas por injeção de dependência.
+
+**Estratégia por ambiente:**
+
+| Ambiente | Estratégia |
+|---|---|
+| Desenvolvimento | Ollama local é o padrão arquitetural. Usar o menor modelo que atenda aos testes funcionais, com preferência inicial por modelos de 3B a 4B parâmetros, para validar agentes, prompts, memória, ferramentas, orquestração e fluxos. |
+| Homologação | Usar preferencialmente a plataforma corporativa disponibilizada pela Infraestrutura. Na ausência dela, permitir provedor compatível temporário, configurável e restrito à validação. |
+| Produção | O +Compras não escolhe o fornecedor. Consome exclusivamente a plataforma corporativa definida pela Infraestrutura/Arquitetura Corporativa por configuração e adaptador. |
+
+O adaptador `OpenAIProvider` existente é uma implementação de Infrastructure preservada por compatibilidade; esta ADR não altera seu comportamento nem configura Ollama automaticamente. A adoção do adaptador local e da seleção por ambiente requer Work Order de implementação aprovada.
+
+**Consequências positivas:** desenvolvimento local de baixo custo, testes mais acessíveis, ausência de lock-in na aplicação, troca de fornecedor sem mudança no domínio e maior aderência à governança corporativa.
+
+**Trade-offs:** adaptadores precisam manter paridade de contratos e capacidades; qualidade do modelo local pode ser inferior; configuração, telemetria, credenciais e limites de cada ambiente exigirão uma Work Order futura.
+
+**Regras:** nenhum código fora de Infrastructure acessa API de IA diretamente; nenhum adaptador é assumido pela regra de negócio; a troca de fornecedor não altera o Domain; e integrações devem permanecer Ports & Adapters, configuradas por ambiente.
+
+---
+
+## ADR-0015: Contrato canônico e sincronização bidirecional de fornecedores
+
+**Status:** Aceito para a reabertura da B2.1
+
+**Data:** 01/08/2026
+
+**Contexto:** A primeira entrega da B2.1 sincronizava somente um subconjunto corporativo e não representava a atualização, inativação, conflito temporal e auditoria exigidos pelo contrato operacional. A procedure `LX_AZZ_GERAR_FORNECEDOR_LINX` é apenas referência funcional; não pode ser dependência da aplicação.
+
+**Decisão:** O Domain mantém `FornecedorCanonico` sem nomes físicos de ERP. A Application usa `IIntegracaoFornecedorErp`/`IErpFornecedorAdapter` e resolve o adaptador por BU; tabelas, procedures, connection strings e regras físicas ficam exclusivamente na Infrastructure. O modelo canônico cobre identificação, endereço, contatos, fiscal, bancário, comercial, classificação, categorias e indicadores de fornecimento.
+
+**Regra temporal:** timestamps são normalizados para `America/Sao_Paulo` e comparados até o segundo. Registro ERP mais recente atualiza o +Compras; registro +Compras mais recente atualiza o ERP; empate com dados divergentes favorece o +Compras; empate com dados iguais não altera nenhum sistema.
+
+**Auditoria e idempotência:** cada operação gera evento imutável em `FornecedoresSincronizacoes`, com origem/destino, timestamps originais e normalizados, decisão, antes/depois, hashes, tentativa, duração, erro sanitizado e `CorrelationId`. Reexecuções sem mudança não repetem escrita nem alteram o timestamp; consultas e nenhuma alteração continuam auditáveis.
+
+**Consequências:** o +Compras passa a preservar campos exclusivos e o vínculo externo por BU/ERP/ID; fornecedores são inativados logicamente e nunca removidos pela sincronização. A migration complementar altera somente o banco +Compras. O adaptador SOMA_DESENV traduz apenas os campos que o ERP suporta e preserva chaves protegidas por FK.
+
+### Complemento ADR-0015: Sequencial Linx e timestamp efetivo do fornecedor
+
+**Status:** Aceito para a validação operacional final da B2.1
+
+**Data:** 01/08/2026
+
+**Decisão:** A criação no adaptador Linx usa exclusivamente `LX_SEQUENCIAL` para `FORNECEDORES.CLIFOR`, com `@EMPRESA = 1`, dentro da transação controlada que grava `CADASTRO_CLI_FOR` e `FORNECEDORES`. O domínio e a Application recebem somente o identificador externo retornado. Não são permitidos `MAX + 1`, contador local, valor fixo, prefixo ou reaproveitamento.
+
+O timestamp primário de transferência confirmado no cadastro Linx é `CADASTRO_CLI_FOR.DATA_PARA_TRANSFERENCIA`; `FORNECEDORES.DATA_PARA_TRANSFERENCIA` é consultado como espelho/fallback. Ambos são normalizados para `America/Sao_Paulo`, com precisão até o segundo, e a auditoria preserva os valores original e normalizado. A confirmação remota precede a persistência do vínculo; se a persistência local falhar, a reconciliação consulta o identificador externo já confirmado.
+
+**Consequências:** concorrência depende do mecanismo oficial do ERP e não duplica códigos; falhas não criam vínculo falso; o registro inválido `00000*` permanece preservado e é tratado por inativação lógica; nenhuma transação distribuída entre os bancos é introduzida.
+
+## ADR-0016: Modelo Canônico de Fornecedor Integrado ao ERP Linx
+
+**Status:** Aceita
+
+**Data:** 01/08/2026
+
+**Contexto:** A B2.1.2 iniciou o diagnóstico estrutural entre ERP Linx e +Compras para alinhar tipos, tamanhos, nulabilidade, collation, validações e limitações operacionais antes de qualquer migration. O ERP Linx possui o cadastro mestre em `CADASTRO_CLI_FOR`; um mesmo registro pode representar fornecedor, cliente ou filial. A tabela `FORNECEDORES` é uma extensão desse cadastro mestre para o papel de fornecedor, enquanto o +Compras trabalha inicialmente somente com fornecedores.
+
+No Linx, `CADASTRO_CLI_FOR.NOME_CLIFOR`, `FORNECEDORES.FORNECEDOR` e o conceito de nome fantasia representam a mesma chave operacional. Esse campo é protegido por regra operacional/FK e não pode ser alterado livremente pelo +Compras.
+
+**Decisão:** O modelo canônico de fornecedor integrado ao ERP Linx deve refletir a separação estrutural do Linx entre cadastro mestre e extensão de fornecedor.
+
+1. Documento fiscal
+
+O conceito atual `Cnpj` deve evoluir para `Cnpj_Cpf`, mantendo compatibilidade com `CGC_CPF` do Linx:
+
+```text
+Cnpj_Cpf varchar(14)
+TipoPessoa varchar(20)
+```
+
+Regras aprovadas:
+- aceitar CPF e CNPJ;
+- permitir caracteres alfanuméricos no banco;
+- não restringir somente números na persistência;
+- manter validações de formato na API e no frontend;
+- usar `TipoPessoa` para distinguir `PJ` e `PF`.
+
+Exemplos:
+
+```text
+Cnpj_Cpf = 10285590000108
+TipoPessoa = PJ
+```
+
+```text
+Cnpj_Cpf = 12345678901
+TipoPessoa = PF
+```
+
+2. Modelo de nomes
+
+A separação de nomes deve ser explícita:
+
+| Origem Linx | Campo canônico +Compras |
+|---|---|
+| `RAZAO_SOCIAL` | `RazaoSocial` |
+| `NOME_CLIFOR` / `FORNECEDORES.FORNECEDOR` | `NomeFantasia` |
+
+O conceito `NomeOperacionalERP` não deve ser criado. `NomeFantasia` é controlado pelo ERP Linx. O fluxo permitido para alteração desse campo é somente `ERP -> +Compras`; o fluxo `+Compras -> ERP` não é permitido para nome fantasia. Alterações de nome fantasia só podem ser aplicadas no +Compras quando originadas no ERP.
+
+3. Domínios e tabelas FK
+
+Campos controlados por FK ou domínio no Linx não devem permanecer como texto livre no +Compras. Devem ser modeladas estruturas equivalentes de domínio sincronizadas a partir do ERP, por Business Unit e sistema ERP.
+
+Exemplos iniciais:
+- `TipoFornecedor`;
+- `SubtipoFornecedor`;
+- `CondicaoPagamento`;
+- demais domínios identificados na continuidade do levantamento estrutural.
+
+Modelo aprovado:
+
+```text
+ERP Linx
+    |
+    | sincronização
+    v
+Tabela domínio +Compras
+    |
+    | FK
+    v
+Fornecedor
+```
+
+Cada tabela de domínio deverá possuir, no mínimo:
+- `Id`;
+- `CodigoERP`;
+- `Descricao`;
+- `BusinessUnit`;
+- `ErpSistema`;
+- `Status`.
+
+**Consequências:** O modelo atual de fornecedor precisará ser ajustado em sprint posterior para suportar CPF/CNPJ, separar razão social de nome fantasia e substituir textos livres por domínios sincronizados do Linx. Essas mudanças não são executadas na etapa diagnóstica B2.1.2; elas serão planejadas como migrations, ajustes de contrato API e validações de frontend após a conclusão do levantamento estrutural. A regra preserva o Linx como fonte de verdade para `NomeFantasia` e para domínios corporativos, reduzindo risco de rejeição em exportações e divergência operacional.
+
+---
+
+## ADR-0017: Estratégia de Construção do Portal Operacional +Compras
+
+**Status:** Aceita
+
+**Data:** 01/08/2026
+
+**Contexto:** O +Compras evolui como uma plataforma operacional integrada aos ERPs das Business Units. O primeiro domínio com integração real é Fornecedores, consolidado nas sprints B2.1 e B2.1.1 e em evolução estrutural na B2.1.2. Construir telas isoladas por sprint fragmentaria a experiência, enquanto tratar módulos ainda não implementados como funcionais criaria uma expectativa incorreta.
+
+**Opções consideradas:**
+
+1. Construir apenas telas isoladas à medida que cada módulo fosse implementado.
+2. Construir um portal completo de navegação e identidade visual desde a primeira versão, evoluindo a capacidade funcional de cada módulo conforme o roadmap.
+
+**Decisão:** A segunda opção foi adotada. O frontend será um Portal Operacional +Compras, com estrutura de navegação, identidade visual e módulos previstos pelo produto desde a primeira versão visual. A presença de um módulo no portal não comprova funcionalidade: cada módulo deve apresentar um estado explícito — `🟢 Funcional`, `🟡 Estrutura visual` ou `⚪ Planejado`.
+
+**Mapa oficial do portal:**
+
+```text
++Compras
+├── Dashboard
+├── Fornecedores
+│   ├── Lista
+│   ├── Cadastro
+│   ├── Detalhes
+│   ├── Sincronização ERP
+│   └── Auditoria
+├── Pedidos
+├── Cotações
+├── Negociações
+├── Contratos
+├── Indicadores
+└── Agentes IA
+```
+
+**Primeira vertical slice funcional:** Fornecedores. Ela reúne consulta, cadastro, edição, detalhes, sincronização ERP, histórico e auditoria e deve consumir os contratos oficiais do backend. Sua evolução acompanha B2.1, B2.1.1, B2.1.2 e B2.2; a ADR não declara que toda essa interface já está implementada.
+
+**Regras arquiteturais:**
+
+- O frontend consome apenas APIs e DTOs oficiais; regras de negócio e regras de integração permanecem no backend.
+- Cada domínio evolui no fluxo `Backend → contrato de API → frontend → experiência operacional`.
+- O portal utiliza o [AZZAS 2154 — GDT Design System](../docs/design-system/README.md); componentes e linguagem visual devem consultar `docs/design-system/` antes de implementação.
+- Autenticação corporativa futura segue Microsoft Entra ID e não é simulada como controle de acesso definitivo no portal.
+- Toda implementação frontend deve ler `.ai/PROJECT.md`, `.ai/ARCHITECTURE.md`, `.ai/DECISIONS.md`, `.ai/CURRENT_SPRINT.md`, `docs/design-system/` e `docs/engineering/`.
+
+**Consequências:** A navegação e a linguagem visual passam a ser planejadas como produto único, enquanto a entrega funcional continua incremental e verificável por domínio. Pedidos, Cotações, Negociações, Contratos e Indicadores terão inicialmente somente estrutura visual; Agentes IA permanece planejado. O Dashboard será a página inicial para visão executiva, indicadores, integrações, alertas e atividades recentes, sem substituir os módulos operacionais. Nenhum código é criado ou alterado por esta ADR.
+
+---
+
+## ADR-0018: Ambiente de execução do Portal +Compras é Desenvolvimento Local (Mac)
+
+**Status:** Aceito
+
+**Registro:** Desenvolvimento local definido como padrão. Tentativa de publicação n8n descartada como estratégia de desenvolvimento.
+
+**Contexto:** Uma tentativa inicial de publicar o frontend do Portal +Compras como demo pública usou o n8n como servidor de HTML estático (via webhook), com o backend exposto temporariamente por túnel ngrok. Essa estratégia esbarrou em limitações reais: o n8n só serve HTML como string única (sem suporte nativo a uma pasta `dist/` com múltiplos assets), o backend não tinha nenhum ambiente publicado além de localhost, e o túnel ngrok é temporário e inadequado para o ciclo de desenvolvimento corrente. Diante disso, foi decidido tratar o ambiente atual do projeto como Desenvolvimento Local, adiando a publicação externa.
+
+**Decisão:** Desenvolvimento ocorre localmente no Mac com frontend React e API .NET. Persistência utiliza SQL Server corporativo acessível via VPN. Homologação futura será realizada em Windows Server/IIS.
+
+Detalhamento:
+- Frontend: React + TypeScript via Vite, `npm run dev`, URL padrão `http://localhost:5173`.
+- Backend: API .NET executando localmente via `dotnet run` (perfil `http` do `launchSettings.json`, porta `5262`).
+- Dados: o banco oficial de desenvolvimento é o SQL Server corporativo (ambiente `SOMA_DESENV`), acessado via VPN. Connection strings permanecem configuráveis via user-secrets/variáveis de ambiente (`ConnectionStrings:MaisComprasConnection`, `ConnectionStrings:ErpConnection`), sem valores hardcoded no repositório.
+- CORS do backend liberado apenas para as origens de desenvolvimento local: `http://localhost:5173` e `http://127.0.0.1:5173`.
+- Publicação via n8n/GCP passa a ser tratada como opção futura de homologação/demonstração, não como ambiente corrente.
+
+**Atualização (03/08/2026):** Docker foi removido do fluxo de desenvolvimento (commits `601d937`, `7bf3bf4`). `Makefile`, `Dockerfile` e `docker-compose.yml` foram descontinuados; scripts locais (`start-dev.sh`, `stop-dev.sh`, `health-check.sh`) passam a orquestrar backend e frontend. O ambiente oficial de Desenvolvimento Local é, a partir desta data, 100% sem containers.
+
+**Consequências:**
+- Simplifica o ciclo de desenvolvimento: sem dependência de túneis temporários (ngrok) ou de um servidor de HTML estático improvisado (n8n).
+- Demonstrações completas (Fornecedores, consulta CNPJ, enriquecimento, aprovação/rejeição) exigem VPN corporativa ativa e o backend rodando localmente — não há URL pública permanente neste momento.
+- Homologação/demo formal fica registrada como pendência futura, a ser resolvida com um ambiente Windows Server/IIS dedicado (fora do escopo desta ADR).
+- Nenhuma regra de negócio existente foi alterada; apenas configuração de ambiente (portas, CORS, `.env.example`) e remoção de artefatos específicos da tentativa de publicação via n8n.
+
+---
+
+## ADR-0019: `docs/` como fonte canônica única da documentação técnica, organizada por domínio
+
+**Status:** Aceito
+
+**Contexto:** A ADR-0009 definia `docs/{executive,client,engineering,assets}` como estrutura oficial, organizada por público-alvo, publicada automaticamente pelo Portal de Documentação Viva (19 geradores) e pelo Publication Engine. Na prática, essa estrutura resultou em `docs/` sendo simultaneamente fonte autoral (arquivos como `FornecedorErpSynchronization.md`, `Frontend.md`, escritos por humanos) e destino de geração automática (os 19 arquivos com o banner "Não editar manualmente"), sem separação clara entre o que é documentação técnica permanente e o que é saída derivada de `.ai/`. Isso violava o princípio de que documentação técnica não deve duplicar estado operacional volátil, e deixava `dist/` sem função real como saída publicável.
+
+**Decisão:**
+- `docs/` passa a ser a **única fonte canônica da documentação técnica** do SOMA BlueprintOS — descreve como o sistema funciona, escrita por humanos (ou por IA em nome de humanos), nunca gerada automaticamente.
+- `.ai/` permanece exclusivamente conhecimento operacional da IA — estado, sprint, roadmap, backlog, decisões (ADRs) e memória — nunca copiado em `docs/`.
+- `dist/` permanece saída regenerável do Publication Engine — descartável, não versionada, nunca editada manualmente, nunca fonte de verdade.
+- `resources/` é a pasta de materiais institucionais e visuais (design system, apresentações) — fora do fluxo de documentação técnica e fora do fluxo operacional da IA.
+- A documentação técnica em `docs/` é organizada **por domínio de negócio e capacidade técnica** (`architecture/`, `backend/{procurement,integration,orchestration,shared}`, `frontend/`, `database/`, `agents/`, `operations/`, `testing/`, `releases/`), não por público-alvo nem pela estrutura física do código.
+- O Publication Engine deixará de gerar documentação autoral e passará a ter exclusivamente a responsabilidade de **publicar** `docs/` em `dist/` (descoberta de documentos → montagem de índice → renderização), sem lógica por audiência. Essa refatoração **ainda não foi executada** — é o objeto de uma etapa de implementação posterior; até lá, o Publication Engine, `DocumentationPublishService` e os comandos `publish`/`publish-docs`/`publish-executive-blueprint` continuam com o comportamento legado descrito na ADR-0009.
+- Esta ADR **substitui a ADR-0009** nas decisões sobre arquitetura documental. A ADR-0009 permanece registrada como decisão histórica, não é reescrita nem removida.
+
+**Consequências:**
+- Os 19 documentos gerados por público (`docs/{executive,client,engineering}/*.md` com o banner "Não editar manualmente") foram removidos da árvore versionada; seu conteúdo técnico único foi extraído para os novos documentos por domínio, e o restante era redundante com `.ai/`.
+- `docs/executive/BlueprintOS_Executive_Blueprint.{html,pdf}` e `docs/DocumentationHealth.md` continuam temporariamente versionados dentro de `docs/` — são artefatos do pipeline legado (P3/health check) e só migram para `dist/` quando o Publication Engine for refatorado.
+- Quem procurar pela estrutura `docs/{executive,client,engineering}` descrita na ADR-0009 deve procurar em `docs/README.md`, que indexa a nova árvore por domínio.
+- Nenhum código de negócio, teste ou comportamento do Publication Engine foi alterado por esta ADR — apenas a árvore de documentação e correções pontuais de caminho necessárias pela movimentação de arquivos.
+
+**Atualização (05/08/2026):** o Publication Engine foi refatorado para o novo componente único `DocsPublisher`, que descobre `docs/**/*.md`, publica em `dist/` preservando a estrutura de domínio e gera um índice navegável — sem nenhuma lógica por audiência. `ExecutivePublisher`, `ClientPublisher`, `EngineeringPublisher`, `ExecutiveBlueprintPublisher`, `DocumentationPublishService` e seus 19 geradores foram removidos. Os comandos `publish-docs` e `publish-executive-blueprint` foram descontinuados (retornam erro claro apontando para `publish`). `docs/executive/BlueprintOS_Executive_Blueprint.{html,pdf}` e `docs/DocumentationHealth.md` (artefatos gerados versionados em `docs/`) foram removidos; o relatório de saúde agora é escrito em `dist/health/`. A decisão descrita nesta ADR está integralmente implementada.

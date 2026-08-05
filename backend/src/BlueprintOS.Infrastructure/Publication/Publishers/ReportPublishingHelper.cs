@@ -37,10 +37,9 @@ internal static class ReportPublishingHelper
     }
 
     /// <summary>
-    /// Separa a primeira linha de título (<c>#</c>) de um arquivo de conteúdo estratégico
-    /// autorado (ex.: <c>.ai/content/executive/</c> ou <c>.ai/content/client/</c>), usando-a como
-    /// título da <see cref="PublicationSection"/> — preservando o título definido por quem
-    /// autora o conteúdo, em vez de fixá-lo no código do publisher.
+    /// Separa a primeira linha de título (<c>#</c>) de um documento Markdown autoral descoberto
+    /// em <c>docs/</c>, usando-a como título da <see cref="PublicationSection"/> — preservando o
+    /// título definido por quem autora o conteúdo, em vez de fixá-lo no código do publisher.
     /// </summary>
     public static (string Heading, string Body) SplitHeading(string markdown)
     {

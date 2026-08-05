@@ -12,8 +12,10 @@ public sealed class DocumentationHealthOptions
 
     /// <summary>
     /// Caminho, relativo ou absoluto, do relatório de saúde gerado ao final da publicação.
+    /// A partir da ADR-0019, o relatório mede a saúde da fonte (<c>docs/</c>) e é escrito
+    /// exclusivamente em <c>dist/</c> — nunca em <c>docs/</c>.
     /// </summary>
-    public string OutputPath { get; set; } = "docs/DocumentationHealth.md";
+    public string OutputPath { get; set; } = "dist/health/DocumentationHealth.md";
 
     /// <summary>
     /// Quantidade mínima de palavras de conteúdo para um documento não ser sinalizado como

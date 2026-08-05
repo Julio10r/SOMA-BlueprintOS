@@ -1,6 +1,6 @@
 # Engineering Blueprint — SOMA BlueprintOS
 
-> Documento oficial de engenharia. Estado comprovado em 30/07/2026; para estado operacional, consultar `PROJECT_STATE.md`.
+> Documento oficial de engenharia. Estado comprovado em 31/07/2026; para estado operacional, consultar `PROJECT_STATE.md`.
 
 ## Índice
 
@@ -46,7 +46,7 @@ flowchart TB
   Infra --> Docs[Documentation / Publication]
 ```
 
-Responsabilidades: Api hospeda endpoints e CLIs; Application e Domain são scaffolds; Core contém contratos/modelos; Infrastructure implementa provedores, memória e publicação. Comunicação futura entre módulos deve ocorrer por contratos, nunca por internals de Infrastructure.
+Responsabilidades: Api hospeda endpoints e CLIs; Application contém casos de uso (ex.: `Procurement/Suppliers`) e Domain contém entidades reais (ex.: `Fornecedor`, `Cnpj`, `ScoreFornecedor`) do vertical slice de Fornecedores; Core contém contratos/modelos dos módulos técnicos (AI, Agents, Documentation, Knowledge, Publication); Infrastructure implementa provedores, memória e publicação. Comunicação futura entre módulos deve ocorrer por contratos, nunca por internals de Infrastructure.
 
 ## 3. Arquitetura Física
 
@@ -54,16 +54,16 @@ Responsabilidades: Api hospeda endpoints e CLIs; Application e Domain são scaff
 |---|---|
 | Backend | Implementado: .NET 9 em `backend/src` |
 | Frontend | Não iniciado: diretórios existem sem aplicação React |
-| Banco | Planejado: SQL Server no Docker, sem DbContext/migrações |
+| Banco | Implementado parcialmente: EF Core/SQL Server, `BlueprintOSDbContext`, migration de fornecedores e banco próprio +Compras |
 | Agentes | Implementado: EchoAgent e KnowledgeAgent |
 | Storage | Parcial: Markdown e memória em processo |
-| Docker | Implementado: API e SQL Server via Compose |
+| Docker | Não usado no ambiente local (ver ADR-0018); reservado sem implementação ativa |
 | Cloud | Planejado: GCP sem configuração rastreada |
-| Integrações | Parcial: OpenAI e leitura de Git |
+| Integrações | Parcial: OpenAI, leitura de Git e descoberta de fornecedores somente leitura no ERP SOMA_DESENV; validação operacional pendente |
 
 ## 4. Arquitetura Lógica
 
-Bounded contexts atuais: AI/Agents, Knowledge, Negotiation Memory, Workflows, Documentation e Publication. Contextos futuros: Identity, Planner, Procurement, Notifications, Dashboard e Analytics.
+Bounded contexts atuais: AI/Agents, Knowledge, Negotiation Memory, Workflows, Documentation, Publication e a base de fornecedores. Contextos futuros: Identity, Planner, Procurement, Notifications, Dashboard e Analytics.
 
 ```mermaid
 flowchart LR
@@ -85,7 +85,7 @@ Não há SeniorBuyerAgent, NegotiationAgent, ComplianceAgent ou RiskAgent concre
 
 ## 6. Runtime
 
-`IAIRuntime` abstrai chamadas de IA; `OpenAIProvider` implementa Chat Completions. `AgentFactory` cria agentes via reflexão. `WorkflowRunner` executa passos sequenciais. Planejamento autônomo, orquestrador distribuído, eventos, fila e pipeline de execução são planejados, não implementados.
+`IAIRuntime` abstrai chamadas de IA e seleciona implementações de `IAIProvider` pelo provedor do modelo solicitado. `OpenAIProvider` é o adaptador atualmente implementado para Chat Completions; ele não é dependência de Domain, Application ou agentes. Pela ADR-0014, Ollama local é o padrão arquitetural de Development e a plataforma corporativa é a única estratégia de Produção; ambos devem ser fornecidos por adaptadores configuráveis. `AgentFactory` cria agentes via reflexão. `WorkflowRunner` executa passos sequenciais. Planejamento autônomo, orquestrador distribuído, eventos, fila e pipeline de execução são planejados, não implementados.
 
 ```mermaid
 sequenceDiagram
@@ -102,7 +102,7 @@ sequenceDiagram
 
 | Módulo | Responsabilidade | Dependências | Status/Roadmap |
 |---|---|---|---|
-| AI Runtime | Contratos e provedor LLM | HttpClient/OpenAI | Implementado |
+| AI Runtime | Contratos e seleção de adaptadores LLM | `IAIProvider`/`IAIRuntime`; OpenAI implementado; Ollama planejado para Development | Implementado, extensível |
 | Agents | Agentes básicos e factory | Runtime, Knowledge | Implementado |
 | Knowledge | Busca em Markdown | Arquivos | Implementado, básico |
 | Memory/Negotiation | Histórico e score de negociação | Em memória | Parcial |
@@ -113,11 +113,11 @@ sequenceDiagram
 
 ## 8. Banco de Dados
 
-SQL Server e EF Core são padrões alvo. O Compose provisiona SQL Server, mas não há entidades persistentes, DbContext, modelo lógico, relacionamentos, migrations ou versionamento de schema implementados. Dados atuais de negociação/documentação são memória de processo ou Markdown.
+SQL Server e EF Core são usados pela base de fornecedores no +Compras, com `BlueprintOSDbContext`, migration e conexões segregadas do banco próprio e do ERP. O ERP SOMA_DESENV é consultado somente por adaptador de descoberta; sua validação operacional depende de rede. Itens, pedidos, relacionamentos operacionais completos e migrações futuras permanecem planejados. A ADR-0013 define o ERP como fonte corporativa e o +Compras como fonte dos dados e relacionamentos próprios.
 
 ## 9. APIs
 
-API atual: `GET /health`, com OpenAPI apenas em desenvolvimento. APIs de negócio, versionamento, DTOs públicos, autenticação e contratos de Procurement são futuros. O padrão alvo é REST/JSON, contratos estáveis e não exposição de entidades.
+APIs atuais incluem `GET /health`, CRUD REST de fornecedores, descoberta de fornecedores e recomendação de negociação consultiva; OpenAPI existe em desenvolvimento. Autenticação corporativa, APIs de itens/pedidos e contratos completos de Procurement permanecem futuros. O padrão é REST/JSON, contratos estáveis e não exposição de entidades.
 
 ## 10. Eventos
 
@@ -127,9 +127,12 @@ Não há catálogo de eventos, publicadores ou consumidores implementados. Domai
 
 | Integração | Estado |
 |---|---|
-| OpenAI Chat Completions | Implementado via OpenAIProvider |
+| OpenAI Chat Completions | Adaptador atual de Infrastructure, preservado por compatibilidade |
+| Ollama local | Padrão arquitetural para Development; adaptador ainda não implementado |
+| Plataforma corporativa de IA | Estratégia obrigatória de Produção; fornecedor e adaptador dependem da Infraestrutura |
 | Git CLI | Implementado somente para leitura documental |
-| ERP, Microsoft 365, Google, n8n, RAG vetorial e provedores futuros | Planejado |
+| ERP SOMA_DESENV | Descoberta de fornecedores somente leitura; validação operacional pendente |
+| Microsoft 365, Google, n8n, RAG vetorial e provedores futuros | Planejado |
 
 ## 12. Segurança
 
@@ -141,11 +144,11 @@ Há endpoint de health e métricas de qualidade durante publicação. Logging es
 
 ## 14. Estratégia de Testes
 
-Suíte atual: xUnit com fakes manuais, 230 testes unitários e 1 de integração aprovados na última validação. Cobertura futura: Application/Domain, integração, arquitetura, contrato e E2E. E2E, testes de contrato e testes arquiteturais não existem.
+Suíte atual: xUnit com fakes manuais, 290 testes unitários e 5 de integração aprovados na última validação (05/08/2026). Cobertura futura: integração, arquitetura, contrato e E2E. E2E, testes de contrato e testes arquiteturais não existem.
 
 ## 15. Estratégia de Deploy
 
-Docker Compose é o único caminho implementado. CI/CD, ambientes, promoção, versionamento operacional, Kubernetes e GCP são planejados. A API e SQL Server sobem em containers, embora a API ainda não persista dados no SQL Server.
+O ambiente local roda sem Docker (backend via `dotnet run`, frontend via `npm run dev`; ver ADR-0018). CI/CD, ambientes, promoção, versionamento operacional, Kubernetes e GCP são planejados.
 
 ## 16. Roadmap Técnico
 
@@ -154,12 +157,12 @@ Docker Compose é o único caminho implementado. CI/CD, ambientes, promoção, v
 | 0 Fundação | Base técnica e documentação | Qualidade/governança | Reduz risco | Parcial |
 | 1 Core | Identity, Planner, motor de processo | Fase 0 | Capacidades de produto | Planejado |
 | 2 Conhecimento/Memória | Memória corporativa e agentes | Persistência | Contexto reutilizável | Parcial |
-| 3 Automação | Procurement e integrações | APIs e segurança | +COMPRAS utilizável | Não iniciado |
+| 3 Automação | Plataforma operacional +Compras e integrações | Fornecedores, itens e pedidos | Fluxo operacional utilizável antes da inteligência | Parcial |
 | 4 Escala | Observabilidade e analytics | Operação | Produção escalável | Não iniciado |
 
 ## 17. Work Orders
 
-Há 56 Work Orders estratégicas nas fases A–H, além das sprints de governança A10–A12. A1–A4 e A7 são comprovadas; A5 não é comprovada e A6 é parcial; as Work Orders B–H estão planejadas, sem aprovação de execução. `BACKLOG.md`, `workorders/README.md` e `DEPENDENCY_MAP.md` consolidam catálogo e dependências.
+Há 56 Work Orders estratégicas nas fases A–H, além das sprints de governança A10–A12. A1–A4 e A7 são comprovadas; A5 não é comprovada e A6 é parcial; B1, B2, B2.1, B2.1.1, B2.1.2, B2.1.3 e B2.2 estão concluídas (ver `.ai/BACKLOG.md` para evidências detalhadas); B3 não foi iniciada. A ADR-0013 prioriza plataforma operacional antes da inteligência. `BACKLOG.md`, `work-orders/backlog/README.md` e `DEPENDENCY_MAP.md` consolidam catálogo e dependências.
 
 ```mermaid
 flowchart LR
@@ -171,7 +174,7 @@ flowchart LR
 
 ## 18. Decisões Arquiteturais
 
-`DECISIONS.md` é o log canônico: ADR-0001 arquitetura; 0002 stack; 0003 CQRS/MediatR/Domain Events; 0004 Result Pattern; 0005 Contracts entre módulos; 0006 estrutura atual; 0007 renderização comum; 0008 documento rico; 0009 organização de docs. A política de autonomia é registrada em `memory/decisions.md` como decisão operacional, não ADR.
+`DECISIONS.md` é o log canônico: ADR-0001 arquitetura; 0002 stack; 0003 CQRS/MediatR/Domain Events; 0004 Result Pattern; 0005 Contracts entre módulos; 0006 estrutura atual; 0007 renderização comum; 0008 documento rico; 0009 organização de docs; 0011 identidade temporária; 0012 persistência de fornecedores; 0013 evolução operacional e inteligente; 0014 estratégia de LLM desacoplada. A política de autonomia é registrada em `memory/decisions.md` como decisão operacional, não ADR.
 
 ## 19. Padrões do Projeto
 

@@ -14,7 +14,7 @@ internal static class DocumentStylesheetLayer
 {
     /// <summary>
     /// Define as mesmas variáveis usadas pela camada estrutural, com os valores oficiais de
-    /// fallback — usado apenas quando <c>docs/design-system/colors_and_type.css</c> não está
+    /// fallback — usado apenas quando <c>resources/design-system/colors_and_type.css</c> não está
     /// presente, para que a folha de estilo final continue funcionando sem o Design System.
     /// </summary>
     public static string BuildFallbackTokens(DocumentPalette palette, DocumentTypography typography) => $$"""
@@ -40,7 +40,7 @@ internal static class DocumentStylesheetLayer
 
     /// <summary>
     /// Layout de documento (não faz parte do Design System, que não define templates de
-    /// documento — ver <c>docs/design-system/INDEX.md</c>): usa somente <c>var(...)</c> sobre os
+    /// documento — ver <c>resources/design-system/INDEX.md</c>): usa somente <c>var(...)</c> sobre os
     /// tokens acima/oficiais, nunca cor ou fonte literal.
     /// </summary>
     public static string BuildStructuralCss() => """

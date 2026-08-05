@@ -1,7 +1,10 @@
 # Árvore da Solução
 
-Estrutura real de diretórios e projetos do repositório (ignorando `bin`, `obj`,
-`.git` e `node_modules`):
+Estrutura real de diretórios e projetos do repositório, restrita ao que é
+versionável: arquivos rastreados pelo Git, mais os diretórios vazios
+explicitamente reservados para fases futuras do roadmap. Arquivos ignorados,
+não rastreados ou pessoais (ex.: `.myNotes`, `.DS_Store`, `bin/`, `obj/`,
+`node_modules/`, logs, artefatos temporários) não aparecem.
 
 ```
 SOMA-BlueprintOS
@@ -25,7 +28,6 @@ SOMA-BlueprintOS
 │   │   ├── security.md
 │   │   ├── tech-stack.md
 │   │   └── testing.md
-│   ├── decisions/
 │   ├── memory/
 │   │   ├── architecture.md
 │   │   ├── completed_sprints.md
@@ -41,12 +43,8 @@ SOMA-BlueprintOS
 │   │   ├── refactor.md
 │   │   ├── review.md
 │   │   └── tests.md
-│   ├── reports/
 │   ├── sources/
 │   │   └── COMPRAS_INDIRETAS_SOURCES.md
-│   ├── tasks/
-│   │   ├── A13-PrimeiroVerticalSliceMaisCompras.md
-│   │   └── README.md
 │   ├── templates/
 │   │   ├── AUDIT_TEMPLATE.md
 │   │   ├── EPIC_TEMPLATE.md
@@ -56,24 +54,36 @@ SOMA-BlueprintOS
 │   │   ├── RELEASE_TEMPLATE.md
 │   │   ├── SPIKE_TEMPLATE.md
 │   │   └── WORK_ORDER_TEMPLATE.md
-│   ├── work-orders/
-│   │   ├── A13-PrimeiroVerticalSliceMaisCompras.md
+│   ├── work-orders/                 # único local canônico de Work Orders
+│   │   ├── active/                  # em execução/aguardando validação
+│   │   │   └── PortalMaisComprasFrontend.md
+│   │   ├── backlog/                 # catálogo estratégico (fases A–H), planejado/parcial
+│   │   │   ├── fase-a/
+│   │   │   ├── fase-b/
+│   │   │   ├── fase-c/
+│   │   │   ├── fase-d/
+│   │   │   ├── fase-e/
+│   │   │   ├── fase-f/
+│   │   │   ├── fase-g/
+│   │   │   ├── fase-h/
+│   │   │   ├── DEPENDENCY_MAP.md
+│   │   │   ├── README.md
+│   │   │   └── WORK_ORDER_TEMPLATE.md
+│   │   ├── completed/                # concluídos, com evidência
+│   │   │   ├── A1-arquitetura-base.md
+│   │   │   ├── A2-ai-runtime.md
+│   │   │   ├── A3-agent-framework.md
+│   │   │   ├── A4-workflow-e-observabilidade-fundamental.md
+│   │   │   ├── A7-sistema-de-documentacao.md
+│   │   │   ├── A10-GovernanceAndWorkOrderFoundation.md
+│   │   │   ├── A13-PrimeiroVerticalSliceMaisCompras.md
+│   │   │   ├── B1-cadastro-e-perfil-de-fornecedores.md
+│   │   │   ├── B2-catalogo-de-materiais-e-servicos.md
+│   │   │   ├── B2.1-ValidacaoOperacionalESincronizacaoDeFornecedoresComERP.md
+│   │   │   ├── B2.1.1-CompletarMapeamentoCanonicoErpMaisCompras.md
+│   │   │   ├── B2.1.2-AlinhamentoEstruturalErpLinxMaisCompras.md
+│   │   │   └── B2.2-EnriquecimentoCadastralDeFornecedoresPorCnpj.md
 │   │   └── README.md
-│   ├── workorders/
-│   │   ├── fase-a/
-│   │   ├── fase-b/
-│   │   ├── fase-c/
-│   │   ├── fase-d/
-│   │   ├── fase-e/
-│   │   ├── fase-f/
-│   │   ├── fase-g/
-│   │   ├── fase-h/
-│   │   ├── A10 - Governance and Work Order Foundation.md
-│   │   ├── A7 - Documentation System.md
-│   │   ├── DEPENDENCY_MAP.md
-│   │   ├── README.md
-│   │   └── WORK_ORDER_TEMPLATE.md
-│   ├── .DS_Store
 │   ├── AI_AUTONOMY_POLICY.md
 │   ├── AI_BEHAVIOR.md
 │   ├── AI_TEAM.md
@@ -96,16 +106,6 @@ SOMA-BlueprintOS
 │   ├── STANDARDS.md
 │   ├── VISION.md
 │   └── WORKFLOW.md
-├── .claude/
-├── .github/
-│   └── workflows/
-├── .vscode/
-├── agents/
-│   ├── memory/
-│   ├── orchestrator/
-│   ├── planner/
-│   ├── prompts/
-│   └── specialists/
 ├── backend/
 │   ├── src/
 │   │   ├── BlueprintOS.Api/
@@ -117,59 +117,58 @@ SOMA-BlueprintOS
 │   ├── tests/
 │   │   ├── BlueprintOS.IntegrationTests/
 │   │   └── BlueprintOS.UnitTests/
-│   ├── tools/
-│   │   └── docgen-runner/
 │   └── BlueprintOS.sln
-├── database/
-│   ├── docs/
-│   ├── migrations/
-│   ├── scripts/
-│   └── seed/
-├── dist/
-│   ├── client/
-│   │   ├── ClientGuide.html
-│   │   ├── ClientGuide.md
-│   │   └── ClientGuide.pdf
-│   ├── engineering/
-│   │   ├── EngineeringGuide.html
-│   │   ├── EngineeringGuide.md
-│   │   └── EngineeringGuide.pdf
-│   └── executive/
-│       ├── ExecutiveReport.html
-│       ├── ExecutiveReport.md
-│       └── ExecutiveReport.pdf
-├── docs/
-│   ├── AI Factory/
-│   │   ├── Agents/
-│   │   ├── Architecture/
-│   │   ├── Core/
-│   │   ├── Examples/
-│   │   ├── Memory/
-│   │   ├── Prompts/
-│   │   ├── 00 - AI Factory.md
-│   │   ├── 01 - AI Orchestrator.md
-│   │   ├── 02 - AI Team.md
-│   │   ├── 03 - Task Protocol.md
-│   │   ├── 04 - Memory System.md
-│   │   └── 05 - Automation Roadmap.md
+├── docs/                          # documentação técnica — como o sistema funciona
+│   ├── architecture/
+│   │   ├── Architecture.md
+│   │   └── Decisions.md           # referencia .ai/DECISIONS.md, não duplica ADRs
+│   ├── backend/
+│   │   ├── integration/
+│   │   │   ├── B21.2-EstruturaFornecedorERP.md
+│   │   │   ├── FornecedorErpSynchronization.md
+│   │   │   ├── FornecedorSynchronization.md
+│   │   │   └── Integration.md
+│   │   ├── orchestration/
+│   │   │   └── Orchestration.md
+│   │   ├── procurement/
+│   │   │   ├── FornecedorCnpjEnrichment.md
+│   │   │   └── Procurement.md
+│   │   └── shared/
+│   │       └── Shared.md
+│   ├── frontend/
+│   │   └── Frontend.md
+│   ├── database/
+│   │   └── Database.md
+│   ├── agents/
+│   │   ├── ai-factory/            # fundamentos internos da AI Factory (arquitetura-alvo)
+│   │   └── Agents.md
+│   ├── operations/
+│   │   ├── Operations.md
+│   │   └── Runbooks.md
+│   ├── testing/
+│   │   └── Testing.md
+│   ├── releases/
+│   │   └── Release-Notes.md
 │   ├── assets/
 │   │   ├── agents.mmd
 │   │   ├── architecture.mmd
 │   │   ├── dependencies.mmd
 │   │   └── solution-tree.md
-│   ├── audits/
-│   │   ├── architecture-review.md
+│   ├── audits/                    # histórico de auditorias pontuais, não documentação viva
+│   │   ├── architecture-review-2026-07-30.md
+│   │   ├── B-Series-Reconciliation.md
 │   │   ├── repository-cleanup-step-01.md
 │   │   ├── repository-cleanup-step-02.md
 │   │   └── repository-cleanup-step-03.md
-│   ├── client/
-│   │   ├── API.md
-│   │   ├── Changelog.md
-│   │   ├── FAQ.md
-│   │   ├── FunctionalGuide.md
-│   │   ├── ProductOverview.md
-│   │   └── UserGuide.md
-│   ├── decisions/
+│   ├── demo/
+│   │   ├── portal-maiscompras-build.html
+│   │   └── PortalMaisComprasDemo.md
+│   ├── executive/                 # Executive Blueprint — fonte autoral; html/pdf publicados em dist/executive/
+│   │   └── BlueprintOS_Executive_Blueprint.md
+│   ├── Executive Report.md
+│   ├── Product Blueprint.md
+│   └── README.md                  # índice técnico
+├── resources/                     # institucional/marca — fora do fluxo técnico
 │   ├── design-system/
 │   │   ├── assets/
 │   │   ├── fonts/
@@ -183,81 +182,48 @@ SOMA-BlueprintOS
 │   │   ├── INDEX.md
 │   │   ├── README.md
 │   │   └── SKILL.md
-│   ├── diagrams/
-│   ├── engineering/
-│   │   ├── Mermaid/
-│   │   ├── Agents.md
-│   │   ├── APIs.md
-│   │   ├── Architecture.md
-│   │   ├── Database.md
-│   │   ├── Decisions.md
-│   │   ├── Deploy.md
-│   │   └── Runbooks.md
-│   ├── executive/
-│   │   ├── BlueprintOS_Executive_Blueprint.html
-│   │   ├── BlueprintOS_Executive_Blueprint.md
-│   │   ├── BlueprintOS_Executive_Blueprint.pdf
-│   │   ├── Dashboard.md
-│   │   ├── KPIs.md
-│   │   ├── Releases.md
-│   │   ├── Roadmap.md
-│   │   └── SprintStatus.md
-│   ├── presentations/
-│   │   ├── +COMPRAS Strategic Roadmap QA.md
-│   │   ├── +COMPRAS Strategic Roadmap.md
-│   │   ├── +COMPRAS Strategic Roadmap.pdf
-│   │   ├── +COMPRAS Strategic Roadmap.pptx
-│   │   ├── Roadmap Gerencial - BlueprintOS.pptx
-│   │   ├── Roadmap Gerencial - Conteúdo.md
-│   │   ├── Roadmap Gerencial - Design Mapping.md
-│   │   ├── Roadmap Gerencial - Executive Review.md
-│   │   ├── Roadmap Gerencial - QA.md
-│   │   ├── Roadmap Gerencial - Storyboard.md
-│   │   └── ROADMAP_UPDATE.md
-│   ├── sprints/
-│   ├── templates/
-│   │   ├── ADR.md
-│   │   ├── API.md
-│   │   ├── Feature.md
-│   │   ├── RFC.md
-│   │   ├── Sprint.md
-│   │   ├── Task.md
-│   │   └── Workflow.md
-│   ├── .DS_Store
-│   ├── DocumentationHealth.md
-│   ├── Engineering Handbook.md
-│   ├── Executive Report.md
-│   ├── INDEX.md
-│   └── Product Blueprint.md
+│   └── presentations/
+│       ├── +COMPRAS Strategic Roadmap QA.md
+│       ├── +COMPRAS Strategic Roadmap.md
+│       ├── +COMPRAS Strategic Roadmap.pdf
+│       ├── +COMPRAS Strategic Roadmap.pptx
+│       ├── Roadmap Gerencial - BlueprintOS.pptx
+│       ├── Roadmap Gerencial - BlueprintOS.pptx.inspect.ndjson
+│       ├── Roadmap Gerencial - Design Mapping.md
+│       ├── Roadmap Gerencial - Executive Review.md
+│       ├── Roadmap Gerencial - QA.md
+│       ├── Roadmap Gerencial - Storyboard.md
+│       └── ROADMAP_UPDATE.md
 ├── frontend/
-│   ├── mobile/
-│   ├── shared/
 │   └── web/
+│       ├── dist/
+│       ├── src/
+│       ├── .env.example
+│       ├── index.html
+│       ├── package-lock.json
+│       ├── package.json
+│       ├── tsconfig.json
+│       ├── tsconfig.tsbuildinfo
+│       └── vite.config.ts
 ├── infrastructure/
 │   ├── docker/
-│   │   ├── .dockerignore
-│   │   ├── .env.docker
-│   │   ├── .env.docker.example
-│   │   └── docker-compose.yml
+│   │   └── .env.example
 │   ├── kubernetes/
 │   ├── monitoring/
 │   ├── nginx/
 │   └── terraform/
-├── integrations/
+├── mcp/
+│   └── design-system/
+│       └── README.md
 ├── scripts/
-├── shared/
-│   ├── constants/
-│   ├── contracts/
-│   ├── events/
-│   └── libraries/
-├── workers/
-├── .DS_Store
+│   ├── health-check.sh
+│   ├── start-dev.sh
+│   └── stop-dev.sh
 ├── .editorconfig
 ├── .env.example
 ├── .gitattributes
 ├── .gitignore
 ├── CHANGELOG.md
 ├── LICENSE
-├── Makefile
 └── README.md
 ```

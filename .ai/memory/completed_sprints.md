@@ -113,3 +113,92 @@
 **Validação:** `dotnet build backend/BlueprintOS.sln --no-restore` sem avisos ou erros; 234 testes unitários e 2 de integração aprovados. `validate-b1-connectivity` confirmou +Compras e ERP `SOMA_DESENV` por `SELECT 1`, sem migration, DDL ou escrita.
 
 **Limite operacional:** a migration não foi aplicada por solicitação explícita; a criação física das tabelas no +Compras depende de autorização posterior.
+
+## Sprint B2 — Descoberta Inicial de Fornecedores
+
+**Status:** Concluída em 30/07/2026.
+
+**Escopo:** consulta somente leitura ao ERP SOMA_DESENV por item, descrição ou categoria, score explicável 100/80/60/40, persistência de descobertas no +Compras e endpoints de descoberta/consulta.
+
+**Evidência:** `a19e496`; `ErpFornecedorDiscoveryRepository`, `FornecedorDescoberto`, `ScoreFornecedor` e endpoints de descoberta. O fluxo não escreveu no ERP.
+
+**Validação:** build sem erros ou avisos; 240 testes unitários e 2 de integração aprovados.
+
+**Limite operacional:** o ambiente de execução não alcançou o SQL Server ERP (timeout). A validação operacional permanece pendente; o score é estrutura inicial e será evoluído somente quando existirem dados operacionais de itens, pedidos e relacionamentos.
+
+## Sprint B2.1 — Validação Operacional e Sincronização de Fornecedores com ERP
+
+**Status:** Concluída em 31/07/2026.
+
+**Entregas:** contratos ERP por BU/adaptador, adaptador `SOMA_DESENV`, importação e exportação idempotentes, lote controlado, status/origem/última sincronização, histórico de tentativas, correlação, timeout/cancelamento, migration `202607310001_B21FornecedorSynchronization` aplicada no +Compras e endpoints operacionais.
+
+**Evidências reais:** ERP_ID `277459` importado para um único fornecedor do +Compras e repetido sem duplicidade; fornecedor fictício +Compras `59d3f811-23ce-4589-9c15-1679cea59afd` criado no ERP como `999999`, atualizado por CNPJ de final `0195` para `0110` e reexecutado idempotentemente. O histórico do +Compras registrou as tentativas com status sanitizado.
+
+**Validação:** build sem erros/avisos; 245 testes unitários e 3 testes de integração aprovados.
+
+**Conclusão final em 01/08/2026:** a reabertura entregou o contrato canônico completo, sincronização temporal bidirecional, empate favorável ao +Compras, inativação lógica e auditoria append-only com snapshots antes/depois, hashes, `CorrelationId`, histórico e idempotência. `b08769f` e `3b6d54b` registram a implementação. Os CLIFORs reais `315501`, `315502`, `315503` e `315505` foram confirmados em `FORNECEDORES` e `CADASTRO_CLI_FOR`; a concorrência não gerou duplicidade.
+
+**Limitação conhecida:** `FORNECEDORES.FORNECEDOR` é FK para `CADASTRO_CLI_FOR.NOME_CLIFOR`; o nome não foi alterado para evitar operação destrutiva. O adaptador atualiza CNPJ e campos corporativos compatíveis.
+
+## Subetapa B2.1.1 — Completar Mapeamento Canônico ERP → +Compras
+
+**Status:** Concluída em 01/08/2026.
+
+**Entregas:** mapeamento do Linx para identificação, endereço, contatos, dados bancários, comerciais, fiscais e indicadores de fornecimento, sem expor tabelas do ERP à Application.
+
+**Evidência:** `0240c35`; fornecedor ERP fictício `315504` com dados completos e hash persistido. O CNPJ `21855705000160` foi importado com cidade e UF; a reexecução retornou `NenhumaAlteracao`.
+
+## Subetapa B2.1.2 — Modelo Canônico de Fornecedor ERP Linx
+
+**Status:** Concluída em 01/08/2026.
+
+**Resumo:** implementação do modelo canônico de fornecedor integrado ao ERP Linx.
+
+**Entregas:** ADR-0016 criada e aceita; modelo fornecedor alinhado ao Linx; `Cnpj_Cpf` implementado; `TipoPessoa` implementado; `RazaoSocial` separado de `NomeFantasia`; `NomeFantasia` protegido como chave operacional ERP; `Beneficiador` implementado; `Licenciado` implementado; domínios ERP estruturados; FKs opcionais criadas; contrato frontend inicial criado.
+
+**Evidência:** migration `202608010002_B212FornecedorLinxCanonicalModel` aplicada no +Compras dev, sem alteração estrutural no ERP Linx; commit `77861eb`.
+
+**Validação:** build com 0 erros e 0 avisos; 256 testes unitários e 4 testes de integração aprovados.
+
+## Sprint B2.1.3 — Endurecimento da Integração ERP de Fornecedores
+
+**Status:** Concluída em 02/08/2026, com validação real contra API em Docker, VPN corporativa e banco `MaisCompras`.
+
+**Escopo:** transformar a sincronização ERP SOMA → +Compras em rotina operacional rastreável, paginada e resiliente a erros parciais: leitura paginada (`IFornecedorErpReader`/`SomaFornecedorReader` com `OFFSET/FETCH`), orquestração em lotes (`SincronizarFornecedoresErpUseCase`), histórico de execução (`SincronizacaoFornecedor`) e erros parciais persistidos (`ErroSincronizacaoFornecedor`), migration `202608020001_B213FornecedorErpSyncHardening`, logs estruturados e retorno detalhado do endpoint `GET /api/fornecedores/sincronizar-erp`.
+
+**Correções pós-entrega inicial (paginação):** dois bugs reais no loop de paginação, encontrados pelo teste `Execute_Should_Process_Multiple_Batches_And_Calculate_Totals`, foram corrigidos sem alterar regra de negócio: parada prematura quando o lote vinha menor que o esperado (commit `21f1a67`) e cálculo não determinístico do offset de paginação (commit `ca48dc3`).
+
+**Hardening de execução real (02/08/2026):** a pedido explícito do Product Owner, a sprint foi revalidada rodando a API em Docker contra o ERP corporativo (`SOMA_DESENV`) e o banco `MaisCompras` reais, via VPN. Essa validação expôs e corrigiu três problemas adicionais:
+
+1. **Docker bloqueava a subida da API:** `docker-compose.yml` tinha `depends_on: sqlserver: condition: service_healthy` no serviço `api`, obrigando-o a esperar o SQL Server local **opcional** (não usado pela aplicação, que sempre aponta para o banco corporativo). Sem `SA_PASSWORD` definido, o container `sqlserver` nunca ficava saudável e a API nunca subia. Corrigido removendo a dependência obrigatória; o serviço `sqlserver` permanece disponível como ambiente isolado opcional (ADR-0018). Criado `infrastructure/docker/.env.example` sem segredos reais.
+2. **`limite` era tamanho de página, não teto total:** `SincronizarFornecedoresErpUseCase` usava `dto.Limite` apenas como tamanho de lote dentro de um `while(true)` que só parava com página vazia — `limite=50` varria a tabela inteira de fornecedores do ERP (confirmado na prática: 2.812 fornecedores processados antes de a chamada de teste ser interrompida manualmente). Corrigido para que `limite` seja o teto total de fornecedores processados na execução, com paginação interna preservada.
+3. **Erro parcial de persistência virava HTTP 500:** quando `SaveChangesAsync` falhava para um fornecedor (ex.: violação de índice único de CNPJ), a entidade continuava rastreada no `DbContext`, e o `SaveChangesAsync` final (ao persistir `SincronizacaoFornecedor`) tentava salvá-la de novo, repetindo o erro fora do bloco de tratamento e derrubando a requisição inteira — mesmo com a maioria dos fornecedores processados com sucesso. Esse comportamento só aparecia contra SQL Server real; os testes unitários usam EF InMemory, que não impõe índices únicos. Corrigido com `context.ChangeTracker.Clear()` no `catch`, garantindo que a execução finalize como `Parcial` com o erro registrado e o histórico salvo.
+
+**Evidência real:** `docker compose config` sem erros; API sobe isolada via `docker compose up -d api`; `GET /health` retornou `200 OK`; `GET /api/fornecedores/sincronizar-erp?businessUnit=DEFAULT&limite=50` contra ERP/`MaisCompras` reais retornou `{"status":"Parcial","consultados":50,"incluidos":48,"atualizados":1,"erros":1}`; consulta direta via `sqlcmd` confirmou o registro em `SincronizacoesFornecedores` (execução `49A9474D-6CDB-44C2-8D7E-165F79E3CFF7`) e o erro correspondente em `ErrosSincronizacoesFornecedores`.
+
+**Validação:** `dotnet build backend/BlueprintOS.sln` com 0 erros e 0 avisos; `dotnet test backend/BlueprintOS.sln` com 282 testes aprovados (277 unitários + 5 integração), 0 falhas — incluindo o novo teste `Execute_Should_Finish_As_Parcial_And_Persist_Execucao_When_Individual_SaveChanges_Fails`, que simula uma falha real de `SaveChangesAsync` para reproduzir em teste unitário o comportamento antes só visível contra SQL Server real.
+
+**Aprendizados:**
+- O parâmetro `limite` de uma sincronização em lote deve sempre representar um teto operacional total, nunca apenas o tamanho de página — a ambiguidade permite que uma chamada aparentemente limitada varra a base inteira de um sistema externo.
+- Tratamento de erro parcial em rotinas que usam EF Core precisa considerar o estado do `ChangeTracker`: uma entidade que falhou ao salvar continua rastreada e pode contaminar o próximo `SaveChangesAsync`, transformando um erro pontual em falha total.
+- Testes com EF Core InMemory podem não reproduzir restrições reais do SQL Server (índices únicos, por exemplo); o comportamento de erro parcial deve ser coberto com um teste que simule a falha de persistência explicitamente, e idealmente confirmado contra o banco real antes de fechar a sprint.
+
+## Sprint de Infraestrutura — Remoção do Docker e Consolidação do Ambiente Local
+
+**Status:** Concluída e encerrada em 03/08/2026.
+
+**Objetivo:** Remover o Docker do fluxo de desenvolvimento e consolidar o ambiente local (sem containers) como ambiente oficial, mantendo a documentação de engenharia consistente.
+
+**Entregas:**
+
+- `Makefile`, `backend/src/BlueprintOS.Api/Dockerfile` e `infrastructure/docker/docker-compose.yml` removidos (`601d937`, `7bf3bf4`).
+- Dependência opcional de SQL Server local em Docker removida antes da remoção completa (`601d937`).
+- Scripts locais (`start-dev.sh`, `stop-dev.sh`, `health-check.sh`) confirmados como caminho oficial de orquestração de backend/frontend.
+- `frontend/web/.env.example` atualizado para `http://localhost:5262` (API via `dotnet run`).
+- `BlueprintOS.UnitTests.csproj` limpo de referências de pacote não utilizadas.
+- Documentação de engenharia atualizada: `docs/Engineering Handbook.md`, `docs/INDEX.md`, `docs/assets/solution-tree.md`, `docs/engineering/Deploy.md`, `docs/engineering/FornecedorErpSynchronization.md`, `.ai/ENGINEERING_BLUEPRINT.md`, `.ai/content/engineering/08-devops.md`.
+- ADR-0018 (`.ai/DECISIONS.md`) atualizada para remover a opção Docker do ambiente de execução.
+
+**Validação:** `dotnet build backend/BlueprintOS.sln` com 0 erros e 0 avisos; `dotnet test backend/BlueprintOS.sln` com 286 testes aprovados (281 unitários + 5 integração), 0 falhas; `npm run build` do frontend (`tsc -b && vite build`) aprovado; scripts de desenvolvimento verificados como funcionais; branch sincronizada e working tree limpo antes do encerramento.
+
+**Resultado:** Docker deixou de ser parte do fluxo de desenvolvimento. Nenhuma regra de negócio, contrato de API ou comportamento funcional foi alterado — escopo exclusivamente de infraestrutura e documentação. Projeto estável e apto para iniciar a próxima sprint funcional.

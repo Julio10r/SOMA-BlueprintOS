@@ -15,7 +15,7 @@ public sealed class FornecedorUseCasesTests
         var identity = new FakeIdentity(); var repository = new FakeRepository();
         var result = await new CadastrarFornecedorUseCase(repository, identity).ExecuteAsync(CreateDto());
         Assert.Equal(identity.UserId, result.TemporaryUserId);
-        Assert.Equal("12345678000195", result.Cnpj);
+        Assert.Equal("12345678000195", result.Cnpj_Cpf);
     }
 
     [Fact]
@@ -23,6 +23,26 @@ public sealed class FornecedorUseCasesTests
     {
         var repository = new FakeRepository { ExistingCnpj = "12345678000195" };
         await Assert.ThrowsAsync<InvalidOperationException>(() => new CadastrarFornecedorUseCase(repository, new FakeIdentity()).ExecuteAsync(CreateDto()));
+    }
+
+    [Theory]
+    [InlineData("12345678901", "PF")]
+    [InlineData("12345678000195", "PJ")]
+    [InlineData("AB12345678901", "PF")]
+    public async Task Cadastrar_Should_Accept_Documento_Fiscal_Up_To_14_Characters(string documento, string tipoPessoa)
+    {
+        var result = await new CadastrarFornecedorUseCase(new FakeRepository(), new FakeIdentity())
+            .ExecuteAsync(CreateDto() with { Cnpj_Cpf = documento, TipoPessoa = tipoPessoa });
+
+        Assert.Equal(documento, result.Cnpj_Cpf);
+        Assert.Equal(tipoPessoa, result.TipoPessoa);
+    }
+
+    [Fact]
+    public async Task Cadastrar_Should_Reject_Documento_Fiscal_Above_14_Characters()
+    {
+        await Assert.ThrowsAsync<ArgumentException>(() => new CadastrarFornecedorUseCase(new FakeRepository(), new FakeIdentity())
+            .ExecuteAsync(CreateDto() with { Cnpj_Cpf = "123456789012345" }));
     }
 
     [Fact]
@@ -44,9 +64,9 @@ public sealed class FornecedorUseCasesTests
         public Task AtualizarAsync(Fornecedor f, CancellationToken ct = default) => Task.CompletedTask;
         public Task ExcluirAsync(Fornecedor f, CancellationToken ct = default) { Items.Remove(f); return Task.CompletedTask; }
         public Task<Fornecedor?> ObterPorIdAsync(Guid id, Guid user, CancellationToken ct = default) => Task.FromResult(Items.SingleOrDefault(x => x.Id == id && x.TemporaryUserId == user));
-        public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid user, CancellationToken ct = default) => Task.FromResult(Items.SingleOrDefault(x => x.Cnpj == cnpj && x.TemporaryUserId == user));
+        public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid user, CancellationToken ct = default) => Task.FromResult(Items.SingleOrDefault(x => x.Cnpj_Cpf == cnpj && x.TemporaryUserId == user));
         public Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string term, Guid user, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Fornecedor>>(Items.Where(x => x.TemporaryUserId == user).ToArray());
         public Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid user, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Fornecedor>>(Items.Where(x => x.TemporaryUserId == user).ToArray());
-        public Task<bool> ExisteAsync(string cnpj, CancellationToken ct = default) => Task.FromResult(ExistingCnpj == cnpj || Items.Any(x => x.Cnpj == cnpj));
+        public Task<bool> ExisteAsync(string cnpj, CancellationToken ct = default) => Task.FromResult(ExistingCnpj == cnpj || Items.Any(x => x.Cnpj_Cpf == cnpj));
     }
 }

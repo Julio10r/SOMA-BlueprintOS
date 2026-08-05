@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -8,7 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.18" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
@@ -19,10 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\BlueprintOS.Application\BlueprintOS.Application.csproj" />
-    <ProjectReference Include="..\..\src\BlueprintOS.Core\BlueprintOS.Core.csproj" />
-    <ProjectReference Include="..\..\src\BlueprintOS.Domain\BlueprintOS.Domain.csproj" />
-    <ProjectReference Include="..\..\src\BlueprintOS.Infrastructure\BlueprintOS.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/BlueprintOS.Api/BlueprintOS.Api.csproj" />
+    <ProjectReference Include="../../src/BlueprintOS.Application/BlueprintOS.Application.csproj" />
+    <ProjectReference Include="../../src/BlueprintOS.Core/BlueprintOS.Core.csproj" />
+    <ProjectReference Include="../../src/BlueprintOS.Domain/BlueprintOS.Domain.csproj" />
+    <ProjectReference Include="../../src/BlueprintOS.Infrastructure/BlueprintOS.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
