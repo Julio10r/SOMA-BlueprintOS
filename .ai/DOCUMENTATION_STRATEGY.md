@@ -38,7 +38,7 @@ Sempre que houver evolução funcional.
 
 ---
 
-# Engineering Handbook
+# Documentação Técnica (docs/README.md)
 
 Público
 
@@ -46,11 +46,11 @@ Desenvolvedores
 
 Objetivo
 
-Facilitar onboarding e desenvolvimento.
+Facilitar onboarding e desenvolvimento. A partir da ADR-0019, a documentação técnica não vive mais em um único Engineering Handbook — está organizada por domínio em `docs/` (arquitetura, backend, frontend, banco, agentes, operações, testes, releases), indexada por `docs/README.md`.
 
 Atualização
 
-Contínua.
+Contínua, por domínio — ver a regra de atualização em `docs/README.md`.
 
 ---
 

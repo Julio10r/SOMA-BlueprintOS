@@ -55,7 +55,8 @@ SOMA-BlueprintOS
 │   │   ├── SPIKE_TEMPLATE.md
 │   │   └── WORK_ORDER_TEMPLATE.md
 │   ├── work-orders/                 # único local canônico de Work Orders
-│   │   ├── active/                  # vazio: nenhuma sprint em execução
+│   │   ├── active/                  # em execução/aguardando validação
+│   │   │   └── PortalMaisComprasFrontend.md
 │   │   ├── backlog/                 # catálogo estratégico (fases A–H), planejado/parcial
 │   │   │   ├── fase-a/
 │   │   │   ├── fase-b/
@@ -162,11 +163,8 @@ SOMA-BlueprintOS
 │   ├── demo/
 │   │   ├── portal-maiscompras-build.html
 │   │   └── PortalMaisComprasDemo.md
-│   ├── executive/                 # Executive Blueprint (fonte autoral + saída gerada, pendente migração para dist/)
-│   │   ├── BlueprintOS_Executive_Blueprint.html
-│   │   ├── BlueprintOS_Executive_Blueprint.md
-│   │   └── BlueprintOS_Executive_Blueprint.pdf
-│   ├── DocumentationHealth.md     # gerado pelo Publication Engine
+│   ├── executive/                 # Executive Blueprint — fonte autoral; html/pdf publicados em dist/executive/
+│   │   └── BlueprintOS_Executive_Blueprint.md
 │   ├── Executive Report.md
 │   ├── Product Blueprint.md
 │   └── README.md                  # índice técnico

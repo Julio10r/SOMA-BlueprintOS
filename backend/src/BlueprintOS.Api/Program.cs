@@ -1,5 +1,5 @@
-using BlueprintOS.Core.Documentation.Contracts;
 using BlueprintOS.Core.Publication.Contracts;
+using BlueprintOS.Core.Publication.Models;
 using BlueprintOS.Api.Identity;
 using BlueprintOS.Api.Negotiations;
 using BlueprintOS.Api.Suppliers;
@@ -7,7 +7,6 @@ using BlueprintOS.Application.Identity.Contracts;
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Infrastructure.DependencyInjection;
 using BlueprintOS.Infrastructure.Persistence;
-using BlueprintOS.Infrastructure.Publication.Publishers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Data.SqlClient;
@@ -18,14 +17,11 @@ if (args.Length > 0 && args[0] == "publish")
     return await RunPublicationEngineAsync(args);
 }
 
-if (args.Length > 0 && args[0] == "publish-docs")
+if (args.Length > 0 && (args[0] == "publish-docs" || args[0] == "publish-executive-blueprint"))
 {
-    return await RunDocumentationPublishServiceAsync();
-}
-
-if (args.Length > 0 && args[0] == "publish-executive-blueprint")
-{
-    return await RunExecutiveBlueprintAsync();
+    Console.Error.WriteLine(
+        $"O comando '{args[0]}' foi removido (ADR-0019). Use 'publish': ele descobre todo docs/ e publica em dist/, sem lógica por audiência.");
+    return 1;
 }
 
 if (args.Length > 0 && args[0] == "migrate")
@@ -127,7 +123,22 @@ static async Task<int> RunPublicationEngineAsync(string[] args)
 #pragma warning restore ASP0000
 
     var publicationService = provider.GetRequiredService<IPublicationService>();
-    var artifacts = await publicationService.PublishAllAsync();
+
+    IReadOnlyList<PublishedArtifact> artifacts;
+    try
+    {
+        artifacts = await publicationService.PublishAllAsync();
+    }
+    catch (InvalidOperationException ex)
+    {
+        Console.Error.WriteLine($"Publication Engine: configuração inválida — {ex.Message}");
+        return 1;
+    }
+    catch (DirectoryNotFoundException ex)
+    {
+        Console.Error.WriteLine($"Publication Engine: {ex.Message}");
+        return 1;
+    }
 
     Console.WriteLine($"Publication Engine: {artifacts.Count} artefato(s) publicado(s) em dist/.");
     foreach (var artifact in artifacts)
@@ -141,32 +152,6 @@ static async Task<int> RunPublicationEngineAsync(string[] args)
 
     Console.WriteLine(
         $"Documentation Health: {healthReport.HealthyCount} saudável(is), {healthReport.WarningCount} aviso(s), {healthReport.ErrorCount} erro(s). Relatório em {healthReportPath}.");
-
-    return 0;
-}
-
-static async Task<int> RunDocumentationPublishServiceAsync()
-{
-    var repoRoot = FindRepoRoot(AppContext.BaseDirectory) ?? Directory.GetCurrentDirectory();
-    Directory.SetCurrentDirectory(repoRoot);
-
-    var configuration = new ConfigurationBuilder()
-        .SetBasePath(AppContext.BaseDirectory)
-        .AddJsonFile("appsettings.json", optional: true)
-        .AddEnvironmentVariables()
-        .Build();
-
-    var services = new ServiceCollection();
-    services.AddInfrastructure(configuration);
-
-#pragma warning disable ASP0000 // ponto de entrada isolado para o CLI de publicação, sem relação com o host web.
-    await using var provider = services.BuildServiceProvider();
-#pragma warning restore ASP0000
-
-    var documentationPublishService = provider.GetRequiredService<IDocumentationPublishService>();
-    var documents = await documentationPublishService.PublishAllAsync();
-
-    Console.WriteLine($"Portal de Documentação Viva: {documents.Count} documento(s) publicado(s) em docs/.");
 
     return 0;
 }
@@ -185,30 +170,6 @@ static string? FindRepoRoot(string startDirectory)
     }
 
     return null;
-}
-
-static async Task<int> RunExecutiveBlueprintAsync()
-{
-    var repoRoot = FindRepoRoot(AppContext.BaseDirectory) ?? Directory.GetCurrentDirectory();
-    var configuration = new ConfigurationBuilder()
-        .SetBasePath(AppContext.BaseDirectory)
-        .AddJsonFile("appsettings.json", optional: true)
-        .AddEnvironmentVariables()
-        .Build();
-
-    var services = new ServiceCollection();
-    services.AddInfrastructure(configuration);
-
-#pragma warning disable ASP0000
-    await using var provider = services.BuildServiceProvider();
-#pragma warning restore ASP0000
-
-    await ExecutiveBlueprintPublisher.PublishAsync(
-        repoRoot,
-        provider.GetRequiredService<IEnumerable<IContentRenderer>>(),
-        provider.GetRequiredService<IDocumentThemeProvider>());
-    Console.WriteLine("Executive Blueprint: HTML e PDF publicados em docs/executive/.");
-    return 0;
 }
 
 static async Task<int> RunMigrationsAsync()

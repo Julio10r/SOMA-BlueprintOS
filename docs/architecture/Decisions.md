@@ -10,7 +10,7 @@ As ADRs (Architecture Decision Records) do SOMA BlueprintOS vivem exclusivamente
 - **ADR-0004** — Result Pattern em vez de exceções para fluxos de negócio esperados.
 - **ADR-0005** — Comunicação entre módulos exclusivamente via Contracts.
 - **ADR-0006** — Módulo Documentation implementado sobre a estrutura Core/Infrastructure atual.
-- **ADR-0019** — `docs/` como fonte canônica única da documentação técnica, organizada por domínio; substitui a ADR-0009 nas decisões sobre arquitetura documental. É a decisão vigente para a estrutura descrita neste documento.
+- **ADR-0019** — `docs/` como fonte canônica única da documentação técnica, organizada por domínio; substitui a ADR-0009 nas decisões sobre arquitetura documental. Integralmente implementada: o Publication Engine (`DocsPublisher`) descobre `docs/**/*.md` e publica em `dist/`, sem lógica por audiência.
 - **ADR-0009** — Estrutura de diretórios de documentação publicada por público-alvo (`docs/{executive,client,engineering,assets}`). Histórica/substituída pela ADR-0019; mantida no log apenas como registro do que já foi decidido.
 - **ADR-0011** — Identidade temporária de desenvolvimento para antecipar a persistência de fornecedores.
 - **ADR-0012** — Persistência de fornecedores isolada por repositório e identidade abstrata.

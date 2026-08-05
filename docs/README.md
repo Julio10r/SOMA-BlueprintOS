@@ -35,3 +35,15 @@ Autenticação/identidade corporativa (Microsoft Entra ID) ainda não tem docume
 - **Material institucional, de marca e apresentações** — em `resources/` (design system, decks).
 - **Saída publicável** (Markdown/HTML/PDF gerados pelo Publication Engine) — em `dist/`, nunca versionada.
 - **Auditorias históricas** — preservadas em `docs/audits/`, não são documentação viva.
+
+## Descoberta e exclusão na publicação (`Publication.ExcludedTopLevelDirectories`)
+
+O Publication Engine (`DocsPublisher`) descobre recursivamente todo `docs/**/*.md`. Diretórios de topo de nível 1 podem ser excluídos da publicação via configuração, sem exigir recompilação — padrão atual: `audits` e `demo`.
+
+Novos diretórios podem ser excluídos por variável de ambiente, por exemplo:
+
+```
+Publication__ExcludedTopLevelDirectories__2=nome-do-diretorio
+```
+
+ou por seção equivalente em `appsettings.json` (`"Publication": { "ExcludedTopLevelDirectories": [...] }`).

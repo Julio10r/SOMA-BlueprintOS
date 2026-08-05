@@ -83,3 +83,12 @@
 | A11 | Engineering Blueprint | Implementado | Documento e histórico Git. |
 | A12 | Especificação Oficial das 56 Work Orders | Implementado | Catálogo, Work Orders e validações documentais desta sprint. |
 | Portal +Compras Frontend | Portal +Compras Frontend | Concluído tecnicamente no frontend (parcial) | Commit `8ee8f4e`, branch `feature/a13-procurement-vertical-slice`; shell/navegação, módulo Fornecedores conectado à API real, demais módulos demonstrativos, Design System AZZAS 2154/GDT aplicado; build frontend aprovado (`tsc`+`vite`, 4/4 testes). Backend `dotnet build`/`dotnet test` não executados neste ciclo por falta de SDK .NET no ambiente de revisão — pendente validação local. Ver `.ai/work-orders/active/PortalMaisComprasFrontend.md` e `docs/demo/PortalMaisComprasDemo.md`. |
+
+## Pendências de limpeza — Publication Engine (pós Etapa 3, ADR-0019)
+
+Itens identificados na auditoria da Etapa 3.1, sem risco funcional bloqueante, sem sprint ou Work Order associada — registrados apenas para rastreabilidade futura:
+
+1. **Remover `.ai/content/{executive,client,engineering}/`** — não possui mais consumidores vivos (código, testes, configuração ou documentação); confirmado por busca completa no repositório.
+2. **Reclassificar e mover para `resources/`**: `docs/Executive Report.md`, `docs/Product Blueprint.md`, `docs/executive/BlueprintOS_Executive_Blueprint.md` — são conteúdo institucional/executivo/apresentação, não documentação técnica, e atualmente contradizem o escopo de `docs/` definido pela ADR-0019.
+3. **Auditar e remover ou justificar** as 13 interfaces órfãs do módulo Documentation (`ITechnicalDocumentationGenerator`, `IFunctionalDocumentationGenerator`, `IAiDocumentationGenerator`, `IDeveloperDocumentationGenerator`, `IChangeLogService`, `IDocumentVersioningService`, `IStaleDocumentationDetector`, `IGitLogReader`, `IDocumentationMemoryNotifier`, `IDocumentationRepository`, `IMermaidDiagramGenerator`, `IAdrService`, `IDocumentationSyncService`) — registradas em DI, sem chamador vivo fora de sua própria implementação/teste.
+4. **Documentar `Publication.ExcludedTopLevelDirectories`** em configuração de exemplo (`appsettings.json`) — a propriedade já é configurável via `IOptions`/variável de ambiente sem recompilação, mas não há exemplo de configuração no repositório.

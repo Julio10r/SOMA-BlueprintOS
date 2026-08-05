@@ -13,18 +13,10 @@ using BlueprintOS.Core.AI.Negotiation.Models;
 using BlueprintOS.Core.AI.Negotiation.Rules;
 using BlueprintOS.Core.Agents;
 using BlueprintOS.Core.Documentation.Contracts;
-using BlueprintOS.Core.Documentation.Contracts.Assets;
-using BlueprintOS.Core.Documentation.Contracts.Client;
-using BlueprintOS.Core.Documentation.Contracts.Engineering;
-using BlueprintOS.Core.Documentation.Contracts.Executive;
 using BlueprintOS.Core.Knowledge.Contracts;
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Infrastructure.Documentation;
-using BlueprintOS.Infrastructure.Documentation.Assets;
-using BlueprintOS.Infrastructure.Documentation.Generators.Client;
-using BlueprintOS.Infrastructure.Documentation.Generators.Engineering;
-using BlueprintOS.Infrastructure.Documentation.Generators.Executive;
-using BlueprintOS.Infrastructure.Documentation.Publishing;
+using BlueprintOS.Infrastructure.Publication.Docs;
 using BlueprintOS.Infrastructure.Integrations.ERP.Contracts;
 using BlueprintOS.Infrastructure.Integrations.ERP.Soma;
 using BlueprintOS.Infrastructure.Integrations.CnpjConsulta;
@@ -36,7 +28,6 @@ using BlueprintOS.Infrastructure.Persistence.Repositories;
 using BlueprintOS.Infrastructure.Publication;
 using BlueprintOS.Infrastructure.Publication.Assets;
 using BlueprintOS.Infrastructure.Publication.Health;
-using BlueprintOS.Infrastructure.Publication.Publishers;
 using BlueprintOS.Infrastructure.Publication.Rendering;
 using BlueprintOS.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
@@ -149,42 +140,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IGitLogReader, GitCliDocumentationService>();
         services.AddSingleton<IDocumentationMemoryNotifier, NoOpDocumentationMemoryNotifier>();
 
-        // Portal de Documentação Viva (Sprint A8)
-        services.AddSingleton<IDocumentPublisher, MarkdownPublisher>();
-        services.AddSingleton<DocumentationPublisher>();
-
-        services.AddSingleton<IDashboardGenerator, DashboardGenerator>();
-        services.AddSingleton<IKpiGenerator, KpiGenerator>();
-        services.AddSingleton<IRoadmapGenerator, RoadmapGenerator>();
-        services.AddSingleton<ISprintStatusGenerator, SprintStatusGenerator>();
-        services.AddSingleton<IReleaseGenerator, ReleaseGenerator>();
-        services.AddSingleton<IExecutiveContentLoader, ExecutiveContentLoader>();
-
-        services.AddSingleton<IProductOverviewGenerator, ProductOverviewGenerator>();
-        services.AddSingleton<IUserGuideGenerator, UserGuideGenerator>();
-        services.AddSingleton<IFunctionalGuideGenerator, FunctionalGuideGenerator>();
-        services.AddSingleton<IApiDocumentationGenerator, ApiDocumentationGenerator>();
-        services.AddSingleton<IChangelogGenerator, ChangelogGenerator>();
-        services.AddSingleton<IFaqGenerator, FaqGenerator>();
-        services.AddSingleton<IClientContentLoader, ClientContentLoader>();
-
-        services.AddSingleton<IArchitectureGenerator, ArchitectureGenerator>();
-        services.AddSingleton<IDatabaseGenerator, DatabaseGenerator>();
-        services.AddSingleton<IAgentsGenerator, AgentsGenerator>();
-        services.AddSingleton<IApiGenerator, ApiGenerator>();
-        services.AddSingleton<IDeployGenerator, DeployGenerator>();
-        services.AddSingleton<IRunbookGenerator, RunbookGenerator>();
-        services.AddSingleton<IMermaidGenerator, MermaidGenerator>();
-        services.AddSingleton<IDecisionsGenerator, DecisionsGenerator>();
-        services.AddSingleton<IEngineeringContentLoader, EngineeringContentLoader>();
-
-        // Asset Generator (Sprint A7.3)
-        services.AddSingleton<IDocumentationAssetGenerator, DocumentationAssetGenerator>();
-        services.AddSingleton<IAssetPublisher, AssetFilePublisher>();
-
-        services.AddSingleton<IDocumentationPublishService, DocumentationPublishService>();
-
-        // Publication Engine (Sprint A9)
+        // Publication Engine — fonte docs/, destino dist/, sem lógica por audiência (ADR-0019)
         services.Configure<PublicationOptions>(configuration.GetSection(PublicationOptions.SectionName));
         services.AddSingleton<IQualityMetricsProvider, QualityMetricsProvider>();
         services.AddSingleton<IDocumentThemeProvider, DocumentThemeProvider>();
@@ -192,10 +148,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IContentRenderer, MarkdownRenderer>();
         services.AddSingleton<IContentRenderer, HtmlRenderer>();
         services.AddSingleton<IContentRenderer, PdfRenderer>();
-        services.AddSingleton<IReportPublisher, ExecutivePublisher>();
-        services.AddSingleton<IReportPublisher, ClientPublisher>();
-        services.AddSingleton<IReportPublisher, EngineeringPublisher>();
-        services.AddSingleton<IPublicationService, PublicationService>();
+        services.AddSingleton<IDocsDiscoveryService>(provider =>
+            new DocsDiscoveryService(provider.GetRequiredService<IOptions<PublicationOptions>>().Value.ExcludedTopLevelDirectories));
+        services.AddSingleton<IPublicationService, DocsPublisher>();
 
         // Documentation Health Report (Sprint A7.2)
         services.Configure<DocumentationHealthOptions>(configuration.GetSection(DocumentationHealthOptions.SectionName));
