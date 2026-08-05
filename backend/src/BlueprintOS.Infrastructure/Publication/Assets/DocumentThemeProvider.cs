@@ -8,9 +8,9 @@ namespace BlueprintOS.Infrastructure.Publication.Assets;
 
 /// <summary>
 /// Implementação de <see cref="IDocumentThemeProvider"/> que lê os tokens de cor e tipografia
-/// diretamente de <c>docs/design-system/colors_and_type.css</c> e <c>fonts.css</c> — a mesma
+/// diretamente de <c>resources/design-system/colors_and_type.css</c> e <c>fonts.css</c> — a mesma
 /// fonte de verdade usada pelo Portal GDT e pelos materiais institucionais (ver
-/// <c>docs/design-system/SKILL.md</c>). Nenhum valor de cor ou fonte é definido aqui além do
+/// <c>resources/design-system/SKILL.md</c>). Nenhum valor de cor ou fonte é definido aqui além do
 /// fallback de segurança usado quando o Design System não está presente no repositório.
 /// </summary>
 public sealed class DocumentThemeProvider : IDocumentThemeProvider

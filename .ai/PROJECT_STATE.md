@@ -123,7 +123,7 @@ Build da solution: `dotnet build backend/BlueprintOS.sln` executado em 03/08/202
 
 ## Divergências ainda abertas
 
-- O roadmap estratégico de apresentação +COMPRAS continua sem atualização visual; as correções necessárias estão listadas em `docs/presentations/ROADMAP_UPDATE.md`.
+- O roadmap estratégico de apresentação +COMPRAS continua sem atualização visual; as correções necessárias estão listadas em `resources/presentations/ROADMAP_UPDATE.md`.
 - A estrutura alvo descrita em `ARCHITECTURE.md` não é a estrutura física atual.
 - Nenhuma Work Order futura está aprovada; a próxima sprint depende de decisão explícita do Product Owner.
 

@@ -117,36 +117,60 @@ SOMA-BlueprintOS
 │   │   ├── BlueprintOS.IntegrationTests/
 │   │   └── BlueprintOS.UnitTests/
 │   └── BlueprintOS.sln
-├── docs/
-│   ├── AI Factory/
-│   │   ├── Architecture/
-│   │   ├── 00 - AI Factory.md
-│   │   ├── 01 - AI Orchestrator.md
-│   │   ├── 02 - AI Team.md
-│   │   ├── 03 - Task Protocol.md
-│   │   ├── 04 - Memory System.md
-│   │   └── 05 - Automation Roadmap.md
+├── docs/                          # documentação técnica — como o sistema funciona
+│   ├── architecture/
+│   │   ├── Architecture.md
+│   │   └── Decisions.md           # referencia .ai/DECISIONS.md, não duplica ADRs
+│   ├── backend/
+│   │   ├── integration/
+│   │   │   ├── B21.2-EstruturaFornecedorERP.md
+│   │   │   ├── FornecedorErpSynchronization.md
+│   │   │   ├── FornecedorSynchronization.md
+│   │   │   └── Integration.md
+│   │   ├── orchestration/
+│   │   │   └── Orchestration.md
+│   │   ├── procurement/
+│   │   │   ├── FornecedorCnpjEnrichment.md
+│   │   │   └── Procurement.md
+│   │   └── shared/
+│   │       └── Shared.md
+│   ├── frontend/
+│   │   └── Frontend.md
+│   ├── database/
+│   │   └── Database.md
+│   ├── agents/
+│   │   ├── ai-factory/            # fundamentos internos da AI Factory (arquitetura-alvo)
+│   │   └── Agents.md
+│   ├── operations/
+│   │   ├── Operations.md
+│   │   └── Runbooks.md
+│   ├── testing/
+│   │   └── Testing.md
+│   ├── releases/
+│   │   └── Release-Notes.md
 │   ├── assets/
 │   │   ├── agents.mmd
 │   │   ├── architecture.mmd
 │   │   ├── dependencies.mmd
 │   │   └── solution-tree.md
-│   ├── audits/
+│   ├── audits/                    # histórico de auditorias pontuais, não documentação viva
 │   │   ├── architecture-review-2026-07-30.md
 │   │   ├── B-Series-Reconciliation.md
 │   │   ├── repository-cleanup-step-01.md
 │   │   ├── repository-cleanup-step-02.md
 │   │   └── repository-cleanup-step-03.md
-│   ├── client/
-│   │   ├── API.md
-│   │   ├── Changelog.md
-│   │   ├── FAQ.md
-│   │   ├── FunctionalGuide.md
-│   │   ├── ProductOverview.md
-│   │   └── UserGuide.md
 │   ├── demo/
 │   │   ├── portal-maiscompras-build.html
 │   │   └── PortalMaisComprasDemo.md
+│   ├── executive/                 # Executive Blueprint (fonte autoral + saída gerada, pendente migração para dist/)
+│   │   ├── BlueprintOS_Executive_Blueprint.html
+│   │   ├── BlueprintOS_Executive_Blueprint.md
+│   │   └── BlueprintOS_Executive_Blueprint.pdf
+│   ├── DocumentationHealth.md     # gerado pelo Publication Engine
+│   ├── Executive Report.md
+│   ├── Product Blueprint.md
+│   └── README.md                  # índice técnico
+├── resources/                     # institucional/marca — fora do fluxo técnico
 │   ├── design-system/
 │   │   ├── assets/
 │   │   ├── fonts/
@@ -160,58 +184,18 @@ SOMA-BlueprintOS
 │   │   ├── INDEX.md
 │   │   ├── README.md
 │   │   └── SKILL.md
-│   ├── engineering/
-│   │   ├── Mermaid/
-│   │   ├── Agents.md
-│   │   ├── APIs.md
-│   │   ├── Architecture.md
-│   │   ├── B21.2-EstruturaFornecedorERP.md
-│   │   ├── Database.md
-│   │   ├── Decisions.md
-│   │   ├── Deploy.md
-│   │   ├── FornecedorCnpjEnrichment.md
-│   │   ├── FornecedorErpSynchronization.md
-│   │   ├── FornecedorSynchronization.md
-│   │   ├── Frontend.md
-│   │   └── Runbooks.md
-│   ├── executive/
-│   │   ├── BlueprintOS_Executive_Blueprint.html
-│   │   ├── BlueprintOS_Executive_Blueprint.md
-│   │   ├── BlueprintOS_Executive_Blueprint.pdf
-│   │   ├── Dashboard.md
-│   │   ├── KPIs.md
-│   │   ├── Releases.md
-│   │   ├── Roadmap.md
-│   │   └── SprintStatus.md
-│   ├── presentations/
-│   │   ├── +COMPRAS Strategic Roadmap QA.md
-│   │   ├── +COMPRAS Strategic Roadmap.md
-│   │   ├── +COMPRAS Strategic Roadmap.pdf
-│   │   ├── +COMPRAS Strategic Roadmap.pptx
-│   │   ├── Roadmap Gerencial - BlueprintOS.pptx
-│   │   ├── Roadmap Gerencial - BlueprintOS.pptx.inspect.ndjson
-│   │   ├── Roadmap Gerencial - Design Mapping.md
-│   │   ├── Roadmap Gerencial - Executive Review.md
-│   │   ├── Roadmap Gerencial - QA.md
-│   │   ├── Roadmap Gerencial - Storyboard.md
-│   │   └── ROADMAP_UPDATE.md
-│   ├── product/
-│   │   └── PortalMapa.md
-│   ├── templates/
-│   │   ├── ADR.md
-│   │   ├── API.md
-│   │   ├── Feature.md
-│   │   ├── RFC.md
-│   │   ├── Sprint.md
-│   │   ├── Task.md
-│   │   └── Workflow.md
-│   ├── work-orders/
-│   │   └── PortalMaisComprasFrontend.md
-│   ├── DocumentationHealth.md
-│   ├── Engineering Handbook.md
-│   ├── Executive Report.md
-│   ├── INDEX.md
-│   └── Product Blueprint.md
+│   └── presentations/
+│       ├── +COMPRAS Strategic Roadmap QA.md
+│       ├── +COMPRAS Strategic Roadmap.md
+│       ├── +COMPRAS Strategic Roadmap.pdf
+│       ├── +COMPRAS Strategic Roadmap.pptx
+│       ├── Roadmap Gerencial - BlueprintOS.pptx
+│       ├── Roadmap Gerencial - BlueprintOS.pptx.inspect.ndjson
+│       ├── Roadmap Gerencial - Design Mapping.md
+│       ├── Roadmap Gerencial - Executive Review.md
+│       ├── Roadmap Gerencial - QA.md
+│       ├── Roadmap Gerencial - Storyboard.md
+│       └── ROADMAP_UPDATE.md
 ├── frontend/
 │   └── web/
 │       ├── dist/

@@ -70,7 +70,7 @@ O portal não é uma fase isolada: ele evolui com os módulos. A ADR-0017 aprovo
 
 - **Status:** nova frente preparada.
 - **Executor:** Claude Code.
-- **Work Order:** `docs/work-orders/PortalMaisComprasFrontend.md`.
+- **Work Order:** `.ai/work-orders/active/PortalMaisComprasFrontend.md`.
 - **Regra:** somente Fornecedor deve estar conectado ao backend nesta etapa; Dashboard, Pedidos, Negociações, Indicadores, Agentes IA e Configurações podem existir como telas demonstrativas preparadas para evolução, sem funcionalidades falsas.
 
 ---

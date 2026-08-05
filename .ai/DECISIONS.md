@@ -441,3 +441,26 @@ Detalhamento:
 - Demonstrações completas (Fornecedores, consulta CNPJ, enriquecimento, aprovação/rejeição) exigem VPN corporativa ativa e o backend rodando localmente — não há URL pública permanente neste momento.
 - Homologação/demo formal fica registrada como pendência futura, a ser resolvida com um ambiente Windows Server/IIS dedicado (fora do escopo desta ADR).
 - Nenhuma regra de negócio existente foi alterada; apenas configuração de ambiente (portas, CORS, `.env.example`) e remoção de artefatos específicos da tentativa de publicação via n8n.
+
+---
+
+## ADR-0019: `docs/` como fonte canônica única da documentação técnica, organizada por domínio
+
+**Status:** Aceito
+
+**Contexto:** A ADR-0009 definia `docs/{executive,client,engineering,assets}` como estrutura oficial, organizada por público-alvo, publicada automaticamente pelo Portal de Documentação Viva (19 geradores) e pelo Publication Engine. Na prática, essa estrutura resultou em `docs/` sendo simultaneamente fonte autoral (arquivos como `FornecedorErpSynchronization.md`, `Frontend.md`, escritos por humanos) e destino de geração automática (os 19 arquivos com o banner "Não editar manualmente"), sem separação clara entre o que é documentação técnica permanente e o que é saída derivada de `.ai/`. Isso violava o princípio de que documentação técnica não deve duplicar estado operacional volátil, e deixava `dist/` sem função real como saída publicável.
+
+**Decisão:**
+- `docs/` passa a ser a **única fonte canônica da documentação técnica** do SOMA BlueprintOS — descreve como o sistema funciona, escrita por humanos (ou por IA em nome de humanos), nunca gerada automaticamente.
+- `.ai/` permanece exclusivamente conhecimento operacional da IA — estado, sprint, roadmap, backlog, decisões (ADRs) e memória — nunca copiado em `docs/`.
+- `dist/` permanece saída regenerável do Publication Engine — descartável, não versionada, nunca editada manualmente, nunca fonte de verdade.
+- `resources/` é a pasta de materiais institucionais e visuais (design system, apresentações) — fora do fluxo de documentação técnica e fora do fluxo operacional da IA.
+- A documentação técnica em `docs/` é organizada **por domínio de negócio e capacidade técnica** (`architecture/`, `backend/{procurement,integration,orchestration,shared}`, `frontend/`, `database/`, `agents/`, `operations/`, `testing/`, `releases/`), não por público-alvo nem pela estrutura física do código.
+- O Publication Engine deixará de gerar documentação autoral e passará a ter exclusivamente a responsabilidade de **publicar** `docs/` em `dist/` (descoberta de documentos → montagem de índice → renderização), sem lógica por audiência. Essa refatoração **ainda não foi executada** — é o objeto de uma etapa de implementação posterior; até lá, o Publication Engine, `DocumentationPublishService` e os comandos `publish`/`publish-docs`/`publish-executive-blueprint` continuam com o comportamento legado descrito na ADR-0009.
+- Esta ADR **substitui a ADR-0009** nas decisões sobre arquitetura documental. A ADR-0009 permanece registrada como decisão histórica, não é reescrita nem removida.
+
+**Consequências:**
+- Os 19 documentos gerados por público (`docs/{executive,client,engineering}/*.md` com o banner "Não editar manualmente") foram removidos da árvore versionada; seu conteúdo técnico único foi extraído para os novos documentos por domínio, e o restante era redundante com `.ai/`.
+- `docs/executive/BlueprintOS_Executive_Blueprint.{html,pdf}` e `docs/DocumentationHealth.md` continuam temporariamente versionados dentro de `docs/` — são artefatos do pipeline legado (P3/health check) e só migram para `dist/` quando o Publication Engine for refatorado.
+- Quem procurar pela estrutura `docs/{executive,client,engineering}` descrita na ADR-0009 deve procurar em `docs/README.md`, que indexa a nova árvore por domínio.
+- Nenhum código de negócio, teste ou comportamento do Publication Engine foi alterado por esta ADR — apenas a árvore de documentação e correções pontuais de caminho necessárias pela movimentação de arquivos.

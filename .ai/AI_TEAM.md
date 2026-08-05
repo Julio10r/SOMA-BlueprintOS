@@ -355,10 +355,10 @@ Sem essa estrutura o agente não poderá ser registrado.
 
 ## Design System
 
-- Antes de criar apresentações, dashboards, interfaces, mockups, wireframes ou qualquer documentação visual, consulte obrigatoriamente `docs/design-system/SKILL.md`.
+- Antes de criar apresentações, dashboards, interfaces, mockups, wireframes ou qualquer documentação visual, consulte obrigatoriamente `resources/design-system/SKILL.md`.
 - Utilize exclusivamente os componentes, estilos e diretrizes definidos no Design System oficial.
 - Não invente novas cores, tipografia, componentes ou padrões visuais.
-- Sempre reutilize os tokens e assets disponíveis em `docs/design-system`.
+- Sempre reutilize os tokens e assets disponíveis em `resources/design-system`.
 - Em caso de dúvida, priorize a documentação oficial em vez de criar novas convenções.
 
 ---
@@ -368,8 +368,8 @@ Sem essa estrutura o agente não poderá ser registrado.
 Antes de criar qualquer apresentação:
 
 1. Consultar `.ai/PRESENTATION_WORKFLOW.md`.
-2. Consultar `docs/design-system/` (templates, masters, ícones, fontes).
-3. Reutilizar o Template Master (`docs/design-system/templates/powerpoint/`).
+2. Consultar `resources/design-system/` (templates, masters, ícones, fontes).
+3. Reutilizar o Template Master (`resources/design-system/templates/powerpoint/`).
 
 Nunca iniciar apresentações do zero.
 

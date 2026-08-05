@@ -1,7 +1,7 @@
 # MCP do Design System AZZAS 2154
 
 Servidor MCP local que expõe a documentação, tokens e componentes textuais em
-`docs/design-system`.
+`resources/design-system`.
 
 ## Execução
 

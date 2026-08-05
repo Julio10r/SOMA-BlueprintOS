@@ -14,7 +14,7 @@ Implementar o primeiro fluxo funcional de ponta a ponta do +Compras.
 
 ## Contexto
 
-Foram lidos [VISION.md](../VISION.md), [WORKFLOW.md](../WORKFLOW.md), [PROJECT_STATE.md](../PROJECT_STATE.md), [CURRENT_SPRINT.md](../CURRENT_SPRINT.md), [DECISIONS.md](../DECISIONS.md) e a documentação específica aplicável. A implementação foi concluída com evidências de build, testes e smoke test.
+Foram lidos [VISION.md](../../VISION.md), [WORKFLOW.md](../../WORKFLOW.md), [PROJECT_STATE.md](../../PROJECT_STATE.md), [CURRENT_SPRINT.md](../../CURRENT_SPRINT.md), [DECISIONS.md](../../DECISIONS.md) e a documentação específica aplicável. A implementação foi concluída com evidências de build, testes e smoke test.
 
 ## Task Packet
 
@@ -36,7 +36,7 @@ Foram lidos [VISION.md](../VISION.md), [WORKFLOW.md](../WORKFLOW.md), [PROJECT_S
 - Manter a recomendação estritamente consultiva, com decisão humana obrigatória.
 - O request representará somente dados já aceitos pelas capacidades existentes: identificador ou referência da solicitação, contexto da compra, categoria, quantidade, preço atual, preço histórico quando disponível, nível de urgência, recorrência, existência de fornecedor novo, nível de concorrência e demais dados já suportados pelas estratégias existentes. Os nomes, tipos, obrigatoriedade e validações finais serão confirmados pela inspeção dos contratos existentes no código.
 - O response apresentará, no mínimo, identificador da requisição, recomendação consultiva, estratégia sugerida, justificativas explicáveis, alertas, nível de confiança ou probabilidade quando já suportado, alternativas quando existentes e indicação explícita de que a decisão final pertence ao usuário humano. Não serão criadas métricas artificiais nem resultados ausentes das capacidades atuais.
-- Aplicar a estratégia de identidade definida na [ADR-0011](../DECISIONS.md#adr-0011-identidade-temporária-de-desenvolvimento-para-antecipar-a-persistência-de-fornecedores): identidade temporária somente em `Development`, contrato desacoplado e preparado para futura substituição pelo Microsoft Entra ID.
+- Aplicar a estratégia de identidade definida na [ADR-0011](../../DECISIONS.md#adr-0011-identidade-temporária-de-desenvolvimento-para-antecipar-a-persistência-de-fornecedores): identidade temporária somente em `Development`, contrato desacoplado e preparado para futura substituição pelo Microsoft Entra ID.
 
 ## Fora do escopo
 
@@ -105,7 +105,7 @@ Atualizar somente os documentos afetados, incluindo `PROJECT_STATE.md`, `CURRENT
 
 ## Git Workflow
 
-Seguir o Git Flow e Conventional Commits do projeto. Antes do commit, executar `git status` e `git diff --stat`; concluir revisão, validações e aprovação conforme [WORKFLOW.md](../WORKFLOW.md).
+Seguir o Git Flow e Conventional Commits do projeto. Antes do commit, executar `git status` e `git diff --stat`; concluir revisão, validações e aprovação conforme [WORKFLOW.md](../../WORKFLOW.md).
 
 ## Relatório final
 

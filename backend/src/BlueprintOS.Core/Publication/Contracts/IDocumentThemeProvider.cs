@@ -4,7 +4,7 @@ namespace BlueprintOS.Core.Publication.Contracts;
 
 /// <summary>
 /// Único ponto de acesso à identidade visual oficial da plataforma (AZZAS 2154 - GDT Design
-/// System), lida de <c>docs/design-system/</c>. Fornece ao Publication Engine cores, tipografia
+/// System), lida de <c>resources/design-system/</c>. Fornece ao Publication Engine cores, tipografia
 /// e a folha de estilo oficial para embutir no HTML — nenhum Publisher ou renderizador lê
 /// arquivos do Design System diretamente, nem hardcoda cor ou fonte.
 /// </summary>
