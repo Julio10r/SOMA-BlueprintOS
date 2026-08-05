@@ -16,7 +16,7 @@ Data da revisão: 30/07/2026.
 
 - Foram adicionados 19 slides, totalizando 30 slides na apresentação.
 - As 56 Work Orders foram verificadas em sequência: A1–A7, B1–B7, C1–C7, D1–D7, E1–E7, F1–F7, G1–G7 e H1–H7.
-- Cada Work Order contém nome, objetivo, dependências e status obtidos de `.ai/BACKLOG.md`; as notas dos slides citam o catálogo e `.ai/workorders/`.
+- Cada Work Order contém nome, objetivo, dependências e status obtidos de `.ai/BACKLOG.md`; as notas dos slides citam o catálogo e `.ai/work-orders/backlog/`.
 - A validação de fidelidade ao template foi aprovada após a inclusão do apêndice.
 
 ## Entrega

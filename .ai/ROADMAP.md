@@ -4,7 +4,7 @@
 
 O projeto encontra-se na **Fase 0 - Fundação**, ainda em andamento. As sprints A7, A8, A9, A10, A11 e A12 estão registradas em `.ai/memory/completed_sprints.md`; o estado operacional verificável está em `.ai/PROJECT_STATE.md`.
 
-O catálogo estratégico oficial de oito fases e 56 Work Orders está em `.ai/workorders/README.md`; ele não altera o status comprovado das funcionalidades.
+O catálogo estratégico oficial de oito fases e 56 Work Orders está em `.ai/work-orders/backlog/README.md`; ele não altera o status comprovado das funcionalidades.
 
 ---
 

@@ -56,4 +56,4 @@ Não há sprint de produto ativa. Permanecem em evolução apenas os ativos de d
 
 ## Apêndice — Catálogo completo de Work Orders
 
-O apêndice da apresentação lista as 56 Work Orders canônicas, em ordem de catálogo. Para cada item, apresenta código, nome, objetivo, dependências e status. O detalhamento integral de escopo, requisitos, critérios de aceite, testes e riscos permanece referenciado em `.ai/workorders/`.
+O apêndice da apresentação lista as 56 Work Orders canônicas, em ordem de catálogo. Para cada item, apresenta código, nome, objetivo, dependências e status. O detalhamento integral de escopo, requisitos, critérios de aceite, testes e riscos permanece referenciado em `.ai/work-orders/backlog/`.

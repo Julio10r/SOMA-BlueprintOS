@@ -54,7 +54,7 @@ Não há uma pasta `database/` na raiz do repositório. Migrations e persistênc
 - `.ai/VISION.md` — visão, escopo e direção estratégica.
 - `.ai/PROJECT_STATE.md` — estado operacional comprovado.
 - `.ai/WORKFLOW.md` — processo oficial de desenvolvimento.
-- `.ai/CURRENT_SPRINT.md`, `.ai/workorders/` e `.ai/memory/completed_sprints.md` — execução, escopo e histórico de sprints.
+- `.ai/CURRENT_SPRINT.md`, `.ai/work-orders/backlog/` e `.ai/memory/completed_sprints.md` — execução, escopo e histórico de sprints.
 
 ---
 

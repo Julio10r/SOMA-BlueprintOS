@@ -420,6 +420,7 @@ Uma tarefa só pode iniciar quando possuir:
 
 # 18.1 Governança de Work Orders
 
+0. `.ai/work-orders/` é o único local canônico de Work Orders, com três subpastas: `active/` (em execução), `backlog/` (planejado/aprovado/não iniciado/parcial/não comprovado) e `completed/` (concluído com evidências). `.ai/tasks/` e `.ai/workorders/` (sem hífen) não existem mais e não devem ser recriados. Cada Work Order existe em exatamente um arquivo, movido entre as três pastas conforme seu status muda — nunca duplicado.
 1. Apenas uma Work Order pode ter status `Approved` por vez.
 2. Codex só implementa a sprint explicitamente aprovada e registrada em `CURRENT_SPRINT.md`.
 3. Antes da implementação, o executor lê `VISION.md`, `PROJECT_STATE.md`, `ENGINEERING_BLUEPRINT.md` e a Work Order correspondente.

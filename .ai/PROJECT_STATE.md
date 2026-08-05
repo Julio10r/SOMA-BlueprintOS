@@ -19,7 +19,7 @@
 
 - **Estado:** Implementado em 30/07/2026.
 - **Evidência:** [templates/README.md](./templates/README.md) e os sete templates padronizados para desenvolvimento, épicos, auditorias, refatorações, hotfixes, spikes e releases.
-- **Uso:** os templates complementam, sem substituir, as Work Orders estratégicas em `workorders/` e a governança de [WORKFLOW.md](./WORKFLOW.md). Eles exigem leitura prévia de visão, workflow, estado do projeto e sprint atual.
+- **Uso:** os templates complementam, sem substituir, as Work Orders estratégicas em `.ai/work-orders/backlog/` (planejado/parcial) e `.ai/work-orders/completed/` (concluído) e a governança de [WORKFLOW.md](./WORKFLOW.md). Eles exigem leitura prévia de visão, workflow, estado do projeto e sprint atual.
 
 ## Evolução arquitetural do +Compras
 

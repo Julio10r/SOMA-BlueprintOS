@@ -73,7 +73,7 @@ O BlueprintOS espera que agentes de IA atuem como engenheiros seniores: identifi
 
 ## Roadmap estratégico: 8 fases e 56 sprints
 
-O roadmap executivo organiza a visão futura em oito fases de sete sprints. O catálogo oficial em `BACKLOG.md` e `workorders/` preserva os nomes e dependências conhecidos; decisões técnicas ainda pendentes ficam explicitadas nas Work Orders. Os estados abaixo não são aprovações de implementação.
+O roadmap executivo organiza a visão futura em oito fases de sete sprints. O catálogo oficial em `BACKLOG.md` e `work-orders/backlog/` preserva os nomes e dependências conhecidos; decisões técnicas ainda pendentes ficam explicitadas nas Work Orders. Os estados abaixo não são aprovações de implementação.
 
 | Fase | Objetivo e resultado esperado | Valor de negócio | Dependências | Status real |
 |---|---|---|---|---|
@@ -86,7 +86,7 @@ O roadmap executivo organiza a visão futura em oito fases de sete sprints. O ca
 | G — Marketplace & Integrations | Conectar ecossistema corporativo | Operação integrada | APIs, segurança e contratos | Não iniciado |
 | H — Scale & Global Rollout | Operar com escala e multiempresa | Expansão sustentável | Observabilidade, multi-tenant e operação | Não iniciado |
 
-O inventário de todas as 56 Work Orders está em `BACKLOG.md` e `workorders/README.md`. A ordem e a prioridade de execução dependem de aprovação do Product Owner.
+O inventário de todas as 56 Work Orders está em `BACKLOG.md` e `work-orders/backlog/README.md`. A ordem e a prioridade de execução dependem de aprovação do Product Owner.
 
 ## Estratégia de documentação
 

@@ -45,9 +45,6 @@ SOMA-BlueprintOS
 │   │   └── tests.md
 │   ├── sources/
 │   │   └── COMPRAS_INDIRETAS_SOURCES.md
-│   ├── tasks/
-│   │   ├── A13-PrimeiroVerticalSliceMaisCompras.md
-│   │   └── README.md
 │   ├── templates/
 │   │   ├── AUDIT_TEMPLATE.md
 │   │   ├── EPIC_TEMPLATE.md
@@ -57,27 +54,35 @@ SOMA-BlueprintOS
 │   │   ├── RELEASE_TEMPLATE.md
 │   │   ├── SPIKE_TEMPLATE.md
 │   │   └── WORK_ORDER_TEMPLATE.md
-│   ├── work-orders/
-│   │   ├── A13-PrimeiroVerticalSliceMaisCompras.md
-│   │   ├── B2.1-ValidacaoOperacionalESincronizacaoDeFornecedoresComERP.md
-│   │   ├── B2.1.1-CompletarMapeamentoCanonicoErpMaisCompras.md
-│   │   ├── B2.1.2-AlinhamentoEstruturalErpLinxMaisCompras.md
-│   │   ├── B2.2-EnriquecimentoCadastralDeFornecedoresPorCnpj.md
+│   ├── work-orders/                 # único local canônico de Work Orders
+│   │   ├── active/                  # vazio: nenhuma sprint em execução
+│   │   ├── backlog/                 # catálogo estratégico (fases A–H), planejado/parcial
+│   │   │   ├── fase-a/
+│   │   │   ├── fase-b/
+│   │   │   ├── fase-c/
+│   │   │   ├── fase-d/
+│   │   │   ├── fase-e/
+│   │   │   ├── fase-f/
+│   │   │   ├── fase-g/
+│   │   │   ├── fase-h/
+│   │   │   ├── DEPENDENCY_MAP.md
+│   │   │   ├── README.md
+│   │   │   └── WORK_ORDER_TEMPLATE.md
+│   │   ├── completed/                # concluídos, com evidência
+│   │   │   ├── A1-arquitetura-base.md
+│   │   │   ├── A2-ai-runtime.md
+│   │   │   ├── A3-agent-framework.md
+│   │   │   ├── A4-workflow-e-observabilidade-fundamental.md
+│   │   │   ├── A7-sistema-de-documentacao.md
+│   │   │   ├── A10-GovernanceAndWorkOrderFoundation.md
+│   │   │   ├── A13-PrimeiroVerticalSliceMaisCompras.md
+│   │   │   ├── B1-cadastro-e-perfil-de-fornecedores.md
+│   │   │   ├── B2-catalogo-de-materiais-e-servicos.md
+│   │   │   ├── B2.1-ValidacaoOperacionalESincronizacaoDeFornecedoresComERP.md
+│   │   │   ├── B2.1.1-CompletarMapeamentoCanonicoErpMaisCompras.md
+│   │   │   ├── B2.1.2-AlinhamentoEstruturalErpLinxMaisCompras.md
+│   │   │   └── B2.2-EnriquecimentoCadastralDeFornecedoresPorCnpj.md
 │   │   └── README.md
-│   ├── workorders/
-│   │   ├── fase-a/
-│   │   ├── fase-b/
-│   │   ├── fase-c/
-│   │   ├── fase-d/
-│   │   ├── fase-e/
-│   │   ├── fase-f/
-│   │   ├── fase-g/
-│   │   ├── fase-h/
-│   │   ├── A10 - Governance and Work Order Foundation.md
-│   │   ├── A7 - Documentation System.md
-│   │   ├── DEPENDENCY_MAP.md
-│   │   ├── README.md
-│   │   └── WORK_ORDER_TEMPLATE.md
 │   ├── AI_AUTONOMY_POLICY.md
 │   ├── AI_BEHAVIOR.md
 │   ├── AI_TEAM.md
