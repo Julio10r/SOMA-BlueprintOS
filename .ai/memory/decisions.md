@@ -31,7 +31,7 @@ Foi aceita a construção incremental: fluxos operacionais completos e manuais d
 - B2.1 foi concluída em 01/08/2026: a sincronização permanece desacoplada por contrato e adaptador de BU, com importação, exportação, atualizações e inativações nos dois sentidos.
 - A precedência temporal é normalizada em `America/Sao_Paulo` até o segundo; no empate, a decisão favorece o +Compras.
 - Auditoria append-only preserva snapshots antes/depois, hashes, `CorrelationId`, histórico e idempotência. A geração de CLIFOR usa `LX_SEQUENCIAL`, inclusive sob concorrência.
-- B2.1.1 foi concluída com o mapeamento canônico Linx → +Compras. B2.1.2 permanece Draft para validação estrutural futura; B2.2 permanece Draft como próxima evolução.
+- B2.1.1 foi concluída com o mapeamento canônico Linx → +Compras. B2.1.2 e B2.2 foram concluídas posteriormente (ver `.ai/BACKLOG.md` para evidências).
 
 ## Remoção do Docker do fluxo de desenvolvimento (03/08/2026)
 

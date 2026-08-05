@@ -1,7 +1,10 @@
 # Árvore da Solução
 
-Estrutura real de diretórios e projetos do repositório (ignorando `bin`, `obj`,
-`.git` e `node_modules`):
+Estrutura real de diretórios e projetos do repositório, restrita ao que é
+versionável: arquivos rastreados pelo Git, mais os diretórios vazios
+explicitamente reservados para fases futuras do roadmap. Arquivos ignorados,
+não rastreados ou pessoais (ex.: `.myNotes`, `.DS_Store`, `bin/`, `obj/`,
+`node_modules/`, logs, artefatos temporários) não aparecem.
 
 ```
 SOMA-BlueprintOS
@@ -25,7 +28,6 @@ SOMA-BlueprintOS
 │   │   ├── security.md
 │   │   ├── tech-stack.md
 │   │   └── testing.md
-│   ├── decisions/
 │   ├── memory/
 │   │   ├── architecture.md
 │   │   ├── completed_sprints.md
@@ -41,7 +43,6 @@ SOMA-BlueprintOS
 │   │   ├── refactor.md
 │   │   ├── review.md
 │   │   └── tests.md
-│   ├── reports/
 │   ├── sources/
 │   │   └── COMPRAS_INDIRETAS_SOURCES.md
 │   ├── tasks/
@@ -58,6 +59,10 @@ SOMA-BlueprintOS
 │   │   └── WORK_ORDER_TEMPLATE.md
 │   ├── work-orders/
 │   │   ├── A13-PrimeiroVerticalSliceMaisCompras.md
+│   │   ├── B2.1-ValidacaoOperacionalESincronizacaoDeFornecedoresComERP.md
+│   │   ├── B2.1.1-CompletarMapeamentoCanonicoErpMaisCompras.md
+│   │   ├── B2.1.2-AlinhamentoEstruturalErpLinxMaisCompras.md
+│   │   ├── B2.2-EnriquecimentoCadastralDeFornecedoresPorCnpj.md
 │   │   └── README.md
 │   ├── workorders/
 │   │   ├── fase-a/
@@ -73,7 +78,6 @@ SOMA-BlueprintOS
 │   │   ├── DEPENDENCY_MAP.md
 │   │   ├── README.md
 │   │   └── WORK_ORDER_TEMPLATE.md
-│   ├── .DS_Store
 │   ├── AI_AUTONOMY_POLICY.md
 │   ├── AI_BEHAVIOR.md
 │   ├── AI_TEAM.md
@@ -96,16 +100,6 @@ SOMA-BlueprintOS
 │   ├── STANDARDS.md
 │   ├── VISION.md
 │   └── WORKFLOW.md
-├── .claude/
-├── .github/
-│   └── workflows/
-├── .vscode/
-├── agents/
-│   ├── memory/
-│   ├── orchestrator/
-│   ├── planner/
-│   ├── prompts/
-│   └── specialists/
 ├── backend/
 │   ├── src/
 │   │   ├── BlueprintOS.Api/
@@ -117,35 +111,10 @@ SOMA-BlueprintOS
 │   ├── tests/
 │   │   ├── BlueprintOS.IntegrationTests/
 │   │   └── BlueprintOS.UnitTests/
-│   ├── tools/
-│   │   └── docgen-runner/
 │   └── BlueprintOS.sln
-├── database/
-│   ├── docs/
-│   ├── migrations/
-│   ├── scripts/
-│   └── seed/
-├── dist/
-│   ├── client/
-│   │   ├── ClientGuide.html
-│   │   ├── ClientGuide.md
-│   │   └── ClientGuide.pdf
-│   ├── engineering/
-│   │   ├── EngineeringGuide.html
-│   │   ├── EngineeringGuide.md
-│   │   └── EngineeringGuide.pdf
-│   └── executive/
-│       ├── ExecutiveReport.html
-│       ├── ExecutiveReport.md
-│       └── ExecutiveReport.pdf
 ├── docs/
 │   ├── AI Factory/
-│   │   ├── Agents/
 │   │   ├── Architecture/
-│   │   ├── Core/
-│   │   ├── Examples/
-│   │   ├── Memory/
-│   │   ├── Prompts/
 │   │   ├── 00 - AI Factory.md
 │   │   ├── 01 - AI Orchestrator.md
 │   │   ├── 02 - AI Team.md
@@ -158,7 +127,8 @@ SOMA-BlueprintOS
 │   │   ├── dependencies.mmd
 │   │   └── solution-tree.md
 │   ├── audits/
-│   │   ├── architecture-review.md
+│   │   ├── architecture-review-2026-07-30.md
+│   │   ├── B-Series-Reconciliation.md
 │   │   ├── repository-cleanup-step-01.md
 │   │   ├── repository-cleanup-step-02.md
 │   │   └── repository-cleanup-step-03.md
@@ -169,7 +139,9 @@ SOMA-BlueprintOS
 │   │   ├── FunctionalGuide.md
 │   │   ├── ProductOverview.md
 │   │   └── UserGuide.md
-│   ├── decisions/
+│   ├── demo/
+│   │   ├── portal-maiscompras-build.html
+│   │   └── PortalMaisComprasDemo.md
 │   ├── design-system/
 │   │   ├── assets/
 │   │   ├── fonts/
@@ -183,15 +155,19 @@ SOMA-BlueprintOS
 │   │   ├── INDEX.md
 │   │   ├── README.md
 │   │   └── SKILL.md
-│   ├── diagrams/
 │   ├── engineering/
 │   │   ├── Mermaid/
 │   │   ├── Agents.md
 │   │   ├── APIs.md
 │   │   ├── Architecture.md
+│   │   ├── B21.2-EstruturaFornecedorERP.md
 │   │   ├── Database.md
 │   │   ├── Decisions.md
 │   │   ├── Deploy.md
+│   │   ├── FornecedorCnpjEnrichment.md
+│   │   ├── FornecedorErpSynchronization.md
+│   │   ├── FornecedorSynchronization.md
+│   │   ├── Frontend.md
 │   │   └── Runbooks.md
 │   ├── executive/
 │   │   ├── BlueprintOS_Executive_Blueprint.html
@@ -208,13 +184,14 @@ SOMA-BlueprintOS
 │   │   ├── +COMPRAS Strategic Roadmap.pdf
 │   │   ├── +COMPRAS Strategic Roadmap.pptx
 │   │   ├── Roadmap Gerencial - BlueprintOS.pptx
-│   │   ├── Roadmap Gerencial - Conteúdo.md
+│   │   ├── Roadmap Gerencial - BlueprintOS.pptx.inspect.ndjson
 │   │   ├── Roadmap Gerencial - Design Mapping.md
 │   │   ├── Roadmap Gerencial - Executive Review.md
 │   │   ├── Roadmap Gerencial - QA.md
 │   │   ├── Roadmap Gerencial - Storyboard.md
 │   │   └── ROADMAP_UPDATE.md
-│   ├── sprints/
+│   ├── product/
+│   │   └── PortalMapa.md
 │   ├── templates/
 │   │   ├── ADR.md
 │   │   ├── API.md
@@ -223,16 +200,24 @@ SOMA-BlueprintOS
 │   │   ├── Sprint.md
 │   │   ├── Task.md
 │   │   └── Workflow.md
-│   ├── .DS_Store
+│   ├── work-orders/
+│   │   └── PortalMaisComprasFrontend.md
 │   ├── DocumentationHealth.md
 │   ├── Engineering Handbook.md
 │   ├── Executive Report.md
 │   ├── INDEX.md
 │   └── Product Blueprint.md
 ├── frontend/
-│   ├── mobile/
-│   ├── shared/
 │   └── web/
+│       ├── dist/
+│       ├── src/
+│       ├── .env.example
+│       ├── index.html
+│       ├── package-lock.json
+│       ├── package.json
+│       ├── tsconfig.json
+│       ├── tsconfig.tsbuildinfo
+│       └── vite.config.ts
 ├── infrastructure/
 │   ├── docker/
 │   │   └── .env.example
@@ -240,21 +225,18 @@ SOMA-BlueprintOS
 │   ├── monitoring/
 │   ├── nginx/
 │   └── terraform/
-├── integrations/
+├── mcp/
+│   └── design-system/
+│       └── README.md
 ├── scripts/
-├── shared/
-│   ├── constants/
-│   ├── contracts/
-│   ├── events/
-│   └── libraries/
-├── workers/
-├── .DS_Store
+│   ├── health-check.sh
+│   ├── start-dev.sh
+│   └── stop-dev.sh
 ├── .editorconfig
 ├── .env.example
 ├── .gitattributes
 ├── .gitignore
 ├── CHANGELOG.md
 ├── LICENSE
-├── Makefile
 └── README.md
 ```

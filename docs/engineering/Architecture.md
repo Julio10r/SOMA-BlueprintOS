@@ -3,8 +3,8 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-30 21:04:12 UTC
-- **Última atualização:** 2026-07-30
+- **Gerado em:** 2026-08-05 15:25:57 UTC
+- **Última atualização:** 2026-08-05
 
 ---
 
@@ -89,5 +89,31 @@ Memória de negociação e motor de estratégia baseado em regras; ainda sem age
 - `NegotiationMemory`
 - `InMemoryNegotiationMemoryStore`
 - `NegotiationStrategy`
+
+---
+
+# Documentação Técnica — Módulo Procurement.Suppliers
+
+Vertical slice de Fornecedores: cadastro, descoberta no ERP, consulta/enriquecimento de CNPJ e sincronização bidirecional com o ERP (SOMA_DESENV → +Compras). Entidades e casos de uso reais em Domain/Application, persistência via BlueprintOSDbContext (EF Core + SQL Server) em Infrastructure, e API própria (`/fornecedores`, `/api/fornecedores/...`).
+
+## Contratos
+
+- `IFornecedorUseCases`
+- `IConsultarCnpjFornecedorUseCase`
+- `IFornecedorEnriquecimentoUseCases`
+- `ISincronizarFornecedorUseCase`
+- `ISincronizarFornecedoresErpUseCase`
+- `IFornecedorDiscoveryUseCase`
+- `IErpFornecedorAdapter`
+
+## Classes
+
+- `Fornecedor`
+- `Cnpj`
+- `ScoreFornecedor`
+- `FornecedorCanonico`
+- `FornecedorUseCases`
+- `SincronizarFornecedorUseCase`
+- `BlueprintOSDbContext`
 
 ---

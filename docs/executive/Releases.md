@@ -3,8 +3,8 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-30 21:04:12 UTC
-- **Última atualização:** 2026-07-30
+- **Gerado em:** 2026-08-05 15:25:57 UTC
+- **Última atualização:** 2026-08-05
 
 ---
 
@@ -20,3 +20,8 @@ Cada sprint concluída é tratada, até o momento, como a unidade real de entreg
 - Sprint A11 — Engineering Blueprint
 - Sprint A12 — Especificação Oficial das 56 Work Orders
 - Sprint A13 — Primeiro Vertical Slice do +Compras
+- Sprint B1 — Persistência de Fornecedores
+- Sprint B2 — Descoberta Inicial de Fornecedores
+- Sprint B2.1 — Validação Operacional e Sincronização de Fornecedores com ERP
+- Sprint B2.1.3 — Endurecimento da Integração ERP de Fornecedores
+- Sprint de Infraestrutura — Remoção do Docker e Consolidação do Ambiente Local

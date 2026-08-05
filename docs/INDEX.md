@@ -38,9 +38,9 @@ Este documento é o índice oficial da documentação versionada em `docs/`. As 
 
 ---
 
-## Banco de Dados (planejado/local vazio)
+## Banco de Dados
 
-`database/` existe apenas como estrutura local vazia; não há modelo, migrações, scripts ou seed versionados.
+Não há uma pasta `database/` na raiz do repositório. Migrations e persistência reais pertencem a `backend/src/BlueprintOS.Infrastructure/` (EF Core, `BlueprintOSDbContext`). Não há scripts ou seeds de banco separados na raiz atualmente.
 
 ---
 

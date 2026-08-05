@@ -4,9 +4,9 @@ using BlueprintOS.Core.Documentation.Contracts.Executive;
 namespace BlueprintOS.Infrastructure.Documentation.Generators.Executive;
 
 /// <summary>
-/// Implementação de <see cref="IKpiGenerator"/>. Até o momento, o BlueprintOS não possui
-/// nenhuma fonte real de indicadores de negócio (o produto ainda está na Fase 0 -
-/// Fundação); este gerador reflete essa ausência honestamente em vez de inventar métricas.
+/// Implementação de <see cref="IKpiGenerator"/>. O BlueprintOS ainda não possui KPIs de negócio
+/// formalizados para produção, mas já existem métricas técnicas e evidências operacionais reais
+/// de validação; este gerador distingue as duas coisas em vez de negar toda evidência existente.
 /// </summary>
 public sealed class KpiGenerator : IKpiGenerator
 {
@@ -16,12 +16,13 @@ public sealed class KpiGenerator : IKpiGenerator
         var builder = new StringBuilder();
         builder.AppendLine("## Indicadores-chave de desempenho (KPIs)");
         builder.AppendLine();
-        builder.AppendLine("Nenhum KPI de negócio registrado até o momento.");
+        builder.AppendLine("Nenhum KPI de negócio formalizado para produção até o momento — o BlueprintOS");
+        builder.AppendLine("ainda não está em operação em produção (ver `.ai/ROADMAP.md`).");
         builder.AppendLine();
-        builder.AppendLine("O BlueprintOS encontra-se na Fase 0 - Fundação (ver Roadmap), etapa em que ainda não há");
-        builder.AppendLine("operação em produção nem dados de uso reais a partir dos quais derivar indicadores.");
-        builder.AppendLine("Este documento será atualizado assim que módulos de Analytics/Dashboard (Fase 4 do");
-        builder.AppendLine("Roadmap) passarem a coletar métricas reais.");
+        builder.AppendLine("Já existem, porém, métricas técnicas e evidências operacionais reais de validação —");
+        builder.AppendLine("build, suíte de testes automatizados e sincronizações reais contra o ERP corporativo —");
+        builder.AppendLine("detalhadas em `.ai/PROJECT_STATE.md` e `.ai/BACKLOG.md`. KPIs de negócio formais serão");
+        builder.AppendLine("introduzidos quando módulos de Analytics/Dashboard entrarem em operação (ver Roadmap).");
 
         return Task.FromResult(builder.ToString());
     }

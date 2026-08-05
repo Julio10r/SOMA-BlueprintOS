@@ -6,7 +6,7 @@ namespace BlueprintOS.Infrastructure.Documentation.Generators.Engineering;
 /// <summary>
 /// Implementação de <see cref="IDeployGenerator"/>, refletindo o ambiente de desenvolvimento
 /// real do repositório: backend .NET e frontend Vite executados diretamente, sem Docker
-/// (ver ADR-0019 em <c>.ai/DECISIONS.md</c>), sempre contra um SQL Server externo.
+/// (ver ADR-0018 em <c>.ai/DECISIONS.md</c>), sempre contra um SQL Server externo.
 /// </summary>
 public sealed class DeployGenerator : IDeployGenerator
 {
@@ -17,7 +17,7 @@ public sealed class DeployGenerator : IDeployGenerator
         builder.AppendLine("## Deploy");
         builder.AppendLine();
         builder.AppendLine("O ambiente oficial de desenvolvimento do BlueprintOS não usa Docker (ver");
-        builder.AppendLine("ADR-0019 em `.ai/DECISIONS.md`):");
+        builder.AppendLine("ADR-0018 em `.ai/DECISIONS.md`):");
         builder.AppendLine();
         builder.AppendLine("- **Backend** — API .NET executada diretamente via `dotnet run`");
         builder.AppendLine("  (`backend/src/BlueprintOS.Api`), perfil `http` (`launchSettings.json`),");
@@ -26,6 +26,8 @@ public sealed class DeployGenerator : IDeployGenerator
         builder.AppendLine("  (`frontend/web`), porta `5173`.");
         builder.AppendLine("- **Banco de dados** — sempre SQL Server externo (bancos corporativos");
         builder.AppendLine("  `MAISCOMPRAS`/`SOMA_DESENV`, acessado via VPN), nunca um container local.");
+        builder.AppendLine("- **Docker** — `infrastructure/docker/.env.example` permanece reservado no");
+        builder.AppendLine("  repositório como documentação, sem containers ativos no fluxo de desenvolvimento.");
         builder.AppendLine();
         builder.AppendLine("Não há, até o momento, pipeline de CI/CD (ex.: GitHub Actions) nem ambiente");
         builder.AppendLine("de homologação configurado no repositório.");

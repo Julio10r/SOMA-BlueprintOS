@@ -3,8 +3,8 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-30 21:04:12 UTC
-- **Última atualização:** 2026-07-30
+- **Gerado em:** 2026-08-05 15:25:57 UTC
+- **Última atualização:** 2026-08-05
 
 ---
 
@@ -63,7 +63,23 @@ Objetivo: conectar a plataforma a processos de negócio reais e sistemas externo
 - **Notifications** — notificações e comunicação com usuários e sistemas externos.
 - Integrações externas (ERPs, n8n, APIs corporativas).
 
-> Estado real: Procurement, Notifications, ERP e n8n não foram iniciados. A integração externa concreta é OpenAI Chat Completions; Git é lido apenas pelo módulo de documentação.
+> Estado real: há persistência própria de fornecedores, APIs REST, descoberta de fornecedores somente leitura no ERP SOMA_DESENV e a primeira tela funcional de cadastro/enriquecimento de fornecedor concluída em B2.2.4. Procurement completo, itens, pedidos, notificações e n8n não foram iniciados.
+
+## Reorientação do roadmap do +Compras
+
+A [ADR-0013](../../.ai/DECISIONS.md) organiza a evolução em dois blocos sem alterar as oito fases e 56 Work Orders estratégicas: primeiro a plataforma operacional e, sobre seus dados reais, a plataforma inteligente.
+
+1. **Operacional:** fornecedores, itens, compras/pedidos, portal como interface integrada, adaptadores ERP por BU e fluxo ponta a ponta com auditoria básica.
+2. **Inteligente:** inteligência de fornecedores, itens e compras; negociação, orçamento, auditoria, compliance e autonomia progressiva.
+
+O portal não é uma fase isolada: ele evolui com os módulos. A ADR-0017 aprovou a estrutura completa de navegação e identidade visual desde a primeira versão visual, sem antecipar a funcionalidade dos domínios; Fornecedores é a primeira vertical slice funcional. Operações críticas mantêm caminho manual e confirmação humana; IA não é a única forma de concluí-las. B2.1 e sua subetapa B2.1.1 foram concluídas em 01/08/2026, com sincronização bidirecional, regra temporal, inativação, auditoria, concorrência e mapeamento canônico ERP → +Compras validados. B2.1.2 também foi concluída em 01/08/2026, alinhando o modelo canônico de fornecedor ao ERP Linx conforme ADR-0016, sem alteração estrutural no ERP. B2.1.3 foi concluída em código em 02/08/2026, endurecendo a sincronização ERP com paginação real (skip/take), histórico de execução, erros parciais persistidos e logs estruturados; dois bugs de paginação encontrados após a entrega inicial (parada prematura em lote parcial e cálculo incorreto do offset) foram corrigidos em commits subsequentes — ver `.ai/CURRENT_SPRINT.md` e `docs/audits/B-Series-Reconciliation.md`. Validação operacional real (VPN/SQL Server corporativo) permanece pendente para B2.1/B2.1.1/B2.1.2/B2.1.3. B2.2 foi concluída para Enriquecimento Inteligente de Fornecedor; B2.2.4 entregou a tela React `CadastroFornecedor`, consumindo consulta, análise, aprovação e rejeição. A consulta externa continua apenas sugestão revisável, sem atualização automática. B3 não está iniciada.
+
+### Portal +Compras Frontend
+
+- **Status:** nova frente preparada.
+- **Executor:** Claude Code.
+- **Work Order:** `docs/work-orders/PortalMaisComprasFrontend.md`.
+- **Regra:** somente Fornecedor deve estar conectado ao backend nesta etapa; Dashboard, Pedidos, Negociações, Indicadores, Agentes IA e Configurações podem existir como telas demonstrativas preparadas para evolução, sem funcionalidades falsas.
 
 ---
 

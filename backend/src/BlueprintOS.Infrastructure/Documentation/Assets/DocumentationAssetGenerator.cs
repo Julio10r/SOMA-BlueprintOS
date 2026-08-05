@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using BlueprintOS.Core.Documentation.Contracts;
 using BlueprintOS.Core.Documentation.Contracts.Assets;
@@ -16,9 +17,23 @@ namespace BlueprintOS.Infrastructure.Documentation.Assets;
 /// </summary>
 public sealed class DocumentationAssetGenerator : IDocumentationAssetGenerator
 {
-    private static readonly IReadOnlySet<string> IgnoredDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    /// <summary>
+    /// Sempre excluído da árvore, independentemente do Git: é o próprio diretório de
+    /// controle de versão, não um artefato que o Git possa reportar como ignorado.
+    /// </summary>
+    private const string GitDirectoryName = ".git";
+
+    /// <summary>
+    /// Diretórios vazios (sem nenhum arquivo rastreado) que representam estrutura planejada e
+    /// explicitamente reservada para fases futuras do roadmap (ver <c>docs/INDEX.md</c>), não
+    /// rascunho local. São os únicos diretórios sem conteúdo rastreado que a árvore preserva.
+    /// </summary>
+    private static readonly IReadOnlySet<string> AllowedEmptyDirectories = new HashSet<string>(StringComparer.Ordinal)
     {
-        "bin", "obj", ".git", "node_modules",
+        "infrastructure/terraform",
+        "infrastructure/kubernetes",
+        "infrastructure/nginx",
+        "infrastructure/monitoring",
     };
 
     private static readonly ModuleDependencyGraph ArchitectureGraph = new(
@@ -98,22 +113,35 @@ public sealed class DocumentationAssetGenerator : IDocumentationAssetGenerator
     private static string GenerateSolutionTree()
     {
         var repoRoot = FindRepoRoot(AppContext.BaseDirectory) ?? Directory.GetCurrentDirectory();
+        var trackedFiles = GetGitTrackedFiles(repoRoot);
+        var trackedDirectories = BuildTrackedDirectorySet(trackedFiles);
 
         var builder = new StringBuilder();
         builder.AppendLine("# Árvore da Solução");
         builder.AppendLine();
-        builder.AppendLine("Estrutura real de diretórios e projetos do repositório (ignorando `bin`, `obj`,");
-        builder.AppendLine("`.git` e `node_modules`):");
+        builder.AppendLine("Estrutura real de diretórios e projetos do repositório, restrita ao que é");
+        builder.AppendLine("versionável: arquivos rastreados pelo Git, mais os diretórios vazios");
+        builder.AppendLine("explicitamente reservados para fases futuras do roadmap. Arquivos ignorados,");
+        builder.AppendLine("não rastreados ou pessoais (ex.: `.myNotes`, `.DS_Store`, `bin/`, `obj/`,");
+        builder.AppendLine("`node_modules/`, logs, artefatos temporários) não aparecem.");
         builder.AppendLine();
         builder.AppendLine("```");
         builder.AppendLine(Path.GetFileName(repoRoot.TrimEnd(Path.DirectorySeparatorChar)));
-        AppendTree(builder, repoRoot, indent: "", depth: 0, maxDepth: 3);
+        AppendTree(builder, repoRoot, repoRoot, trackedFiles, trackedDirectories, indent: "", depth: 0, maxDepth: 3);
         builder.AppendLine("```");
 
         return builder.ToString();
     }
 
-    private static void AppendTree(StringBuilder builder, string directoryPath, string indent, int depth, int maxDepth)
+    private static void AppendTree(
+        StringBuilder builder,
+        string repoRoot,
+        string directoryPath,
+        IReadOnlySet<string> trackedFiles,
+        IReadOnlySet<string> trackedDirectories,
+        string indent,
+        int depth,
+        int maxDepth)
     {
         if (depth >= maxDepth)
         {
@@ -126,8 +154,12 @@ public sealed class DocumentationAssetGenerator : IDocumentationAssetGenerator
                 Path = entry,
                 Name = Path.GetFileName(entry),
                 IsDirectory = Directory.Exists(entry),
+                RelativePath = Path.GetRelativePath(repoRoot, entry).Replace('\\', '/'),
             })
-            .Where(entry => !entry.IsDirectory || !IsIgnored(entry.Name))
+            .Where(entry => entry.Name != GitDirectoryName)
+            .Where(entry => entry.IsDirectory
+                ? trackedDirectories.Contains(entry.RelativePath) || AllowedEmptyDirectories.Contains(entry.RelativePath)
+                : trackedFiles.Contains(entry.RelativePath))
             .OrderByDescending(entry => entry.IsDirectory)
             .ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -142,13 +174,85 @@ public sealed class DocumentationAssetGenerator : IDocumentationAssetGenerator
             if (entry.IsDirectory)
             {
                 var childIndent = indent + (isLast ? "    " : "│   ");
-                AppendTree(builder, entry.Path, childIndent, depth + 1, maxDepth);
+                AppendTree(builder, repoRoot, entry.Path, trackedFiles, trackedDirectories, childIndent, depth + 1, maxDepth);
             }
         }
     }
 
-    private static bool IsIgnored(string directoryName) =>
-        IgnoredDirectories.Contains(directoryName);
+    /// <summary>
+    /// Consulta o próprio Git (<c>git ls-files</c>) para obter os caminhos de arquivo
+    /// atualmente rastreados, em vez de reimplementar as regras de <c>.gitignore</c> ou tentar
+    /// distinguir "arquivo pessoal" por convenção. Só o que o Git rastreia é considerado
+    /// versionável; qualquer arquivo local não rastreado (ignorado ou não) fica de fora.
+    /// </summary>
+    private static IReadOnlySet<string> GetGitTrackedFiles(string repoRoot)
+    {
+        var tracked = new HashSet<string>(StringComparer.Ordinal);
+
+        try
+        {
+            var startInfo = new ProcessStartInfo("git", "ls-files")
+            {
+                WorkingDirectory = repoRoot,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+
+            using var process = Process.Start(startInfo);
+            if (process is null)
+            {
+                return tracked;
+            }
+
+            var output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+
+            foreach (var line in output.Split('\n'))
+            {
+                var path = line.Trim().Trim('"').Replace('\\', '/');
+                if (path.Length > 0)
+                {
+                    tracked.Add(path);
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Git indisponível ou repositório não inicializado: nenhum arquivo é considerado
+            // rastreado, então a árvore só mostrará os diretórios explicitamente reservados.
+        }
+
+        return tracked;
+    }
+
+    /// <summary>
+    /// A partir dos arquivos rastreados, deriva o conjunto de diretórios que os contêm
+    /// (diretamente ou em qualquer nível acima), para decidir quais diretórios "têm conteúdo
+    /// versionável" e por isso devem aparecer na árvore mesmo sem serem, eles mesmos, rastreados
+    /// (o Git nunca rastreia diretórios, só arquivos).
+    /// </summary>
+    private static IReadOnlySet<string> BuildTrackedDirectorySet(IReadOnlySet<string> trackedFiles)
+    {
+        var directories = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var file in trackedFiles)
+        {
+            var slashIndex = file.LastIndexOf('/');
+            while (slashIndex > 0)
+            {
+                var directory = file[..slashIndex];
+                if (!directories.Add(directory))
+                {
+                    break;
+                }
+
+                slashIndex = directory.LastIndexOf('/');
+            }
+        }
+
+        return directories;
+    }
 
     private static string? FindRepoRoot(string startDirectory)
     {

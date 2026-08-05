@@ -15,5 +15,7 @@ public class ArchitectureGeneratorTests
         Assert.Contains("Documentation", result);
         Assert.Contains("Agents", result);
         Assert.Contains("AI.Negotiation", result);
+        Assert.Contains("Procurement.Suppliers", result);
+        Assert.Contains("BlueprintOSDbContext", result);
     }
 }

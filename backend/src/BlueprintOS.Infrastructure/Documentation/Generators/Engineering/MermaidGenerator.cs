@@ -7,8 +7,10 @@ namespace BlueprintOS.Infrastructure.Documentation.Generators.Engineering;
 
 /// <summary>
 /// Implementação de <see cref="IMermaidGenerator"/> que encapsula
-/// <see cref="IMermaidDiagramGenerator"/> aplicado ao grafo real de dependências entre os
-/// projetos do backend (derivado das referências de projeto reais nos arquivos <c>.csproj</c>).
+/// <see cref="IMermaidDiagramGenerator"/> aplicado a uma representação do grafo de dependências
+/// entre os projetos do backend. O grafo é mantido manualmente por este gerador (não é parseado
+/// a partir dos arquivos <c>.csproj</c>) e deve ser atualizado sempre que uma referência de
+/// projeto (<c>ProjectReference</c>) for adicionada, removida ou alterada.
 /// </summary>
 public sealed class MermaidGenerator : IMermaidGenerator
 {
@@ -51,8 +53,8 @@ public sealed class MermaidGenerator : IMermaidGenerator
         var builder = new StringBuilder();
         builder.AppendLine("## Diagrama de dependências entre projetos");
         builder.AppendLine();
-        builder.AppendLine("Grafo real de referências de projeto (`ProjectReference`) entre os projetos");
-        builder.AppendLine("`.csproj` do backend:");
+        builder.AppendLine("Representação mantida manualmente das referências de projeto (`ProjectReference`)");
+        builder.AppendLine("entre os projetos `.csproj` do backend; deve ser atualizada quando essas referências mudarem:");
         builder.AppendLine();
         builder.AppendLine("```mermaid");
         builder.AppendLine(diagram.TrimEnd());

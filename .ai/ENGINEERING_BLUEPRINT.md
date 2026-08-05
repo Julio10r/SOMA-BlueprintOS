@@ -46,7 +46,7 @@ flowchart TB
   Infra --> Docs[Documentation / Publication]
 ```
 
-Responsabilidades: Api hospeda endpoints e CLIs; Application e Domain são scaffolds; Core contém contratos/modelos; Infrastructure implementa provedores, memória e publicação. Comunicação futura entre módulos deve ocorrer por contratos, nunca por internals de Infrastructure.
+Responsabilidades: Api hospeda endpoints e CLIs; Application contém casos de uso (ex.: `Procurement/Suppliers`) e Domain contém entidades reais (ex.: `Fornecedor`, `Cnpj`, `ScoreFornecedor`) do vertical slice de Fornecedores; Core contém contratos/modelos dos módulos técnicos (AI, Agents, Documentation, Knowledge, Publication); Infrastructure implementa provedores, memória e publicação. Comunicação futura entre módulos deve ocorrer por contratos, nunca por internals de Infrastructure.
 
 ## 3. Arquitetura Física
 
@@ -144,7 +144,7 @@ Há endpoint de health e métricas de qualidade durante publicação. Logging es
 
 ## 14. Estratégia de Testes
 
-Suíte atual: xUnit com fakes manuais, 281 testes unitários e 5 de integração aprovados na última validação (03/08/2026). Cobertura futura: Application/Domain, integração, arquitetura, contrato e E2E. E2E, testes de contrato e testes arquiteturais não existem.
+Suíte atual: xUnit com fakes manuais, 290 testes unitários e 5 de integração aprovados na última validação (05/08/2026). Cobertura futura: integração, arquitetura, contrato e E2E. E2E, testes de contrato e testes arquiteturais não existem.
 
 ## 15. Estratégia de Deploy
 
@@ -162,7 +162,7 @@ O ambiente local roda sem Docker (backend via `dotnet run`, frontend via `npm ru
 
 ## 17. Work Orders
 
-Há 56 Work Orders estratégicas nas fases A–H, além das sprints de governança A10–A12. A1–A4 e A7 são comprovadas; A5 não é comprovada e A6 é parcial; B1, B2, B2.1 e B2.1.1 estão concluídas. B2.1.2 permanece planejada e B2.2 é a próxima evolução em Draft; B3 não foi iniciada. A ADR-0013 prioriza plataforma operacional antes da inteligência. `BACKLOG.md`, `workorders/README.md` e `DEPENDENCY_MAP.md` consolidam catálogo e dependências.
+Há 56 Work Orders estratégicas nas fases A–H, além das sprints de governança A10–A12. A1–A4 e A7 são comprovadas; A5 não é comprovada e A6 é parcial; B1, B2, B2.1, B2.1.1, B2.1.2, B2.1.3 e B2.2 estão concluídas (ver `.ai/BACKLOG.md` para evidências detalhadas); B3 não foi iniciada. A ADR-0013 prioriza plataforma operacional antes da inteligência. `BACKLOG.md`, `workorders/README.md` e `DEPENDENCY_MAP.md` consolidam catálogo e dependências.
 
 ```mermaid
 flowchart LR

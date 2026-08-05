@@ -94,11 +94,11 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 | Suíte | Executados | Aprovados | Ignorados | Falhos |
 |---|---:|---:|---:|---:|
-| Unitários | 281 | 281 | 0 | 0 |
+| Unitários | 290 | 290 | 0 | 0 |
 | Integração | 5 | 5 | 0 | 0 |
-| Total | 286 | 286 | 0 | 0 |
+| Total | 295 | 295 | 0 | 0 |
 
-> Tabela atualizada em 03/08/2026 por execução real de `dotnet test backend/BlueprintOS.sln` (não estimativa), após a remoção do Docker e a limpeza do projeto de testes (`BlueprintOS.UnitTests.csproj`, sem alteração de regra de negócio). Inclui os testes de paginação (commits `21f1a67`, `ca48dc3`), o teste de teto total do `limite` e o teste de falha parcial de persistência (`Execute_Should_Finish_As_Parcial_And_Persist_Execucao_When_Individual_SaveChanges_Fails`).
+> Tabela atualizada em 05/08/2026 por execução real de `dotnet build`/`dotnet test backend/BlueprintOS.sln` (não estimativa): build aprovado com 0 erros e 0 avisos; testes aprovados, 0 falhas.
 
 Build da solution: `dotnet build backend/BlueprintOS.sln` executado em 03/08/2026, sucesso, 0 erros e 0 avisos. Build do frontend: `npm run build` (`tsc -b && vite build`) executado em 03/08/2026, sucesso.
 

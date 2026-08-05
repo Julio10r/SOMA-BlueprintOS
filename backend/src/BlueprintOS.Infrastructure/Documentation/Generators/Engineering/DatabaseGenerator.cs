@@ -4,9 +4,8 @@ using BlueprintOS.Core.Documentation.Contracts.Engineering;
 namespace BlueprintOS.Infrastructure.Documentation.Generators.Engineering;
 
 /// <summary>
-/// Implementação de <see cref="IDatabaseGenerator"/>. O backend ainda não possui nenhum
-/// <c>DbContext</c> ou entidade EF Core persistente; este gerador reflete esse estado
-/// honestamente em vez de inventar um schema.
+/// Implementação de <see cref="IDatabaseGenerator"/>, refletindo a persistência real do
+/// vertical slice de Fornecedores via <c>BlueprintOSDbContext</c> (EF Core + SQL Server).
 /// </summary>
 public sealed class DatabaseGenerator : IDatabaseGenerator
 {
@@ -16,13 +15,17 @@ public sealed class DatabaseGenerator : IDatabaseGenerator
         var builder = new StringBuilder();
         builder.AppendLine("## Banco de dados");
         builder.AppendLine();
-        builder.AppendLine("Nenhum schema de banco de dados definido até o momento.");
+        builder.AppendLine("O backend possui um `DbContext` real: `BlueprintOSDbContext`");
+        builder.AppendLine("(`backend/src/BlueprintOS.Infrastructure/Persistence/`), usando Entity Framework Core");
+        builder.AppendLine("com SQL Server. Ele persiste o domínio de Fornecedores (cadastro, descoberta, sincronização");
+        builder.AppendLine("com o ERP e histórico de consulta de CNPJ), com migrations reais aplicadas nesse mesmo");
+        builder.AppendLine("projeto (`Persistence/Migrations/`).");
         builder.AppendLine();
-        builder.AppendLine("O backend ainda não possui nenhum `DbContext` (EF Core) nem entidades persistentes.");
-        builder.AppendLine("A persistência atual dos módulos existentes (ex.: `Documentation`, `Knowledge`) é feita");
-        builder.AppendLine("em memória (`InMemoryDocumentationRepository`) ou em arquivos Markdown (ADRs, changelog),");
-        builder.AppendLine("adequado ao escopo das sprints entregues até aqui. Este documento será atualizado assim");
-        builder.AppendLine("que um `DbContext` real for introduzido no projeto.");
+        builder.AppendLine("O banco é sempre externo — bancos corporativos `MAISCOMPRAS`/`SOMA_DESENV`, acessados via");
+        builder.AppendLine("VPN — nunca um SQL Server local ou em container. Não há pasta `database/` na raiz do");
+        builder.AppendLine("repositório nem scripts/seeds de banco separados; a persistência dos demais módulos");
+        builder.AppendLine("(ex.: `Documentation`, `Knowledge`) permanece em memória ou em arquivos Markdown.");
+        builder.AppendLine("Este documento será atualizado conforme novos módulos passarem a persistir dados.");
 
         return Task.FromResult(builder.ToString());
     }

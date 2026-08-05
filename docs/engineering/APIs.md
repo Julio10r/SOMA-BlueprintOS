@@ -3,15 +3,17 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-30 21:04:12 UTC
-- **Última atualização:** 2026-07-30
+- **Gerado em:** 2026-08-05 15:25:57 UTC
+- **Última atualização:** 2026-08-05
 
 ---
 
 ## API — documentação técnica
 
 `BlueprintOS.Api` é um Minimal API (.NET 9) que registra os serviços de
-infraestrutura via `AddInfrastructure` e expõe saúde, fornecedores e descoberta ERP:
+infraestrutura via `AddInfrastructure` e expõe saúde, recomendação consultiva de
+negociação e o vertical slice de Fornecedores (cadastro, descoberta, consulta/
+enriquecimento de CNPJ e sincronização com o ERP):
 
 ```
 GET /health
@@ -20,21 +22,23 @@ GET /health
 POST /api/v1/negociacoes/recomendacoes
   -> 200 OK { RequestId, Strategy, Justifications, Alerts, SuccessProbability, HumanDecisionRequired }
 
-POST /api/fornecedores/descobrir
-  -> 200 OK [ { Id, CodigoItem, Nome, Score, Criterio, ... } ]
+GET  /fornecedores                          -> busca/listagem de fornecedores
+POST /fornecedores                          -> cadastro de fornecedor
+GET  /fornecedores/{id}                     -> detalhe do fornecedor
+PUT  /fornecedores/{id}                     -> atualização do fornecedor
+POST /fornecedores/consulta-cnpj            -> consulta de CNPJ (BrasilAPI)
+POST /fornecedores/{id}/enriquecimento-cnpj -> análise de divergências de CNPJ
+POST /fornecedores/{id}/enriquecimento-cnpj/aprovar -> aprova o enriquecimento
+POST /fornecedores/{id}/enriquecimento-cnpj/rejeitar -> rejeita o enriquecimento
 
-GET /api/fornecedores/descobertas
-  -> 200 OK [ descobertas persistidas da identidade temporária ]
+POST /api/fornecedores/descobrir            -> descoberta de fornecedores no ERP
+GET  /api/fornecedores/descobertas          -> lista descobertas registradas
 
-GET /api/fornecedores/descobertas/{id}
-  -> 200 OK descoberta persistida ou 404
-
-POST /api/fornecedores/sincronizar
-  -> 200 OK resultado com status, correlação, BU e identificador externo
-
-POST /api/fornecedores/sincronizar/lote
-  -> 200 OK resultados controlados (máximo de 100 fornecedores)
+POST /api/fornecedores/sincronizar          -> sincroniza um fornecedor com o ERP
+POST /api/fornecedores/sincronizar/lote     -> sincroniza um lote de fornecedores
+GET  /api/fornecedores/sincronizar-erp      -> executa e audita a sincronização ERP → +Compras
 ```
 
 OpenAPI (`AddOpenApi`/`MapOpenApi`) está habilitado em ambiente de desenvolvimento.
-Os endpoints delegam aos casos de uso Application. A descoberta e o adaptador de sincronização usam exclusivamente `SOMA_DESENV`; a sincronização persiste estado e histórico no +Compras.
+Os controllers delegam a casos de uso Application, reutilizando contratos de domínio,
+memória e estratégia; a API permanece fina, sem regra de negócio própria.

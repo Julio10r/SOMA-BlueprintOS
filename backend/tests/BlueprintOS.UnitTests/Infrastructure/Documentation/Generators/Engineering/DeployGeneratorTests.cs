@@ -12,6 +12,8 @@ public class DeployGeneratorTests
         Assert.Contains("dotnet run", result);
         Assert.Contains("npm run dev", result);
         Assert.Contains("SQL Server externo", result);
+        Assert.Contains("ADR-0018", result);
+        Assert.DoesNotContain("ADR-0019", result);
         Assert.DoesNotContain("Dockerfile", result);
         Assert.DoesNotContain("docker-compose", result);
     }

@@ -8,7 +8,7 @@
 
 ## Estado documental
 
-A última sprint concluída é **A12 — Especificação Oficial das 56 Work Orders**. Não há sprint em execução ou próxima sprint aprovada. As fontes canônicas são [VISION.md](../.ai/VISION.md), [PROJECT_STATE.md](../.ai/PROJECT_STATE.md) e [WORKFLOW.md](../.ai/WORKFLOW.md).
+Este Handbook não fixa o estado da sprint atual, pois ele muda com frequência maior do que este documento é revisado. Para o estado de sprint e o histórico de entregas comprovado, ver [PROJECT_STATE.md](../.ai/PROJECT_STATE.md) e [CURRENT_SPRINT.md](../.ai/CURRENT_SPRINT.md) — as fontes canônicas. Ver também [VISION.md](../.ai/VISION.md) e [WORKFLOW.md](../.ai/WORKFLOW.md).
 
 ## Arquitetura
 
@@ -59,8 +59,8 @@ Dentro de `Core`/`Infrastructure`, cada módulo segue `{Módulo}/{Contracts,Mode
 | Camada | Tecnologia |
 |---|---|
 | Backend | .NET 9, ASP.NET Core, C# |
-| Frontend | React, TypeScript (ainda não iniciado) |
-| Banco de dados | SQL Server + Entity Framework Core (oficial; ainda não integrado no código) |
+| Frontend | React, TypeScript (Portal +Compras em desenvolvimento; ver [PROJECT_STATE.md](../.ai/PROJECT_STATE.md) para o estado atual das telas) |
+| Banco de dados | SQL Server + Entity Framework Core (`BlueprintOSDbContext`, com migrations aplicadas ao domínio de Fornecedores) |
 | Autenticação | Microsoft Entra ID (planejado, Fase 1) |
 | Infraestrutura | Ambiente local sem Docker (ver ADR-0018 em `.ai/DECISIONS.md`); GCP planejado, ainda não configurado no repositório |
 | PDF | QuestPDF (biblioteca .NET pura) |
@@ -145,8 +145,8 @@ Todo Pull Request deve conter: objetivo, mudanças, impactos, testes realizados 
 backend/
   src/
     BlueprintOS.Api/            # host ASP.NET Core, endpoints, CLI de publicação
-    BlueprintOS.Application/    # casos de uso (scaffold)
-    BlueprintOS.Domain/         # entidades de domínio (scaffold)
+    BlueprintOS.Application/    # casos de uso (ex.: Procurement/Suppliers)
+    BlueprintOS.Domain/         # entidades de domínio (ex.: Fornecedor, Cnpj, ScoreFornecedor)
     BlueprintOS.Infrastructure/ # implementações (Documentation, Knowledge, Publication, Memory, Integrations)
     BlueprintOS.Core/           # contratos e modelos (AI, Agents, Documentation, Knowledge, Publication, Workflows)
     BlueprintOS.Shared/         # utilitários compartilhados
@@ -171,7 +171,7 @@ dist/                # saída gerada pelo Publication Engine (não versionado)
 
 - Framework: xUnit, sem biblioteca de mocking — fakes escritos manualmente.
 - Prioridade de cobertura: Application → Domain → Integration → End-to-End (ainda não há testes E2E).
-- Validação A12 e auditorias subsequentes (30/07/2026): **230 testes unitários + 1 teste de integração, 100% passando**, sem ignorados ou falhos. A consulta de vulnerabilidades NuGet pode emitir `NU1900` sem impedir build ou testes quando o cache local estiver disponível.
+- Contagem de testes não é fixada aqui, pois cresce a cada sprint. Ver [PROJECT_STATE.md](../.ai/PROJECT_STATE.md) para o resultado da última execução real de build e testes.
 
 ```bash
 dotnet test backend/BlueprintOS.sln

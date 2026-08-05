@@ -3,12 +3,30 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-30 21:04:12 UTC
-- **Última atualização:** 2026-07-30
+- **Gerado em:** 2026-08-05 15:25:57 UTC
+- **Última atualização:** 2026-08-05
 
 ---
 
 ## Changelog
+
+### Sprint de Infraestrutura — Remoção do Docker e Consolidação do Ambiente Local
+
+
+### Sprint B2.1.3 — Endurecimento da Integração ERP de Fornecedores
+
+transformar a sincronização ERP SOMA → +Compras em rotina operacional rastreável, paginada e resiliente a erros parciais: leitura paginada (`IFornecedorErpReader`/`SomaFornecedorReader` com `OFFSET/FETCH`), orquestração em lotes (`SincronizarFornecedoresErpUseCase`), histórico de execução (`SincronizacaoFornecedor`) e erros parciais persistidos (`ErroSincronizacaoFornecedor`), migration `202608020001_B213FornecedorErpSyncHardening`, logs estruturados e retorno detalhado do endpoint `GET /api/fornecedores/sincronizar-erp`.
+
+### Sprint B2.1 — Validação Operacional e Sincronização de Fornecedores com ERP
+
+
+### Sprint B2 — Descoberta Inicial de Fornecedores
+
+consulta somente leitura ao ERP SOMA_DESENV por item, descrição ou categoria, score explicável 100/80/60/40, persistência de descobertas no +Compras e endpoints de descoberta/consulta.
+
+### Sprint B1 — Persistência de Fornecedores
+
+agregado `Fornecedor`, value object `Cnpj`, DbContext EF Core/SQL Server, migration versionada, repositório assíncrono, casos de uso CRUD, endpoints REST `/fornecedores` e validador somente leitura das conexões de +Compras e ERP.
 
 ### Sprint A13 — Primeiro Vertical Slice do +Compras
 

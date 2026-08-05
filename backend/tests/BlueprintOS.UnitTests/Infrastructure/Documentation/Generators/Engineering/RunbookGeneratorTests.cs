@@ -5,10 +5,12 @@ namespace BlueprintOS.UnitTests.Infrastructure.Documentation.Generators.Engineer
 public class RunbookGeneratorTests
 {
     [Fact]
-    public async Task GenerateAsync_Should_State_No_Runbook_Registered_Honestly()
+    public async Task GenerateAsync_Should_Distinguish_Formal_Catalog_From_Existing_Operational_Knowledge()
     {
         var result = await new RunbookGenerator().GenerateAsync();
 
-        Assert.Contains("Nenhum procedimento operacional", result);
+        Assert.Contains("catálogo formal", result);
+        Assert.Contains("completed_sprints.md", result);
+        Assert.Contains("known_issues.md", result);
     }
 }

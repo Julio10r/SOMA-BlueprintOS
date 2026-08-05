@@ -44,13 +44,103 @@ public class DocumentationAssetGeneratorTests
     [Fact]
     public async Task GenerateAllAsync_Should_Produce_A_Solution_Tree_Ignoring_Build_Artifacts()
     {
-        var assets = await _generator.GenerateAllAsync();
+        var treeBody = await GetSolutionTreeBodyAsync();
 
+        Assert.DoesNotContain("bin/", treeBody);
+        Assert.DoesNotContain("obj/", treeBody);
+        Assert.DoesNotContain("node_modules/", treeBody);
+    }
+
+    [Fact]
+    public async Task GenerateAllAsync_Should_Produce_A_Solution_Tree_Excluding_Git_Ignored_Entries()
+    {
+        var treeBody = await GetSolutionTreeBodyAsync();
+
+        Assert.DoesNotContain(".myNotes", treeBody);
+        Assert.DoesNotContain(".DS_Store", treeBody);
+        Assert.DoesNotContain(".git/", treeBody);
+    }
+
+    [Fact]
+    public async Task GenerateAllAsync_Should_Produce_A_Solution_Tree_Containing_Real_Tracked_Entries()
+    {
+        var assets = await _generator.GenerateAllAsync();
         var solutionTree = assets.Single(a => a.RelativePath == "solution-tree.md").Content;
+        var treeBody = await GetSolutionTreeBodyAsync();
 
         Assert.Contains("# Árvore da Solução", solutionTree);
-        Assert.DoesNotContain("bin/", solutionTree);
-        Assert.DoesNotContain("obj/", solutionTree);
-        Assert.DoesNotContain("node_modules/", solutionTree);
+        Assert.Contains("backend/", treeBody);
+        Assert.Contains("mcp/", treeBody);
+    }
+
+    [Fact]
+    public async Task GenerateAllAsync_Should_Produce_A_Solution_Tree_Excluding_Untracked_Local_Files()
+    {
+        var repoRoot = FindRepoRoot();
+        var scratchFileName = $"_untracked-scratch-{Guid.NewGuid():N}.md";
+        var scratchFilePath = Path.Combine(repoRoot, scratchFileName);
+
+        // Confirma a premissa do teste: este nome não deve estar coberto por nenhuma regra de
+        // .gitignore, para que a exclusão observada seja por não-rastreamento, não por ignore.
+        Assert.False(IsGitIgnored(repoRoot, scratchFilePath));
+
+        await File.WriteAllTextAsync(scratchFilePath, "rascunho local não rastreado, não ignorado");
+        try
+        {
+            var treeBody = await GetSolutionTreeBodyAsync();
+
+            Assert.DoesNotContain(scratchFileName, treeBody);
+        }
+        finally
+        {
+            File.Delete(scratchFilePath);
+        }
+    }
+
+    /// <summary>
+    /// Retorna apenas o conteúdo dentro do bloco de código da árvore (entre os delimitadores
+    /// ```), sem o parágrafo explicativo — que legitimamente cita "bin/", ".myNotes" etc. como
+    /// exemplos do que é excluído, e por isso não deve ser usado para as asserções de exclusão.
+    /// </summary>
+    private async Task<string> GetSolutionTreeBodyAsync()
+    {
+        var assets = await _generator.GenerateAllAsync();
+        var solutionTree = assets.Single(a => a.RelativePath == "solution-tree.md").Content;
+
+        var firstFence = solutionTree.IndexOf("```", StringComparison.Ordinal);
+        var lastFence = solutionTree.LastIndexOf("```", StringComparison.Ordinal);
+        return solutionTree[(firstFence + 3)..lastFence];
+    }
+
+    private static string FindRepoRoot()
+    {
+        var directory = AppContext.BaseDirectory;
+        while (directory is not null)
+        {
+            if (Directory.Exists(Path.Combine(directory, ".git")))
+            {
+                return directory;
+            }
+
+            directory = Path.GetDirectoryName(directory.TrimEnd(Path.DirectorySeparatorChar));
+        }
+
+        throw new InvalidOperationException("Repository root (.git) not found from test base directory.");
+    }
+
+    private static bool IsGitIgnored(string repoRoot, string fullPath)
+    {
+        var startInfo = new System.Diagnostics.ProcessStartInfo(
+            "git",
+            $"check-ignore -q \"{fullPath}\"")
+        {
+            WorkingDirectory = repoRoot,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+
+        using var process = System.Diagnostics.Process.Start(startInfo)!;
+        process.WaitForExit();
+        return process.ExitCode == 0;
     }
 }

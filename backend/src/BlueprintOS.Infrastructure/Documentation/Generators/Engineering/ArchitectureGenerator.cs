@@ -34,6 +34,14 @@ public sealed class ArchitectureGenerator : IArchitectureGenerator
             "Memória de negociação e motor de estratégia baseado em regras; ainda sem agente Buyer sênior concreto.",
             new[] { "INegotiationMemory", "INegotiationMemoryStore", "INegotiationStrategy", "INegotiationStrategyRule" },
             new[] { "NegotiationMemory", "InMemoryNegotiationMemoryStore", "NegotiationStrategy" }),
+        new ModuleMetadata(
+            "Procurement.Suppliers",
+            "Vertical slice de Fornecedores: cadastro, descoberta no ERP, consulta/enriquecimento de CNPJ e " +
+            "sincronização bidirecional com o ERP (SOMA_DESENV → +Compras). Entidades e casos de uso reais em " +
+            "Domain/Application, persistência via BlueprintOSDbContext (EF Core + SQL Server) em Infrastructure, " +
+            "e API própria (`/fornecedores`, `/api/fornecedores/...`).",
+            new[] { "IFornecedorUseCases", "IConsultarCnpjFornecedorUseCase", "IFornecedorEnriquecimentoUseCases", "ISincronizarFornecedorUseCase", "ISincronizarFornecedoresErpUseCase", "IFornecedorDiscoveryUseCase", "IErpFornecedorAdapter" },
+            new[] { "Fornecedor", "Cnpj", "ScoreFornecedor", "FornecedorCanonico", "FornecedorUseCases", "SincronizarFornecedorUseCase", "BlueprintOSDbContext" }),
     };
 
     private readonly ITechnicalDocumentationGenerator _technicalDocumentationGenerator;

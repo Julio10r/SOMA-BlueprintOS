@@ -3,16 +3,17 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-30 21:04:12 UTC
-- **Última atualização:** 2026-07-30
+- **Gerado em:** 2026-08-05 15:25:57 UTC
+- **Última atualização:** 2026-08-05
 
 ---
 
 ## Indicadores-chave de desempenho (KPIs)
 
-Nenhum KPI de negócio registrado até o momento.
+Nenhum KPI de negócio formalizado para produção até o momento — o BlueprintOS
+ainda não está em operação em produção (ver `.ai/ROADMAP.md`).
 
-O BlueprintOS encontra-se na Fase 0 - Fundação (ver Roadmap), etapa em que ainda não há
-operação em produção nem dados de uso reais a partir dos quais derivar indicadores.
-Este documento será atualizado assim que módulos de Analytics/Dashboard (Fase 4 do
-Roadmap) passarem a coletar métricas reais.
+Já existem, porém, métricas técnicas e evidências operacionais reais de validação —
+build, suíte de testes automatizados e sincronizações reais contra o ERP corporativo —
+detalhadas em `.ai/PROJECT_STATE.md` e `.ai/BACKLOG.md`. KPIs de negócio formais serão
+introduzidos quando módulos de Analytics/Dashboard entrarem em operação (ver Roadmap).

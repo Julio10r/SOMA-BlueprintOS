@@ -3,8 +3,8 @@
 > Documento gerado automaticamente pelo Portal de Documentação Viva do BlueprintOS. Não editar manualmente.
 
 - **Versão:** 1.0.0
-- **Gerado em:** 2026-07-30 21:04:12 UTC
-- **Última atualização:** 2026-07-30
+- **Gerado em:** 2026-08-05 15:25:57 UTC
+- **Última atualização:** 2026-08-05
 
 ---
 
@@ -20,5 +20,12 @@
 - ADR-0008: PublicationDocument evolui para um modelo rico (Metadata, Assets, Appendix, Theme), com pontos de extensão para recursos futuros sem refatoração
 - ADR-0009: Estrutura oficial de diretórios da documentação publicada é `docs/{executive,client,engineering,assets}`, não `docs/{architecture,api,adr}`
 - ADR-0011: Identidade temporária de desenvolvimento para antecipar a persistência de fornecedores
+- ADR-0012: Persistência de fornecedores isolada por repositório e identidade abstrata
+- ADR-0013: Estratégia de Evolução Incremental da Plataforma Operacional e Inteligente do +Compras
+- ADR-0014: Estratégia de LLM para Desenvolvimento e Produção
+- ADR-0015: Contrato canônico e sincronização bidirecional de fornecedores
+- ADR-0016: Modelo Canônico de Fornecedor Integrado ao ERP Linx
+- ADR-0017: Estratégia de Construção do Portal Operacional +Compras
+- ADR-0018: Ambiente de execução do Portal +Compras é Desenvolvimento Local (Mac)
 
 Ver `.ai/DECISIONS.md` para o texto completo de contexto, decisão e consequências de cada ADR.
