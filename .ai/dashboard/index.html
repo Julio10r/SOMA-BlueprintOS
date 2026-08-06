@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard Oficial · SOMA BlueprintOS / +Compras</title>
+<link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+<!--
+  DASHBOARD OFICIAL DO PROJETO — RESPONSABILIDADE EXCLUSIVAMENTE VISUAL.
+
+  Este Dashboard NÃO interpreta documentação, NÃO calcula indicadores
+  e NÃO possui regras de negócio. Toda informação exibida é lida
+  exclusivamente de ".ai/dashboard/DASHBOARD_STATE.md" (caminho relativo
+  a partir deste arquivo: "./DASHBOARD_STATE.md"), documento derivado e
+  gerado previamente a partir da documentação oficial do projeto.
+
+  Toda regra de negócio, todo cálculo e toda consolidação permanecem em:
+    - .ai/ROADMAP.md
+    - .ai/BACKLOG.md
+    - .ai/PROJECT_STATE.md
+    - .ai/CURRENT_SPRINT.md
+    - .ai/DOCUMENTATION_STRATEGY.md
+    - .ai/dashboard/DASHBOARD_STATE.md (consolidação final)
+
+  Ver dashboard.js para o parser (apenas leitura/formatação, sem cálculo)
+  e .ai/dashboard/README.md para a política completa de responsabilidade.
+-->
+<div id="app" data-state="loading">
+
+  <div class="load-state" id="load-state">
+    <div class="spinner" role="status" aria-label="Carregando"></div>
+    <p>Carregando estado consolidado do projeto…</p>
+  </div>
+
+  <div class="error-state" id="error-state" hidden>
+    <div class="error-card">
+      <h2>Não foi possível carregar o DASHBOARD_STATE.md</h2>
+      <p class="card-body" id="error-detail">
+        Se este arquivo foi aberto diretamente (protocolo <code>file://</code>), o navegador
+        pode bloquear a leitura automática por segurança (CORS). Duas opções:
+      </p>
+      <ol class="card-body" style="text-align:left; padding-left: 1.2em;">
+        <li>Sirva esta pasta via um servidor local (ex.: <code>python3 -m http.server</code> dentro de
+          <code>.ai/dashboard/</code>) e reabra o Dashboard pela URL <code>http://localhost:8000</code>.</li>
+        <li>Ou selecione manualmente o arquivo abaixo — o conteúdo é lido localmente, sem envio a nenhum servidor.</li>
+      </ol>
+      <input type="file" id="file-input" accept=".md" class="visually-hidden" />
+      <button class="file-pick" id="file-pick-btn" type="button">Selecionar DASHBOARD_STATE.md</button>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <header class="topbar" id="topbar">
+      <div class="topbar-id">
+        <span class="name" id="proj-name">—</span>
+        <span class="version" id="proj-version">—</span>
+      </div>
+      <div class="topbar-status" id="proj-status-wrap"></div>
+      <div class="topbar-mvp">
+        <span class="mvp-label">MVP</span>
+        <div class="mvp-bar-track"><div class="mvp-bar-fill" id="mvp-fill"></div></div>
+        <span class="mvp-pct" id="mvp-pct">—</span>
+      </div>
+    </header>
+
+    <nav class="tabsbar-wrap" aria-label="Abas do Dashboard">
+      <div class="tabs" id="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-btn-executive" aria-controls="panel-executive" aria-selected="true" data-tab="executive">Executive</button>
+        <button class="tab" role="tab" id="tab-btn-roadmap" aria-controls="panel-roadmap" aria-selected="false" data-tab="roadmap">Roadmap</button>
+        <button class="tab" role="tab" id="tab-btn-backlog" aria-controls="panel-backlog" aria-selected="false" data-tab="backlog">Backlog</button>
+        <button class="tab" role="tab" id="tab-btn-frontend" aria-controls="panel-frontend" aria-selected="false" data-tab="frontend">Frontend</button>
+        <button class="tab" role="tab" id="tab-btn-banco" aria-controls="panel-banco" aria-selected="false" data-tab="banco">Banco</button>
+        <button class="tab" role="tab" id="tab-btn-integracoes" aria-controls="panel-integracoes" aria-selected="false" data-tab="integracoes">Integrações</button>
+        <button class="tab" role="tab" id="tab-btn-ia" aria-controls="panel-ia" aria-selected="false" data-tab="ia">IA</button>
+        <button class="tab" role="tab" id="tab-btn-qualidade" aria-controls="panel-qualidade" aria-selected="false" data-tab="qualidade">Qualidade</button>
+        <button class="tab" role="tab" id="tab-btn-documentacao" aria-controls="panel-documentacao" aria-selected="false" data-tab="documentacao">Documentação</button>
+        <button class="tab" role="tab" id="tab-btn-metricas" aria-controls="panel-metricas" aria-selected="false" data-tab="metricas">Métricas</button>
+      </div>
+    </nav>
+
+    <main class="page-main">
+      <section class="tabpanel" id="panel-executive" role="tabpanel" aria-labelledby="tab-btn-executive"></section>
+      <section class="tabpanel" id="panel-roadmap" role="tabpanel" aria-labelledby="tab-btn-roadmap" hidden></section>
+      <section class="tabpanel" id="panel-backlog" role="tabpanel" aria-labelledby="tab-btn-backlog" hidden></section>
+      <section class="tabpanel" id="panel-frontend" role="tabpanel" aria-labelledby="tab-btn-frontend" hidden></section>
+      <section class="tabpanel" id="panel-banco" role="tabpanel" aria-labelledby="tab-btn-banco" hidden></section>
+      <section class="tabpanel" id="panel-integracoes" role="tabpanel" aria-labelledby="tab-btn-integracoes" hidden></section>
+      <section class="tabpanel" id="panel-ia" role="tabpanel" aria-labelledby="tab-btn-ia" hidden></section>
+      <section class="tabpanel" id="panel-qualidade" role="tabpanel" aria-labelledby="tab-btn-qualidade" hidden></section>
+      <section class="tabpanel" id="panel-documentacao" role="tabpanel" aria-labelledby="tab-btn-documentacao" hidden></section>
+      <section class="tabpanel" id="panel-metricas" role="tabpanel" aria-labelledby="tab-btn-metricas" hidden></section>
+    </main>
+
+    <p class="footer-note">
+      Dashboard com responsabilidade exclusivamente visual — não interpreta documentação, não calcula
+      indicadores, não aplica regras de negócio. Toda a consolidação vem de
+      <code>.ai/dashboard/DASHBOARD_STATE.md</code>, documento derivado da documentação oficial do
+      projeto (<code>ROADMAP.md</code>, <code>BACKLOG.md</code>, <code>PROJECT_STATE.md</code>,
+      <code>CURRENT_SPRINT.md</code>, <code>DOCUMENTATION_STRATEGY.md</code>). Última leitura:
+      <span id="footer-loaded-at">—</span>.
+    </p>
+  </div>
+</div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>

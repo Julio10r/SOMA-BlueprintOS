@@ -55,6 +55,7 @@ Nenhuma implementação deve começar sem essa leitura (ver PROJECT.md §7).
 - [ROADMAP.md](./ROADMAP.md) — roadmap de alto nível
 - [WORKFLOW.md](./WORKFLOW.md) — fluxo oficial de trabalho
 - [AI_TEAM.md](./AI_TEAM.md) — arquitetura multi-agente alvo
+- [dashboard/README.md](./dashboard/README.md) — camada de estado consolidado que alimenta o Dashboard do projeto; nunca editar `dashboard/DASHBOARD_STATE.md` manualmente
 
 ---
 
