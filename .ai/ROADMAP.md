@@ -1,94 +1,179 @@
 # ROADMAP.md
 
-> Roadmap de alto nível do SOMA BlueprintOS, por fases. Não descreve sprints — para detalhe de sprint atual, ver `.ai/CURRENT_SPRINT.md`; para histórico de sprints concluídas, ver `.ai/memory/completed_sprints.md`.
+> Roadmap oficial do SOMA BlueprintOS / +Compras, replanejado para o **MVP 1.0** segundo a estratégia **Frontend First**. Não descreve sprints — para detalhe de sprint atual, ver `.ai/CURRENT_SPRINT.md`; para histórico de sprints concluídas, ver `.ai/memory/completed_sprints.md`.
+>
+> A arquitetura definida em `ARCHITECTURE.md` e `ENGINEERING_BLUEPRINT.md` permanece inalterada por este replanejamento. O que muda é exclusivamente a ordem e o agrupamento de entrega.
+>
+> O catálogo estratégico histórico de oito fases e 56 Work Orders permanece em `.ai/work-orders/backlog/README.md` e `.ai/BACKLOG.md`, agora reclassificado por Onda do MVP 1.0 ou por MVP 1.1 — ver a seção "Reclassificação oficial" em `BACKLOG.md`.
 
-O projeto encontra-se na **Fase 0 - Fundação**, ainda em andamento. As sprints A7, A8, A9, A10, A11 e A12 estão registradas em `.ai/memory/completed_sprints.md`; o estado operacional verificável está em `.ai/PROJECT_STATE.md`.
+## Estratégia oficial: Frontend First
 
-O catálogo estratégico oficial de oito fases e 56 Work Orders está em `.ai/work-orders/backlog/README.md`; ele não altera o status comprovado das funcionalidades.
+Consolidada como estratégia definitiva de desenvolvimento do projeto. Toda funcionalidade segue obrigatoriamente esta sequência:
 
----
+```
+Ideia
+  ↓
++Compras Funcional
+  ↓
+Validação de negócio
+  ↓
+UX
+  ↓
+Mock navegável
+  ↓
+Blueprint do Banco
+  ↓
+APIs
+  ↓
+Integrações
+  ↓
+Implementação
+  ↓
+Testes
+  ↓
+Homologação
+```
 
-## Fase 0 - Fundação (status: em andamento)
+**Nenhuma funcionalidade pode ser implementada antes da aprovação do Mock navegável.** `+Compras Funcional` (o que o sistema faz) e `+Compras UX` (como o usuário utiliza o sistema) precedem o mock e são atualizados antes de qualquer código — ver `.ai/DOCUMENTATION_STRATEGY.md` para a definição desses dois artefatos e sua distinção da Arquitetura Técnica (como o sistema foi construído).
 
-Objetivo: estabelecer as bases de arquitetura, padrões, processo e infraestrutura antes de construir funcionalidade de negócio.
+Em nível de Onda, o mesmo fluxo se aplica de forma agregada: nenhuma Onda avança sem que a anterior tenha entregue seu marco e sido aprovada por seu Gate (ver "Gates de aprovação" abaixo). Este roadmap não contém prazo total de projeto, datas absolutas ou cronograma por calendário — apenas duração planejada por onda, marcos, dependências, critérios de aceite e o rastreamento de datas descrito em "Política de acompanhamento das Ondas". Se uma onda ultrapassar sua duração planejada, considera-se atraso daquela onda, não do projeto como um todo.
 
-- Definição da arquitetura oficial (Modular Monolith + Clean Architecture + DDD pragmático).
-- Padrões de engenharia (STANDARDS.md) e workflow da AI Factory (WORKFLOW.md).
-- Engineering Handbook (`.ai/`) completo e navegável.
-- Estrutura alvo de pastas `/src/Apps`, `/src/BuildingBlocks`, `/src/Modules` definida, mas **ainda não adotada fisicamente**. O backend real está em `backend/src/BlueprintOS.{Api,Application,Core,Domain,Infrastructure,Shared}`.
-- Infraestrutura básica: ambiente de desenvolvimento local sem Docker (ver ADR-0018), backend via `dotnet run` e frontend via `npm run dev`. Pipeline de CI e ambiente GCP inicial ainda não estão implementados.
+### Processo de implementação (ciclo oficial)
 
-- Portal de documentação viva (dashboards, guias, changelog, ADRs) publicado automaticamente em `docs/` (Sprint A8).
-- **EPIC de documentação: concluído (23/07/2026).** A7 implementou o módulo Documentation; A8 comprovadamente adicionou publicadores por público e o Portal de Documentação Viva; A9 implementou o Publication Engine. A10–A12 consolidaram a governança e a especificação documental em 30/07/2026. Ver `.ai/memory/completed_sprints.md` e `.ai/PROJECT_STATE.md`.
+```
++Compras Funcional → +Compras UX → Blueprint Banco → APIs → Integrações → Implementação → Testes → Homologação
+```
 
----
+Este é o fluxo oficial de qualquer entrega no projeto, do nascimento da especificação até a homologação.
 
-## Fase 1 - Módulos Core
+## Ondas do MVP 1.0
 
-Objetivo: entregar os módulos que sustentam identidade, planejamento e automação de processo.
+### Onda 1 — Fundação Funcional
 
-- **Identity** — autenticação (Entra ID), autorização, multi-tenant.
-- **Planner** — decomposição e execução de planos de trabalho.
-- **Workflow** — motor de fluxos de processo de negócio.
+- **Duração planejada:** 12 dias.
+- **Objetivo:** construir a fundação funcional do produto.
+- **Inclui:** frontend navegável completo; Administração (Unidade de Negócio, Usuários, Perfis, Permissões, Identity Providers, Configuração ERP, Workflow, Aprovação, Controle Orçamentário, Configurações, Feature Flags, Parâmetros); UX validada; blueprint completo do banco; estrutura administrativa.
+- **Dependências:** nenhuma além da fundação arquitetural já entregue (Fase 0 concluída — ver seção "Fundação arquitetural" abaixo).
+- **Critério de aceite:** produto navegável, com Administração operável e blueprint de banco completo e aprovado, antes de iniciar a Onda 2.
+- **Entrega:** produto navegável.
 
-> Estado real: há somente um workflow sequencial básico no código. Identity e Planner não foram iniciados como módulos de produto; o motor de processo de negócio permanece planejado.
+### Onda 2 — Cadastros
 
----
+- **Duração planejada:** 15 dias.
+- **Objetivo:** cadastros completos com sincronização ERP.
+- **Inclui:** fornecedores, materiais, serviços, categorias, compradores, centros de custo — todos com sincronização ERP.
+- **Dependências:** Onda 1 concluída (Administração e blueprint de banco).
+- **Critério de aceite:** todos os cadastros operáveis pelo frontend, sincronizados com o ERP conforme a Estratégia de Integração (ver abaixo).
+- **Entrega:** cadastros completos.
 
-## Fase 2 - Conhecimento e Memória
+### Onda 3 — Processo de Compras
 
-Objetivo: dar à plataforma capacidade de reter e recuperar conhecimento, e de operar agentes de IA.
+- **Duração planejada:** 15 dias.
+- **Objetivo:** processo completo de Compras.
+- **Inclui:** solicitação, cotação, negociação por IA, workflow, controle orçamentário, aprovação, pedido.
+- **Dependências:** Onda 2 concluída (cadastros de fornecedor, item, comprador e centro de custo).
+- **Critério de aceite:** ciclo completo solicitação → pedido operável de ponta a ponta pelo frontend, com aprovação e controle orçamentário funcionando.
+- **Entrega:** processo completo de Compras.
 
-- **Knowledge** — ingestão, indexação e recuperação de conhecimento organizacional.
-- **Memory** — memória de curto, médio e longo prazo para agentes e execuções.
-- **Agents** — runtime de agentes especializados, registro e execução.
+### Onda 4 — Integrações Operacionais
 
-> Estado real: Knowledge por Markdown, memória de negociação em processo e runtime básico com `EchoAgent` e `KnowledgeAgent` existem. Memória corporativa genérica e agentes especializados de +COMPRAS permanecem planejados.
+- **Duração planejada:** 12 dias.
+- **Objetivo:** integrações operacionais.
+- **Inclui:** ERP, Nota Fiscal, Pagamento.
+- **Dependências:** Onda 3 concluída (pedido existente para vincular nota fiscal e pagamento).
+- **Critério de aceite:** integrações operando de ponta a ponta, respeitando a Estratégia de Integração com ERP (ver abaixo) — nenhuma alteração estrutural no ERP.
+- **Entrega:** integrações operacionais completas.
 
----
+### Onda 5 — Go Live
 
-## Fase 3 - Automação e Integrações
+- **Duração planejada:** 10 dias.
+- **Objetivo:** Go Live.
+- **Inclui:** homologação, observabilidade, performance, segurança, estabilização.
+- **Dependências:** Ondas 1 a 4 concluídas.
+- **Critério de aceite:** homologação aprovada, observabilidade e segurança mínimas operando, performance validada.
+- **Entrega:** produto em produção.
 
-Objetivo: conectar a plataforma a processos de negócio reais e sistemas externos.
+## Gates de aprovação
 
-- **Procurement** — automação de processos de compras.
-- **Notifications** — notificações e comunicação com usuários e sistemas externos.
-- Integrações externas (ERPs, n8n, APIs corporativas).
+Nenhuma Onda pode iniciar sem aprovação formal do Gate da Onda anterior pelo Product Owner.
 
-> Estado real: há persistência própria de fornecedores, APIs REST, descoberta de fornecedores somente leitura no ERP SOMA_DESENV e a primeira tela funcional de cadastro/enriquecimento de fornecedor concluída em B2.2.4. Procurement completo, itens, pedidos, notificações e n8n não foram iniciados.
+| Onda | Gate |
+|---|---|
+| Onda 1 — Fundação Funcional | Frontend navegável aprovado |
+| Onda 2 — Cadastros | Cadastros homologados |
+| Onda 3 — Processo de Compras | Processo completo ponta a ponta funcionando |
+| Onda 4 — Integrações Operacionais | Integrações ERP/Fiscal/Pagamentos homologadas |
+| Onda 5 — Go Live | Go Live aprovado |
 
-## Reorientação do roadmap do +Compras
+## Política de acompanhamento das Ondas
 
-A [ADR-0013](./DECISIONS.md) organiza a evolução em dois blocos sem alterar as oito fases e 56 Work Orders estratégicas: primeiro a plataforma operacional e, sobre seus dados reais, a plataforma inteligente.
+Cada Onda é rastreada com os seguintes campos, a partir do início de sua execução:
 
-1. **Operacional:** fornecedores, itens, compras/pedidos, portal como interface integrada, adaptadores ERP por BU e fluxo ponta a ponta com auditoria básica.
-2. **Inteligente:** inteligência de fornecedores, itens e compras; negociação, orçamento, auditoria, compliance e autonomia progressiva.
+- **Data Planejada** — baseline do projeto; definida uma única vez e **nunca alterada** depois de registrada.
+- **Data Real** — registrada ao término efetivo da Onda.
+- **Data Replanejada** — recalculada para as Ondas restantes sempre que uma Onda termina, com base no desvio observado.
+- **Status** — não iniciada / em andamento / concluída / atrasada.
+- **Gate de Aprovação** — aprovado / pendente, conforme a tabela acima.
 
-O portal não é uma fase isolada: ele evolui com os módulos. A ADR-0017 aprovou a estrutura completa de navegação e identidade visual desde a primeira versão visual, sem antecipar a funcionalidade dos domínios; Fornecedores é a primeira vertical slice funcional. Operações críticas mantêm caminho manual e confirmação humana; IA não é a única forma de concluí-las. B2.1 e sua subetapa B2.1.1 foram concluídas em 01/08/2026, com sincronização bidirecional, regra temporal, inativação, auditoria, concorrência e mapeamento canônico ERP → +Compras validados. B2.1.2 também foi concluída em 01/08/2026, alinhando o modelo canônico de fornecedor ao ERP Linx conforme ADR-0016, sem alteração estrutural no ERP. B2.1.3 foi concluída em código em 02/08/2026, endurecendo a sincronização ERP com paginação real (skip/take), histórico de execução, erros parciais persistidos e logs estruturados; dois bugs de paginação encontrados após a entrega inicial (parada prematura em lote parcial e cálculo incorreto do offset) foram corrigidos em commits subsequentes — ver `.ai/CURRENT_SPRINT.md` e `docs/audits/B-Series-Reconciliation.md`. Validação operacional real (VPN/SQL Server corporativo) permanece pendente para B2.1/B2.1.1/B2.1.2/B2.1.3. B2.2 foi concluída para Enriquecimento Inteligente de Fornecedor; B2.2.4 entregou a tela React `CadastroFornecedor`, consumindo consulta, análise, aprovação e rejeição. A consulta externa continua apenas sugestão revisável, sem atualização automática. B3 não está iniciada.
+A Data Planejada de cada Onda é preenchida somente quando sua execução for formalmente aprovada (não antes, e não neste documento de forma retroativa), preservando a regra de não antecipar cronograma por calendário. Esta política se aplica a todos os roadmaps executivos futuros do projeto.
 
-### Portal +Compras Frontend
+## Escopo do Roadmap Executivo
 
-- **Status:** nova frente preparada.
-- **Executor:** Claude Code.
-- **Work Order:** `.ai/work-orders/active/PortalMaisComprasFrontend.md`.
-- **Regra:** somente Fornecedor deve estar conectado ao backend nesta etapa; Dashboard, Pedidos, Negociações, Indicadores, Agentes IA e Configurações podem existir como telas demonstrativas preparadas para evolução, sem funcionalidades falsas.
+O Roadmap Executivo (público Diretoria, ver `docs/Executive Report.md` e `docs/executive/BlueprintOS_Executive_Blueprint.md`) acompanha exclusivamente: Ondas, Marcos, Datas (Planejada/Real/Replanejada), Status e Gates. Ele **não detalha Work Orders individuais** — estas permanecem ferramenta exclusiva de engenharia, rastreadas em `.ai/BACKLOG.md` e `.ai/work-orders/`.
 
----
+## Definição oficial de "Pronto"
 
-## Fase 4 - Observabilidade e Escala
+Uma funcionalidade só é considerada concluída quando possuir, cumulativamente:
 
-Objetivo: preparar a plataforma para operação em produção multi-tenant e em escala.
+- Mock aprovado
+- `+Compras Funcional` atualizado
+- `+Compras UX` atualizado
+- Banco definido
+- APIs definidas
+- Integrações definidas
+- Workflow definido
+- IA definida (quando aplicável)
+- Critérios de aceite definidos
+- Implementação concluída
+- Testes aprovados
+- Homologação realizada
 
-- **Dashboard** — visibilidade operacional e de negócio.
-- **Analytics** — indicadores e análises avançadas.
-- Observabilidade completa (métricas, logs, tracing) em produção.
-- Preparação para separação em microsserviços quando necessário (ver ARCHITECTURE.md §13).
-- Escalabilidade horizontal e revisão de multi-tenant em produção.
+**Implementação isoladamente não caracteriza conclusão.** Esta definição de "Pronto" é específica do produto/Onda e complementa, sem substituir, a Definition of Done técnica de `WORKFLOW.md` §19 (`context/definition-of-done.md`).
 
----
+## Fundação arquitetural (concluída, não faz parte das Ondas)
+
+A Fase 0 — Fundação (arquitetura, padrões, workflow, Publication Engine, Work Orders, ADR-0019) está concluída e não é reaberta por este replanejamento; ver `.ai/PROJECT_STATE.md` para evidências. As Ondas do MVP 1.0 partem dessa fundação já validada.
+
+## Versão 1.1 (pós-MVP 1.0)
+
+Movidos oficialmente para a versão 1.1, fora do escopo do MVP 1.0:
+
+- ESG.
+- Portal de Fornecedores.
+- Marketplace.
+- Analytics avançado.
+- Previsão de Demanda.
+- Previsão de Preços.
+- Jurídico.
+- Compliance.
+- Gestão de Riscos.
+
+A arquitetura permanece preparada para essas capacidades (contratos, camadas e módulos já contemplam sua futura implementação); apenas o roadmap de entrega muda.
+
+## Administração (Onda 1)
+
+A Administração é implementada já na Onda 1, e não como capacidade tardia. Inclui: Unidade de Negócio, Usuários, Perfis, Permissões, Identity Providers, Configuração ERP, Workflow, Aprovação, Controle Orçamentário, Configurações, Feature Flags e Parâmetros. Toda configuração é preparada para múltiplas Unidades de Negócio desde a Onda 1; a primeira implantação pode operar com uma única `UnidadeNegocioId = SOMA`, sem comprometer a arquitetura multiempresa (ver `ARCHITECTURE.md` §16).
+
+## Estratégia de banco de dados
+
+Durante o desenvolvimento das Ondas 1 a 4, tabelas podem ser recriadas, migrations podem ser refeitas, FKs podem ser alteradas e a estrutura pode evoluir continuamente — não há compromisso de estabilidade de schema antes do Go Live. Antes da Onda 5 (Go Live), toda estrutura integrada ao ERP deve reproduzir exatamente o ERP como modelo estrutural canônico (nomes, tipos, precisão, escala, tamanho, collate, PK, FK, índices e regras de negócio compatíveis) — nunca criar uma estrutura própria diferente quando já existir equivalente no ERP.
+
+## Estratégia de integração com o ERP
+
+O ERP nunca sofre alterações estruturais: são proibidos `CREATE`, `ALTER`, `DROP`, triggers, CDC, Change Tracking, criação de índices ou qualquer alteração física no ERP. A única escrita permitida é através das tabelas e contratos oficiais já existentes. Antes de implementar qualquer integração (Onda 4) deve existir uma auditoria técnica da tabela ERP envolvida, avaliando estratégia de sincronização, desempenho, custo, impacto, riscos e recomendação técnica — a integração só é implementada depois dessa auditoria.
 
 ## Observações
 
-- As fases são sequenciais em intenção, mas podem se sobrepor conforme prioridade do Product Owner.
-- Nenhuma fase avança sem que a fase anterior tenha fundação arquitetural estável.
-- Este roadmap deve ser revisado a cada mudança relevante de escopo, e não substitui o planejamento de sprint (ver WORKFLOW.md §5 e §17).
+- As Ondas são sequenciais por dependência funcional (frontend antes de banco final, cadastros antes de processo de compras, processo antes de integrações, tudo antes de Go Live).
+- Este roadmap não substitui o planejamento de sprint (ver `WORKFLOW.md` §5 e §17) nem o catálogo estratégico de 56 Work Orders, que permanece a referência de escopo de longo prazo reclassificada por Onda/versão em `BACKLOG.md`.
+- Este roadmap deve ser revisado a cada mudança relevante de escopo aprovada pelo Product Owner.

@@ -450,9 +450,17 @@ Um agente pode enriquecer uma Work Order com diagramas, casos de uso, testes, ex
 
 ---
 
+# 18.2 Estratégia Frontend First e Gates de Onda
+
+Consolidada como estratégia oficial de desenvolvimento (ver `ROADMAP.md`): toda funcionalidade segue `Ideia → +Compras Funcional → Validação de negócio → UX → Mock navegável → Blueprint do Banco → APIs → Integrações → Implementação → Testes → Homologação`. Nenhuma funcionalidade é implementada antes da aprovação do Mock navegável; `+Compras Funcional` e `+Compras UX` (ver `DOCUMENTATION_STRATEGY.md`) precedem qualquer código.
+
+Nenhuma Onda do roadmap inicia sem aprovação formal do Gate da Onda anterior pelo Product Owner (Gates detalhados em `ROADMAP.md`).
+
 # 19. Definition of Done
 
 A Definition of Done canônica do projeto está definida em [context/definition-of-done.md](./context/definition-of-done.md).
+
+A definição oficial de "Pronto" em nível de produto/Onda (Mock aprovado, `+Compras Funcional`/`+Compras UX` atualizados, banco/APIs/integrações/workflow/IA definidos, critérios de aceite, implementação, testes e homologação) está em `ROADMAP.md` — complementa, sem substituir, esta Definition of Done técnica. Implementação isoladamente não caracteriza conclusão.
 
 ---
 

@@ -38,6 +38,6 @@ Riscos remanescentes:
 
 ## Encerramento de sprint
 
-Nenhuma sprint funcional está em andamento. A próxima Work Order depende de aprovação explícita do Product Owner (ver `.ai/PROJECT_STATE.md` e `.ai/BACKLOG.md` — B3 é a próxima pendência planejada na fase Sourcing Intelligence).
+Nenhuma sprint funcional está em andamento. O projeto foi replanejado oficialmente para o MVP 1.0 (estratégia Frontend First, ver `.ai/ROADMAP.md`); a próxima Work Order candidata é a **Onda 1 — Fundação Funcional** (frontend navegável + Administração + blueprint completo do banco), e depende de aprovação explícita do Product Owner (ver `.ai/PROJECT_STATE.md` e `.ai/BACKLOG.md`).
 
 O histórico completo da sprint funcional anterior (B2.1.3 — Endurecimento da Integração ERP de Fornecedores, concluída em 02/08/2026) está arquivado em `.ai/memory/completed_sprints.md`.

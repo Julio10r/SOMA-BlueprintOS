@@ -27,13 +27,17 @@ A consolidação documental mais recente foi a Sprint A12, que especificou as 56
 
 ## Roadmap
 
-| Fase | Objetivo | Status |
+O projeto foi replanejado oficialmente para o **MVP 1.0**, seguindo a estratégia **Frontend First** (frontend navegável → validação com usuários → blueprint completo do banco → APIs → integrações → Go Live), organizado em Ondas com duração planejada, marcos e critérios de aceite — sem prazo total de projeto ou datas de calendário.
+
+| Onda | Objetivo | Status |
 |---|---|---|
-| Fase 0 — Fundação | Arquitetura, padrões, processo e infraestrutura de base | Em andamento |
-| Fase 1 — Módulos Core | Identity, Planner, Workflow | Não iniciada |
-| Fase 2 — Conhecimento e Memória | Knowledge, Memory, Agents | Parcial (runtime de Agents e Knowledge já existem) |
-| Fase 3 — Automação e Integrações | Procurement, Notifications, integrações externas (ERP) | Não iniciada |
-| Fase 4 — Observabilidade e Escala | Dashboard, Analytics, observabilidade, multi-tenant em produção | Não iniciada |
+| Onda 1 — Fundação Funcional | Frontend navegável, Administração multiempresa, blueprint completo do banco | Planejado |
+| Onda 2 — Cadastros | Fornecedores, materiais, serviços, categorias, compradores, centros de custo, sincronização ERP | Parcial (fornecedores concluído) |
+| Onda 3 — Processo de Compras | Solicitação, cotação, negociação IA, workflow, orçamento, aprovação, pedido | Planejado |
+| Onda 4 — Integrações Operacionais | ERP, Nota Fiscal, Pagamento | Planejado |
+| Onda 5 — Go Live | Homologação, observabilidade, performance, segurança | Planejado |
+
+ESG, Portal de Fornecedores, Marketplace, Analytics avançado, Previsão de Demanda, Previsão de Preços, Jurídico, Compliance e Gestão de Riscos foram movidos oficialmente para a versão 1.1.
 
 Detalhe completo em [`.ai/ROADMAP.md`](../.ai/ROADMAP.md).
 

@@ -75,15 +75,17 @@ Capacidades além destas ainda não foram implementadas; ver Roadmap Executivo.
 
 ## 6. Roadmap Executivo
 
-O BlueprintOS está atualmente na **Fase 0 — Fundação**, em andamento.
+A fundação arquitetural (Fase 0) está concluída. O projeto foi oficialmente replanejado para o **MVP 1.0**, seguindo a estratégia **Frontend First**: frontend navegável → validação com usuários → blueprint completo do banco → APIs → integrações → Go Live. O roadmap é organizado em Ondas, cada uma com duração planejada e critério de aceite, sem prazo total de projeto ou datas de calendário (ver `.ai/ROADMAP.md`).
 
-| Fase | Objetivo de negócio | Status |
+| Onda | Objetivo de negócio | Status |
 |---|---|---|
-| 0 — Fundação | Estabelecer bases de arquitetura, padrões e processo | Em andamento |
-| 1 — Módulos Core | Entregar identidade, planejamento e automação de processo | Planejado |
-| 2 — Conhecimento e Memória | Plataforma capaz de reter conhecimento e operar agentes de IA | Parcial: Knowledge Markdown, memória de negociação e agentes básicos |
-| 3 — Automação e Integrações | Conectar a plataforma a processos e sistemas externos | Planejado |
-| 4 — Observabilidade e Escala | Operação em produção, multiempresa e em escala | Planejado |
+| Onda 1 — Fundação Funcional | Frontend navegável, Administração multiempresa, blueprint completo do banco | Planejado |
+| Onda 2 — Cadastros | Fornecedores, materiais, serviços, categorias, compradores e centros de custo, com sincronização ERP | Parcial (fornecedores concluído) |
+| Onda 3 — Processo de Compras | Solicitação, cotação, negociação por IA, workflow, orçamento, aprovação e pedido | Planejado |
+| Onda 4 — Integrações Operacionais | ERP, Nota Fiscal e Pagamento | Planejado |
+| Onda 5 — Go Live | Homologação, observabilidade, performance e segurança | Planejado |
+
+ESG, Portal de Fornecedores, Marketplace, Analytics avançado, Previsão de Demanda, Previsão de Preços, Jurídico, Compliance e Gestão de Riscos foram movidos oficialmente para a versão 1.1, fora do escopo do MVP 1.0. A arquitetura permanece preparada para essas capacidades.
 
 ---
 

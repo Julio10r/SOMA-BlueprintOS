@@ -15,6 +15,7 @@ Regra prática: se uma mudança tornar uma frase existente em `docs/` **falsa**,
 | Área | Conteúdo |
 |---|---|
 | [architecture/](./architecture/Architecture.md) | Arquitetura do sistema, camadas, módulos internos, diagramas; [decisões-chave](./architecture/Decisions.md) referenciando `.ai/DECISIONS.md` |
+| [product/](./product/README.md) | Documentação funcional do produto — [+Compras Funcional](./product/ComprasFuncional.md) (o que o sistema faz), [+Compras UX](./product/ComprasUX.md) (como o usuário utiliza o sistema) e [+Compras Data Model](./product/ComprasDataModel.md) (evolução do modelo de dados); complementa, não substitui, `architecture/`, `backend/`, `frontend/` e `database/` |
 | [backend/procurement/](./backend/procurement/Procurement.md) | Domínio de Fornecedores: cadastro, descoberta, enriquecimento de CNPJ |
 | [backend/integration/](./backend/integration/Integration.md) | Integrações externas (ERP) |
 | [backend/orchestration/](./backend/orchestration/Orchestration.md) | Como o backend coordena fluxos entre API, casos de uso e agentes/estratégias |

@@ -115,6 +115,8 @@ sequenceDiagram
 
 SQL Server e EF Core são usados pela base de fornecedores no +Compras, com `BlueprintOSDbContext`, migration e conexões segregadas do banco próprio e do ERP. O ERP SOMA_DESENV é consultado somente por adaptador de descoberta; sua validação operacional depende de rede. Itens, pedidos, relacionamentos operacionais completos e migrações futuras permanecem planejados. A ADR-0013 define o ERP como fonte corporativa e o +Compras como fonte dos dados e relacionamentos próprios.
 
+**Estratégia de banco durante o MVP 1.0 (registrada no replanejamento Frontend First):** durante as Ondas 1 a 4, tabelas, migrations, FKs e relacionamentos podem evoluir livremente sem compromisso de estabilidade de schema. Antes da Onda 5 (Go Live), toda estrutura integrada ao ERP deve reproduzir exatamente o ERP como modelo estrutural canônico — nomes, tipos, precisão, escala, tamanho, collate, PK, FK, índices e regras de negócio compatíveis; nunca criar estrutura própria diferente quando já existir equivalente no ERP. Detalhe em `.ai/ROADMAP.md`.
+
 ## 9. APIs
 
 APIs atuais incluem `GET /health`, CRUD REST de fornecedores, descoberta de fornecedores e recomendação de negociação consultiva; OpenAPI existe em desenvolvimento. Autenticação corporativa, APIs de itens/pedidos e contratos completos de Procurement permanecem futuros. O padrão é REST/JSON, contratos estáveis e não exposição de entidades.
@@ -134,9 +136,13 @@ Não há catálogo de eventos, publicadores ou consumidores implementados. Domai
 | ERP SOMA_DESENV | Descoberta de fornecedores somente leitura; validação operacional pendente |
 | Microsoft 365, Google, n8n, RAG vetorial e provedores futuros | Planejado |
 
+**Estratégia de integração com ERP (registrada no replanejamento Frontend First):** o ERP nunca sofre alteração estrutural — `CREATE`, `ALTER`, `DROP`, triggers, CDC, Change Tracking, criação de índices ou qualquer alteração física são proibidos. A única escrita permitida é via tabelas e contratos oficiais já existentes. Toda integração da Onda 4 exige auditoria técnica prévia da tabela ERP envolvida (estratégia de sincronização, desempenho, custo, impacto, riscos, recomendação técnica) antes de ser implementada.
+
 ## 12. Segurança
 
 Entra ID, autorização por perfil, multi-tenant, LGPD, auditoria e permissões são requisitos planejados. Hoje segredos seguem configuração de ambiente; não há autenticação/autorização de aplicação nem trilha de auditoria.
+
+**Arquitetura de login e multiempresa (registrada no replanejamento Frontend First):** o roteamento ocorre sempre por `UnidadeNegocioId`, sob a URL base `https://maiscompras.somagrupo.com.br/{unidade}` (ex.: `/soma`, `/reserva`, `/hering`, `/arezzo`). Cada Unidade de Negócio pode possuir um ou mais Identity Providers; a autenticação permanece desacoplada do domínio de negócio, permitindo adicionar novos métodos de login sem alterar a arquitetura. Multiempresa por `UnidadeNegocioId` se estende a Multi ERP, Multi Login, Workflow, Aprovação, Controle Orçamentário e Identity Provider — todos escopados por Unidade de Negócio. A primeira implantação (Onda 1) utiliza somente `UnidadeNegocioId = SOMA`, sem comprometer a arquitetura multiempresa, que permanece preparada para expansão. Detalhe em `.ai/ROADMAP.md` e `ARCHITECTURE.md` §16.
 
 ## 13. Observabilidade
 
@@ -152,13 +158,17 @@ O ambiente local roda sem Docker (backend via `dotnet run`, frontend via `npm ru
 
 ## 16. Roadmap Técnico
 
-| Fase | Objetivo/resultado | Dependências | Valor | Estado |
+O projeto foi oficialmente replanejado para o **MVP 1.0** segundo a estratégia Frontend First, consolidada como estratégia definitiva de desenvolvimento: `Ideia → +Compras Funcional → Validação de negócio → UX → Mock navegável → Blueprint do Banco → APIs → Integrações → Implementação → Testes → Homologação`. Nenhuma funcionalidade é implementada antes da aprovação do Mock navegável. Detalhe completo das Ondas, Gates de aprovação, política de datas e definição oficial de "Pronto" em `.ai/ROADMAP.md`; reclassificação do catálogo de 56 Work Orders por Onda/versão em `.ai/BACKLOG.md`. A arquitetura abaixo não muda em função deste replanejamento; mudanças estruturais futuras só ocorrem por necessidade real identificada durante a implementação.
+
+| Onda MVP 1.0 | Objetivo/resultado | Dependências | Valor | Estado |
 |---|---|---|---|---|
-| 0 Fundação | Base técnica e documentação | Qualidade/governança | Reduz risco | Parcial |
-| 1 Core | Identity, Planner, motor de processo | Fase 0 | Capacidades de produto | Planejado |
-| 2 Conhecimento/Memória | Memória corporativa e agentes | Persistência | Contexto reutilizável | Parcial |
-| 3 Automação | Plataforma operacional +Compras e integrações | Fornecedores, itens e pedidos | Fluxo operacional utilizável antes da inteligência | Parcial |
-| 4 Escala | Observabilidade e analytics | Operação | Produção escalável | Não iniciado |
+| Fundação arquitetural (concluída) | Base técnica, padrões, Publication Engine, governança de Work Orders | — | Reduz risco | Concluída |
+| Onda 1 — Fundação Funcional | Frontend navegável, Administração, blueprint de banco | Fundação arquitetural | Produto navegável | Planejado |
+| Onda 2 — Cadastros | Fornecedores (concluído), itens, categorias, compradores, centros de custo, sincronização ERP | Onda 1 | Cadastros completos | Parcial (fornecedores) |
+| Onda 3 — Processo de Compras | Solicitação, cotação, negociação IA, workflow, orçamento, aprovação, pedido | Onda 2 | Fluxo operacional utilizável | Planejado |
+| Onda 4 — Integrações Operacionais | ERP, Nota Fiscal, Pagamento | Onda 3 | Integração ponta a ponta | Planejado |
+| Onda 5 — Go Live | Homologação, observabilidade, performance, segurança | Ondas 1–4 | Produção estável | Planejado |
+| MVP 1.1 | ESG, Portal de Fornecedores, Marketplace, Analytics avançado, Previsão de Demanda/Preços, Jurídico, Compliance, Gestão de Riscos | MVP 1.0 | Capacidades avançadas | Planejado, fora do escopo do MVP 1.0 |
 
 ## 17. Work Orders
 

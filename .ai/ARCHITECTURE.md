@@ -241,6 +241,12 @@ O ERP é a fonte corporativa para códigos e cadastros oficiais de fornecedor e 
 
 O +Compras evolui primeiro como plataforma operacional. O portal web é sua interface integrada, não um produto separado. Toda operação crítica deve ter alternativa manual: cadastrar ou selecionar fornecedor/item, criar pedido, enviar ao ERP e acompanhar a integração. Agentes chamam contratos e casos de uso da Application; não acessam banco ou ERP diretamente. Escritas no ERP exigem confirmação humana e adaptadores desacoplados por BU.
 
+## 10.2 Estratégia de banco de dados durante o MVP 1.0
+
+Durante o desenvolvimento (Ondas 1 a 4 do MVP 1.0 — ver `.ai/ROADMAP.md`), tabelas podem ser recriadas, migrations podem ser refeitas, FKs podem ser alteradas e a estrutura pode evoluir continuamente, sem compromisso de estabilidade de schema.
+
+Antes do Go Live (Onda 5), toda estrutura integrada ao ERP deve respeitar exatamente o ERP como modelo estrutural canônico: nomes, tipos, precisão, escala, tamanho, collate, PK, FK, índices necessários e regras de negócio compatíveis. Nunca criar uma estrutura própria diferente quando já existir equivalente no ERP.
+
 ---
 
 # 11. Padrões
@@ -317,7 +323,66 @@ O log canônico de ADRs é [DECISIONS.md](./DECISIONS.md); novas decisões são 
 
 ---
 
-# 15. Regra de Ouro
+# 16. Multiempresa e Arquitetura de Login
+
+O roteamento ocorre sempre por `UnidadeNegocioId`. URL base:
+
+`https://maiscompras.somagrupo.com.br`
+
+Estrutura:
+
+```
+https://maiscompras.somagrupo.com.br/soma
+https://maiscompras.somagrupo.com.br/reserva
+https://maiscompras.somagrupo.com.br/hering
+https://maiscompras.somagrupo.com.br/arezzo
+```
+
+Cada rota identifica uma Unidade de Negócio. Cada Unidade pode possuir um ou mais Identity Providers. A autenticação permanece desacoplada do domínio de negócio; novos métodos de login podem ser adicionados futuramente sem alteração da arquitetura.
+
+Multiempresa por `UnidadeNegocioId` se estende a:
+
+- Multi ERP
+- Multi Login
+- Workflow por Unidade de Negócio
+- Aprovação por Unidade de Negócio
+- Controle Orçamentário por Unidade de Negócio
+- ERP por Unidade de Negócio
+- Identity Provider por Unidade de Negócio
+
+A primeira implantação (Onda 1 do MVP 1.0) utiliza somente `UnidadeNegocioId = SOMA`, mas toda a arquitetura permanece preparada para expansão sem reescrita.
+
+---
+
+# 17. Estratégia de Integração com ERP
+
+O ERP nunca pode sofrer alterações estruturais. São proibidos:
+
+- `CREATE`
+- `ALTER`
+- `DROP`
+- Trigger
+- CDC
+- Change Tracking
+- Criação de índices
+- Qualquer alteração física
+
+A única escrita permitida é através das tabelas e contratos oficiais já existentes.
+
+Antes de implementar qualquer integração (Onda 4 do MVP 1.0), deve existir uma auditoria técnica da tabela ERP envolvida, avaliando:
+
+- estratégia de sincronização;
+- desempenho;
+- custo;
+- impacto;
+- riscos;
+- recomendação técnica.
+
+Somente depois dessa auditoria a integração pode ser implementada.
+
+---
+
+# 18. Regra de Ouro
 
 Antes de criar qualquer código pergunte:
 

@@ -2,6 +2,19 @@
 
 > Catálogo canônico das oito fases e 56 sprints. Não aprova execução: somente uma Work Order com status `Approved` pode iniciar uma sprint.
 
+## Reclassificação oficial — MVP 1.0 e MVP 1.1 (Replanejamento Frontend First)
+
+O catálogo abaixo preserva integralmente seu histórico, dependências e evidências — nenhuma Work Order concluída foi alterada. Esta seção apenas reclassifica cada código por Onda do MVP 1.0 (ver `.ai/ROADMAP.md`) ou por versão 1.1, refletindo a estratégia Frontend First aprovada.
+
+| Onda / Versão | Códigos | Observação |
+|---|---|---|
+| Onda 1 — Fundação Funcional | Administração (Unidade de Negócio, Usuários, Perfis, Permissões, IdP, Configuração ERP, Workflow, Aprovação, Controle Orçamentário, Feature Flags) | Escopo novo desta Onda, não catalogado nas 56 Work Orders originais; parte do frontend navegável + blueprint de banco. |
+| Onda 2 — Cadastros | B1, B2, B2.1, B2.1.1, B2.1.2, B2.1.3, B2.2 (concluídas), B3 | Fornecedores já concluídos; materiais/serviços (B3), categorias, compradores e centros de custo entram nesta onda com sincronização ERP. |
+| Onda 3 — Processo de Compras | B4, B5, B6, B7, C1, C2, C3, C5 | Solicitação, cotação, negociação por IA, workflow, aprovação e pedido — versão simplificada de C1–C3/C5 suficiente para o MVP 1.0; C4/C6/C7 avaliados ao final da onda. |
+| Onda 4 — Integrações Operacionais | G1, G2, G3, G4 | ERP, Nota Fiscal; Pagamento é escopo novo, não catalogado. |
+| Onda 5 — Go Live | H1, H2, H4, H6, H7 (subconjunto mínimo para produção) | Login/segurança mínima, observabilidade, cloud/CI-CD e operação assistida necessários ao Go Live; aprofundamento completo de H1–H7 permanece em 1.1. |
+| **MVP 1.1** | A5, A6, C4, C6, C7, D1–D7, E1–E7, F1–F7, G5, G6, G7, H3, H5 | ESG, Portal de Fornecedores, Marketplace, Analytics avançado, Previsão de Demanda, Previsão de Preços, Jurídico, Compliance e Gestão de Riscos — movidos oficialmente para 1.1. A arquitetura permanece preparada para essas capacidades; apenas o roadmap de entrega muda. |
+
 ## Regras de estado
 
 - **Implementado:** comprovado por código, testes e/ou histórico Git.

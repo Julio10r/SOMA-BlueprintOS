@@ -45,11 +45,11 @@ O BlueprintOS possui uma fundação backend validada para runtime de IA, agentes
 
 ## Ciclo atual
 
-- **Fase real atual:** Fase 0 — Fundação, em andamento. O EPIC de documentação foi concluído, mas a fundação prevista no roadmap ainda não está completa.
+- **Fase real atual:** Fundação arquitetural (Fase 0) concluída. O projeto foi oficialmente replanejado para o **MVP 1.0** segundo a estratégia Frontend First — ver `.ai/ROADMAP.md`. A arquitetura permanece a mesma; apenas o roadmap/backlog/organização de Work Orders mudaram. Com a consolidação final da estratégia (Gates de Onda, política de datas, definição oficial de "Pronto", artefatos `+Compras Funcional`/`+Compras UX`), o projeto entra oficialmente em **modo de execução**: mudanças estruturais futuras só ocorrem por necessidade real identificada durante a implementação.
 - **Última sprint comprovadamente concluída:** Remoção do Docker e Consolidação do Ambiente Local (03/08/2026), sprint de infraestrutura sem escopo funcional, com auditoria final aprovada (build, testes e scripts validados).
 - **Sprint funcional comprovadamente concluída anterior:** B2.1.3 — Endurecimento da Integração ERP de Fornecedores (02/08/2026), com validação real contra VPN/`MaisCompras`.
-- **Sprint atual:** nenhuma em andamento; aguardando aprovação explícita da próxima Work Order.
-- **Próxima pendência planejada:** B3 não foi iniciada; depende de decisão explícita do Product Owner.
+- **Sprint atual:** nenhuma em andamento; aguardando aprovação explícita da Onda 1 do MVP 1.0 (Frontend navegável + Administração + Blueprint completo do banco) como próxima Work Order.
+- **Próxima pendência planejada:** Onda 1 do MVP 1.0 (ver `.ai/ROADMAP.md`); depende de decisão explícita do Product Owner. B3 e demais Work Orders do catálogo histórico foram reclassificadas por Onda/versão em `.ai/BACKLOG.md`.
 - **Progresso real:** documentação/publicação, capacidades internas de IA e um fluxo consultivo de negociação por API estão implementados; os demais fluxos de produto +COMPRAS e os requisitos de operação corporativa permanecem pendentes.
 
 ## Capacidades implementadas

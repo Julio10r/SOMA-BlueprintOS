@@ -2,6 +2,8 @@
 
 Este índice é a fonte navegável do catálogo estratégico de Work Orders (fases A–H) ainda não concluídas ou parcialmente comprovadas. Itens já concluídos foram consolidados em [`../completed/`](../completed/). O [BACKLOG](../../BACKLOG.md) é a visão consolidada com objetivos e evidências.
 
+> **Reclassificação oficial (MVP 1.0 / MVP 1.1):** o projeto foi replanejado segundo a estratégia Frontend First. Cada código deste catálogo foi reclassificado por Onda do MVP 1.0 ou por versão 1.1 — ver a tabela em [`../../BACKLOG.md`](../../BACKLOG.md#reclassificação-oficial--mvp-10-e-mvp-11-replanejamento-frontend-first) e o roadmap completo em [`../../ROADMAP.md`](../../ROADMAP.md). Esta reclassificação não altera dependências, status ou evidências registrados abaixo.
+
 ## Legenda
 
 - **Implementado / Concluída:** evidência em código, testes ou Git — consultar [`../completed/`](../completed/), não listado aqui.
