@@ -2,35 +2,13 @@
 
 ## Objetivo
 
-Desacoplar completamente a apresentação visual do projeto (Dashboard HTML, ou qualquer tecnologia futura — React, Grafana, Power BI) da lógica de negócio e da documentação oficial. `DASHBOARD_STATE.md` é o **Read Model oficial do projeto**: nenhuma superfície visual consome documentos do projeto diretamente; todas consomem exclusivamente `DASHBOARD_STATE.md`.
-
-## Princípio arquitetural
-
-Toda informação exibida em qualquer Dashboard deve existir previamente no `DASHBOARD_STATE.md`. Nenhum Dashboard pode:
-
-- interpretar documentação;
-- calcular indicadores;
-- criar regras de negócio;
-- inferir estados.
-
-Sempre que um novo indicador for necessário, a ordem é sempre: **(1) atualizar o `DASHBOARD_STATE.md`, (2) atualizar o Dashboard.** Nunca o contrário. Esta regra vale para qualquer Dashboard, atual ou futuro (HTML, React, Power BI, Grafana etc.) — nenhuma interface pode depender diretamente dos documentos do projeto.
+Desacoplar completamente a apresentação visual do projeto (Dashboard HTML, ou qualquer tecnologia futura — React, Grafana, Power BI) da lógica de negócio e da documentação oficial. Nenhuma superfície visual consome documentos do projeto diretamente; todas consomem exclusivamente `DASHBOARD_STATE.md`.
 
 ## Responsabilidade
 
 - Esta área **não é fonte de verdade**. A documentação oficial (`.ai/ROADMAP.md`, `.ai/BACKLOG.md`, `.ai/PROJECT_STATE.md`, `.ai/CURRENT_SPRINT.md`, `.ai/DOCUMENTATION_STRATEGY.md` e demais) continua sendo a única fonte de verdade do projeto.
 - `DASHBOARD_STATE.md` é um documento **derivado**, gerado a partir da leitura dessas fontes — nunca editado manualmente, nunca a origem de uma decisão.
 - O Dashboard (HTML ou qualquer tecnologia futura) possui responsabilidade **exclusivamente visual**: não interpreta documentação, não calcula indicadores, não aplica regras de negócio. Ele apenas lê `DASHBOARD_STATE.md`.
-
-## Cabeçalho do DASHBOARD_STATE
-
-| Campo | Significado |
-|---|---|
-| Dashboard State | Identificador/versão interna deste Read Model |
-| Schema Version | Versão da estrutura do documento (seções, campos, políticas) — incrementada quando a estrutura muda, independente do conteúdo |
-| Project Version | Última tag/versão publicada do projeto (ex.: `v0.9.0-blueprint-foundation`) |
-| Generated At | Data em que este estado foi gerado pela primeira vez |
-| Last Update | Data da última execução de `[atualizar dashboard]` que alterou este documento |
-| Status | Frase curta descrevendo a situação geral do projeto no momento da geração |
 
 ## Fontes oficiais e responsabilidade de cada uma
 
@@ -47,21 +25,9 @@ Sempre que um novo indicador for necessário, a ordem é sempre: **(1) atualizar
 
 Demais documentos podem ser mapeados como fontes adicionais à medida que o Dashboard evoluir, seguindo o mesmo princípio: nunca uma fonte nova sem responsabilidade explícita registrada aqui.
 
-## Regra de progresso das Ondas
-
-As Ondas representam o cronograma oficial de entrega do MVP, **não** a ordem histórica em que funcionalidades foram desenvolvidas. Uma funcionalidade tecnicamente implementada antes da aprovação formal de sua Onda (ex.: Fornecedores, concluído tecnicamente antes do replanejamento do MVP 1.0 e posteriormente reclassificado na Onda 2) continua registrada normalmente na documentação e no backlog, mas **não antecipa artificialmente o percentual da Onda**. O percentual de uma Onda reflete exclusivamente entregáveis concluídos dentro da execução formal daquela Onda.
-
-## Pesos Gerenciais do Roadmap
-
-Os pesos de Foundation e das 5 Ondas (`DASHBOARD_STATE.md` §"Política dos pesos") são **Pesos Gerenciais do Roadmap** — não representam esforço técnico, quantidade de código, complexidade ou horas trabalhadas. Sua finalidade é exclusivamente permitir o acompanhamento executivo do progresso do MVP.
-
-## Compatibilidade
-
-Qualquer Dashboard futuro — HTML, React, Power BI, Grafana ou qualquer outra tecnologia — deve consumir exclusivamente o `DASHBOARD_STATE.md`. Nenhuma interface pode depender diretamente dos documentos do projeto. Esta regra não expira com a troca de tecnologia de apresentação; ela é a garantia de desacoplamento entre documentação (fonte de verdade) e visualização.
-
 ## Fluxo de atualização
 
-O comando `[atualizar dashboard]` (ver especificação completa em `DASHBOARD_STATE.md` §Comando de Atualização) é o único mecanismo que regenera este documento. Nenhuma edição manual de `DASHBOARD_STATE.md` é válida — qualquer edição manual será sobrescrita na próxima atualização e deve ser tratada como um bug de processo, não como fonte de dado.
+O comando `[atualizar dashboard]` (especificação completa e permanente em [`DASHBOARD_UPDATE_COMMAND.md`](./DASHBOARD_UPDATE_COMMAND.md); resumo operacional também em `DASHBOARD_STATE.md` §Comando de Atualização) é o único mecanismo que regenera este documento. Nenhuma edição manual de `DASHBOARD_STATE.md` é válida — qualquer edição manual será sobrescrita na próxima atualização e deve ser tratada como um bug de processo, não como fonte de dado.
 
 ## Regra de manutenção
 
@@ -69,6 +35,19 @@ O comando `[atualizar dashboard]` (ver especificação completa em `DASHBOARD_ST
 - Toda alteração de estado nasce em uma fonte oficial (tabela acima); o Dashboard apenas reflete, nunca origina.
 - Nenhuma informação inexistente é inventada: um indicador sem fonte suficiente é registrado como "Não aplicável" ou "Pendente", nunca estimado.
 - Percentuais são sempre derivados por cálculo a partir da documentação — nunca preenchidos manualmente quando puderem ser calculados (ver política de percentuais em `DASHBOARD_STATE.md`).
+
+## Progresso Técnico vs. Contribuição ao MVP
+
+Cada Onda do `DASHBOARD_STATE.md` registra dois indicadores explicitamente distintos, que nunca são misturados nem exibidos como um único número:
+
+- **Progresso Técnico:** execução comprovada dos entregáveis. Deriva exclusivamente da contagem de entregáveis com status "Concluído" (mais a fração de entregáveis "Em desenvolvimento" que já possuam percentual individual registrado — nunca estimado na ausência desse dado) sobre o total de entregáveis da Onda, independentemente de a Onda ter sido formalmente iniciada.
+- **Contribuição ao MVP (pontos):** Peso Gerencial da Onda × Progresso Técnico da Onda. A partir da Work Order "Ajuste Final de Percentuais, Gantt e Resumo Executivo dos MVPs" (06/08/2026), **contribui proporcionalmente ao MVP Global mesmo quando a Onda ainda está com Status "Planejado"** — não há mais nenhuma condição de início formal da Onda para que sua contribuição seja contada. É o indicador que, somado entre todos os componentes, alimenta o Percentual Global do MVP 1.0 (Σ Peso Gerencial × Progresso Técnico).
+
+O Dashboard (HTML ou qualquer tecnologia futura) apenas renderiza os valores já calculados no `DASHBOARD_STATE.md`, sempre rotulados individualmente; nenhum cálculo, mistura ou substituição de um indicador pelo outro ocorre fora do `DASHBOARD_STATE.md`. O Percentual Global do MVP 1.0 é apresentado com seu valor exato (ex.: 28,6%) disponível em tooltip/detalhe acessível, e arredondado apenas para exibição principal (ex.: 29%) — o arredondamento é responsabilidade exclusivamente visual do Dashboard, nunca um recálculo do indicador.
+
+## Roadmap dos Produtos (aba Executive)
+
+A seção "Roadmap dos Produtos" do `DASHBOARD_STATE.md` consolida, para a aba Executive, o resumo do MVP 1.0 (objetivo geral, Percentual Global Atual, Onda Atual, Marco Final) e do MVP 1.1 (objetivo geral e escopo adiado). O Dashboard nunca lê `.ai/ROADMAP.md` ou `.ai/BACKLOG.md` diretamente para montar esta seção, e o escopo do MVP 1.1 nunca é uma lista fixa no HTML — é sempre derivado desta seção do `DASHBOARD_STATE.md` durante sua atualização.
 
 ## Preparação para evolução futura
 

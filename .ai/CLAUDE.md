@@ -56,6 +56,13 @@ Nenhuma implementação deve começar sem essa leitura (ver PROJECT.md §7).
 - [WORKFLOW.md](./WORKFLOW.md) — fluxo oficial de trabalho
 - [AI_TEAM.md](./AI_TEAM.md) — arquitetura multi-agente alvo
 - [dashboard/README.md](./dashboard/README.md) — camada de estado consolidado que alimenta o Dashboard do projeto; nunca editar `dashboard/DASHBOARD_STATE.md` manualmente
+- [dashboard/DASHBOARD_UPDATE_COMMAND.md](./dashboard/DASHBOARD_UPDATE_COMMAND.md) — comando permanente `[atualizar dashboard]`: rotina determinística de atualização, validação e publicação do Dashboard Oficial
+
+---
+
+## Comando permanente — `[atualizar dashboard]`
+
+Ao receber, em qualquer sessão, exatamente `[atualizar dashboard]` ou `atualizar dashboard` (sem colchetes, como instrução isolada e inequívoca), executar integralmente a rotina definida em [dashboard/DASHBOARD_UPDATE_COMMAND.md](./dashboard/DASHBOARD_UPDATE_COMMAND.md) — sem pedir novamente instruções já registradas lá e sem responder apenas com orientações. Por padrão, o comando não realiza commit nem push.
 
 ---
 

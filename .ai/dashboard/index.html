@@ -51,56 +51,150 @@
     </div>
   </div>
 
-  <div class="app-shell">
-    <header class="topbar" id="topbar">
-      <div class="topbar-id">
-        <span class="name" id="proj-name">—</span>
-        <span class="version" id="proj-version">—</span>
+  <div class="app-shell" id="shell">
+    <nav class="sidebar" id="sidebar" aria-label="Menu do Dashboard">
+      <div class="sidebar-brand">
+        <span class="sb-name">SOMA BlueprintOS</span>
+        <span class="sb-sub">+Compras</span>
       </div>
-      <div class="topbar-status" id="proj-status-wrap"></div>
-      <div class="topbar-mvp">
-        <span class="mvp-label">MVP</span>
-        <div class="mvp-bar-track"><div class="mvp-bar-fill" id="mvp-fill"></div></div>
-        <span class="mvp-pct" id="mvp-pct">—</span>
-      </div>
-    </header>
-
-    <nav class="tabsbar-wrap" aria-label="Abas do Dashboard">
-      <div class="tabs" id="tabs" role="tablist">
-        <button class="tab" role="tab" id="tab-btn-executive" aria-controls="panel-executive" aria-selected="true" data-tab="executive">Executive</button>
-        <button class="tab" role="tab" id="tab-btn-roadmap" aria-controls="panel-roadmap" aria-selected="false" data-tab="roadmap">Roadmap</button>
-        <button class="tab" role="tab" id="tab-btn-backlog" aria-controls="panel-backlog" aria-selected="false" data-tab="backlog">Backlog</button>
-        <button class="tab" role="tab" id="tab-btn-frontend" aria-controls="panel-frontend" aria-selected="false" data-tab="frontend">Frontend</button>
-        <button class="tab" role="tab" id="tab-btn-banco" aria-controls="panel-banco" aria-selected="false" data-tab="banco">Banco</button>
-        <button class="tab" role="tab" id="tab-btn-integracoes" aria-controls="panel-integracoes" aria-selected="false" data-tab="integracoes">Integrações</button>
-        <button class="tab" role="tab" id="tab-btn-ia" aria-controls="panel-ia" aria-selected="false" data-tab="ia">IA</button>
-        <button class="tab" role="tab" id="tab-btn-qualidade" aria-controls="panel-qualidade" aria-selected="false" data-tab="qualidade">Qualidade</button>
-        <button class="tab" role="tab" id="tab-btn-documentacao" aria-controls="panel-documentacao" aria-selected="false" data-tab="documentacao">Documentação</button>
-        <button class="tab" role="tab" id="tab-btn-metricas" aria-controls="panel-metricas" aria-selected="false" data-tab="metricas">Métricas</button>
-      </div>
+      <button class="nav-item" id="tab-btn-roadmap" aria-controls="panel-roadmap" aria-current="true" data-tab="roadmap">Roadmap</button>
+      <button class="nav-item" id="tab-btn-executive" aria-controls="panel-executive" aria-current="false" data-tab="executive">Executive</button>
+      <button class="nav-item" id="tab-btn-backlog" aria-controls="panel-backlog" aria-current="false" data-tab="backlog">Backlog</button>
+      <button class="nav-item" id="tab-btn-frontend" aria-controls="panel-frontend" aria-current="false" data-tab="frontend">Frontend</button>
+      <button class="nav-item" id="tab-btn-banco" aria-controls="panel-banco" aria-current="false" data-tab="banco">Banco</button>
+      <button class="nav-item" id="tab-btn-integracoes" aria-controls="panel-integracoes" aria-current="false" data-tab="integracoes">Integrações</button>
+      <button class="nav-item" id="tab-btn-ia" aria-controls="panel-ia" aria-current="false" data-tab="ia">IA</button>
+      <button class="nav-item" id="tab-btn-qualidade" aria-controls="panel-qualidade" aria-current="false" data-tab="qualidade">Qualidade</button>
+      <button class="nav-item" id="tab-btn-documentacao" aria-controls="panel-documentacao" aria-current="false" data-tab="documentacao">Documentação</button>
+      <button class="nav-item" id="tab-btn-metricas" aria-controls="panel-metricas" aria-current="false" data-tab="metricas">Métricas</button>
+      <button class="nav-item" id="tab-btn-fluxo" aria-controls="panel-fluxo" aria-current="false" data-tab="fluxo">Fluxo de Compras</button>
+      <button class="nav-item" id="tab-btn-arquitetura" aria-controls="panel-arquitetura" aria-current="false" data-tab="arquitetura">Arquitetura</button>
     </nav>
 
-    <main class="page-main">
-      <section class="tabpanel" id="panel-executive" role="tabpanel" aria-labelledby="tab-btn-executive"></section>
-      <section class="tabpanel" id="panel-roadmap" role="tabpanel" aria-labelledby="tab-btn-roadmap" hidden></section>
-      <section class="tabpanel" id="panel-backlog" role="tabpanel" aria-labelledby="tab-btn-backlog" hidden></section>
-      <section class="tabpanel" id="panel-frontend" role="tabpanel" aria-labelledby="tab-btn-frontend" hidden></section>
-      <section class="tabpanel" id="panel-banco" role="tabpanel" aria-labelledby="tab-btn-banco" hidden></section>
-      <section class="tabpanel" id="panel-integracoes" role="tabpanel" aria-labelledby="tab-btn-integracoes" hidden></section>
-      <section class="tabpanel" id="panel-ia" role="tabpanel" aria-labelledby="tab-btn-ia" hidden></section>
-      <section class="tabpanel" id="panel-qualidade" role="tabpanel" aria-labelledby="tab-btn-qualidade" hidden></section>
-      <section class="tabpanel" id="panel-documentacao" role="tabpanel" aria-labelledby="tab-btn-documentacao" hidden></section>
-      <section class="tabpanel" id="panel-metricas" role="tabpanel" aria-labelledby="tab-btn-metricas" hidden></section>
-    </main>
+    <div class="main-col">
+      <header class="topbar" id="topbar">
+        <div class="topbar-id">
+          <span class="name" id="proj-name">—</span>
+          <span class="version" id="proj-version">—</span>
+        </div>
+        <div class="topbar-status" id="proj-status-wrap"></div>
+        <div class="topbar-mvp">
+          <span class="mvp-label">MVP</span>
+          <div class="mvp-bar-track"><div class="mvp-bar-fill" id="mvp-fill"></div></div>
+          <span class="mvp-pct" id="mvp-pct">—</span>
+        </div>
+      </header>
 
-    <p class="footer-note">
-      Dashboard com responsabilidade exclusivamente visual — não interpreta documentação, não calcula
-      indicadores, não aplica regras de negócio. Toda a consolidação vem de
-      <code>.ai/dashboard/DASHBOARD_STATE.md</code>, documento derivado da documentação oficial do
-      projeto (<code>ROADMAP.md</code>, <code>BACKLOG.md</code>, <code>PROJECT_STATE.md</code>,
-      <code>CURRENT_SPRINT.md</code>, <code>DOCUMENTATION_STRATEGY.md</code>). Última leitura:
-      <span id="footer-loaded-at">—</span>.
-    </p>
+      <main class="page-main">
+        <section class="tabpanel" id="panel-roadmap" role="tabpanel" aria-labelledby="tab-btn-roadmap"></section>
+        <section class="tabpanel" id="panel-executive" role="tabpanel" aria-labelledby="tab-btn-executive" hidden></section>
+        <section class="tabpanel" id="panel-backlog" role="tabpanel" aria-labelledby="tab-btn-backlog" hidden>
+          <div id="backlog-state-summary"></div>
+          <div style="margin-top:var(--space-7)"></div>
+          <div class="section-title">Lista detalhada de Work Orders (67 itens)</div>
+          <div class="subtitle">Fonte: <code>.ai/BACKLOG.md</code> (catálogo histórico de 56 Work Orders + B2.1.1/B2.1.2/B2.1.3/B2.2 + 5 entregas históricas = 67 itens). Lista preservada da versão anterior do Dashboard, sem alteração de dados ou regra.</div>
+          <div class="summary" id="summary"></div>
+          <div class="controls">
+            <input type="text" id="search" placeholder="Buscar por código, nome ou objetivo...">
+            <select id="filterStatus">
+              <option value="">Status: todos</option>
+              <option value="Implementado">Implementado</option>
+              <option value="Concluída">Concluída</option>
+              <option value="Concluída em código">Concluída em código</option>
+              <option value="Parcial">Parcial</option>
+              <option value="Não comprovado">Não comprovado</option>
+              <option value="Planejado">Planejado</option>
+            </select>
+          </div>
+          <div id="phases"></div>
+          <div class="footer-note">A coluna "Acompanhamento" é texto fixo derivado do status: Implementado/Concluída/Concluída em código = Concluído, Parcial = Em andamento, Planejado = A fazer, Não comprovado = vazio.</div>
+        </section>
+        <section class="tabpanel" id="panel-frontend" role="tabpanel" aria-labelledby="tab-btn-frontend" hidden></section>
+        <section class="tabpanel" id="panel-banco" role="tabpanel" aria-labelledby="tab-btn-banco" hidden></section>
+        <section class="tabpanel" id="panel-integracoes" role="tabpanel" aria-labelledby="tab-btn-integracoes" hidden></section>
+        <section class="tabpanel" id="panel-ia" role="tabpanel" aria-labelledby="tab-btn-ia" hidden></section>
+        <section class="tabpanel" id="panel-qualidade" role="tabpanel" aria-labelledby="tab-btn-qualidade" hidden></section>
+        <section class="tabpanel" id="panel-documentacao" role="tabpanel" aria-labelledby="tab-btn-documentacao" hidden></section>
+        <section class="tabpanel" id="panel-metricas" role="tabpanel" aria-labelledby="tab-btn-metricas" hidden></section>
+
+        <section class="tabpanel" id="panel-fluxo" role="tabpanel" aria-labelledby="tab-btn-fluxo" hidden>
+          <div class="flow-section">
+            <div class="flow-title">Fluxo de compras indiretas</div>
+            <p class="flow-subtitle">As 16 etapas do processo, da solicitação ao encerramento (modelo de referência, SOMA BlueprintOS).</p>
+            <div class="flow-pills" id="flowPills"></div>
+            <div class="flow-list" id="flowList"></div>
+          </div>
+        </section>
+
+        <section class="tabpanel" id="panel-arquitetura" role="tabpanel" aria-labelledby="tab-btn-arquitetura" hidden>
+          <div class="arch-section">
+            <div class="arch-header">
+              <div class="arch-title">Arquitetura da plataforma +Compras</div>
+              <p class="arch-subtitle">Como frontend, núcleo de IA, backend e dados se conectam — visão de referência (Proposta Compras Indiretas, SOMA BlueprintOS).</p>
+            </div>
+            <div class="arch-body">
+<svg viewBox="0 0 680 840" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Arquitetura da plataforma de compras indiretas</title>
+  <desc>Diagrama em camadas mostrando experiência (frontend), API gateway, núcleo de IA, microsserviços (backend), eventos e integração, e dados, com conectores externos para ERP, SEFAZ/NF-e e fornecedores.</desc>
+  <defs>
+    <marker id="arch-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#1A1916" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect x="40" y="40" width="470" height="90" rx="10" fill="#fff" stroke="#E2E0DB"/>
+  <text x="60" y="66" font-size="14" font-weight="700" fill="#1A1916">Experiência (frontend)</text>
+  <text x="60" y="90" font-size="12" fill="#6B6860">Portal de Solicitações · Portal do Fornecedor</text>
+  <text x="60" y="108" font-size="12" fill="#6B6860">Dashboards executivos · App de aprovação</text>
+  <line x1="275" y1="130" x2="275" y2="170" stroke="#1A1916" stroke-width="1.5" marker-end="url(#arch-arrow)"/>
+  <rect x="40" y="170" width="470" height="90" rx="10" fill="#fff" stroke="#E2E0DB"/>
+  <text x="60" y="196" font-size="14" font-weight="700" fill="#1A1916">API Gateway</text>
+  <text x="60" y="220" font-size="12" fill="#6B6860">REST / GraphQL · OAuth2/OIDC</text>
+  <text x="60" y="238" font-size="12" fill="#6B6860">Rate limiting &amp; WAF · Webhooks</text>
+  <line x1="275" y1="260" x2="275" y2="300" stroke="#1A1916" stroke-width="1.5" marker-end="url(#arch-arrow)"/>
+  <rect x="40" y="300" width="470" height="90" rx="10" fill="#fff" stroke="#E2E0DB"/>
+  <text x="60" y="326" font-size="14" font-weight="700" fill="#1A1916">Núcleo de IA</text>
+  <text x="60" y="350" font-size="12" fill="#6B6860">LLM + NLU · RAG · Classificação/score</text>
+  <text x="60" y="368" font-size="12" fill="#6B6860">Agente human-in-the-loop · Guardrails</text>
+  <line x1="275" y1="390" x2="275" y2="430" stroke="#1A1916" stroke-width="1.5" marker-end="url(#arch-arrow)"/>
+  <rect x="40" y="430" width="470" height="108" rx="10" fill="#fff" stroke="#E2E0DB"/>
+  <text x="60" y="456" font-size="14" font-weight="700" fill="#1A1916">Microsserviços (backend)</text>
+  <text x="60" y="480" font-size="12" fill="#6B6860">Requisições · Workflow · Alçadas</text>
+  <text x="60" y="498" font-size="12" fill="#6B6860">Cotação · Cadastro · Contratos</text>
+  <text x="60" y="516" font-size="12" fill="#6B6860">Auditoria</text>
+  <line x1="275" y1="538" x2="275" y2="578" stroke="#1A1916" stroke-width="1.5" marker-end="url(#arch-arrow)"/>
+  <rect x="40" y="578" width="470" height="90" rx="10" fill="#fff" stroke="#E2E0DB"/>
+  <text x="60" y="604" font-size="14" font-weight="700" fill="#1A1916">Eventos &amp; integração</text>
+  <text x="60" y="628" font-size="12" fill="#6B6860">Event bus · Sagas</text>
+  <text x="60" y="646" font-size="12" fill="#6B6860">Conectores ERP · SSO</text>
+  <line x1="275" y1="668" x2="275" y2="708" stroke="#1A1916" stroke-width="1.5" marker-end="url(#arch-arrow)"/>
+  <rect x="40" y="708" width="470" height="90" rx="10" fill="#fff" stroke="#E2E0DB"/>
+  <text x="60" y="734" font-size="14" font-weight="700" fill="#1A1916">Dados</text>
+  <text x="60" y="758" font-size="12" fill="#6B6860">OLTP · Dados Mestres · Data Lake</text>
+  <text x="60" y="776" font-size="12" fill="#6B6860">Vector DB (RAG) · Object storage</text>
+  <rect x="530" y="581" width="110" height="24" rx="5" fill="#FAF9F6" stroke="#C8C5BE" stroke-dasharray="4 3"/>
+  <text x="585" y="597" font-size="11" fill="#6B6860" text-anchor="middle">ERP</text>
+  <rect x="530" y="611" width="110" height="24" rx="5" fill="#FAF9F6" stroke="#C8C5BE" stroke-dasharray="4 3"/>
+  <text x="585" y="627" font-size="11" fill="#6B6860" text-anchor="middle">SEFAZ / NF-e</text>
+  <rect x="530" y="641" width="110" height="24" rx="5" fill="#FAF9F6" stroke="#C8C5BE" stroke-dasharray="4 3"/>
+  <text x="585" y="657" font-size="11" fill="#6B6860" text-anchor="middle">Fornecedores</text>
+  <line x1="510" y1="593" x2="530" y2="593" stroke="#ADAA9F" stroke-width="1.5"/>
+  <line x1="510" y1="623" x2="530" y2="623" stroke="#ADAA9F" stroke-width="1.5"/>
+  <line x1="510" y1="653" x2="530" y2="653" stroke="#ADAA9F" stroke-width="1.5"/>
+</svg>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <p class="footer-note">
+        Dashboard com responsabilidade exclusivamente visual — não interpreta documentação, não calcula
+        indicadores, não aplica regras de negócio. Toda a consolidação vem de
+        <code>.ai/dashboard/DASHBOARD_STATE.md</code>, documento derivado da documentação oficial do
+        projeto (<code>ROADMAP.md</code>, <code>BACKLOG.md</code>, <code>PROJECT_STATE.md</code>,
+        <code>CURRENT_SPRINT.md</code>, <code>DOCUMENTATION_STRATEGY.md</code>). Última leitura:
+        <span id="footer-loaded-at">—</span>.
+      </p>
+    </div>
   </div>
 </div>
 
