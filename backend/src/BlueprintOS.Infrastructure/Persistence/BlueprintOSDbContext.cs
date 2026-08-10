@@ -1,3 +1,4 @@
+using BlueprintOS.Domain.Identity;
 using BlueprintOS.Domain.Procurement.Suppliers;
 using Microsoft.EntityFrameworkCore;
 
@@ -5,6 +6,19 @@ namespace BlueprintOS.Infrastructure.Persistence;
 
 public sealed class BlueprintOSDbContext(DbContextOptions<BlueprintOSDbContext> options) : DbContext(options)
 {
+    public DbSet<UnidadeNegocio> UnidadesNegocio => Set<UnidadeNegocio>();
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
+    public DbSet<Perfil> Perfis => Set<Perfil>();
+    public DbSet<Permissao> Permissoes => Set<Permissao>();
+    public DbSet<PerfilPermissao> PerfisPermissoes => Set<PerfilPermissao>();
+    public DbSet<UsuarioPerfil> UsuariosPerfis => Set<UsuarioPerfil>();
+    public DbSet<UsuarioCentroCusto> UsuariosCentrosCusto => Set<UsuarioCentroCusto>();
+    public DbSet<CodigoVerificacaoOtp> CodigosVerificacaoOtp => Set<CodigoVerificacaoOtp>();
+    public DbSet<OtpRequestThrottle> OtpRequestThrottles => Set<OtpRequestThrottle>();
+    public DbSet<SessaoAutenticacao> SessoesAutenticacao => Set<SessaoAutenticacao>();
+    public DbSet<BootstrapEstado> BootstrapEstados => Set<BootstrapEstado>();
+    public DbSet<BootstrapSessao> BootstrapSessoes => Set<BootstrapSessao>();
+
     public DbSet<Fornecedor> Fornecedores => Set<Fornecedor>();
     public DbSet<FornecedorCnpjConsultaHistorico> FornecedoresCnpjConsultas => Set<FornecedorCnpjConsultaHistorico>();
     public DbSet<FornecedorEnriquecimentoAnalise> FornecedoresEnriquecimentoAnalises => Set<FornecedorEnriquecimentoAnalise>();

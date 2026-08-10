@@ -1,6 +1,8 @@
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Core.Publication.Models;
+using BlueprintOS.Api.Auth;
 using BlueprintOS.Api.Identity;
+using BlueprintOS.Api.Middleware;
 using BlueprintOS.Api.Negotiations;
 using BlueprintOS.Api.Suppliers;
 using BlueprintOS.Application.Identity.Contracts;
@@ -61,30 +63,114 @@ var corsAllowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins")
 // Services
 builder.Services.AddOpenApi();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ICurrentIdentity, DevelopmentRequestIdentity>();
+
+// Seleção do adaptador de identidade exclusivamente por IHostEnvironment — nunca por
+// appsettings/feature flag (security-design-auth-o1.4.md, §17.4). DevelopmentRequestIdentity
+// (ADR-0011) permanece disponível apenas em Development; fora dele, a sessão de cookie real.
+//
+// Secure-by-default (O1.4.2.1, Etapa 3): a partir daqui, TODO endpoint exige autenticação por
+// padrão via AuthorizationOptions.FallbackPolicy — anônimo é exceção explícita (.AllowAnonymous()),
+// nunca o padrão implícito. ICurrentIdentity.GetRequired() continua existindo como segunda barreira
+// dentro dos casos de uso (defesa em profundidade), lendo a MESMA identidade já estabelecida por
+// HttpContext.User — nunca uma fonte paralela/conflitante.
+const string DevelopmentAuthScheme = BlueprintOS.Api.Identity.DevelopmentHeaderAuthenticationDefaults.Scheme;
+const string SessionAuthScheme = SessionCookieAuthenticationDefaults.Scheme;
+const string BootstrapAuthScheme = BootstrapSessionAuthenticationDefaults.Scheme;
+
+// BootstrapSession é registrado em TODOS os ambientes, como esquema ADICIONAL — nunca altera o esquema
+// default do host (DevelopmentHeader/SessionCookie continuam exatamente como antes) e nunca é usado pela
+// FallbackPolicy global (security-design-auth-o1.4.md §20.7/§20.13; Work Order O1.4.3, seção 8.1).
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddScoped<ICurrentIdentity, DevelopmentRequestIdentity>();
+    builder.Services.AddAuthentication(DevelopmentAuthScheme)
+        .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, DevelopmentHeaderAuthenticationHandler>(DevelopmentAuthScheme, null)
+        .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, BootstrapSessionAuthenticationHandler>(BootstrapAuthScheme, null);
+}
+else
+{
+    builder.Services.AddScoped<ICurrentIdentity, SessionCurrentIdentity>();
+    builder.Services.AddAuthentication(SessionAuthScheme)
+        .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, SessionCookieAuthenticationHandler>(SessionAuthScheme, null)
+        .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, BootstrapSessionAuthenticationHandler>(BootstrapAuthScheme, null);
+}
+
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, BootstrapNaoConcluidoAuthorizationHandler>();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+
+    // Política própria do Bootstrap (Work Order O1.4.3, seção 8.1) — nunca reaproveita a FallbackPolicy
+    // global (que aceitaria SessionCookie/DevelopmentHeader). Exige exclusivamente o esquema
+    // BootstrapSession autenticado E BootstrapEstado.Concluido == false (checagem adicional via
+    // IAuthorizationRequirement customizado, não apenas presença de claim).
+    options.AddPolicy(BootstrapAuthorizationPolicies.BootstrapAuthenticated, policy => policy
+        .AddAuthenticationSchemes(BootstrapAuthScheme)
+        .RequireAuthenticatedUser()
+        .AddRequirements(new BootstrapNaoConcluidoRequirement()));
+});
+
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddIdentityAuthCore(builder.Configuration);
+
+// Exatamente uma implementação válida de IOtpEmailSender por ambiente — nunca fallback silencioso
+// (security-design-auth-o1.4.md, §17.3/§17.4). Seleção feita aqui, na composição raiz, exclusivamente
+// por IHostEnvironment.
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSingleton<DevelopmentOtpInspectionStore>();
+    builder.Services.AddScoped<IOtpEmailSender, DevelopmentOtpEmailSender>();
+}
+else
+{
+    builder.Services.AddUnconfiguredCorporateOtpEmailSender(builder.Configuration);
+}
+
+builder.Services.AddRateLimiter(RateLimitingPolicies.Configure);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(FrontendCorsPolicy, policy =>
     {
         policy.WithOrigins(corsAllowedOrigins)
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
+
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddHsts(options =>
+    {
+        options.MaxAge = TimeSpan.FromDays(365);
+        options.IncludeSubDomains = true;
+    });
+}
 
 var app = builder.Build();
 
 // Pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapOpenApi().AllowAnonymous();
+}
+else
+{
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+app.UseSecurityHeaders();
 app.UseCors(FrontendCorsPolicy);
+app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
 
-// Health Endpoint
+// Health Endpoint — anônimo por exceção explícita: usado por orquestração/monitoramento, que não
+// possui e não deveria precisar de uma sessão autenticada.
 app.MapGet("/health", () =>
 {
     return Results.Ok(new
@@ -94,12 +180,18 @@ app.MapGet("/health", () =>
         Environment = app.Environment.EnvironmentName,
         Version = "1.0.0"
     });
-});
+}).AllowAnonymous();
 
 app.MapNegotiationRecommendation();
 app.MapFornecedores();
 app.MapFornecedorDiscovery();
 app.MapFornecedorSync();
+app.MapAuth();
+app.MapBootstrap();
+if (app.Environment.IsDevelopment())
+{
+    app.MapDevelopmentOtpDiagnostics();
+}
 
 app.Run();
 return 0;
