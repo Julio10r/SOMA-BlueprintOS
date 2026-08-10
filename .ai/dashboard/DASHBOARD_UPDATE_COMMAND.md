@@ -36,6 +36,8 @@ Validar, no mínimo: Onda atual coerente entre ROADMAP/PROJECT_STATE/CURRENT_SPR
 
 Atualizar Schema Version (só se estrutura mudar), Project Version, Generated At, Last Update (data/hora da execução), Status.
 
+Atualizar também o campo **"Última Atualização (Dashboard)"** com a data e hora exatas do momento da execução desta rotina, no fuso horário de São Paulo/Brasil (`America/Sao_Paulo`), no formato `DD/MM/AAAA HH:MM (horário de Brasília)`. Este campo é exibido no cabeçalho visual do Dashboard (card "cockpit-hero" da aba Roadmap, logo abaixo da tag de versão `v0.9.0-blueprint-foundation`, via `.ch-updated` em `dashboard.js`/`dashboard.css`) e deve ser atualizado em **toda** execução de `[atualizar dashboard]`, mesmo quando nenhuma outra mudança de conteúdo for necessária — é o indicador visível, para o usuário, de quando o Dashboard foi atualizado pela última vez. Não confundir com "Generated At"/"Last Update" (que registram a data da geração/mudança de conteúdo do documento-fonte) — "Última Atualização (Dashboard)" registra especificamente o horário da última execução do comando.
+
 ## 7. Foundation
 
 Manter: Status Concluído, Progresso Técnico 100%, Peso Gerencial 20%, Contribuição ao MVP 20 pontos, Data Real 05/08/2026, observações relevantes — enquanto não houver mudança de fonte oficial.
@@ -65,6 +67,8 @@ Preservar nomes vigentes, incluindo "Onda 5 — Go Live - MVP 1.0 funcional". N�
 ## 14–17. Resumo Executivo, Últimas Entregas, Próximos Objetivos, Decisões
 
 Resumo Executivo: Situação Atual, Últimas Entregas, Próximos Objetivos, Próximo Marco, Principais Riscos, Onda Atual, Percentual Global — texto curto (máx. 5 linhas no resumo principal), linguagem executiva, sem conteúdo inventado, destacando bloqueios reais. Últimas Entregas derivam de entregáveis/Work Orders concluídos, commits relevantes, mudanças documentais significativas (só relevantes). Próximos Objetivos/Marcos derivam de Onda atual, entregáveis em desenvolvimento, Gate, CURRENT_SPRINT, ROADMAP. Decisões Recentes: apenas relevantes e rastreáveis (Data, Categoria, Resumo, Documento de origem) — nunca inferências sem registro no repositório.
+
+**Reescrita executiva obrigatória (Situação Atual, Próximo Marco, Principais Riscos):** antes de gravar estes três campos específicos no `DASHBOARD_STATE.md` e de publicar no Dashboard, reescrever o texto consolidado das fontes oficiais em linguagem direta, concisa e de fácil leitura para um executivo da empresa — frases curtas, sem jargão técnico desnecessário, sem sigla não explicada na primeira ocorrência do resumo, priorizando o que importa para decisão (status, impacto, prazo, bloqueio). Esta reescrita é puramente editorial: não pode alterar, omitir ou suavizar o contexto, os fatos, os números, os riscos ou as pendências reportadas nas fontes oficiais — apenas tornar a redação mais objetiva. Não se aplica a "Últimas Entregas" e "Próximos Objetivos", que continuam no formato de lista já definido acima. Esta regra vale para toda execução do comando `[atualizar dashboard]`, a partir de 07/08/2026.
 
 ## 18. Métricas
 

@@ -466,3 +466,124 @@ Detalhamento:
 - Nenhum código de negócio, teste ou comportamento do Publication Engine foi alterado por esta ADR — apenas a árvore de documentação e correções pontuais de caminho necessárias pela movimentação de arquivos.
 
 **Atualização (05/08/2026):** o Publication Engine foi refatorado para o novo componente único `DocsPublisher`, que descobre `docs/**/*.md`, publica em `dist/` preservando a estrutura de domínio e gera um índice navegável — sem nenhuma lógica por audiência. `ExecutivePublisher`, `ClientPublisher`, `EngineeringPublisher`, `ExecutiveBlueprintPublisher`, `DocumentationPublishService` e seus 19 geradores foram removidos. Os comandos `publish-docs` e `publish-executive-blueprint` foram descontinuados (retornam erro claro apontando para `publish`). `docs/executive/BlueprintOS_Executive_Blueprint.{html,pdf}` e `docs/DocumentationHealth.md` (artefatos gerados versionados em `docs/`) foram removidos; o relatório de saúde agora é escrito em `dist/health/`. A decisão descrita nesta ADR está integralmente implementada.
+
+---
+
+## ADR-0020: Modelo Administrativo, Cadastros Integrados, Segurança RBAC e Arquitetura Frontend
+
+**Status:** Aceita (atualizada pelas revisões arquiteturais R1.2 e R2)
+
+**Data:** 06/08/2026 (criação — revisão R1.1); atualizada em 06/08/2026 (revisão R1.2); atualizada em 06/08/2026 (revisão R2 — Arquitetura Frontend)
+
+**Contexto:** A revisão arquitetural R1.1 da Onda 1 (`.ai/work-orders/completed/O1.1-ConsolidacaoFuncionalMaisCompras.md`) registrou oito dúvidas de produto sem resposta: o corte entre `Administração`, `Administração do Sistema` e `Configurações` era apenas uma proposta não aprovada; o conceito de "Gestão de Empresas" havia sido usado informalmente para a classificação gerencial de despesa, sem refletir a separação real entre cadastro corporativo (ERP) e classificação operacional (+Compras); Filiais e Centros de Custo, sendo dados integrados do ERP, não tinham regra explícita sobre o que pode ou não ser alterado localmente; não havia modelo aprovado para relacionar Centro de Custo a uma classificação gerencial de despesa; a separação entre o cadastro mestre de Centro de Custo e a autorização de acesso do usuário a Centros de Custo não estava definida; e o modelo de permissões (perfis vs. permissões individuais) não estava decidido, apesar de o próprio texto de `ComprasFuncional.md` já sugerir perfis como unidade de agrupamento.
+
+**Contexto da atualização R1.2:** após a aceitação da ADR-0020 pela R1.1, a revisão arquitetural R1.2 resolveu pendências adicionais deixadas em aberto: nomenclatura definitiva de sub-telas de `Administração`/`Administração do Sistema`; a relação entre os dois vínculos de acesso de um usuário (Perfis e Centros de Custo); o mecanismo de Login da Onda 1 (pendência nº 5 registrada em `ComprasFuncional.md` pela R1.1); a forma de inicializar o sistema antes de existir qualquer Administrador (nenhum mecanismo de "primeiro acesso" estava definido); e a exigência de revisão de segurança para funcionalidades de autenticação, que ainda não estava formalizada como requisito obrigatório do processo. Esta atualização amplia a ADR-0020 original — não a substitui nem cria uma nova ADR.
+
+**Contexto da atualização R2:** após o encerramento da Revisão Arquitetural R1, a revisão R2 definiu a arquitetura oficial do Frontend do +Compras. Até então, a ADR-0017 (Portal Operacional +Compras) definia a navegação e a evolução incremental por domínio, mas não estabelecia um padrão arquitetural de organização física do código React — deixando em aberto se o frontend cresceria por tecnologia (pastas horizontais `pages`/`components`/`hooks`/`services`) ou por domínio de negócio. A R2 aprovou a arquitetura **Vertical Slice** como padrão obrigatório para toda a aplicação React do +Compras, impactando toda a implementação da Onda 1. Esta atualização amplia a ADR-0020 original — não a substitui nem cria uma nova ADR.
+
+**Decisão:**
+
+1. **Organização administrativa.** O corte entre as três áreas do índice fica definido como: **Administração** — Gestão de Unidades de Negócio, Gestão de Unidades de Alocação, Gestão de Filiais, Gestão de Centros de Custo, Gestão de Usuários, Gestão de Perfis, Workflow, Alçadas, Controle Orçamentário, Configuração ERP, Notificações; **Administração do Sistema** — Identity Providers, Feature Flags, Integrações, Monitor, Filas, Reprocessamentos, Auditoria, Logs, Saúde; **Configurações** — Conta, Preferências, Tema, Idioma, Preferências pessoais. Este corte substitui a distribuição provisória registrada na O1.1 (que agrupava Workflow, Aprovação e Controle Orçamentário em `Configurações`); Workflow, Alçadas e Controle Orçamentário passam a `Administração`, e `Configurações` passa a ser exclusivamente preferência pessoal do usuário autenticado, não motor de regra de negócio da Unidade. **Atualização R1.2:** `Notificações de negócio` é renomeada para `Notificações`; `Monitor de filas` (Administração do Sistema) é desmembrada em duas sub-telas distintas, `Monitor` e `Filas`; `Saúde do sistema` é renomeada para `Saúde`. Nenhuma mudança de escopo funcional é implicada por essas correções de nome — apenas alinhamento à nomenclatura oficial aprovada na R1.2.
+
+2. **Cadastros integrados do ERP.** O ERP permanece a fonte canônica de todo dado corporativo sincronizado. Dados sincronizados do ERP são imutáveis no +Compras — nenhuma tela de gestão altera dados mestres de origem ERP. O +Compras pode armazenar apenas metadados locais não pertencentes ao ERP: `DescricaoMaisCompras` (opcional) e `AtivoNoMaisCompras`, além de metadados locais futuros que vierem a ser aprovados. Toda tela de gestão de dado integrado exibe três colunas distintas — código ERP, descrição ERP, descrição +Compras — nunca substituindo ou ocultando a descrição oficial do ERP.
+
+3. **Gestão de Filiais.** Filiais são integradas do ERP e não podem ser criadas ou alteradas no +Compras; só podem ser ativadas/inativadas para uso no +Compras, sem que essa inativação local altere o ERP. `Código CliFor` e `Nome CliFor` são persistidos no banco +Compras por comporem chaves usadas pelo ERP; `DescricaoMaisCompras` é opcional. O nome funcional oficial da tela é **"Gestão de Filiais"** — "Cadastro de Filiais" é nome incorreto e não deve ser usado.
+
+4. **Gestão de Centros de Custo.** Centros de custo são integrados do ERP; seus dados mestres não podem ser alterados no +Compras, apenas ativados/inativados localmente, sem alterar o ERP. `DescricaoMaisCompras` é opcional. O nome funcional oficial da tela é **"Gestão de Centros de Custo"** — "Cadastro de Centros de Custo" é nome incorreto e não deve ser usado.
+
+5. **Unidades de Alocação.** Substituem, formalmente, o conceito anterior e informal de "Gestão de Empresas". Representam a classificação gerencial da despesa para operação, orçamento e relatórios. Tipos iniciais: Marca, Corporativo, Localidade, Outro. Origem: ERP (ex.: tabela Rede de Lojas) ou cadastro local no +Compras. Campos funcionais iniciais: Identificador, Código ERP (quando existir), Descrição ERP, Descrição +Compras (opcional), Tipo, Origem, Ativa no +Compras, Unidade de Negócio. Exemplos: Animale, Farm, Fábula, SOMA Corporativo, Corporativo Jardim Botânico.
+
+6. **Relação Centro de Custo × Unidade de Alocação.** Relação muitos-para-muitos: cada Centro de Custo ativo pode ter uma ou mais Unidades de Alocação permitidas, com possibilidade de uma Unidade de Alocação padrão. Ao selecionar um Centro de Custo em uma requisição, o sistema filtra as Unidades de Alocação disponíveis; se houver apenas uma permitida, ela pode ser preenchida automaticamente; não é permitido selecionar Unidade de Alocação fora do vínculo configurado.
+
+7. **Centros de custo por usuário.** A Gestão de Centros de Custo (cadastro mestre) é separada da autorização de acesso do usuário. Após a integração/configuração dos centros de custo, um usuário pode ter acesso a um, vários, ou a todos os centros de custo ativos. Essa autorização nunca altera o cadastro mestre do Centro de Custo.
+
+8. **Perfis e permissões (RBAC).** O modelo de segurança é RBAC baseado exclusivamente em perfis. Cada Perfil contém nome, descrição, status, Unidade de Negócio (quando aplicável) e lista de permissões. Um usuário pode ter um ou vários perfis; suas permissões efetivas são a união das permissões de todos os perfis vinculados. Regra obrigatória: **usuários nunca recebem permissões individuais ou exceções diretas** — toda necessidade de permissão diferente exige a criação de um novo perfil (ex.: "Analista": criar, aprovar e cancelar pedido; "Analista Jr": somente criar pedido).
+
+**Decisões acrescentadas pela revisão arquitetural R1.2 (data abaixo):**
+
+9. **Usuários — consolidação do vínculo de acesso.** Todo usuário do +Compras carrega dois vínculos de acesso independentes entre si: um ou mais **Perfis** (governam permissões, item 8) e um ou mais **Centros de Custo** (governam o escopo de dados operacionais, item 7). Nenhum dos dois vínculos substitui o outro — um usuário pode ter um Perfil amplo e acesso restrito a poucos Centros de Custo, ou vice-versa. O acesso a **todos** os Centros de Custo ativos é uma opção explícita de configuração por usuário (equivalente a "todos", não a uma listagem manual de todos os códigos existentes), para que a entrada de novos Centros de Custo não exija reconfiguração retroativa de usuários já marcados como "acesso total".
+
+10. **Modelo RBAC — reafirmação sem exceção.** Reafirma-se, sem ambiguidade, a regra já aprovada no item 8: permissões pertencem exclusivamente a Perfis, nunca a usuários individualmente; o conjunto de permissões efetivas de um usuário é sempre a união das permissões de todos os seus Perfis vinculados; e toda exceção de acesso necessária gera obrigatoriamente um novo Perfil — em nenhuma hipótese uma permissão pontual anexada diretamente a um usuário.
+
+11. **Autenticação — Login Passwordless via OTP por e-mail.** O mecanismo de login da Onda 1 é definido: autenticação **passwordless**, por código de verificação (OTP) enviado ao e-mail corporativo, resolvendo a pendência registrada pela O1.1/R1.1 sobre o mecanismo de Login. Regras: (a) o domínio do e-mail informado deve pertencer a um domínio autorizado pela Unidade de Negócio ou pelo Identity Provider configurado; (b) apenas usuário com status Ativo pode concluir a autenticação; (c) a autenticação sempre resolve/confirma o vínculo do usuário com uma Unidade de Negócio antes de liberar a sessão; (d) uma Unidade de Negócio pode ter múltiplos Identity Providers configurados simultaneamente (OTP por e-mail e, quando aprovado, outros); (e) o Microsoft Entra ID é o provedor corporativo definitivo de produção e é projetado para **coexistir** com o OTP por e-mail como Identity Providers alternativos de uma mesma Unidade de Negócio, não para substituí-lo compulsoriamente — a escolha de qual Identity Provider usar em cada login segue a configuração de `Administração do Sistema > Identity Providers`.
+
+12. **Bootstrap Mode.** É introduzido o conceito de **Bootstrap Mode**: um modo de inicialização disponível **somente** enquanto não existir nenhum Administrador Sênior cadastrado no +Compras. Nesse modo, e apenas nele, é possível criar a primeira Unidade de Negócio, o primeiro usuário com perfil de Administrador Sênior, e a configuração inicial mínima necessária para o sistema operar. Assim que o primeiro Administrador Sênior é criado com sucesso, o Bootstrap Mode é **encerrado permanentemente** — não há reabertura, nem por perda de acesso, nem por remoção posterior de todos os Administradores Sênior; qualquer necessidade de recuperação de acesso após o encerramento do Bootstrap é tratada por procedimento operacional de suporte, não pelo Bootstrap Mode.
+
+13. **Segurança — revisão obrigatória de autenticação.** Toda funcionalidade de autenticação (Login, OTP, Identity Providers, Bootstrap Mode, sessão, e qualquer evolução futura dessas áreas) deve obrigatoriamente passar por: (a) revisão arquitetural do Agente Engenheiro de Segurança Sênior antes da implementação; e (b) validação de segurança dedicada após a implementação, antes de qualquer homologação ou uso além de ambiente de desenvolvimento local. Nenhuma funcionalidade de autenticação é considerada "Pronta" (`ROADMAP.md`) sem essas duas revisões documentadas.
+
+## Arquitetura Frontend
+
+**Decisão acrescentada pela revisão arquitetural R2 (data abaixo):**
+
+14. **Vertical Slice como arquitetura obrigatória do Frontend.** O frontend do +Compras utilizará obrigatoriamente arquitetura **Vertical Slice** para toda a aplicação React, em substituição a qualquer estrutura horizontal organizada por tipo técnico. Regras:
+    - A organização do código é orientada ao **domínio do negócio**, nunca à tecnologia utilizada. Não são criadas pastas horizontais de topo separadas por `pages`, `components`, `hooks`, `services` ou `models` abrangendo toda a aplicação.
+    - Cada módulo de domínio possui **autonomia funcional**: `pages`, `components`, `hooks`, `services`, `routes`, `models`, `types` e `tests` relativos a um domínio permanecem agrupados dentro da própria fatia (slice) desse domínio, não espalhados em diretórios técnicos compartilhados de topo.
+    - A arquitetura cresce por domínio: cada novo módulo funcional do negócio é adicionado como uma nova Vertical Slice, seguindo exatamente a mesma estrutura interna das slices já existentes — não é aceita uma estrutura ad hoc por módulo.
+    - Frontend e Backend compartilham a mesma visão arquitetural de organização por domínio (Backend já segue Modular Monolith + Clean Architecture + DDD pragmático, ADR-0001); a Vertical Slice é a expressão dessa mesma visão no frontend, não uma arquitetura conflitante.
+    - Elementos genuinamente compartilhados entre múltiplos domínios (Design System, utilitários transversais) residem exclusivamente em uma área `shared`/`design-system` de escopo explícito — nunca como destino padrão de código que poderia pertencer a um domínio.
+    - Estrutura conceitual de referência (não é estrutura física obrigatória nesta ADR — apenas o padrão arquitetural; a criação física dos diretórios é responsabilidade de Work Order de Estrutura futura):
+      ```
+      src/
+        core/
+        authentication/
+        administration/
+          usuarios/
+          perfis/
+          filiais/
+          centros-custo/
+          unidades-alocacao/
+        procurement/
+        workflow/
+        shared/
+        design-system/
+      ```
+      Esta estrutura é conceitual e pode evoluir (novos domínios, novas subdivisões) sem quebrar os princípios arquiteturais acima — o que é obrigatório é o princípio (organização por domínio, autonomia por slice, elementos técnicos agrupados dentro do domínio), não os nomes exatos de pasta listados aqui.
+    - Esta decisão não implementa nenhuma estrutura de pastas, não altera código de frontend ou backend existente, e não é uma migration — é decisão exclusivamente arquitetural/documental, a ser aplicada pela Work Order de Estrutura da O1.2 e por toda implementação futura do frontend +Compras.
+
+**Alternativas consideradas:**
+
+1. Manter "Gestão de Empresas" como nome do conceito de classificação gerencial — descartada por confundir empresa jurídica (ERP) com classificação de despesa (+Compras) e por não refletir a origem mista (ERP e local) dos registros.
+2. Permitir edição de dados mestres de Filiais/Centros de Custo diretamente no +Compras — descartada por violar o princípio do ERP como fonte canônica e criar risco de divergência entre os dois sistemas.
+3. Permitir permissões individuais por usuário além dos perfis, para casos excepcionais — descartada por criar drift de autorização não auditável e por já existir mecanismo equivalente e mais rastreável (criação de um novo perfil).
+4. *(R1.2)* Autenticação exclusiva por Microsoft Entra ID desde a Onda 1, sem alternativa própria — descartada por bloquear o início da Onda 1 até a disponibilidade corporativa do Entra ID; o OTP por e-mail permite operar imediatamente e coexistir com o Entra ID quando este for aprovado, sem exigir retrabalho de arquitetura (múltiplos Identity Providers já são suportados por Unidade de Negócio).
+5. *(R1.2)* Permitir criação de Administrador por qualquer usuário autenticado quando não houver nenhum cadastrado, sem um modo dedicado — descartada por criar uma janela de escalonamento de privilégio implícita e não auditável; o Bootstrap Mode torna esse estado explícito, temporário e encerrado permanentemente após uso.
+6. *(R1.2)* Reabrir o Bootstrap Mode em caso de perda de acesso de todos os Administradores Sênior — descartada por reintroduzir a mesma janela de risco que o Bootstrap Mode foi criado para eliminar; recuperação de acesso é tratada por procedimento operacional de suporte, fora do escopo desta ADR.
+7. *(R2)* Estrutura horizontal por tipo técnico (`src/pages`, `src/components`, `src/hooks`, `src/services` abrangendo toda a aplicação) — descartada por dispersar os artefatos de um mesmo domínio de negócio em múltiplos diretórios de topo, aumentando o custo de navegação e a chance de acoplamento acidental entre domínios não relacionados à medida que o Portal +Compras cresce (ADR-0017).
+8. *(R2)* Arquitetura de microfrontends (um deployment separado por domínio) — descartada nesta revisão por ser prematura para o estágio atual do Portal +Compras; a Vertical Slice obtém o principal benefício pretendido (autonomia por domínio, crescimento sem reorganização) sem o custo operacional de múltiplos deployments, permanecendo como possível evolução futura se a escala do produto exigir.
+
+**Consequências positivas:**
+
+- A separação Administração / Administração do Sistema / Configurações deixa de ser uma proposta pendente (dúvida de produto nº 2 da O1.1) e passa a ser uma decisão aprovada, liberando a especificação de UX/Mock sem risco de retrabalho de rotas/componentes.
+- O modelo de Unidades de Alocação preenche a lacuna deixada pela ADR-0013 (ERP × +Compras como fontes de verdade) para o caso específico de classificação gerencial de despesa, sem introduzir uma entidade "Empresa" que conflitaria com o ERP.
+- A regra RBAC exclusiva por perfil elimina ambiguidade de autorização e simplifica auditoria: toda permissão efetiva de um usuário é rastreável a um ou mais perfis nomeados, nunca a uma exceção pontual.
+- A separação entre cadastro mestre de Centro de Custo e autorização de acesso por usuário evita que a governança de acesso corrompa o dado sincronizado do ERP.
+- *(R1.2)* O mecanismo de Login da Onda 1 deixa de ser pendência (dúvida de produto nº 5 registrada em `ComprasFuncional.md`), desbloqueando a especificação completa de UX/Mock de Login e Bootstrap para a O1.2.
+- *(R1.2)* O Bootstrap Mode elimina a necessidade de qualquer intervenção manual em banco de dados ("inserir o primeiro admin via SQL") para iniciar um novo ambiente, tornando o processo de inicialização auditável e reproduzível.
+- *(R1.2)* A exigência formal de revisão de segurança para toda funcionalidade de autenticação alinha o +Compras à prática de segurança-por-design antes da implementação, reduzindo o risco de retrabalho por falha encontrada tardiamente.
+- *(R2)* A Vertical Slice alinha a organização do frontend à mesma visão arquitetural já adotada pelo backend (organização por domínio, ADR-0001), reduzindo a distância conceitual entre as duas camadas para quem trabalha em ambas.
+- *(R2)* Cada novo módulo de domínio (Fornecedores, Materiais, Solicitações, etc., Ondas 2-3) é adicionado como uma nova slice autônoma, sem exigir reorganização de pastas técnicas compartilhadas já existentes — reduz o custo de crescimento do Portal +Compras previsto pela ADR-0017.
+- *(R2)* A regra de "elementos compartilhados apenas em Shared/Design System" impede que a pasta compartilhada vire um destino padrão de conveniência, preservando a autonomia real de cada domínio ao longo do tempo.
+
+**Riscos:**
+
+- O catálogo definitivo de Perfis e Permissões (dúvida de produto nº 5 da O1.1) continua pendente; esta ADR define a mecânica (RBAC por perfil), não o conteúdo do catálogo.
+- A relação N:N entre Centro de Custo e Unidade de Alocação introduz uma tabela de associação adicional a ser refletida no blueprint físico antes da Onda 5 (Go Live), quando a estrutura integrada ao ERP precisa reproduzir o ERP como modelo canônico.
+- Nomes de tela incorretos ("Cadastro de Filiais", "Cadastro de Centros de Custo", "Gestão de Empresas") podem já existir em materiais de apresentação ou comunicação informal fora do escopo documental revisado por esta Work Order; devem ser corrigidos onde encontrados.
+- *(R1.2)* O OTP por e-mail depende de um serviço de envio de e-mail transacional ainda não implementado nem contratado; a Work Order de Estrutura da O1.2 precisa tratar esse provedor como dependência explícita.
+- *(R1.2)* O papel "Administrador Sênior" citado pelo Bootstrap Mode ainda não está no catálogo de Perfis aprovado (dúvida de produto nº 5/nº 6 de `ComprasFuncional.md`); a O1.2 precisa aprovar esse perfil como parte do catálogo antes de implementar o Bootstrap.
+- *(R1.2)* O "Agente Engenheiro de Segurança Sênior" é referenciado como papel de revisão obrigatória, mas seu processo de acionamento (humano, agente de IA, ou ambos) e critérios de aprovação não são detalhados por esta ADR — a definir na Work Order de Estrutura que implementar a autenticação.
+- *(R2)* A estrutura conceitual de exemplo (`core/`, `authentication/`, `administration/`, `procurement/`, `workflow/`, `shared/`, `design-system/`) ainda não foi validada contra o código React já existente do Portal +Compras (módulo Fornecedores, AppShell); a Work Order de Estrutura da O1.2 precisa definir como esse código atual migra para o padrão Vertical Slice, ou se nasce direto na nova estrutura.
+- *(R2)* Sem definição explícita de onde termina "elemento compartilhado" e começa "elemento de domínio duplicado entre slices", a pasta `shared/` corre risco de virar destino de conveniência ao longo do tempo — mitigação depende de disciplina de revisão de código, não apenas desta ADR.
+
+**Impactos:**
+
+- `docs/product/ComprasFuncional.md`, `docs/product/ComprasUX.md` e `docs/product/ComprasDataModel.md` — novo conteúdo e reorganização das sub-telas de Administração conforme o corte desta ADR.
+- `.ai/ENGINEERING_BLUEPRINT.md` — referência à decisão nas seções de Segurança (RBAC) e Banco de Dados (novas entidades de classificação gerencial).
+- Nenhuma migration, código ou frontend é alterado por esta ADR — é decisão exclusivamente documental, a ser implementada por Work Order de Estrutura futura.
+- *(R1.2)* `docs/product/ComprasFuncional.md`/`ComprasDataModel.md` — especificação da tela/fluxo de Login (OTP), do fluxo de Bootstrap e do vínculo Usuário × Centro de Custo/Perfil, e correção de nomenclatura das sub-telas de `Administração`/`Administração do Sistema`.
+- *(R1.2)* `.ai/PROJECT_STATE.md` — registro de que as revisões R1.1 e R1.2 estão concluídas e que a O1.2 está liberada para início.
+- *(R1.2)* Qualquer Work Order futura que implemente Login, OTP, Identity Providers ou Bootstrap Mode deve incluir, no seu próprio escopo, a revisão do Agente Engenheiro de Segurança Sênior antes e depois da implementação (item 13) — esta ADR não implementa código, apenas estabelece o requisito de processo.
+- *(R2)* `docs/architecture/domain-principles.md` — novos princípios permanentes de organização do frontend por domínio (Vertical Slice).
+- *(R2)* `.ai/ENGINEERING_BLUEPRINT.md` — nova seção descrevendo a arquitetura Frontend Vertical Slice e sua integração com o restante da arquitetura do BlueprintOS.
+- *(R2)* `.ai/PROJECT_STATE.md` — registro de que a R2 está concluída, a arquitetura Frontend foi aprovada (Vertical Slice) e o frontend está liberado para implementação.
+- *(R2)* Nenhuma estrutura de pastas é criada, nenhum código de frontend ou backend é alterado, e nenhuma migration é criada por esta ADR — é decisão exclusivamente arquitetural/documental; a criação física da estrutura é responsabilidade de Work Order de Estrutura futura.

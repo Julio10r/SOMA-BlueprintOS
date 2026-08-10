@@ -716,17 +716,18 @@
   function renderRoadmap(state) {
     var html = "";
     var versao = stripMd(kv(state, "Cabeçalho", "Project Version") || "");
+    var ultimaAtualizacao = stripMd(kv(state, "Cabeçalho", "Última Atualização (Dashboard)") || "");
     var statusGeral = kv(state, "Cabeçalho", "Status");
     var mvpPct = mvpGlobalPercent(state);
 
     html += '<div class="cockpit-hero">';
-    html += '<div class="cockpit-hero-id"><span class="ch-name">' + escapeHtml(PROJECT_NAME_LABEL) + '</span><span class="ch-version">' + escapeHtml(versao) + "</span></div>";
-    html += '<div class="cockpit-hero-status">' + (statusGeral ? '<span class="badge b-neutro">' + escapeHtml(statusGeral) + "</span>" : naSpan()) + "</div>";
+    html += '<div class="cockpit-hero-id"><span class="ch-name">' + escapeHtml(PROJECT_NAME_LABEL) + '</span><span class="ch-version">' + escapeHtml(versao) + "</span>" + (ultimaAtualizacao ? '<span class="ch-updated">última atualização: ' + escapeHtml(ultimaAtualizacao) + "</span>" : "") + "</div>";
     html += '<div class="cockpit-hero-mvp">';
     html += '<span class="mvp-label">Percentual Global do MVP 1.0</span>';
     html += '<div class="mvp-bar-track">' + (mvpPct !== null ? '<div class="mvp-bar-fill" style="width:' + mvpPct.exact + '%"></div>' : '<div class="mvp-bar-fill pending"></div>') + "</div>";
     html += '<span class="mvp-pct' + (mvpPct === null ? " pending" : "") + '" ' + (mvpPct !== null ? 'title="Valor exato: ' + String(mvpPct.exact).replace(".", ",") + '%"' : "") + '>' + (mvpPct !== null ? mvpPct.rounded + "%" : "N/D") + "</span>";
     html += "</div></div>";
+    html += '<div class="cockpit-status-banner">' + (statusGeral ? '<span class="badge b-neutro">' + escapeHtml(statusGeral) + "</span>" : naSpan()) + "</div>";
     if (mvpPct === null) html += noticeBox("pend", "Percentual Global do MVP: não encontrado na linha \"Total\" da tabela \"Percentual Global do MVP 1.0\" — nenhum valor foi estimado ou calculado fora do <code>DASHBOARD_STATE.md</code>. Publicação deve ser bloqueada até correção da fonte.");
 
     var foundationStatus = kv(state, "Foundation", "Status");

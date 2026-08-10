@@ -18,6 +18,7 @@ Uma tarefa só é considerada concluída (Done) quando todos os itens abaixo for
 - ✓ ADR criada quando a tarefa envolver decisão arquitetural relevante (ver [DECISIONS.md](../DECISIONS.md))
 - ✓ Aprovada pelo Product Owner (ver WORKFLOW.md §12)
 - ✓ Memória atualizada (`.ai/memory/completed_sprints.md`, `known_issues.md`, `patterns.md`, quando aplicável — ver WORKFLOW.md §14)
+- ✓ Quando a tarefa concluir ou alterar o status de um entregável de Onda (Work Order, sprint, gate), o comando `[atualizar dashboard]` foi executado antes do encerramento — ou a não execução foi registrada explicitamente com justificativa em `.ai/CURRENT_SPRINT.md`. Encerrar a sprint sem propagar o estado ao `.ai/dashboard/DASHBOARD_STATE.md` deixa o Dashboard desatualizado silenciosamente (ver `.ai/dashboard/DASHBOARD_UPDATE_COMMAND.md`)
 
 ## Uso
 

@@ -9,9 +9,10 @@
 | Dashboard State | v2 |
 | Schema Version | 2.3.0 |
 | Project Version | `v0.9.0-blueprint-foundation` |
-| Generated At | 06/08/2026 |
-| Last Update | 06/08/2026 — Percentual Global do MVP 1.0 passa a somar a contribuição proporcional (Peso × Progresso Técnico) de todas as Ondas, mesmo as ainda Planejadas; Gráfico de Gantt ajustado para caber integralmente no card com barras Planejado/Realizado; Onda 5 renomeada para "Go Live - MVP 1.0 funcional"; nova seção "Roadmap dos Produtos" na aba Executive — via Work Order "Ajuste Final de Percentuais, Gantt e Resumo Executivo dos MVPs" |
-| Status | Fundação concluída; MVP 1.0 replanejado; Onda 1 em desenvolvimento |
+| Última Atualização (Dashboard) | 10/08/2026 17:33 (horário de Brasília) |
+| Generated At | 10/08/2026 |
+| Last Update | 10/08/2026 — Execução do comando `[atualizar dashboard]`: leitura de `.ai/PROJECT_STATE.md` e `.ai/BACKLOG.md` identificou a conclusão integral da Work Order técnica O1.4.3 (Bootstrap Mode e Administrador Sênior), até então registrada apenas com sua primeira etapa (O1.4.3.1). O1.4.3.2 (Conclusão Transacional e Administrador Sênior) concluída (10/08/2026): `ConcluirBootstrapUseCase` com conclusão transacional atômica (compare-and-swap via `RowVersion`), 388/388 testes aprovados, migration `AddBootstrapConclusaoConcurrency` validada mas não aplicada ao banco compartilhado. O1.4.3.3 (Frontend Bootstrap) concluída (10/08/2026): Vertical Slice `bootstrap/` com wizard completo, 53/53 testes de frontend, encerrada após smoke test real ponta a ponta em Chrome aprovado pelo Product Owner/CTO (fluxo completo até `POST /bootstrap/concluir` → 200 OK). O1.4.3.4 (Security Self-Review dedicada) concluída (10/08/2026): nenhum CRITICAL/HIGH. A Work Order mãe O1.4.3 está FORMALMENTE CONCLUÍDA (10/08/2026): Security Validation independente executada por revisor isolado, resultado 0 CRITICAL/0 HIGH, parecer "aprovada com ressalvas"; Product Owner aceitou formalmente 15 findings remanescentes (4 MEDIUM + 6 LOW + 5 INFORMATIONAL), nenhum bloqueante para a O1.4.3, mas 2 MEDIUM (ausência de `Cache-Control: no-store` em `/bootstrap/*`; Bootstrap Secret sem validação de entropia) bloqueiam explicitamente a promoção para Homologação. Refletido nos entregáveis da Onda 1: "Bootstrap Mode e Administrador Sênior" passa de Em desenvolvimento para Concluído (Onda 1 mantém 41 entregáveis: 7 Concluído / 11 Em desenvolvimento / 23 Planejado). Progresso Técnico da Onda 1 recalculado (7 ÷ 41 = 17,07% exato, exibido como 17%, antes 15%); Contribuição ao MVP da Onda 1 recalculada de 2,9 para 3,4 pontos (20% × 17,07%); Percentual Global do MVP 1.0 recalculado de 29,93% para 30,41% exato (Foundation 20,0 + Onda 1 3,41 + Onda 2 7,0), exibido ainda como 30% (arredondamento inalterado). |
+| Status | Fundação concluída; MVP 1.0 replanejado; Onda 1 em desenvolvimento — Gate Administrativo aprovado; Autenticação (O1.4.2) e Bootstrap Mode/Administrador Sênior (O1.4.3) implementados e formalmente concluídos, com ressalvas não bloqueantes aceitas pelo Product Owner; 2 pendências MEDIUM bloqueiam explicitamente a promoção para Homologação |
 
 ## Foundation
 
@@ -34,8 +35,8 @@
 | Objetivo | Entregar o produto completo navegável, validar sua experiência e implementar a base administrativa/configurável real do +Compras | Entregar os cadastros essenciais, sincronizados com o ERP e preparados para o processo operacional de compras | Entregar o fluxo completo de compras, da solicitação à criação do pedido | Completar o fluxo operacional após o pedido, integrando recebimento, fiscal e pagamento | Homologar, estabilizar e colocar a versão 1.0 em produção com segurança operacional |
 | Resultado Esperado | Produto completo navegável, base administrativa funcional e especificação suficiente para implementar os módulos reais sem redesenhar o produto | Cadastros básicos operacionais e disponíveis para o ciclo de compras | Primeiro ciclo completo de compras funcionando ponta a ponta até o pedido no ERP | Fluxo operacional completo entre +Compras, ERP, fiscal e financeiro | Versão 1.0 disponível em produção e operacionalmente assistida |
 | Peso no MVP | 20% | 20% | 20% | 10% | 10% |
-| Progresso Técnico | 8% | 35% | 0% | 0% | 0% |
-| Contribuição ao MVP | 1,6 pontos | 7,0 pontos | 0,0 pontos | 0,0 pontos | 0,0 pontos |
+| Progresso Técnico | 17% | 35% | 0% | 0% | 0% |
+| Contribuição ao MVP | 3,4 pontos | 7,0 pontos | 0,0 pontos | 0,0 pontos | 0,0 pontos |
 | Status | Em desenvolvimento | Planejado | Planejado | Planejado | Planejado |
 | Gate | Frontend navegável e Administração aprovados | Cadastros homologados | Processo completo de compras funcionando ponta a ponta | Integrações ERP, Fiscal e Pagamentos homologadas | Go Live aprovado |
 | Critério do Gate | Produto navegável, Administração operável, blueprint de banco completo e aprovado | Todos os cadastros operáveis pelo frontend e sincronizados com o ERP | Ciclo solicitação→pedido operável de ponta a ponta, com aprovação e orçamento funcionando | Integrações operando ponta a ponta, sem alteração estrutural no ERP | Homologação aprovada, observabilidade/segurança mínimas operando, performance validada |
@@ -62,8 +63,8 @@
 
 | Entregável | Status | Observações |
 |---|---|---|
-| Arquitetura de login por Unidade de Negócio | Planejado | — |
-| Tela de Login | Planejado | — |
+| Arquitetura de login por Unidade de Negócio | Concluído | O1.4.2 implementou a arquitetura recomendada pela Security Design Review (O1.4.1): resolução de Unidade de Negócio antes da criação da sessão, backend `Domain/Application/Infrastructure/Api.Identity`; Security Implementation Gate III aprovado com pendências não bloqueantes para Development |
+| Tela de Login | Concluído | O1.4.2 — Login Passwordless OTP e Sessão Segura: backend real (`Api.Identity`) + frontend `auth/` (LoginPage), OTP hash+salt/uso único/rate limiting, sessão server-side, cookie seguro, CSRF/CORS/headers; 275/275 testes de backend e 38/38 de frontend aprovados; Security Implementation Gate III aprovado com pendências não bloqueantes para Development; validação end-to-end contra o banco compartilhado real bloqueada por dessincronização pré-existente de migrations, não relacionada a este entregável |
 | Seleção da Unidade de Negócio | Planejado | — |
 | Shell principal da aplicação | Em desenvolvimento | AppShell.tsx existe no Portal +Compras (header e navegação por módulos); não contempla ainda os módulos de Administração da Onda 1 |
 | Menu e navegação completa | Em desenvolvimento | Navegação por react-router-dom existe para os módulos atuais; não cobre ainda os itens de Administração |
@@ -71,13 +72,16 @@
 | Frontend mockado navegável da v1.0 | Em desenvolvimento | Módulos Pedidos/Negociações/Indicadores/Agentes IA/Configurações são telas demonstrativas honestas; Fornecedores conectado à API real |
 | Estados de loading, vazio, sucesso e erro | Em desenvolvimento | Implementados em CnpjSearch, ApprovalPanel e CadastroFornecedor; cobertura ainda parcial nas demais telas |
 | Perfis de usuário simulados | Planejado | — |
-| Contexto UnidadeNegocioId | Planejado | Identidade atual (DevelopmentRequestIdentity) é um stub de Development, sem contexto de Unidade de Negócio |
-| Módulo de Administração | Planejado | — |
+| Contexto UnidadeNegocioId | Concluído | `SessionCurrentIdentity` (O1.4.2) resolve identidade e sessão real server-side fora de Development, substituindo o stub `DevelopmentRequestIdentity` |
+| Módulo de Administração | Em desenvolvimento | Quatro Vertical Slices mockadas em `administration/` (`profiles`, `users`, `branches`, `cost-centers`); sem backend, autenticação ou persistência real |
+| Bootstrap Mode e Administrador Sênior | Concluído | Work Order técnica O1.4.3 FORMALMENTE CONCLUÍDA (10/08/2026): Fundação Backend (O1.4.3.1), Conclusão Transacional e Administrador Sênior (O1.4.3.2 — compare-and-swap via `RowVersion`, 388/388 testes), Frontend Bootstrap (O1.4.3.3 — wizard completo, 53/53 testes, smoke test real ponta a ponta aprovado pelo Product Owner/CTO) e Security Self-Review dedicada (O1.4.3.4). Security Validation independente: 0 CRITICAL/0 HIGH, aprovada com ressalvas aceitas formalmente pelo Product Owner (15 findings remanescentes, nenhum bloqueante para esta etapa); 2 MEDIUM (ausência de `Cache-Control: no-store`; Bootstrap Secret sem validação de entropia) bloqueiam explicitamente a promoção para Homologação. Migrations validadas mas não aplicadas ao banco compartilhado |
 | Cadastro de Unidades de Negócio | Planejado | — |
-| Empresas e filiais | Planejado | — |
-| Usuários | Planejado | — |
+| Empresas e filiais | Em desenvolvimento | `administration/branches` (O1.3.3, 06/08/2026) — listagem, edição de metadados locais e ativação/inativação mockadas; Filial permanece dado mestre do ERP, sem persistência real |
+| Usuários | Em desenvolvimento | `administration/users` mockado (listagem, cadastro, vínculo com Perfis e Centros de Custo); sem sprint/Work Order própria documentada em `.ai/CURRENT_SPRINT.md` — ver observação em "Divergências ainda abertas" |
 | Usuário por Unidade de Negócio | Planejado | — |
-| Perfis, papéis e permissões | Planejado | — |
+| Perfis, papéis e permissões | Em desenvolvimento | `administration/profiles` (O1.3.1) — RBAC exclusivo por perfil refletido na UI, mockado, sem backend |
+| Centros de Custo | Em desenvolvimento | `administration/cost-centers` (O1.3.4, 06/08/2026) — listagem, edição de metadados locais e ativação/inativação mockadas; Centro de Custo permanece dado mestre do ERP; relacionamento com Unidade de Alocação exibido apenas visualmente (dado mockado) |
+| Unidades de Alocação | Em desenvolvimento | `administration/allocation-units` (O1.3.5, 06/08/2026) — cadastro completo pelo +Compras (criação, edição, visualização, ativação/inativação, sem exclusão física), sem integração ERP (ADR-0020, item 4); build e 31/31 testes aprovados, smoke test real em navegador aprovado; relacionamento N:N com Centro de Custo (ADR-0020, item 5) ainda não implementado |
 | Identity Providers por Unidade de Negócio | Planejado | — |
 | Configuração de ERP por Unidade de Negócio | Planejado | — |
 | Parâmetros gerais por Unidade de Negócio | Planejado | — |
@@ -229,37 +233,44 @@
 | Componente | Peso Gerencial | Progresso Técnico | Contribuição ao MVP (pontos) |
 |---|---|---|---|
 | Foundation | 20% | 100% | 20,0 |
-| Onda 1 | 20% | 8% | 1,6 |
+| Onda 1 | 20% | 17% | 3,4 |
 | Onda 2 | 20% | 35% | 7,0 |
 | Onda 3 | 20% | 0% | 0,0 |
 | Onda 4 | 10% | 0% | 0,0 |
 | Onda 5 | 10% | 0% | 0,0 |
-| **Total** | **100%** | — | **28,6%** |
+| **Total** | **100%** | — | **30,4%** |
 
-O valor exato do Total é **28,6%** (soma exata dos pontos acima); a apresentação visual em qualquer Dashboard deve arredondar este valor apenas para exibição (**29%**), mantendo o valor exato disponível em tooltip/detalhe acessível. Esta é a origem oficial da barra principal de qualquer Dashboard. Nenhum Dashboard recalcula este valor — ele apenas lê a linha "Total" acima. **A Contribuição ao MVP de cada componente é calculada durante a atualização deste documento — o Dashboard apenas renderiza os valores já calculados aqui, nunca recalcula a fórmula global em HTML ou JavaScript.**
+O valor exato do Total é **30,41%** (soma exata dos pontos acima); a apresentação visual em qualquer Dashboard deve arredondar este valor apenas para exibição (**30%**), mantendo o valor exato disponível em tooltip/detalhe acessível. Esta é a origem oficial da barra principal de qualquer Dashboard. Nenhum Dashboard recalcula este valor — ele apenas lê a linha "Total" acima. **A Contribuição ao MVP de cada componente é calculada durante a atualização deste documento — o Dashboard apenas renderiza os valores já calculados aqui, nunca recalcula a fórmula global em HTML ou JavaScript.**
 
 ## Resumo Executivo
 
 > Gerado automaticamente — nunca editado manualmente.
 
-**Situação Atual:** Fundação arquitetural concluída e publicada (tag `v0.9.0-blueprint-foundation`). MVP 1.0 replanejado sob a estratégia Frontend First, com 5 Ondas, pesos, Gates e baseline oficial de datas definidos. Onda 1 em desenvolvimento desde 03/08/2026 (fim planejado 14/08/2026); demais Ondas planejadas. Percentual Global do MVP 1.0: 28,6% (exibido como 29%) — Foundation concluída (20,0 pontos) + Onda 1 com 8% de Progresso Técnico (1,6 ponto) + Onda 2 com 35% de Progresso Técnico (7,0 pontos), somados proporcionalmente mesmo com as Ondas 1 e 2 ainda em Status "Em desenvolvimento"/"Planejado".
+**Situação Atual:** Fundação arquitetural concluída (tag `v0.9.0-blueprint-foundation`). MVP 1.0 avançando em 30% (30,41% exato). Onda 1 em desenvolvimento desde 03/08/2026 (fim previsto 14/08/2026): fundação administrativa concluída e Gate Administrativo aprovado; Autenticação (Login OTP e sessão segura) e Bootstrap Mode/Administrador Sênior implementados e formalmente concluídos, com ressalvas não bloqueantes aceitas pelo Product Owner.
 
 **Últimas Entregas:**
-- Baseline oficial de datas por Onda (Início/Fim Planejado, Real, Replanejado) registrada via Work Order.
-- Listas completas de entregáveis por Onda (1 a 5) registradas, com status individual e evidência.
-- Unificação do Publication Engine (`DocsPublisher`) e reorganização de `docs/`/`resources/` (ADR-0019).
-- Merge da fundação em `main`, tag `v0.9.0-blueprint-foundation`.
+- O1.4.3 (Work Order técnica) — Bootstrap Mode e Administrador Sênior FORMALMENTE CONCLUÍDA (10/08/2026): Security Validation independente com 0 CRITICAL/0 HIGH, aprovada com ressalvas aceitas pelo Product Owner. Ver `.ai/work-orders/completed/O1.4.3-BootstrapEAdministradorSenior.md`.
+- O1.4.3.4 — Security Self-Review dedicada concluída (10/08/2026): nenhum CRITICAL/HIGH; 388/388 testes de backend e 53/53 de frontend sem regressão.
+- O1.4.3.3 — Frontend Bootstrap concluída (10/08/2026): wizard completo (`bootstrap/`), smoke test real ponta a ponta em Chrome aprovado pelo Product Owner/CTO.
+- O1.4.3.2 — Conclusão Transacional e Administrador Sênior concluída (10/08/2026): `ConcluirBootstrapUseCase` com conclusão atômica via `RowVersion`, 388/388 testes aprovados.
+- O1.4.2 — Login Passwordless OTP e Sessão Segura concluída (07/08/2026): backend `Api.Identity` + frontend `auth/`, 275/275 testes de backend e 38/38 de frontend aprovados. Ver `.ai/CURRENT_SPRINT.md`.
+- Gate Administrativo aprovado (06/08/2026), encerrando a fundação administrativa da Onda 1 (Perfis, Usuários, Filiais, Centros de Custo, Unidades de Alocação).
 
 **Próximos Objetivos:**
+- Resolver as 2 pendências MEDIUM que bloqueiam explicitamente a promoção para Homologação: `Cache-Control: no-store` em `/bootstrap/*` e validação de entropia do Bootstrap Secret.
+- Tratar os 13 findings remanescentes não bloqueantes (4 MEDIUM restantes + 6 LOW + 5 INFORMATIONAL) da Security Validation independente em sprint(s) futura(s).
+- Decisão operacional sobre a aplicação das migrations de Autenticação/Bootstrap ao banco compartilhado.
+- Product Owner definir o catálogo de Perfis/Permissões, carregado ao Authentication Infra Readiness Gate obrigatório antes da Homologação.
 - Aprovação formal da Onda 1 pelo Product Owner (Gate: Frontend navegável e Administração aprovados).
-- Especificação funcional completa por tela em `docs/product/ComprasFuncional.md`/`ComprasUX.md`.
-- Blueprint completo do banco por tela.
 
-**Próximo Marco:** Gate da Onda 1 — "Frontend navegável e Administração aprovados", com fim planejado em 14/08/2026.
+**Próximo Marco:** Resolução das pendências que bloqueiam a Homologação (Bootstrap Secret e headers de cache) e aprovação formal da Onda 1 pelo Product Owner. Gate da Onda 1 ("Frontend navegável e Administração aprovados") previsto para 14/08/2026.
 
 **Principais Riscos:**
-- Onda 1 não possui ainda Fim Real registrado — término efetivo depende da conclusão dos 38 entregáveis listados, dos quais 30 permanecem Planejados.
-- `.ai/content/{executive,client,engineering}/` e três documentos institucionais em `docs/` permanecem como pendências de limpeza já registradas em `.ai/BACKLOG.md` (não bloqueiam a Onda 1).
+- Duas pendências MEDIUM da Security Validation do Bootstrap bloqueiam explicitamente a promoção para Homologação: ausência de `Cache-Control: no-store` em `/bootstrap/*` e falta de validação de entropia do Bootstrap Secret.
+- Validação completa da Autenticação contra o banco compartilhado real ainda bloqueada por uma dessincronização pré-existente de migrations, não relacionada à implementação — pendente de resolução operacional.
+- Migrations de Autenticação e Bootstrap validadas mas ainda não aplicadas ao banco compartilhado — decisão operacional pendente.
+- Catálogo de Perfis/Permissões ainda não definido pelo Product Owner — bloqueia o Authentication Infra Readiness Gate, obrigatório antes da Homologação.
+- Onda 1 ainda sem data de término real — a maioria dos 41 entregáveis segue planejada ou em desenvolvimento (mockados ou parciais, sem persistência completa).
 
 ## Roadmap dos Produtos
 
@@ -267,7 +278,7 @@ O valor exato do Total é **28,6%** (soma exata dos pontos acima); a apresentaç
 
 **MVP 1.0:**
 - **Objetivo geral:** Entregar a primeira versão funcional do +Compras em produção, cobrindo o fluxo completo de compras — da solicitação ao pagamento — com base administrativa, cadastros, processo de compras, integrações operacionais e Go Live homologado.
-- **Percentual Global Atual:** 28,6% (exibido como 29%)
+- **Percentual Global Atual:** 30,41% (exibido como 30%)
 - **Onda Atual:** Onda 1 — Fundação Funcional (Em desenvolvimento)
 - **Marco Final:** Go Live - MVP 1.0 funcional
 
@@ -295,6 +306,21 @@ Métricas sem dado oficial disponível não são exibidas com valor estimado —
 
 | Data | Categoria | Resumo | Documento de origem |
 |---|---|---|---|
+| 10/08/2026 | Segurança | Work Order técnica O1.4.3 (Bootstrap Mode e Administrador Sênior) FORMALMENTE CONCLUÍDA. Security Validation independente por revisor isolado: 0 CRITICAL, 0 HIGH, parecer "aprovada com ressalvas". Product Owner aceitou formalmente 15 findings remanescentes (4 MEDIUM + 6 LOW + 5 INFORMATIONAL); 2 MEDIUM (`Cache-Control: no-store` ausente em `/bootstrap/*`; Bootstrap Secret sem validação de entropia) bloqueiam explicitamente a promoção para Homologação | `.ai/work-orders/completed/O1.4.3-BootstrapEAdministradorSenior.md`, `.ai/BACKLOG.md` |
+| 10/08/2026 | Sprint | O1.4.3.4 (Security Self-Review dedicada + preparação da Security Validation independente) concluída: nenhum CRITICAL/HIGH; 388/388 testes de backend e 53/53 de frontend sem regressão | `.ai/CURRENT_SPRINT.md` |
+| 10/08/2026 | Sprint | O1.4.3.3 (Frontend Bootstrap) concluída: Vertical Slice `bootstrap/` (wizard e-mail + Bootstrap Secret + OTP → Unidade de Negócio → Administrador Sênior → confirmação), 53/53 testes de frontend; encerrada após smoke test real ponta a ponta em Chrome aprovado pelo Product Owner/CTO (fluxo completo até `POST /bootstrap/concluir` → 200 OK) | `.ai/CURRENT_SPRINT.md` |
+| 10/08/2026 | Sprint | O1.4.3.2 (Conclusão Transacional e Administrador Sênior) concluída: `ConcluirBootstrapUseCase` com conclusão atômica via compare-and-swap (`RowVersion`), 388/388 testes aprovados; migration `AddBootstrapConclusaoConcurrency` validada mas não aplicada ao banco compartilhado | `.ai/CURRENT_SPRINT.md` |
+| 10/08/2026 | Governança | Execução do comando `[atualizar dashboard]`: entregável "Bootstrap Mode e Administrador Sênior" passa de Em desenvolvimento para Concluído na Onda 1 (41 entregáveis: 7 Concluído / 11 Em desenvolvimento / 23 Planejado); Progresso Técnico da Onda 1 recalculado para 17,07% exato (exibido 17%, antes 15%); Contribuição ao MVP da Onda 1 recalculada de 2,9 para 3,4 pontos; Percentual Global do MVP 1.0 recalculado de 29,93% para 30,41% exato (exibido 30%, inalterado no arredondamento) | `.ai/dashboard/DASHBOARD_UPDATE_COMMAND.md` (execução do comando) |
+| 07/08/2026 | Sprint | O1.4.2 (Login Passwordless OTP e Sessão Segura) concluída: Vertical Slice completa de autenticação (backend `Api.Identity` + frontend `auth/`), 275/275 testes de backend e 38/38 de frontend aprovados, Security Implementation Gate III aprovado com pendências não bloqueantes para Development. Entregáveis "Arquitetura de login por Unidade de Negócio", "Tela de Login" e "Contexto UnidadeNegocioId" passam de Planejado para Concluído na Onda 1 | `.ai/CURRENT_SPRINT.md`, `.ai/BACKLOG.md` |
+| 07/08/2026 | Segurança | O1.4.1.1 (Formalização da Estratégia de Autenticação em Development) concluída — Development Auth Strategy aprovada, sem implementação de código | `docs/architecture/security-design-auth-o1.4.md`, seção 17 |
+| 07/08/2026 | Segurança | O1.4.3 (Security Design do Bootstrap e Administrador Sênior) concluída — Bootstrap Security Design Gate aprovado com pendências não bloqueantes, sem implementação de código | `docs/architecture/security-design-auth-o1.4.md`, seção 20 |
+| 07/08/2026 | Sprint | O1.4.3.1 (Fundação Backend do Bootstrap) concluída: `BootstrapEstado`/`BootstrapSessao`, endpoints `estado`/`iniciar`/`otp/verificar`, 369/369 testes aprovados; migrations validadas mas não aplicadas ao banco compartilhado. Novo entregável "Bootstrap Mode e Administrador Sênior" adicionado à Onda 1 como Em desenvolvimento | `.ai/CURRENT_SPRINT.md`, `.ai/work-orders/active/O1.4.3-BootstrapEAdministradorSenior.md` |
+| 07/08/2026 | Governança | Execução do comando `[atualizar dashboard]`: contagem de entregáveis da Onda 1 passa de 40 para 41 (6 Concluído / 12 Em desenvolvimento / 23 Planejado); Progresso Técnico da Onda 1 recalculado para 14,63% exato (exibido 15%); Contribuição ao MVP da Onda 1 recalculada de 1,5 para 2,9 pontos; Percentual Global do MVP 1.0 recalculado de 28,5% para 29,93% exato (exibido 30%, antes 29%) | `.ai/dashboard/DASHBOARD_UPDATE_COMMAND.md` (execução do comando) |
+| 07/08/2026 | Governança | Instituída reescrita executiva obrigatória para "Situação Atual", "Próximo Marco" e "Principais Riscos" do Resumo Executivo: antes de publicar, o texto consolidado das fontes oficiais passa a ser reescrito em linguagem curta e direta para leitura executiva, sem alterar fatos, números ou contexto. Regra aplicada nesta execução aos três campos (texto anterior mais longo preservado em versões anteriores deste documento no histórico do git) | `.ai/dashboard/DASHBOARD_UPDATE_COMMAND.md` (execução do comando) |
+| 07/08/2026 | Governança | Execução do comando `[atualizar dashboard]` identificou e corrigiu omissão: o entregável "Unidades de Alocação" (O1.3.5) estava concluído e catalogado em `.ai/BACKLOG.md`/`.ai/PROJECT_STATE.md`/`.ai/CURRENT_SPRINT.md`, mas ausente da lista de entregáveis da Onda 1 no `DASHBOARD_STATE.md` — corrigido; contagem de entregáveis da Onda 1 passa de 39 para 40. Progresso Técnico da Onda 1 recalculado (7,5% exato, exibido 8%, inalterado na apresentação); Contribuição ao MVP da Onda 1 recalculada de 1,6 para 1,5 pontos; Percentual Global do MVP 1.0 recalculado de 28,6% para 28,5% exato (exibido ainda como 29%) | `.ai/dashboard/DASHBOARD_UPDATE_COMMAND.md` (execução do comando) |
+| 06/08/2026 | Segurança | O1.4.1 (Security Design Review) concluída — threat model e controles obrigatórios para Login OTP, Bootstrap Mode e sessão/RBAC definidos, sem nenhuma implementação de código. Security Design Gate = Aprovado com pendências (catálogo de Perfis/Permissões, provedor de e-mail para OTP, escopo de Perfil/Permissao) | `docs/architecture/security-design-auth-o1.4.md` |
+| 06/08/2026 | Governança | Gate Administrativo aprovado formalmente, encerrando a fundação administrativa da Onda 1 (Perfis, Usuários, Filiais, Centros de Custo, Unidades de Alocação); frente O1.4 (Autenticação e Segurança) liberada e iniciada | `.ai/PROJECT_STATE.md`, `.ai/CURRENT_SPRINT.md` |
+| 06/08/2026 | Sprint | Encerramento da O1.3.4 — Vertical Slice mockada `administration/cost-centers` concluída; build e 25/25 testes aprovados; entregáveis de Administração da Onda 1 atualizados para Em desenvolvimento; nenhuma alteração no Percentual Global do MVP (Onda 1 permanece em 8% de Progresso Técnico) | `.ai/work-orders/completed/O1.3.4-GestaoDeCentrosDeCusto.md` |
 | 06/08/2026 | Planejamento | Percentual Global do MVP 1.0 passa a ser Σ (Peso Gerencial × Progresso Técnico) de todas as Ondas, mesmo Planejadas (antes gated por início formal) — resultado atual 28,6% (exibido 29%); Onda 5 renomeada para "Go Live - MVP 1.0 funcional"; Gantt ajustado para caber no card com barras Planejado/Realizado; nova seção "Roadmap dos Produtos" na aba Executive | Work Order "Ajuste Final de Percentuais, Gantt e Resumo Executivo dos MVPs" |
 | 06/08/2026 | Planejamento | Separação explícita entre Progresso Técnico (execução comprovada dos entregáveis) e Contribuição ao MVP (avanço reconhecido pelo cronograma executivo) por Onda; Onda 2 registrada com 35% de Progresso Técnico e 0% de Contribuição ao MVP; Gráfico de Gantt incluído na aba Roadmap | Work Order "Ajuste do Progresso Técnico e Inclusão do Gráfico de Gantt" |
 | 06/08/2026 | Planejamento | Baseline oficial de datas por Onda (Início/Fim Planejado, Real, Replanejado) e listas completas de entregáveis por Onda registradas | Work Order "Correção Definitiva do Roadmap, Datas e Entregáveis por Onda" |

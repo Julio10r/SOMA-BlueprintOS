@@ -681,8 +681,10 @@ a { color: inherit; }
 .cockpit-hero-id { display: flex; flex-direction: column; gap: 2px; min-width: 200px; }
 .cockpit-hero-id .ch-name { font-family: var(--font-display); font-size: var(--t-h2); font-weight: 600; letter-spacing: var(--tracking-tight); }
 .cockpit-hero-id .ch-version { font-family: var(--mono); font-size: var(--t-caption); color: var(--text-muted); }
-.cockpit-hero-status { flex-shrink: 0; }
+.cockpit-hero-id .ch-updated { font-family: var(--mono); font-size: var(--t-caption); color: var(--text-muted); }
 .cockpit-hero-mvp { flex: 1 1 320px; min-width: 260px; display: flex; align-items: center; gap: var(--space-3); }
+.cockpit-status-banner { width: 100%; box-sizing: border-box; margin-bottom: var(--space-4); }
+.cockpit-status-banner .badge { display: flex; width: 100%; box-sizing: border-box; white-space: normal; line-height: 1.4; text-align: left; }
 .cockpit-hero-mvp .mvp-label { font-family: var(--mono); font-size: var(--t-micro); text-transform: uppercase; letter-spacing: var(--tracking-caps); color: var(--text-muted); white-space: nowrap; }
 .cockpit-hero-mvp .mvp-bar-track { flex: 1; height: 10px; border-radius: var(--radius-pill); background: var(--border-soft); overflow: hidden; }
 .cockpit-hero-mvp .mvp-bar-fill { height: 100%; border-radius: var(--radius-pill); background: var(--accent); }
