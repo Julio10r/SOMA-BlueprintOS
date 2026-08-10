@@ -82,9 +82,34 @@ const string BootstrapAuthScheme = BootstrapSessionAuthenticationDefaults.Scheme
 // FallbackPolicy global (security-design-auth-o1.4.md §20.7/§20.13; Work Order O1.4.3, seção 8.1).
 if (builder.Environment.IsDevelopment())
 {
-    builder.Services.AddScoped<ICurrentIdentity, DevelopmentRequestIdentity>();
-    builder.Services.AddAuthentication(DevelopmentAuthScheme)
+    // O fluxo real de login OTP (O1.4.2) emite o cookie mc_sid independentemente do ambiente — mas em
+    // Development o esquema default era exclusivamente DevelopmentHeader, que nunca olha para o cookie.
+    // Resultado: uma sessão real criada por /auth/otp/verify nunca autenticava em /auth/me localmente
+    // (fail-closed correto, porém bloqueava o teste do fluxo normal em Development). O PolicyScheme abaixo
+    // decide por requisição, SEM enfraquecer nenhuma checagem existente: com cookie mc_sid presente, usa a
+    // mesma validação de sessão de produção (SessionCookieAuthenticationHandler); sem o cookie, mantém o
+    // comportamento anterior via header (DevelopmentHeaderAuthenticationHandler), preservando os testes e
+    // fluxos existentes que dependem de X-Development-User-Id.
+    // ICurrentIdentity NÃO reparsa o header nem o cookie — ambos os authentication handlers acima já
+    // publicam exatamente as mesmas claims (NameIdentifier + Role) em HttpContext.User antes de qualquer
+    // caso de uso rodar. SessionCurrentIdentity (mesma classe usada fora de Development) só lê essa
+    // identidade já resolvida, então a prioridade sessão-real-sobre-header é garantida pelo
+    // ForwardDefaultSelector abaixo, nunca por uma segunda fonte de verdade aqui: com mc_sid presente,
+    // somente SessionCookieAuthenticationHandler roda (o header é ignorado, mesmo se enviado); sem o
+    // cookie, somente DevelopmentHeaderAuthenticationHandler roda. Nenhum dos dois nunca autentica os
+    // dois ao mesmo tempo, então não há ambiguidade para esta classe resolver.
+    const string DevelopmentDefaultScheme = "DevelopmentOrSessionCookie";
+    builder.Services.AddScoped<ICurrentIdentity, SessionCurrentIdentity>();
+    builder.Services.AddAuthentication(DevelopmentDefaultScheme)
+        .AddPolicyScheme(DevelopmentDefaultScheme, DevelopmentDefaultScheme, policyOptions =>
+        {
+            policyOptions.ForwardDefaultSelector = context =>
+                context.Request.Cookies.ContainsKey(AuthCookie.Name)
+                    ? SessionAuthScheme
+                    : DevelopmentAuthScheme;
+        })
         .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, DevelopmentHeaderAuthenticationHandler>(DevelopmentAuthScheme, null)
+        .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, SessionCookieAuthenticationHandler>(SessionAuthScheme, null)
         .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, BootstrapSessionAuthenticationHandler>(BootstrapAuthScheme, null);
 }
 else
