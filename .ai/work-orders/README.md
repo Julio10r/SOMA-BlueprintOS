@@ -11,6 +11,7 @@
 | [`active/`](active/) | Em execução agora | Sprint aprovada e em andamento, registrada em `.ai/CURRENT_SPRINT.md` |
 | [`backlog/`](backlog/) | Planejado, aprovado (não iniciado), parcial ou não comprovado | Catálogo estratégico completo (fases A–H) — ver [`backlog/README.md`](backlog/README.md) |
 | [`completed/`](completed/) | Concluído | Evidência de build, testes, commit e push já registrada |
+| [`superseded/`](superseded/) | Superada por decisão arquitetural posterior | O escopo original nunca foi concluído nos termos em que foi aberto, e uma decisão posterior (ADR) tornou esse escopo obsoleto. Criado pela ADR-0021 (10/08/2026) — ver `.ai/DECISIONS.md`. |
 
 Atualmente `active/` está vazio: não há nenhuma sprint funcional em andamento (ver `.ai/CURRENT_SPRINT.md`).
 
@@ -49,5 +50,6 @@ O identificador é estável depois da criação. A descrição deve ser curta, l
 4. Após aprovação do Product Owner e registro em `CURRENT_SPRINT.md`, seu status passa a `Approved`/`In Progress` e o arquivo é movido para `active/`. Apenas uma Work Order pode estar aprovada/em execução por vez.
 5. A execução ocorre somente dentro do escopo aprovado, com validações, revisão, documentação e Git Flow exigidos pelo projeto.
 6. A Work Order é concluída apenas com evidências de build, testes, atualização documental, commit e push; o arquivo é então movido para `completed/`. Caso contrário, permanece em `active/` como `In Progress` ou `Blocked`.
+7. Se uma decisão arquitetural posterior (ADR) tornar o escopo original obsoleto antes de sua conclusão, o arquivo é movido para `superseded/` com uma nota de cabeçalho registrando a ADR responsável, a data e a justificativa — preservando o conteúdo histórico original sem edição retroativa.
 
 Não criar Work Orders fora desta estrutura sem a aprovação e o contexto exigidos pelo workflow oficial.

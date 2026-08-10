@@ -95,7 +95,7 @@ O catálogo abaixo preserva integralmente seu histórico, dependências e evidê
 | A10 | Governance and Work Order Foundation | Implementado | Documentação e histórico Git. |
 | A11 | Engineering Blueprint | Implementado | Documento e histórico Git. |
 | A12 | Especificação Oficial das 56 Work Orders | Implementado | Catálogo, Work Orders e validações documentais desta sprint. |
-| Portal +Compras Frontend | Portal +Compras Frontend | Concluído tecnicamente no frontend (parcial) | Commit `8ee8f4e`, branch `feature/a13-procurement-vertical-slice`; shell/navegação, módulo Fornecedores conectado à API real, demais módulos demonstrativos, Design System AZZAS 2154/GDT aplicado; build frontend aprovado (`tsc`+`vite`, 4/4 testes). Backend `dotnet build`/`dotnet test` não executados neste ciclo por falta de SDK .NET no ambiente de revisão — pendente validação local. Ver `.ai/work-orders/active/PortalMaisComprasFrontend.md` e `docs/demo/PortalMaisComprasDemo.md`. |
+| Portal +Compras Frontend | Portal +Compras Frontend | Concluído tecnicamente no frontend (parcial) | Commit `8ee8f4e`, branch `feature/a13-procurement-vertical-slice`; shell/navegação, módulo Fornecedores conectado à API real, demais módulos demonstrativos, Design System AZZAS 2154/GDT aplicado; build frontend aprovado (`tsc`+`vite`, 4/4 testes). Backend `dotnet build`/`dotnet test` não executados neste ciclo por falta de SDK .NET no ambiente de revisão — pendente validação local. Ver `.ai/work-orders/superseded/PortalMaisComprasFrontend.md` (SUPERSEDED pela ADR-0021, decisão D8 — caminho original era `active/`) e `docs/demo/PortalMaisComprasDemo.md`. |
 | O1.1 | Consolidação Funcional do +Compras | Concluída | Especificação funcional, UX e modelo de dados completos das telas da Onda 1. Ver [O1.1](work-orders/completed/O1.1-ConsolidacaoFuncionalMaisCompras.md). |
 | O1.2.1 | Fundação Física do Frontend Vertical Slice | Concluída (06/08/2026) | Estrutura física Vertical Slice criada (`core/`, `procurement/suppliers/`, `shared/components/`); módulo Fornecedores migrado como referência; build e testes frontend aprovados; comportamento funcional preservado. Ver [O1.2.1](work-orders/completed/O1.2.1-FundacaoFisicaFrontendVerticalSlice.md). Próxima etapa: **O1.2.2**. |
 | O1.2.2 | Continuidade da Estrutura Vertical Slice (Onda 1) | Planejado | Aplicar o padrão consolidado em O1.2.1 aos demais módulos/domínios ainda na pasta horizontal `pages/` e às telas de Administração da Onda 1. Depende de O1.2.1. |
@@ -112,6 +112,29 @@ O catálogo abaixo preserva integralmente seu histórico, dependências e evidê
 | O1.4.3.1 | Fundação Backend do Bootstrap (BootstrapEstado + BootstrapSession) | Concluída (07/08/2026) | `BootstrapEstado`/`BootstrapSessao`, `BootstrapSecretOptions`/`BootstrapAllowedCandidatesOptions` fail-closed, `BootstrapSessionAuthenticationHandler`+política `BootstrapAuthenticated`, endpoints `estado`/`iniciar`/`otp/verificar` (sem `concluir`), índice único de `Perfil`. Build limpo, 369/369 testes aprovados no Mac (.NET SDK 9.0.316). Cadeia de migrations reconciliada (`BaselineFornecedorSnapshot` NO-OP + 4 migrations regeneradas via `dotnet ef`), eliminando duplicação de `CREATE TABLE [Fornecedores]`. Migrations validadas mas **não aplicadas** ao banco compartilhado (aplicação é decisão operacional separada, pendente). Ver `.ai/CURRENT_SPRINT.md`. |
 | O1.4.3.2 | Conclusão Transacional e Administrador Sênior | Concluída (10/08/2026) | `ConcluirBootstrapUseCase`: conclusão transacional (um único `SaveChangesAsync`) cria/reaproveita `UnidadeNegocio`, cria o Administrador Sênior (e-mail só da `BootstrapSessao` validada por OTP), cria/reaproveita o `Perfil` "Administrador Sênior", vincula `UsuarioPerfil`, invoca a invariante do último Administrador Sênior ativo, conclui `BootstrapEstado` via compare-and-swap otimista (`RowVersion`). Endpoint `POST /bootstrap/concluir` sob `BootstrapAuthenticated`+CSRF+rate limiting. 388/388 testes aprovados (incl. concorrência real InMemory). Migration `20260810120746_AddBootstrapConclusaoConcurrency` (só `RowVersion`) gerada via `dotnet ef` real, auditada, **validada mas não aplicada** ao banco compartilhado; nenhuma migration histórica/reconciliada alterada. Ver `.ai/CURRENT_SPRINT.md`. Próxima etapa: **O1.4.3.3** (Frontend Bootstrap, não iniciada). |
 | O1.4.3.3 | Frontend Bootstrap | Concluída (10/08/2026) | Vertical Slice `frontend/web/src/bootstrap/` (wizard completo: e-mail + Bootstrap Secret + OTP → Unidade de Negócio → Administrador Sênior sem e-mail → confirmação → `POST /bootstrap/concluir`). Suíte de frontend 53/53 aprovada; `tsc -b`/`vite build` limpos. **Encerrada formalmente nesta sessão** após smoke test real completo em Chrome (Chrome DevTools MCP), aprovado pelo Product Owner/CTO: fluxo ponta a ponta até `POST /bootstrap/concluir` → 200 OK, Unidade de Negócio "Grupo Soma" e Administrador Sênior "Julio Cesar" criados, `GET /bootstrap/estado` final → `disponivel:false`. Um 401 de investigação anterior não foi reproduzido; nenhuma causa definitiva foi comprovada; nenhuma correção de segurança foi criada para problema não reproduzido. A Work Order mãe O1.4.3 permanece ATIVA — resta **O1.4.3.4** (Security Self-Review dedicada + Security Validation independente, não iniciada). Ver `.ai/CURRENT_SPRINT.md`. |
+
+## Reconciliação dos 41 entregáveis oficiais da Onda 1 e plano executável (10/08/2026)
+
+Sessão de consolidação e planejamento (10/08/2026), exclusivamente documental — nenhum código, migration, frontend ou backend foi alterado; nenhuma nova sprint foi iniciada. Decisões formais do Product Owner registradas na ADR-0021 (`.ai/DECISIONS.md`), decisões D1–D8. Reconciliação completa dos 41 entregáveis oficiais, matriz de classificação (A: concluído de verdade; B: parcial; C: planejado e necessário) e plano executável completo em [`docs/audits/Onda1-Reconciliacao-e-Plano-Execucao.md`](../docs/audits/Onda1-Reconciliacao-e-Plano-Execucao.md). Nenhum dos 41 entregáveis foi retirado, absorvido ou substituído — a auditoria não encontrou evidência canônica suficiente para isso; a métrica oficial permanece 41 entregáveis / 7 Concluído / 11 Em desenvolvimento / 23 Planejado / 17% de Progresso Técnico (`.ai/dashboard/DASHBOARD_STATE.md`, inalterada nesta sessão).
+
+Novas Work Orders propostas para conclusão da Onda 1, todas em status **Draft (Planejada)** — nenhuma `Approved`/`Active`, nenhuma implementação iniciada:
+
+| Código | Título | Tipo | Entregáveis cobertos | Dependências | Work Order |
+|---|---|---|---|---|---|
+| O1.5 | RBAC Real (Perfis, Permissões, Policies, Enforcement) | ESTRUTURA | #9, #17 | Catálogo de Perfis/Permissões (Product Owner) | [O1.5](work-orders/backlog/O1.5-RbacReal.md) |
+| O1.6 | Usuários (Backend Real) | ESTRUTURA | #15, #16 | O1.5 | [O1.6](work-orders/backlog/O1.6-GestaoDeUsuariosBackendReal.md) |
+| O1.7 | Filiais e Centros de Custo Integrados ao ERP | ESTRUTURA | #14, #18 | Acesso ao ERP `SOMA_DESENV`/VPN | [O1.7](work-orders/backlog/O1.7-FiliaisECentrosDeCustoIntegradosAoErp.md) |
+| O1.8 | Unidades de Alocação (Persistência Real) | ESTRUTURA | #19 | Nenhuma bloqueante | [O1.8](work-orders/backlog/O1.8-UnidadesDeAlocacaoPersistenciaReal.md) |
+| O1.9 | Centro de Custo × Unidade de Alocação (N:N) | ESTRUTURA | (condição de fechamento de #18/#19) | O1.7, O1.8 | [O1.9](work-orders/backlog/O1.9-CentroDeCustoXUnidadeDeAlocacaoNN.md) |
+| O1.10 | Conclusão do Vertical Slice (O1.2.2) | ESTRUTURA | #4, #5, #6, #7, #8 | Parcial; integração final depende de O1.5–O1.9 | [O1.10](work-orders/backlog/O1.10-ConclusaoVerticalSlice.md) |
+| O1.11 | Fundação Multi-Unidade de Negócio e Configuração | ESTRUTURA + DESIGN | #3, #13, #20, #21, #22, #23, #24 | O1.6 | [O1.11](work-orders/backlog/O1.11-FundacaoMultiUnidadeDeNegocioEConfiguracao.md) |
+| O1.12 | Workflow, Aprovação, Alçadas e Controle Orçamentário | ESTRUTURA + DESIGN | #25, #26, #27, #28 | O1.5, O1.9 | [O1.12](work-orders/backlog/O1.12-WorkflowAprovacaoAlcadasOrcamento.md) |
+| O1.13 | Administração Operacional e Monitoramento | ESTRUTURA + DESIGN | #29, #30, #31, #32 | Nenhuma bloqueante | [O1.13](work-orders/backlog/O1.13-AdministracaoOperacionalEMonitoramento.md) |
+| O1.14 | Blueprint de Banco e Validação Funcional Final | ESTRUTURA | #36, #37, #38, #39, #40, #41 (+ evolução de #33–#35) | O1.5, O1.6, O1.7, O1.8, O1.9 | [O1.14](work-orders/backlog/O1.14-BlueprintDeBancoEValidacaoFuncionalFinal.md) |
+
+Caminho crítico: O1.5 → O1.6 → (O1.7 ‖ O1.8) → O1.9 → O1.12 → O1.14. Paralelizáveis desde o início: O1.10, O1.13 (e O1.11 após O1.6 iniciar). A ativação da primeira Work Order (O1.5) depende de autorização explícita do Product Owner — nenhuma foi autorizada por esta sessão.
+
+`PortalMaisComprasFrontend.md` (decisão D8): movida de `active/` para o novo diretório canônico `.ai/work-orders/superseded/`, com nota de cabeçalho registrando a ADR-0021 como origem da decisão.
 
 ## Dívida técnica registrada — Security Validation independente O1.4.3 (aceita pelo Product Owner em 10/08/2026)
 
@@ -131,6 +154,14 @@ Findings remanescentes do Bootstrap Mode/Administrador Sênior (`.ai/work-orders
 | 10 | LOW | `/bootstrap/estado` sem rate limiting | Não bloqueia |
 
 Observações informacionais (não convertidas em tarefas): invariante do último Administrador Sênior sem enforcement por contagem real (revisitar ao implementar Gestão de Usuários/Perfis); `DevelopmentRequestIdentity` depende de barreira externa de loopback; ausência de `UseForwardedHeaders()` a considerar no desenho de deploy; estado pós-Bootstrap não verificado empiricamente no banco pelo revisor independente; índice único filtrado de `CodigosVerificacaoOtp` não validado em provider relacional real (mesma pendência já herdada de O1.4.2 para o Authentication Infra Readiness Gate).
+
+## Bug técnico separado — drift de schema em Fornecedores (identificado em 10/08/2026, fora de escopo)
+
+Identificado durante o smoke real da correção de identidade de negócio em Development (não é bug de autenticação/identidade — a identidade já chega corretamente ao caso de uso). `GET /fornecedores?q=...` retorna 500: `SqlException: Invalid column name 'Cnpj'`/`'Nome'`. Drift entre o mapeamento EF (tipos owned) e o schema real do banco local de desenvolvimento. Não corrigido nesta sessão; nenhuma migration ou `database update` executada. Requer investigação dedicada (comparar `FornecedorConfiguration` real contra o schema aplicado) antes de correção.
+
+| # | Severidade | Achado | Bloqueia O1.5? |
+|---|---|---|---|
+| 1 | MEDIUM | `Invalid column name 'Cnpj'`/`'Nome'` em `/fornecedores?q=...` (drift EF × banco) | Não bloqueia (endpoint pré-existente, fora do escopo de O1.5) |
 
 ## Pendências de limpeza — Publication Engine (pós Etapa 3, ADR-0019)
 

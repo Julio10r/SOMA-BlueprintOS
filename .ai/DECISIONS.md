@@ -587,3 +587,28 @@ Detalhamento:
 - *(R2)* `.ai/ENGINEERING_BLUEPRINT.md` — nova seção descrevendo a arquitetura Frontend Vertical Slice e sua integração com o restante da arquitetura do BlueprintOS.
 - *(R2)* `.ai/PROJECT_STATE.md` — registro de que a R2 está concluída, a arquitetura Frontend foi aprovada (Vertical Slice) e o frontend está liberado para implementação.
 - *(R2)* Nenhuma estrutura de pastas é criada, nenhum código de frontend ou backend é alterado, e nenhuma migration é criada por esta ADR — é decisão exclusivamente arquitetural/documental; a criação física da estrutura é responsabilidade de Work Order de Estrutura futura.
+
+---
+
+## ADR-0021: Consolidação e Plano Executável para Conclusão da Onda 1 (decisões D1–D8)
+
+**Status:** Aceito
+
+**Contexto:** A Auditoria Integral da Onda 1 (10/08/2026) confirmou que os cinco módulos administrativos (Perfis, Usuários, Filiais, Centros de Custo, Unidades de Alocação) permanecem como frontend mockado, sem backend/persistência/RBAC reais; que a integração ERP de Filiais e Centros de Custo não foi implementada; que o relacionamento N:N Centro de Custo × Unidade de Alocação não existe; que a O1.2.2 (continuidade do Vertical Slice) está incompleta; e que a Work Order `PortalMaisComprasFrontend.md` foi tecnicamente superada pela arquitetura Vertical Slice (ADR-0020, R2), sem nunca ter sido formalmente encerrada. O dashboard oficial mantém os 41 entregáveis da Onda 1 como unidade de acompanhamento (7 Concluído / 11 Em desenvolvimento / 23 Planejado, 17% de Progresso Técnico) — nenhum entregável foi retirado ou substituído por esta ADR.
+
+**Decisão:** O Product Owner registra formalmente as seguintes decisões, detalhadas e com plano executável em `docs/audits/Onda1-Reconciliacao-e-Plano-Execucao.md`:
+
+- **D1 — Administração funcional real:** os cinco módulos administrativos não encerram a Onda 1 apenas com frontend mockado; exigem backend e persistência reais.
+- **D2 — RBAC real:** enforcement obrigatório no backend (Perfil → Permissões → Policies/Authorization → endpoints protegidos); schema sem enforcement não satisfaz o requisito.
+- **D3 — Filiais e Centros de Custo integrados ao ERP:** integração real obrigatória; ERP permanece fonte canônica; +Compras mantém apenas metadados locais, sem duplicar nem se tornar fonte mestre.
+- **D4 — Centro de Custo × Unidade de Alocação:** relacionamento N:N obrigatório para o encerramento da Onda 1 (modelo, persistência, constraints, serviços, API, frontend, testes); não é dívida pós-Onda-1. Preserva a regra já aprovada de Unidade de Alocação padrão (ADR-0020, item 5).
+- **D5 — O1.2.2:** a conclusão da migração Vertical Slice (Negociações, Configurações, Pedidos onde incompleto, demais resíduos horizontais comprovados) pertence à Onda 1; sem redesenho funcional durante a migração.
+- **D6 — `design-system/`:** a ausência física da pasta não é requisito isolado de encerramento; só criar/migrar se houver necessidade arquitetural comprovada.
+- **D7 — Blueprint administrativo de banco:** obrigatório para o encerramento da Onda 1, mas deve evoluir junto das implementações reais (D1/D4), nunca como documentação desconectada.
+- **D8 — `PortalMaisComprasFrontend.md`:** considerada superada pela arquitetura Vertical Slice atual; recebe destino SUPERSEDED em novo diretório canônico `.ai/work-orders/superseded/` (proposto por esta ADR, documentado em `work-orders/README.md`, já que o padrão de governança existente não previa esse estado).
+
+**Consequências:**
+- Nenhum código, migration, frontend ou backend foi alterado por esta ADR — decisão exclusivamente documental/de planejamento.
+- Fica proposta e criada a nova Work Order técnica dividida em O1.5 a O1.14 (todas em status Planejada, nenhuma Approved/Active), detalhadas em `docs/audits/Onda1-Reconciliacao-e-Plano-Execucao.md` e catalogadas em `.ai/BACKLOG.md`.
+- Os gates de Homologação já registrados (Cache-Control `no-store` em `/bootstrap/*`; entropia do Bootstrap Secret; provedor corporativo de e-mail OTP) permanecem bloqueadores de Homologação, não de Development/Onda 1 — não reabertos por esta ADR.
+- A primeira Work Order do plano (O1.5) só pode ser ativada com autorização explícita do Product Owner; nenhuma sprint foi iniciada por esta ADR.

@@ -1,5 +1,7 @@
 # Work Order - Portal +Compras Frontend
 
+> **SUPERSEDED (10/08/2026).** Esta Work Order foi movida de `active/` para `superseded/` por decisão do Product Owner registrada na ADR-0021 (`.ai/DECISIONS.md`), decisão D8, no âmbito da consolidação e plano executável de conclusão da Onda 1. Justificativa: a arquitetura Frontend Vertical Slice (ADR-0020, Revisão Arquitetural R2) tornou obsoleta a estrutura de navegação/módulos demonstrativos descrita abaixo; o módulo Fornecedores já foi migrado para `procurement/suppliers` (O1.2.1) e os módulos administrativos nasceram diretamente no padrão Vertical Slice (O1.3.x). Esta Work Order nunca chegou a ser formalmente concluída nos termos em que foi aberta e não representa mais trabalho ativo. O conteúdo original abaixo é preservado sem alteração, como registro histórico.
+
 ## Identificacao
 
 - Projeto: SOMA BlueprintOS / +Compras

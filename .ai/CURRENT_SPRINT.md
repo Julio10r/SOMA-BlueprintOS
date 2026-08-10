@@ -649,3 +649,25 @@ Nenhum achado MÉDIO/ALTO identificado nesta revisão por leitura de código —
 **O1.4.3 — Bootstrap e Administrador Sênior: FORMALMENTE CONCLUÍDA (10/08/2026).** Work Order movida de `.ai/work-orders/active/` para `.ai/work-orders/completed/O1.4.3-BootstrapEAdministradorSenior.md`. Nenhuma migration aplicada nesta sessão de fechamento; nenhum código de produção/teste alterado; nenhum commit/push realizado — a consolidação para commit/push das alterações acumuladas desde O1.4.3.1 será feita em sessão separada.
 
 **Próxima etapa:** decisão do Product Owner sobre a próxima frente de trabalho (nenhuma nova sprint iniciada nesta sessão). Antes de qualquer promoção para Homologação, tratar e revalidar MEDIUM 1 e MEDIUM 2 do backlog técnico.
+
+---
+
+## Sessão de Planejamento — Consolidação e Plano Executável de Conclusão da Onda 1 (10/08/2026)
+
+**Nenhuma sprint funcional está em andamento.** Esta sessão foi exclusivamente de planejamento/governança: reconciliação dos 41 entregáveis oficiais da Onda 1, registro das decisões D1–D8 do Product Owner (ADR-0021, `.ai/DECISIONS.md`) e definição de 10 novas Work Orders (O1.5 a O1.14, todas Draft/Planejada) para conclusão da Onda 1. Detalhe completo em `docs/audits/Onda1-Reconciliacao-e-Plano-Execucao.md` e `.ai/BACKLOG.md`. **Nenhuma implementação foi iniciada; nenhuma Work Order foi aprovada/ativada; nenhum código, migration, frontend ou backend foi alterado; nenhum commit/push foi realizado.** A ativação da primeira Work Order do plano (O1.5 — RBAC Real) aguarda autorização explícita do Product Owner.
+
+---
+
+## Correção pontual — Regressão de autenticação em Development pós-O1.4.3 (10/08/2026)
+
+**Contexto:** ao validar o login normal (não-Bootstrap) pela primeira vez após o encerramento formal da O1.4.3, o Product Owner reportou que o OTP validava mas o usuário retornava à tela de login. Investigação e correção tratadas fora do escopo de qualquer Work Order funcional — **a O1.4.3 não foi reaberta e a O1.5 não foi iniciada**.
+
+**Correção A — Login OTP real em Development:** o esquema de autenticação default em Development usava exclusivamente `DevelopmentHeaderAuthenticationHandler`, que nunca examina o cookie `mc_sid` — uma sessão OTP real (que emite o cookie independentemente do ambiente) nunca autenticava `GET /auth/me` localmente. Corrigido com um `PolicyScheme` em `Program.cs`: cookie `mc_sid` presente → `SessionCookieAuthenticationHandler`; ausente → `DevelopmentHeaderAuthenticationHandler` (comportamento legado preservado); cookie inválido não cai para o header (fail-closed, sem fallback silencioso). Reproduzido e validado ao vivo no Chrome (Chrome DevTools MCP): `/auth/otp/verify` → 200, `/auth/me` → 200, Dashboard autenticado, sessão estável em navegação entre rotas protegidas.
+
+**Correção B — `ICurrentIdentity` em Development:** mesmo com `/auth/me` corrigido, endpoints de negócio que dependem de `ICurrentIdentity` (ex.: `/fornecedores?q=...`) continuavam falhando com `IdentityUnavailableException`, porque `DevelopmentRequestIdentity` reparseava o header `X-Development-User-Id` diretamente, ignorando `HttpContext.User` já resolvido pela autenticação. Corrigido trocando a implementação registrada em Development para `SessionCurrentIdentity` (a mesma classe usada fora de Development), que lê exclusivamente as claims já publicadas pelo authentication handler que autenticou a requisição — sem duplicar parsing de cookie/header em nenhum caso de uso. A prioridade sessão-real-sobre-header é garantida estruturalmente pelo `PolicyScheme` da Correção A, não por lógica própria desta classe.
+
+**Achado registrado como pendência separada (não corrigido nesta sessão):** com a identidade resolvida corretamente, `/fornecedores?q=...` passou a alcançar a consulta real ao banco (confirmado no log: parâmetro `@__userId_0` com o `UserId` real da sessão), mas retorna 500 por `SqlException: Invalid column name 'Cnpj'`/`'Nome'` — drift de schema entre o mapeamento EF e o banco local, sem relação com autenticação/identidade. Registrado em `.ai/BACKLOG.md` para tratamento em sessão dedicada; nenhuma migration/`database update` executada.
+
+**Arquivos alterados:** `backend/src/BlueprintOS.Api/Program.cs` (as duas correções). **Testes novos:** `backend/tests/BlueprintOS.UnitTests/Api/Auth/DevelopmentSessionCookiePipelineTests.cs` (4 testes — sessão real, header legado, cookie inválido, ausência de credencial) e `backend/tests/BlueprintOS.UnitTests/Api/Identity/DevelopmentCurrentIdentityPipelineTests.cs` (6 testes — inclui sessão real prevalecendo sobre header conflitante e o caso fail-closed de cookie inválido + header válido). **Validação final:** backend **393 testes unitários + 5 de integração aprovados** (398 total, sem regressão); frontend **53/53** testes, `tsc -b` e `vite build` sem erros; `git diff --check` limpo. Nenhuma migration aplicada, nenhum RBAC alterado, nenhuma alteração no Bootstrap.
+
+**Situação final:** duas correções de fundação de autenticação em Development publicadas por commit dedicado. **A O1.4.3 permanece FORMALMENTE CONCLUÍDA (não reaberta). A O1.5 permanece NÃO INICIADA.**
