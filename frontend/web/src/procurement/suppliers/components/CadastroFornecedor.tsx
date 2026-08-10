@@ -6,15 +6,15 @@ import {
   decideEnrichment,
   normalizeDocument,
   searchSupplierByDocument
-} from "./supplierEnrichmentApi";
+} from "../services/supplierEnrichmentApi";
 import type {
   ConsultaCnpjResultado,
   Fornecedor,
   FornecedorEnriquecimentoAnalise
-} from "./linxSupplierContract";
-import { CnpjSearch } from "../../components/CnpjSearch";
-import { SupplierComparison } from "../../components/SupplierComparison";
-import { ApprovalPanel } from "../../components/ApprovalPanel";
+} from "../types/linxSupplierContract";
+import { CnpjSearch } from "./CnpjSearch";
+import { SupplierComparison } from "./SupplierComparison";
+import { ApprovalPanel } from "./ApprovalPanel";
 
 const businessUnit = "SOMA";
 const erpSistema = "SOMA_DESENV";

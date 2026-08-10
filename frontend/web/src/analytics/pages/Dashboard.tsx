@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { listSuppliers } from "../../procurement/suppliers/supplierEnrichmentApi";
-import type { Fornecedor } from "../../procurement/suppliers/linxSupplierContract";
-import { SupplierCard } from "../../components/SupplierCard";
+import { listSuppliers } from "../../procurement/suppliers/services/supplierEnrichmentApi";
+import type { Fornecedor } from "../../procurement/suppliers/types/linxSupplierContract";
+import { SupplierCard } from "../../procurement/suppliers/components/SupplierCard";
 
 /**
  * Visao executiva do Portal +Compras. Busca a lista real de fornecedores

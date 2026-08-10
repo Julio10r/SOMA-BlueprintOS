@@ -1,4 +1,4 @@
-import { StatusBadge } from "../../components/StatusBadge";
+import { StatusBadge } from "../../../shared/components/StatusBadge";
 
 type PedidoMock = {
   id: string;

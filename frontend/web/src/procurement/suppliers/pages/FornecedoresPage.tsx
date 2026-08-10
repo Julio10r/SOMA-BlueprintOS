@@ -1,4 +1,4 @@
-import { CadastroFornecedor } from "../../procurement/suppliers/CadastroFornecedor";
+import { CadastroFornecedor } from "../components/CadastroFornecedor";
 
 /**
  * Modulo Fornecedores: unica vertical slice com integracao real ao

@@ -2,7 +2,7 @@ import type {
   ConsultaCnpjResultado,
   Fornecedor,
   FornecedorEnriquecimentoAnalise
-} from "./linxSupplierContract";
+} from "../types/linxSupplierContract";
 
 type RequestOptions = {
   businessUnit: string;

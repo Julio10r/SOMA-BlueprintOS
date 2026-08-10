@@ -1,4 +1,4 @@
-import type { Fornecedor } from "../procurement/suppliers/linxSupplierContract";
+import type { Fornecedor } from "../types/linxSupplierContract";
 
 /**
  * Exibicao resumida de um fornecedor ja cadastrado no +Compras.

@@ -1,4 +1,4 @@
-import type { FornecedorCampoDecisao, SituacaoCadastralCnpj } from "../procurement/suppliers/linxSupplierContract";
+import type { FornecedorCampoDecisao, SituacaoCadastralCnpj } from "../../procurement/suppliers/types/linxSupplierContract";
 
 /**
  * Badge visual generico. Usado tanto para a situacao cadastral retornada

@@ -1,4 +1,4 @@
-import type { SituacaoCadastralCnpj } from "../procurement/suppliers/linxSupplierContract";
+import type { SituacaoCadastralCnpj } from "../types/linxSupplierContract";
 
 /**
  * Painel de aprovacao/rejeicao do conjunto de divergencias selecionadas.

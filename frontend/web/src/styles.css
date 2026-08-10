@@ -140,6 +140,8 @@ input:focus { border-color: var(--border-strong); outline: 2px solid var(--novo-
 }
 .status-ativa { background: var(--aprovado-bg); color: var(--aprovado); }
 .status-baixada, .status-suspensa, .status-inapta { background: var(--rejeitado-bg); color: var(--rejeitado); }
+.status-ativo { background: var(--aprovado-bg); color: var(--aprovado); }
+.status-inativo { background: var(--rejeitado-bg); color: var(--rejeitado); }
 .badge, .lock-note { background: var(--bg); color: var(--text-secondary); }
 .lock-note { margin-left: var(--space-2); }
 
@@ -272,6 +274,18 @@ th {
 .bar-fill { background: var(--accent); border-radius: var(--radius-pill); height: 100%; }
 .bar-value { color: var(--text-muted); text-align: right; }
 
+.modal-overlay {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: var(--space-5);
+  position: fixed;
+  z-index: 10;
+}
+.modal-card { display: grid; gap: var(--space-3); max-width: 480px; width: 100%; }
+
 @media (max-width: 860px) {
   .app-body { flex-direction: column; }
   .app-sidebar { border-right: none; border-bottom: 1px solid var(--border); width: 100%; }
@@ -279,4 +293,34 @@ th {
   .page-stack { padding: var(--space-4); }
   .supplier-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bar-row { grid-template-columns: 80px minmax(0, 1fr) 40px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   AUTENTICAÇÃO — Login Passwordless OTP (auth/pages/LoginPage.tsx)
+   ══════════════════════════════════════════════════════════════════ */
+
+.auth-page {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-5);
+}
+
+.auth-card { display: grid; gap: var(--space-5); max-width: 420px; width: 100%; }
+.auth-field { display: grid; gap: var(--space-2); }
+.auth-actions { display: grid; gap: var(--space-3); }
+.auth-helper { color: var(--text-muted); font-size: var(--t-caption); }
+.auth-loading {
+  align-items: center;
+  color: var(--text-secondary);
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+}
+.auth-otp-input {
+  font-family: var(--mono);
+  font-size: var(--t-h3);
+  letter-spacing: var(--tracking-caps);
+  text-align: center;
 }

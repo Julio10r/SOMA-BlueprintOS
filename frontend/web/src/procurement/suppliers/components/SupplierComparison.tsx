@@ -1,5 +1,5 @@
-import { StatusBadge } from "./StatusBadge";
-import type { ConsultaCnpjResultado, FornecedorCampoDivergencia } from "../procurement/suppliers/linxSupplierContract";
+import { StatusBadge } from "../../../shared/components/StatusBadge";
+import type { ConsultaCnpjResultado, FornecedorCampoDivergencia } from "../types/linxSupplierContract";
 
 /**
  * Mostra os dados retornados pela consulta externa de CNPJ e, quando

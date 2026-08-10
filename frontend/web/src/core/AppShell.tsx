@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/hooks/useAuth";
 
 type NavItem = {
   to: string;
@@ -9,6 +10,11 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { to: "/", label: "Dashboard", end: true },
+  { to: "/administracao/perfis", label: "Perfis" },
+  { to: "/administracao/usuarios", label: "Usuarios" },
+  { to: "/administracao/filiais", label: "Filiais" },
+  { to: "/administracao/centros-custo", label: "Centros de Custo" },
+  { to: "/administracao/unidades-alocacao", label: "Unidades de Alocacao" },
   { to: "/fornecedores", label: "Fornecedores" },
   { to: "/pedidos", label: "Pedidos" },
   { to: "/negociacoes", label: "Negociacoes" },
@@ -23,12 +29,23 @@ const navItems: NavItem[] = [
  * A area de conteudo renderiza a rota ativa (ver AppRoutes.tsx).
  */
 export function AppShell({ children }: { children: ReactNode }) {
+  const { usuario, logout } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    await logout();
+    navigate("/login", { replace: true });
+  }
+
   return (
     <div className="app-shell">
       <header className="portal-header">
         <div className="brand-mark">AZZAS 2154</div>
         <div className="logo-suffix">+Compras</div>
-        <div className="user-chip">COMPRAS</div>
+        {usuario && <div className="user-chip">{usuario.nome}</div>}
+        <button type="button" className="btn btn-secondary" onClick={handleLogout}>
+          Sair
+        </button>
       </header>
       <div className="app-body">
         <nav className="app-sidebar" aria-label="Navegacao do portal +Compras">
