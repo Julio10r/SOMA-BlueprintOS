@@ -1,13 +1,21 @@
+using BlueprintOS.Api.Authorization;
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Application.Procurement.Suppliers.Models;
+using BlueprintOS.Domain.Identity;
 
 namespace BlueprintOS.Api.Suppliers;
 
+/// <summary>O1.13 — Todas as rotas são ações operacionais/administrativas (disparar sincronização em
+/// lote/seletiva, consultar histórico de sincronização por fornecedor), mesma natureza das telas de
+/// Monitor de Integrações. Protegidas por <c>Sistema.Gerenciar</c>, quitando a dívida técnica de B2.1.3
+/// que nunca teve RBAC.</summary>
 public static class FornecedorSyncController
 {
     public static IEndpointRouteBuilder MapFornecedorSync(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/fornecedores").WithTags("Sincronização de Fornecedores");
+        var group = endpoints.MapGroup("/api/fornecedores")
+            .WithTags("Sincronização de Fornecedores")
+            .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.SistemaGerenciar));
         group.MapPost("/sincronizar", Sync);
         group.MapPost("/sincronizar/lote", SyncBatch);
         group.MapGet("/sincronizar-erp", SyncErp);

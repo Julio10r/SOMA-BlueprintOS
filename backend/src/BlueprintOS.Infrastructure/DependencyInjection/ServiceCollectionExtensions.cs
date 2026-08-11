@@ -59,6 +59,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IErpFornecedorDiscoveryRepository, ErpFornecedorDiscoveryRepository>();
         services.AddScoped<IFornecedorDescobertoRepository, FornecedorDescobertoRepository>();
         services.AddScoped<IFornecedorSincronizacaoRepository, FornecedorSincronizacaoRepository>();
+        services.AddScoped<ISincronizacaoFornecedorMonitorRepository, SincronizacaoFornecedorMonitorRepository>();
+        services.AddScoped<IListarSincronizacoesFornecedoresUseCase, ListarSincronizacoesFornecedoresUseCase>();
+        services.AddScoped<IObterSincronizacaoFornecedorUseCase, ObterSincronizacaoFornecedorUseCase>();
         services.AddScoped<IErpFornecedorAdapter, SomaDesenvolErpFornecedorAdapter>();
         services.AddScoped<IErpFornecedorAdapterResolver, ErpFornecedorAdapterResolver>();
         services.AddScoped<IFornecedorErpReader, SomaFornecedorReader>();

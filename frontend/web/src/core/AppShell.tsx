@@ -33,6 +33,7 @@ const navItems: NavItem[] = [
   { to: "/administracao/regras-workflow", label: "Regras de Workflow", permissao: PERMISSOES.workflowGerenciar },
   { to: "/administracao/alcadas-aprovacao", label: "Alcadas de Aprovacao", permissao: PERMISSOES.alcadaGerenciar },
   { to: "/administracao/regras-orcamentarias", label: "Regras Orcamentarias", permissao: PERMISSOES.orcamentoGerenciar },
+  { to: "/administracao/monitoramento", label: "Monitoramento", permissao: PERMISSOES.sistemaGerenciar },
   { to: "/fornecedores", label: "Fornecedores" },
   { to: "/pedidos", label: "Pedidos" },
   { to: "/negociacoes", label: "Negociacoes" },

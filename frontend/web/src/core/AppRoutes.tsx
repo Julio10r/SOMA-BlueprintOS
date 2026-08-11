@@ -18,6 +18,7 @@ import { ConfiguracaoNotificacaoRoutes } from "../administration/notification-co
 import { RegrasWorkflowRoutes } from "../administration/workflow/routes/RegrasWorkflowRoutes";
 import { AlcadasAprovacaoRoutes } from "../administration/alcadas/routes/AlcadasAprovacaoRoutes";
 import { RegrasOrcamentariasRoutes } from "../administration/orcamento/routes/RegrasOrcamentariasRoutes";
+import { OperationalMonitoringRoutes } from "../administration/operational-monitoring/routes/OperationalMonitoringRoutes";
 import { BusinessUnitGate } from "../business-unit/components/BusinessUnitGate";
 import { Dashboard } from "../analytics/pages/Dashboard";
 import { FornecedoresPage } from "../procurement/suppliers/pages/FornecedoresPage";
@@ -64,6 +65,7 @@ export function AppRoutes() {
                     <Route path="/administracao/regras-workflow/*" element={<RegrasWorkflowRoutes />} />
                     <Route path="/administracao/alcadas-aprovacao/*" element={<AlcadasAprovacaoRoutes />} />
                     <Route path="/administracao/regras-orcamentarias/*" element={<RegrasOrcamentariasRoutes />} />
+                    <Route path="/administracao/monitoramento/*" element={<OperationalMonitoringRoutes />} />
                     <Route path="/fornecedores" element={<FornecedoresPage />} />
                     <Route path="/pedidos" element={<PedidosPage />} />
                     <Route path="/negociacoes" element={<NegociacoesPage />} />

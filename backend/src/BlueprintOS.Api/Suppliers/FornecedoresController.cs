@@ -1,23 +1,31 @@
+using BlueprintOS.Api.Authorization;
 using BlueprintOS.Application.Identity.Models;
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
+using BlueprintOS.Domain.Identity;
 
 namespace BlueprintOS.Api.Suppliers;
 
-/// <summary>Endpoints REST do cadastro persistente de fornecedores.</summary>
+/// <summary>Endpoints REST do cadastro persistente de fornecedores. RBAC granular (O1.13, quitando a
+/// dívida técnica de O1.5): escrita exige <c>Fornecedor.Criar</c>/<c>Fornecedor.Editar</c>, decisões de
+/// enriquecimento exigem <c>Fornecedor.Aprovar</c>. Leitura (GET) permanece apenas autenticada, mesmo
+/// padrão dos demais módulos de leitura.</summary>
 public static class FornecedoresController
 {
     public static IEndpointRouteBuilder MapFornecedores(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/fornecedores").WithTags("Fornecedores");
-        group.MapPost("", Create);
+        group.MapPost("", Create).RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorCriar));
         group.MapGet("", Search);
-        group.MapPost("/consulta-cnpj", ConsultCnpj);
+        group.MapPost("/consulta-cnpj", ConsultCnpj).RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorCriar));
         group.MapGet("/{id:guid}", GetById);
-        group.MapPut("/{id:guid}", Update);
-        group.MapDelete("/{id:guid}", Delete);
-        group.MapPost("/{id:guid}/enriquecimento-cnpj", AnalyzeCnpjEnrichment);
-        group.MapPost("/{id:guid}/enriquecimento-cnpj/aprovar", ApproveCnpjEnrichment);
-        group.MapPost("/{id:guid}/enriquecimento-cnpj/rejeitar", RejectCnpjEnrichment);
+        group.MapPut("/{id:guid}", Update).RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorEditar));
+        group.MapDelete("/{id:guid}", Delete).RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorEditar));
+        group.MapPost("/{id:guid}/enriquecimento-cnpj", AnalyzeCnpjEnrichment)
+            .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorEditar));
+        group.MapPost("/{id:guid}/enriquecimento-cnpj/aprovar", ApproveCnpjEnrichment)
+            .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorAprovar));
+        group.MapPost("/{id:guid}/enriquecimento-cnpj/rejeitar", RejectCnpjEnrichment)
+            .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorAprovar));
         return endpoints;
     }
 

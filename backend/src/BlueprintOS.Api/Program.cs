@@ -242,6 +242,7 @@ app.MapFeatureFlags();
 app.MapRegrasWorkflow();
 app.MapAlcadasAprovacao();
 app.MapRegrasOrcamentarias();
+app.MapMonitoramentoOperacional();
 if (app.Environment.IsDevelopment())
 {
     app.MapDevelopmentOtpDiagnostics();
