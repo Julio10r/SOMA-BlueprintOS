@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { listUnidadesAlocacao, toggleStatusUnidadeAlocacao } from "../services/unidadesAlocacaoMockApi";
+import { listUnidadesAlocacao, toggleStatusUnidadeAlocacao } from "../services/unidadesAlocacaoApi";
 import type { UnidadeAlocacao } from "../types/unidadeAlocacaoTypes";
 
 export function useUnidadesAlocacao() {
@@ -24,7 +24,7 @@ export function useUnidadesAlocacao() {
   }, [reload]);
 
   async function toggleStatus(unidadeAlocacao: UnidadeAlocacao): Promise<void> {
-    await toggleStatusUnidadeAlocacao(unidadeAlocacao.id);
+    await toggleStatusUnidadeAlocacao(unidadeAlocacao);
     await reload();
   }
 

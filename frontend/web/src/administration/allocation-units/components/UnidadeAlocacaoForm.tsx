@@ -1,10 +1,13 @@
 import { FormEvent, useState } from "react";
-import type { StatusUnidadeAlocacao, UnidadeAlocacao, UnidadeAlocacaoInput } from "../types/unidadeAlocacaoTypes";
+import type { UnidadeAlocacao, UnidadeAlocacaoInput } from "../types/unidadeAlocacaoTypes";
 
 /**
- * Cadastro/edicao de Unidade de Alocacao. Ao contrario de Filial e Centro
- * de Custo, todos os campos aqui sao editaveis pelo +Compras — Unidade de
- * Alocacao nunca e integrada do ERP (ADR-0020, item 4).
+ * Cadastro/edicao de Unidade de Alocacao. Ao contrario de Filial e Centro de Custo, Nome e Descricao
+ * sao editaveis pelo +Compras — Unidade de Alocacao nunca e integrada do ERP (ADR-0020, item 4).
+ *
+ * A Unidade de Negocio nao e um campo do formulario: e sempre resolvida pelo backend a partir da sessao
+ * autenticada (O1.8 — Persistencia Real), nunca escolhida pelo cliente. Ativacao/inativacao tambem nao
+ * ocorre aqui — e uma acao separada na listagem (Ativar/Inativar), como nos demais modulos.
  */
 export function UnidadeAlocacaoForm({ unidadeAlocacao, error, loading, onSubmit, onCancel }: {
   unidadeAlocacao?: UnidadeAlocacao;
@@ -15,12 +18,10 @@ export function UnidadeAlocacaoForm({ unidadeAlocacao, error, loading, onSubmit,
 }) {
   const [nome, setNome] = useState(unidadeAlocacao?.nome ?? "");
   const [descricao, setDescricao] = useState(unidadeAlocacao?.descricao ?? "");
-  const [unidadeNegocio, setUnidadeNegocio] = useState(unidadeAlocacao?.unidadeNegocio ?? "SOMA");
-  const [status, setStatus] = useState<StatusUnidadeAlocacao>(unidadeAlocacao?.status ?? "Ativo");
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    onSubmit({ nome, descricao, unidadeNegocio, status });
+    onSubmit({ nome, descricao });
   }
 
   return (
@@ -45,29 +46,6 @@ export function UnidadeAlocacaoForm({ unidadeAlocacao, error, loading, onSubmit,
         Descricao
         <input value={descricao} onChange={(event) => setDescricao(event.target.value)} required disabled={loading} />
       </label>
-
-      <div className="input-row">
-        <label>
-          Unidade de Negocio
-          <input
-            value={unidadeNegocio}
-            onChange={(event) => setUnidadeNegocio(event.target.value)}
-            required
-            disabled={loading}
-          />
-        </label>
-        <label>
-          Status
-          <select
-            value={status}
-            onChange={(event) => setStatus(event.target.value as StatusUnidadeAlocacao)}
-            disabled={loading}
-          >
-            <option value="Ativo">Ativo</option>
-            <option value="Inativo">Inativo</option>
-          </select>
-        </label>
-      </div>
 
       <div className="actions">
         <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={loading}>

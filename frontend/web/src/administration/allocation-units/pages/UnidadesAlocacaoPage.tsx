@@ -6,10 +6,10 @@ import type { StatusUnidadeAlocacao } from "../types/unidadeAlocacaoTypes";
 
 /**
  * Listagem de Unidades de Alocacao (Gestao de Unidades de Alocacao,
- * ADR-0020 item 4/5). Fundacao visual da Sprint O1.3.5: dados mockados em
- * memoria (services/unidadesAlocacaoMockApi.ts), sem integracao com API
- * real. Ao contrario de Filiais/Centros de Custo, existe acao de criacao:
- * Unidade de Alocacao pertence exclusivamente ao +Compras.
+ * ADR-0020 item 4/5). Persistencia real via API (O1.8), substituindo o
+ * mock em memoria da fundacao visual (O1.3.5). Ao contrario de
+ * Filiais/Centros de Custo, existe acao de criacao: Unidade de Alocacao
+ * pertence exclusivamente ao +Compras.
  */
 export function UnidadesAlocacaoPage() {
   const navigate = useNavigate();

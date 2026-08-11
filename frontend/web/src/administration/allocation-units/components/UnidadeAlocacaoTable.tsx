@@ -19,7 +19,6 @@ export function UnidadeAlocacaoTable({ unidadesAlocacao, onVisualizar, onEditar,
         <tr>
           <th>Nome</th>
           <th>Descricao</th>
-          <th>Unidade de Negocio</th>
           <th>Status</th>
           <th>Acoes</th>
         </tr>
@@ -29,7 +28,6 @@ export function UnidadeAlocacaoTable({ unidadesAlocacao, onVisualizar, onEditar,
           <tr key={unidadeAlocacao.id}>
             <td>{unidadeAlocacao.nome}</td>
             <td>{unidadeAlocacao.descricao}</td>
-            <td>{unidadeAlocacao.unidadeNegocio}</td>
             <td><StatusBadge value={unidadeAlocacao.status} tone="situacao" /></td>
             <td>
               <div className="actions">

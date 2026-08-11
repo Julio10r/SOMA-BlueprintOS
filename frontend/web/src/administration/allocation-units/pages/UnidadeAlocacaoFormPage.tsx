@@ -5,7 +5,7 @@ import {
   createUnidadeAlocacao,
   getUnidadeAlocacao,
   updateUnidadeAlocacao
-} from "../services/unidadesAlocacaoMockApi";
+} from "../services/unidadesAlocacaoApi";
 import type { UnidadeAlocacao, UnidadeAlocacaoInput } from "../types/unidadeAlocacaoTypes";
 
 export function UnidadeAlocacaoFormPage() {

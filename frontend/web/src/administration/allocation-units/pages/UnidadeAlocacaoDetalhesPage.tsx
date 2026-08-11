@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { StatusBadge } from "../../../shared/components/StatusBadge";
-import { getUnidadeAlocacao } from "../services/unidadesAlocacaoMockApi";
+import { getUnidadeAlocacao } from "../services/unidadesAlocacaoApi";
 import type { UnidadeAlocacao } from "../types/unidadeAlocacaoTypes";
 
 export function UnidadeAlocacaoDetalhesPage() {
@@ -38,17 +38,13 @@ export function UnidadeAlocacaoDetalhesPage() {
         <section className="card">
           <div className="card-heading">
             <div>
-              <div className="section-title">{unidadeAlocacao.unidadeNegocio}</div>
+              <div className="section-title">Unidade de Alocacao</div>
               <h2>{unidadeAlocacao.nome}</h2>
             </div>
             <StatusBadge value={unidadeAlocacao.status} tone="situacao" />
           </div>
           <p>{unidadeAlocacao.descricao}</p>
           <div className="data-grid">
-            <div className="field-readonly">
-              <span>Unidade de Negocio</span>
-              <strong>{unidadeAlocacao.unidadeNegocio}</strong>
-            </div>
             <div className="field-readonly">
               <span>Status</span>
               <strong>{unidadeAlocacao.status}</strong>
