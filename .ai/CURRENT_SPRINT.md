@@ -992,3 +992,123 @@ Entregável **#19 "Unidades de Alocação"** passa de **"Em desenvolvimento"** p
 `.ai/work-orders/active/` está vazio. `O1.8-UnidadesDeAlocacaoPersistenciaReal.md` movida para `.ai/work-orders/completed/`. **`O1.9-CentroDeCustoXUnidadeDeAlocacaoNN.md` permanece em `.ai/work-orders/backlog/`, status Draft/Planejada — não iniciada.**
 
 **Ressalva de escopo sobre o Dashboard:** por instrução expressa do Product Owner, a rotina `[atualizar dashboard]` **não** foi executada e `dashboard/DASHBOARD_STATE.md` **não** foi tocado manualmente. O Dashboard publicado permanece D-1, atualizado pelo Product Owner ao final do dia.
+
+## Abertura e execução da Sprint O1.9 — Centro de Custo × Unidade de Alocação, Vínculo Real — 11/08/2026
+
+Work Order movida de `.ai/work-orders/backlog/` para `.ai/work-orders/active/` e, na mesma sessão, executada integralmente e encerrada — ver seção seguinte. Status atualizado para "Concluída"; data de aprovação preenchida como 11/08/2026. Nenhum percentual técnico foi alterado apenas pela abertura.
+
+## Encerramento formal da Sprint O1.9 — Centro de Custo × Unidade de Alocação, Vínculo Real — 11/08/2026
+
+### Objetivo canônico
+
+Implementar o relacionamento N:N real entre Centro de Custo e Unidade de Alocação, obrigatório para o encerramento da Onda 1 (D4, ADR-0021), preservando a regra já aprovada de Unidade de Alocação padrão (ADR-0020, item 6).
+
+### Modelagem CC × Unidade de Alocação
+
+Tabela de junção `CentrosCustoUnidadesAlocacao` referenciando `CentroCustoMetadado` (identidade canônica
+local do Centro de Custo, já estabelecida na O1.7 — nunca uma segunda fonte canônica) e `UnidadeAlocacao`
+(O1.8) pelo Id real. Cardinalidade N:N confirmada pela ADR-0020 item 6 ("cada Centro de Custo ativo pode ter
+uma ou mais Unidades de Alocação permitidas"); nenhuma Unidade de Alocação é exigida a estar ativa para
+permanecer vinculada/padrão (mesmo precedente de `PerfisRequisitados.ResolverAsync`, O1.5/O1.6).
+
+### Regra de Unidade de Alocação padrão
+
+Índice único filtrado `WHERE Padrao = 1` por `CentroCustoMetadadoId`: no máximo uma padrão por Centro de
+Custo. O padrão deve estar entre as Unidades vinculadas na mesma requisição (`PadraoForaDoVinculo` rejeitado
+explicitamente — nunca aceito implicitamente). Trocar o padrão substitui atomicamente o vínculo anterior
+(zerado antes de reaplicar, para nunca violar transitoriamente a invariante). Sem regra formal adicional
+sobre comportamento de inativação de Unidade de Alocação além da já registrada (permanece vinculada/padrão).
+
+### Persistência/migration
+
+Migration `AddCentroCustoUnidadeAlocacaoO19`: `CREATE TABLE CentrosCustoUnidadesAlocacao` com FKs `Restrict`
+para `CentrosCustoMetadados`/`UnidadesAlocacao`, índice único composto `(CentroCustoMetadadoId,
+UnidadeAlocacaoId)` e índice único filtrado do padrão. Aditiva. Gerada via `dotnet ef migrations add` real e
+aplicada ao banco de desenvolvimento via `dotnet ef database update`.
+
+### Impacto em Usuários (O1.6)
+
+Nenhum. O vínculo Usuário×Centro de Custo (autorização de acesso) e o vínculo Centro de Custo×Unidade de
+Alocação (classificação gerencial) permanecem propositalmente independentes (ADR-0020, itens 6/9) — nenhuma
+concessão de acesso adicional implícita, nenhuma fonte concorrente de autorização criada, nenhum usuário
+existente afetado.
+
+### RBAC
+
+Reaproveitada a permissão já existente `CentroCusto.Gerenciar` — decisão documentada: o vínculo é editado a
+partir da tela de Centro de Custo, e não existe permissão dedicada reservada no catálogo para este
+relacionamento. Nenhuma autorização por nome de Perfil.
+
+### Frontend
+
+`administration/cost-centers`: `CentroCustoForm`/`CentroCustoEditarPage` passam a exibir e editar o vínculo
+real (checkboxes de Unidade de Alocação + rádio de padrão), consumindo o catálogo real de Unidades de
+Alocação (`GET /api/administracao/unidades-alocacao`, O1.8) e a API real do vínculo — nunca um catálogo
+mockado local. `CentroCustoDetalhesPage` exibe o resumo real (`UnidadeAlocacaoPadraoNome`/
+`QuantidadeUnidadesAlocacaoVinculadas`). Nenhum redesign.
+
+### Testes
+
+- Backend: **524 aprovados** (baseline O1.8 512 → +12 novos em `CentroCustoUnidadeAlocacaoUseCasesTests.cs`:
+  criação sob demanda do metadado, substituição idempotente, unicidade de padrão, padrão fora do vínculo,
+  isolamento cross-BU, remoção total de vínculos, corrida de ancoragem concorrente, reflexo real em
+  `ListarCentrosCustoUseCase`) + **7 integração**, 0 falhas. `dotnet build` 0 erros/0 avisos.
+- Frontend: **74 aprovados** (baseline O1.8 72 → +2 líquido, com os novos cenários de vínculo/padrão em
+  `CentrosCustoPage.test.tsx`), 0 falhas. `tsc -b`/`vite build` limpos.
+
+### Decisão sobre uso do Chrome/MCP
+
+**Dispensado.** A cobertura automatizada (testes unitários dos casos de uso, incluindo isolamento cross-BU e
+a corrida de ancoragem concorrente; teste de integração de frontend exercitando diretamente checkbox/rádio
+de padrão via fetch interceptado; builds limpos de backend e frontend) foi considerada suficiente para os
+critérios de aceite da Work Order.
+
+### Segurança
+
+Revisão proporcional ao risco. **Corrigido durante a sprint** (antes do fechamento): a substituição de
+vínculos usava `SaveChangesAsync` sem tradução de violação de índice único — uma corrida de ancoragem
+concorrente do `CentroCustoMetadado` (mesmo cenário já tratado na O1.7) vazaria como 500 não tratado em vez
+de 409 de negócio limpo. `CentroCustoUnidadeAlocacaoRepository.SalvarAlteracoesAsync` passou a traduzir
+`DbUpdateException` de violação de índice único para `DuplicateRecordException`, mesmo padrão de
+`CentroCustoMetadadoRepository`. Demais pontos verificados sem achado CRITICAL/HIGH: enforcement real via
+policy `CentroCusto.Gerenciar`; `UnidadeNegocioId` sempre da sessão, nunca do payload; todo Id de Unidade de
+Alocação validado contra a BU da sessão antes de qualquer escrita (impede vínculo/padrão cross-BU); DTOs de
+entrada expõem apenas os Ids necessários (sem mass assignment); migration aditiva, sem exclusão de dados.
+
+### Dívidas anteriores quitadas
+
+A dívida documentada no relatório da O1.7 ("`unidadeAlocacaoPadraoNome`/`quantidadeUnidadesAlocacaoVinculadas`
+sempre indefinido/zero, pois o backend não devolvia esse dado") foi **resolvida** nesta sprint.
+
+### Dívidas novas
+
+Nenhuma bloqueante. Registrada como nota não bloqueante: sem endpoint recíproco no lado de Unidades de
+Alocação (listar Centros de Custo vinculados a uma Unidade) — não havia nenhum dado mockado a substituir
+nessa direção (`administration/allocation-units` nunca exibiu Centro de Custo) e a Work Order permite
+"vice-versa, se aplicável"; não indispensável para os critérios de aceite desta sprint.
+
+### Reconciliação dos entregáveis oficiais da Onda 1
+
+Nenhum entregável isolado é atribuído à O1.9 — **#18** "Centros de Custo" e **#19** "Unidades de Alocação"
+já estavam Concluídos (O1.7/O1.8). A O1.9 satisfaz D4 (ADR-0021) como condição de fechamento pleno desses
+dois entregáveis, não como entregável isolado da lista de 41 (conforme a própria Work Order registra).
+Progresso técnico da Onda 1 **inalterado**: 41 entregáveis / 13 Concluído / 7 Em desenvolvimento / 21
+Planejado / **32%** (31,7073% exato). MVP Global **inalterado**: 33,34% exato, exibido 33%. **Por instrução
+expressa do Product Owner, `.ai/dashboard/DASHBOARD_STATE.md` não foi editado.**
+
+### Observação sobre Agents Linx (planejamento O1.10–O1.14)
+
+Decisão do Product Owner de incluir, ainda na Onda 1, uma fundação para agentes especialistas Linx (Linx ERP
+Specialist, Linx Database Specialist, memória persistente, aprendizado incremental, knowledge base/RAG,
+conhecimento validado sobre schema/tabelas/relacionamentos/regras/SQL, suporte futuro a Fornecedor/Item/
+Pedido, sem SQL livre de IA em produção) — **preservada** para planejamento nas próximas Work Orders da
+Onda 1, conforme instrução explícita desta sessão. **Nenhum conflito ou dependência evidente identificado**
+entre O1.10–O1.14 (Conclusão Vertical Slice, Fundação Multi-BU, Workflow/Alçadas/Orçamento, Administração
+Operacional, Blueprint de Banco) e essa necessidade — os Agents Linx não foram implementados nesta sprint
+(fora de escopo, por instrução explícita).
+
+### Estado final: NENHUMA SPRINT ATIVA
+
+`.ai/work-orders/active/` está vazio. `O1.9-CentroDeCustoXUnidadeDeAlocacaoNN.md` movida para `.ai/work-orders/completed/`. **`O1.10-ConclusaoVerticalSlice.md` permanece em `.ai/work-orders/backlog/`, status Draft/Planejada — não iniciada.**
+
+**Ressalva de escopo sobre o Dashboard:** por instrução expressa do Product Owner, a rotina `[atualizar dashboard]` **não** foi executada e `dashboard/DASHBOARD_STATE.md` **não** foi tocado manualmente. O Dashboard publicado permanece D-1, atualizado pelo Product Owner ao final do dia.
