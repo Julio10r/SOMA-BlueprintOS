@@ -13,7 +13,7 @@
 | [`completed/`](completed/) | Concluído | Evidência de build, testes, commit e push já registrada |
 | [`superseded/`](superseded/) | Superada por decisão arquitetural posterior | O escopo original nunca foi concluído nos termos em que foi aberto, e uma decisão posterior (ADR) tornou esse escopo obsoleto. Criado pela ADR-0021 (10/08/2026) — ver `.ai/DECISIONS.md`. |
 
-Atualmente `active/` está vazio: não há nenhuma sprint funcional em andamento (ver `.ai/CURRENT_SPRINT.md`).
+Atualmente `active/` contém a **O1.5 — RBAC Real**, aberta formalmente em 11/08/2026 (ver `.ai/CURRENT_SPRINT.md`). Sua implementação está concluída e a Security Validation independente foi aprovada com ressalvas; a Work Order permanece em `active/` até o aceite formal das ressalvas pelo Product Owner, mesmo procedimento adotado na O1.4.3.
 
 ## Regra de unicidade
 

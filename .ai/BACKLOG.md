@@ -121,7 +121,7 @@ Novas Work Orders propostas para conclusão da Onda 1, todas em status **Draft (
 
 | Código | Título | Tipo | Entregáveis cobertos | Dependências | Work Order |
 |---|---|---|---|---|---|
-| O1.5 | RBAC Real (Perfis, Permissões, Policies, Enforcement) | ESTRUTURA | #9, #17 | Catálogo de Perfis/Permissões (Product Owner) | [O1.5](work-orders/backlog/O1.5-RbacReal.md) |
+| O1.5 | RBAC Real (Perfis, Permissões, Policies, Enforcement) | ESTRUTURA | #9, #17 | **ATIVA (11/08/2026)** — implementação concluída; Security Validation independente APROVADA COM RESSALVAS (0 CRITICAL/0 HIGH após correções); aguardando aceite formal das ressalvas pelo Product Owner. 477 testes backend + 61 frontend aprovados; mock de Perfis removido; migration aplicada; enforcement real (401/403/200) comprovado por teste de pipeline HTTP e smoke test em Chrome. Ver [rbac-o1.5.md](../docs/architecture/rbac-o1.5.md) | [O1.5](work-orders/active/O1.5-RbacReal.md) |
 | O1.6 | Usuários (Backend Real) | ESTRUTURA | #15, #16 | O1.5 | [O1.6](work-orders/backlog/O1.6-GestaoDeUsuariosBackendReal.md) |
 | O1.7 | Filiais e Centros de Custo Integrados ao ERP | ESTRUTURA | #14, #18 | Acesso ao ERP `SOMA_DESENV`/VPN | [O1.7](work-orders/backlog/O1.7-FiliaisECentrosDeCustoIntegradosAoErp.md) |
 | O1.8 | Unidades de Alocação (Persistência Real) | ESTRUTURA | #19 | Nenhuma bloqueante | [O1.8](work-orders/backlog/O1.8-UnidadesDeAlocacaoPersistenciaReal.md) |
@@ -131,6 +131,21 @@ Novas Work Orders propostas para conclusão da Onda 1, todas em status **Draft (
 | O1.12 | Workflow, Aprovação, Alçadas e Controle Orçamentário | ESTRUTURA + DESIGN | #25, #26, #27, #28 | O1.5, O1.9 | [O1.12](work-orders/backlog/O1.12-WorkflowAprovacaoAlcadasOrcamento.md) |
 | O1.13 | Administração Operacional e Monitoramento | ESTRUTURA + DESIGN | #29, #30, #31, #32 | Nenhuma bloqueante | [O1.13](work-orders/backlog/O1.13-AdministracaoOperacionalEMonitoramento.md) |
 | O1.14 | Blueprint de Banco e Validação Funcional Final | ESTRUTURA | #36, #37, #38, #39, #40, #41 (+ evolução de #33–#35) | O1.5, O1.6, O1.7, O1.8, O1.9 | [O1.14](work-orders/backlog/O1.14-BlueprintDeBancoEValidacaoFuncionalFinal.md) |
+
+### Ressalvas remanescentes da Security Validation independente da O1.5 (11/08/2026)
+
+Registradas como pendências rastreáveis, no mesmo modelo dos findings aceitos da O1.4.3. Nenhuma é bloqueante para Development; nenhuma foi corrigida silenciosamente.
+
+| # | Severidade | Descrição | Situação |
+|---|---|---|---|
+| O1.5-M1 | MEDIUM | Checagem da invariante anti-auto-bloqueio não é serializada com a escrita: duas requisições concorrentes inativando os dois últimos Perfis administrativos podem, em teoria, passar ambas. Correção adequada: transação serializável ou `RowVersion` em `Perfil` (padrão já usado em `BootstrapEstado`). | Aberta — exige migration; fora do previsto na Work Order |
+| O1.5-L1 | LOW | Backfill do catálogo na migration concede permissões por **nome** de Perfil ("Administrador Sênior") e em todas as Unidades de Negócio, em vez de usar o Id registrado em `BootstrapEstado`. | Aberta — não corrigida deliberadamente: a migration já foi aplicada, e editar migration aplicada recriaria o drift reconciliado na O1.4.3.1 |
+| O1.5-L2 | LOW | Nenhuma auditoria append-only de alterações de Perfil/Permissão, embora `ComprasFuncional.md` a exija. | Aberta |
+| O1.5-L3 | LOW | Grupo administrativo `/api/administracao` sem rate limiting (as rotas de `/auth` têm). | Aberta |
+| O1.5-I1 | INFORMATIONAL | `ClaimTypes.Role` fixo em `"Buyer"` e, em Development, vindo de header. Nenhuma decisão de autorização usa role (nenhum `RequireRole`/`IsInRole` no backend) — resíduo, não vetor. | Aberta |
+| O1.5-I2 | INFORMATIONAL | `RequestIdentity.Permissoes` documentado como defesa em profundidade, mas nenhum caso de uso o lê: a policy é a única checagem. | Aberta |
+| O1.5-I3 | INFORMATIONAL | Testes de enforcement usam endpoints `/probe-*` sintéticos com a mesma composição de `Program.cs`; não detectam a remoção de `.RequireAuthorization(...)` do controller real. | Aberta |
+| O1.5-I4 | INFORMATIONAL | `Fornecedor.*` e `Pedido.*` existem no catálogo, mas nenhum endpoint os exige — os endpoints de Fornecedores/Negociações seguem protegidos apenas por autenticação. **D2 (ADR-0021) não está satisfeita para essas superfícies**, fora do escopo declarado da O1.5. | Aberta |
 
 Caminho crítico: O1.5 → O1.6 → (O1.7 ‖ O1.8) → O1.9 → O1.12 → O1.14. Paralelizáveis desde o início: O1.10, O1.13 (e O1.11 após O1.6 iniciar). A ativação da primeira Work Order (O1.5) depende de autorização explícita do Product Owner — nenhuma foi autorizada por esta sessão.
 

@@ -671,3 +671,103 @@ Nenhum achado MÉDIO/ALTO identificado nesta revisão por leitura de código —
 **Arquivos alterados:** `backend/src/BlueprintOS.Api/Program.cs` (as duas correções). **Testes novos:** `backend/tests/BlueprintOS.UnitTests/Api/Auth/DevelopmentSessionCookiePipelineTests.cs` (4 testes — sessão real, header legado, cookie inválido, ausência de credencial) e `backend/tests/BlueprintOS.UnitTests/Api/Identity/DevelopmentCurrentIdentityPipelineTests.cs` (6 testes — inclui sessão real prevalecendo sobre header conflitante e o caso fail-closed de cookie inválido + header válido). **Validação final:** backend **393 testes unitários + 5 de integração aprovados** (398 total, sem regressão); frontend **53/53** testes, `tsc -b` e `vite build` sem erros; `git diff --check` limpo. Nenhuma migration aplicada, nenhum RBAC alterado, nenhuma alteração no Bootstrap.
 
 **Situação final:** duas correções de fundação de autenticação em Development publicadas por commit dedicado. **A O1.4.3 permanece FORMALMENTE CONCLUÍDA (não reaberta). A O1.5 permanece NÃO INICIADA.**
+
+---
+
+## Sprint O1.5 — RBAC Real (Perfis, Permissões, Policies, Enforcement) — aberta em 11/08/2026
+
+Status:
+**ATIVA — implementação concluída, Security Validation independente executada (APROVADA COM RESSALVAS), aguardando aceite formal das ressalvas pelo Product Owner.** A Work Order permanece em `.ai/work-orders/active/O1.5-RbacReal.md` e **não** foi movida para `completed/`, seguindo exatamente o precedente da O1.4.3 (só encerrada formalmente depois do aceite explícito das ressalvas pelo Product Owner).
+
+Objetivo:
+Transformar a fundação visual/mockada de Perfis e Permissões em RBAC real e efetivamente aplicado, fechando o ciclo Perfil → Permissões → Usuário×Perfil → Identidade autenticada → Policies → Enforcement (ADR-0020 itens 7/8/9/10; ADR-0021 decisão D2).
+
+### Estado de entrada validado
+
+`git status` limpo; branch `main`; `origin/main...main = 0 0`; último commit `2c717f2`, com `4338469`, `ea263e8`, `e27de66` e `f5d8e3f` no histórico — exatamente o estado consolidado esperado. Baseline de testes medida antes de qualquer alteração: **393 unitários + 5 integração backend**, **53 frontend**.
+
+### Descoberta técnica registrada
+
+- `Perfil`/`Permissao`/`PerfilPermissao`/`UsuarioPerfil` **já existiam** como entidades e tabelas (migration de Identity, O1.4.3.1), porém **vazias** e usadas apenas pelo Bootstrap. Não havia nenhum vínculo Perfil×Permissão persistido em lugar algum.
+- `administration/profiles` era **100% mockado**: `perfisMockApi.ts` (dados em memória) + catálogo estático de permissões no frontend.
+- A identidade autenticada (`SessionCookieAuthenticationHandler` → `SessionCurrentIdentity`) publicava `NameIdentifier`, `Email`, `Name`, `unidade_negocio_id` e um `Role` **fixo em "Buyer"** — nenhuma permissão.
+- Mecanismos de Authorization existentes: `AuthorizationOptions.FallbackPolicy` (secure-by-default, O1.4.2.1) e a policy `BootstrapAuthenticated` com `IAuthorizationRequirement` customizado — padrão idiomático reaproveitado pela O1.5.
+- **Nenhum** endpoint administrativo tinha enforcement além de autenticação. `Perfil.Gerenciar` e os demais códigos existiam apenas como texto em `ComprasFuncional.md`.
+- Testes existentes de auth/autorização: `BootstrapAuthorizationPipelineTests`, `DevelopmentSessionCookiePipelineTests`, `SessionCookieAuthenticationHandlerTests`, `PerfilUniqueIndexTests` e as suítes de OTP/Bootstrap.
+- **Divergência documental encontrada:** `PROJECT_STATE.md`/`BACKLOG.md` afirmam que as migrations de Identity/Bootstrap foram "validadas mas **não aplicadas**" ao banco compartilhado. `dotnet ef migrations list` contra o banco real mostra **todas aplicadas** (até `20260810120746_AddBootstrapConclusaoConcurrency`) — coerente com o smoke test de Bootstrap concluído com sucesso na O1.4.3.3. O registro documental estava desatualizado.
+
+### Entregas
+
+**Backend**
+- `Domain/Identity/PermissaoCatalogo.cs` — fonte central única dos 14 códigos de permissão, com Ids estáveis. Policies, seed de banco, endpoints e catálogo do frontend derivam todos dele; nenhum código de permissão é escrito literalmente em outro lugar.
+- `Perfil` ganhou `Descricao`, `CriadoEm`/`AtualizadoEm` e comportamento real (`Atualizar`, `Ativar`, `Inativar`). Sem exclusão física, conforme `ComprasFuncional.md`.
+- `Application/Identity/PerfilUseCases.cs` — Listar/Obter/Criar/Atualizar/AlterarStatus + `NaoEscalonamento` + `PerfilAdministrativoInvariante`.
+- `Infrastructure/Identity` — `PerfilRepository` estendido, `PermissaoRepository`, `PermissoesEfetivasResolver` (união dos Perfis ativos da BU da sessão, deduplicada).
+- `ObterIdentidadeAtualUseCase` passou a resolver as permissões efetivas **a cada requisição**, junto da revalidação de sessão — revogação tem efeito imediato.
+- `Api/Authorization/RbacAuthorization.cs` — `PermissaoRequirement`, `PermissaoAuthorizationHandler`, `RbacPolicies` (uma policy por permissão; `For()` lança na inicialização para código fora do catálogo).
+- `Api/Administration/PerfisController.cs` — 6 endpoints sob `/api/administracao`, todos exigindo `Perfil.Gerenciar`, CSRF no nível do grupo.
+- `ConcluirBootstrapUseCase` passou a conceder o catálogo completo ao Perfil "Administrador Sênior" — sem isso, um ambiente novo nasceria com o administrador sem nenhuma permissão.
+- `CsrfHeaderFilter` passou a ignorar métodos seguros (RFC 9110), viabilizando aplicá-lo no nível de `MapGroup`. Nenhum endpoint pré-existente muda de comportamento (o filtro só estava anexado a POSTs).
+
+**Migration** — `20260811143355_AddRbacPerfilPermissaoCatalogo`: colunas novas em `Perfis`; seed das 14 permissões com Ids estáveis; FKs `RESTRICT` em `PerfisPermissoes` e `UsuariosPerfis` + índices; dois blocos de SQL manual documentados (backfill de timestamps; concessão idempotente do catálogo aos Perfis "Administrador Sênior" existentes, para não bloquear o ambiente).
+
+**Frontend** — padrão visual aprovado **preservado**; só mudanças funcionalmente necessárias: `perfisMockApi.ts` e o catálogo estático **removidos**; `perfisApi.ts` real; `ConfirmExclusaoModal` → `ConfirmStatusModal` (o backend não expõe exclusão); campos "Unidade de Negócio" e "Status" removidos do formulário (o primeiro seria ignorado pelo backend; o segundo virou ação própria com confirmação); estados de carregando/sucesso/vazio/erro/**acesso negado** tratados; `AppShell` esconde "Perfis" sem a permissão (UX apenas); `authTypes`/`AuthContext` carregam `permissoes` vindas de `/auth/me`.
+
+### Validações executadas
+
+- `dotnet build backend/BlueprintOS.sln`: **0 erros, 0 avisos**.
+- `dotnet test backend/BlueprintOS.sln`: **472 unitários + 5 integração = 477 aprovados, 0 falhas** (baseline 398; +79 testes).
+- `npx tsc -b`: 0 erros. `npm run build`: aprovado. `npm run test` (Vitest): **61 aprovados, 0 falhas** (baseline 53).
+- `dotnet ef migrations has-pending-model-changes`: sem alterações pendentes. `migrations script 0`: exatamente 1 `CREATE TABLE [Fornecedores]` histórico, inalterado.
+- **Migration aplicada** ao banco de desenvolvimento `MaisCompras` (`dotnet ef database update`), necessária para o smoke test real.
+
+### Smoke test real (backend + frontend + SQL Server reais)
+
+Executado com `scripts/start-dev.sh` (API em `:5262`, Vite em `:5173`), login OTP real de `julio.cesar@somagrupo.com.br`, e Chrome via Chrome DevTools MCP.
+
+Enforcement, via HTTP real:
+- sem sessão → **401**; esquema de Development (autenticado, sem permissões) → **403**; sessão com `Perfil.Gerenciar` → **200**.
+- `GET /auth/me` devolveu as **14 permissões efetivas resolvidas do banco** (backfill da migration funcionou).
+- CRUD real: criar → **201**; nome duplicado → **409**; permissão fora do catálogo (`Sistema.Root`) → **400**; editar substituindo o conjunto → **200**; inativar/reativar → **200**; Id inexistente → **404**; POST sem header CSRF → **403**; GET sem header CSRF → **200** (método seguro).
+- Invariante anti-auto-bloqueio: remover `Perfil.Gerenciar` do último Perfil administrativo → **409**; inativá-lo → **409**; Perfil permaneceu ativo com 14 permissões.
+- Não-escalonamento: o Administrador Sênior (catálogo completo) concede `Sistema.Gerenciar` normalmente → **201**.
+
+Interface, em Chrome real: `/administracao/perfis` renderizou os Perfis reais do banco; o formulário carregou o catálogo de **14 permissões vindo da API**, agrupado por recurso; criação pela tela persistiu e apareceu na listagem; persistência confirmada após **reload**; tela de detalhes exibiu a permissão correta; **zero erros/avisos de console**; padrão visual AZZAS/SOMA inalterado.
+
+**Problema real encontrado e corrigido durante o smoke test:** o proxy do Vite em `/administracao` sombreava as rotas da SPA, fazendo `/administracao/perfis` devolver JSON da API em vez da tela. A API foi movida para `/api/administracao` — mesmo cuidado já documentado para `/bootstrap` em `vite.config.ts`.
+
+**Segunda regressão introduzida e corrigida na mesma sessão:** aplicar `CsrfHeaderFilter` no nível do grupo passou a exigir o header também em `GET`, quebrando as leituras. Corrigido tornando o filtro ciente de métodos seguros.
+
+### Security Validation independente (11/08/2026)
+
+Executada por revisor logicamente isolado, sem acesso ao raciocínio do implementador — mesmo padrão da O1.4.3. Auditou 14 classes de ataque/falha contra o código real.
+
+**Veredito: APROVADA COM RESSALVAS.** Achados originais: 0 CRITICAL, **1 HIGH**, 3 MEDIUM, 4 LOW, 4 INFORMATIONAL.
+
+**Corrigidos nesta sessão, com teste de regressão para cada um:**
+- **HIGH — escalonamento de privilégio sem limite.** Qualquer portador de `Perfil.Gerenciar` podia editar o próprio Perfil anexando todo o catálogo e, como as permissões são reresolvidas a cada requisição, já teria acesso total na chamada seguinte, sem novo login e sem rastro. Corrigido pela regra de não-escalonamento (`NaoEscalonamento`): ninguém concede permissão que não possui → **403 `escalonamento_de_privilegio`**.
+- **MEDIUM — permissões efetivas não escopadas por Unidade de Negócio.** Permissão concedida na BU-B autorizaria ação sobre dados da BU-A (latente até a O1.6 permitir vínculos multi-BU). Corrigido: o resolver agora filtra pela BU da sessão.
+- **MEDIUM — invariante satisfeita por Perfil administrativo com zero usuários.** Bastava criar um Perfil "Temp" com `Perfil.Gerenciar` e ninguém vinculado para a invariante autorizar remover a permissão do Perfil realmente em uso — e o Bootstrap nunca reabre, então a recuperação exigiria SQL direto. Corrigido: a invariante agora exige ao menos um usuário vinculado.
+- **LOW — CSRF opt-in por rota.** Corrigido: filtro no nível do grupo, ciente de métodos seguros.
+
+**Ressalvas remanescentes (aceitas como diagnóstico, nenhuma corrigida silenciosamente) — dependem de decisão do Product Owner:**
+1. **MEDIUM — checagem de invariante não serializada com a escrita.** Duas requisições concorrentes inativando os dois últimos Perfis administrativos podem, em teoria, passar ambas. Correção adequada: transação serializável ou `RowVersion` em `Perfil` (padrão já usado em `BootstrapEstado`). Não corrigido por exigir migration e mudança de padrão transacional, fora do que a Work Order previa.
+2. **LOW — backfill do catálogo é por nome de Perfil** ("Administrador Sênior") e vale para todas as Unidades de Negócio, em vez de usar o Id registrado em `BootstrapEstado`. **Não corrigido deliberadamente**: a migration já foi aplicada ao banco, e editar migration aplicada recriaria exatamente o tipo de drift histórico que a O1.4.3.1 teve de reconciliar.
+3. **LOW — nenhuma auditoria de alterações de RBAC**, embora `ComprasFuncional.md` exija registro append-only de toda alteração de Perfil/Permissão.
+4. **LOW — sem rate limiting** no grupo administrativo (as rotas de `/auth` têm).
+5. **INFORMATIONAL — `ClaimTypes.Role` fixo em "Buyer"** e, em Development, vindo de header. Nenhuma decisão de autorização usa role (nenhum `RequireRole`/`IsInRole` no backend) — resíduo, não vetor.
+6. **INFORMATIONAL — `RequestIdentity.Permissoes` documentado como defesa em profundidade, mas nenhum caso de uso o lê**: a policy é a única checagem.
+7. **INFORMATIONAL — testes de pipeline usam endpoints `/probe-*` sintéticos**; não detectam a remoção de `.RequireAuthorization(...)` do controller real.
+8. **INFORMATIONAL — `Fornecedor.*` e `Pedido.*` estão no catálogo mas nenhum endpoint os exige.** Os endpoints de Fornecedores/Negociações seguem protegidos apenas por autenticação: **a decisão D2 não está satisfeita para essas superfícies**, o que está fora do escopo declarado da O1.5.
+
+### Pendências e limitações honestas
+
+- **Enforcement com sessão real de um usuário sem permissão não foi validado manualmente**: exigiria criar um segundo usuário, e a API de Usuários só existe na O1.6. O cenário está coberto por teste automatizado de pipeline HTTP real (401/403/200 reais) e pelo 403 real obtido via esquema de Development.
+- **Progresso técnico da Onda 1 mantido em 17%**, deliberadamente: a regra oficial só conta entregável "Concluído", e a O1.5 não está formalmente concluída (aguarda aceite das ressalvas). Nenhum percentual foi inflado por abertura ou por implementação de sprint.
+- **O comando `[atualizar dashboard]` NÃO foi executado**: sua rotina exige atualização do workflow n8n e validação da URL publicada, fora do alcance desta sessão. `DASHBOARD_STATE.md` recebeu apenas atualização documental mínima das observações dos entregáveis #9/#17, sem alterar status nem percentual.
+- Resíduo de smoke test no banco de desenvolvimento: quatro Perfis **inativos** (`Analista (O1.5 smoke)`, `Aprovador (smoke UI)`, `Pos-hardening`, `Verificacao pos-hardening`). Não removidos porque o modelo não tem exclusão física, por decisão de produto.
+- Commit/push: commits criados **localmente**; **push NÃO realizado**, pendente de autorização explícita do Product Owner.
+
+### O1.6 não foi iniciada
+
+`O1.6-GestaoDeUsuariosBackendReal.md` permanece em `.ai/work-orders/backlog/`, status Draft/Planejada. Nenhum escopo de O1.6 ou de sprints posteriores foi antecipado.
