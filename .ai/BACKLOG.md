@@ -127,7 +127,7 @@ Novas Work Orders propostas para conclusão da Onda 1, todas em status **Draft (
 | O1.8 | Unidades de Alocação (Persistência Real) | ESTRUTURA | #19 | Nenhuma bloqueante | [O1.8](work-orders/backlog/O1.8-UnidadesDeAlocacaoPersistenciaReal.md) |
 | O1.9 | Centro de Custo × Unidade de Alocação (N:N) | ESTRUTURA | (condição de fechamento de #18/#19) | O1.7, O1.8 | [O1.9](work-orders/backlog/O1.9-CentroDeCustoXUnidadeDeAlocacaoNN.md) |
 | O1.10 | Conclusão do Vertical Slice (O1.2.2) | ESTRUTURA | #4, #5, #6, #7, #8 | Parcial; integração final depende de O1.5–O1.9 | [O1.10](work-orders/backlog/O1.10-ConclusaoVerticalSlice.md) |
-| O1.11 | Fundação Multi-Unidade de Negócio e Configuração | ESTRUTURA + DESIGN | #3, #13, #20, #21, #22, #23, #24 | O1.6 | 🟡 **ATIVA (aberta 11/08/2026)** — #3, #13, #20, #21, #22, #23 implementados e validados; #24 (Notificações) bloqueada por falta de UX aprovada | [O1.11](work-orders/active/O1.11-FundacaoMultiUnidadeDeNegocioEConfiguracao.md) |
+| O1.11 | Fundação Multi-Unidade de Negócio e Configuração | ESTRUTURA + DESIGN | #3, #13, #20, #21, #22, #23, #24 | O1.6 | ✅ **CONCLUÍDA (11/08/2026)** — 7/7 entregáveis implementados e validados; #24 (Notificações) entregue em escopo mínimo de fundação, por decisão formal do Product Owner (sem catálogo de eventos, sem motor de envio) | [O1.11](work-orders/completed/O1.11-FundacaoMultiUnidadeDeNegocioEConfiguracao.md) |
 | O1.12 | Workflow, Aprovação, Alçadas e Controle Orçamentário | ESTRUTURA + DESIGN | #25, #26, #27, #28 | O1.5, O1.9 | [O1.12](work-orders/backlog/O1.12-WorkflowAprovacaoAlcadasOrcamento.md) |
 | O1.13 | Administração Operacional e Monitoramento | ESTRUTURA + DESIGN | #29, #30, #31, #32 | Nenhuma bloqueante | [O1.13](work-orders/backlog/O1.13-AdministracaoOperacionalEMonitoramento.md) |
 | O1.14 | Blueprint de Banco e Validação Funcional Final | ESTRUTURA | #36, #37, #38, #39, #40, #41 (+ evolução de #33–#35) | O1.5, O1.6, O1.7, O1.8, O1.9 | [O1.14](work-orders/backlog/O1.14-BlueprintDeBancoEValidacaoFuncionalFinal.md) |
@@ -360,3 +360,67 @@ nesta sessão (41 entregáveis / 13 Concluído / 7 Em desenvolvimento / 21 Plane
 exibido) — a reclassificação de #3/#13/#20/#21/#22/#23 para "Concluído" e o recálculo consequente ficam
 para o fechamento formal da O1.11. **O1.12 permanece em `backlog/`, Draft/Planejada — não iniciada.**
 **O1.13.5 permanece em `backlog/`, Draft/Planejada — não iniciada, não aprovada.**
+
+### Fechamento formal da O1.11 (11/08/2026) — decisão do Product Owner sobre #24 e conclusão 7/7
+
+**Decisão formal do Product Owner sobre o item #24 (Configuração de Notificações):** não retirar da O1.11;
+implementar em **escopo mínimo de fundação** — configuração administrativa persistente por Unidade de
+Negócio (ativado/inativado do canal e-mail, e-mail remetente com validação de formato, nome do remetente),
+sem motor operacional de notificações (sem SMTP/envio real/filas/workers/templates/histórico) e sem
+catálogo de eventos configuráveis (verificado: não existe documentação formal aprovada com o conjunto de
+eventos em `docs/product/`, `.ai/work-orders/` ou `DECISIONS.md` — será endereçado quando os workflows
+operacionais correspondentes existirem; o modelo de dados não fecha essa evolução futura).
+
+Implementado nesta sessão: `ConfiguracaoNotificacao` (Domain, relação 1:1 com `UnidadeNegocio`, mesmo
+padrão físico de `ConfiguracaoErp`), migration `AddConfiguracaoNotificacaoO111` (aditiva), endpoints
+`GET`/`PUT /api/administracao/unidades-negocio/{id}/configuracao-notificacao` protegidos por
+`Sistema.Gerenciar` (reaproveitada, nenhuma permissão nova) + CSRF, e módulo frontend
+`administration/notification-configuration`. `unidadeNegocioId` sempre do path (nunca da sessão/corpo da
+requisição), mesma barreira de isolamento cross-BU dos demais 6 módulos da O1.11.
+
+**Testes re-executados nesta sessão:** Backend — `dotnet build` limpo; `dotnet test` **557 testes
+unitários + 7 de integração**, 0 falhas (9 testes novos de `ConfiguracaoNotificacaoUseCases`, sem
+regressão). Frontend — `npm run build` (`tsc -b`/`vite build`) limpo; `npm run test` **98 testes** em 17
+arquivos, 0 falhas (4 testes novos de `ConfiguracaoNotificacaoPage`, sem regressão).
+
+**Segurança:** revisão focada na nova superfície (#24). Nenhum achado CRITICAL/HIGH. Mesma barreira de
+autorização (`RequireAuthorization` por policy, nunca por nome de Perfil), mesmo padrão de path-based BU
+scoping, CSRF nas mutações, sem mass assignment (`Id` sempre gerado no servidor), validação de e-mail no
+backend reaproveitando `EmailUsuarioValidator` já auditado na O1.6. A dívida LOW já conhecida da O1.11
+(propósito de criptografia compartilhado no `DataProtection`) não é afetada — esta entidade não usa
+`ISegredoProtector` — e permanece deferida ao Gate Final pós-O1.14.
+
+**Chrome/MCP:** dispensado — funcionalidade administrativa simples, evidência suficiente pelos testes
+automatizados de backend e frontend (mesmo raciocínio já aplicado às demais 6 sub-telas desta Work Order).
+
+**A O1.11 está formalmente CONCLUÍDA (7/7 entregáveis).** Work Order movida de `active/` para
+`completed/` ([O1.11](work-orders/completed/O1.11-FundacaoMultiUnidadeDeNegocioEConfiguracao.md)).
+
+**Métrica oficial da Onda 1 recalculada neste fechamento** (mesma regra-fonte,
+`.ai/dashboard/DASHBOARD_STATE.md`, "Política dos percentuais" — só conta entregável "Concluído"):
+**41 entregáveis / 20 Concluído / 7 Em desenvolvimento / 14 Planejado / 48,7805% de Progresso Técnico**
+(exibido **49%**; 20 ÷ 41). Antes: 13 / 7 / 21 / 32%. Mudança: **#3** Seleção de Unidade de Negócio,
+**#13** Cadastro de Unidades de Negócio, **#20** Identity Providers por UN, **#21** Configuração de ERP
+por UN, **#22** Parâmetros gerais, **#23** Feature Flags e **#24** Configuração de Notificações — todos
+Planejado → **Concluído** (nenhum destes 7 estava contado no balde "Em desenvolvimento" antes deste
+fechamento — a métrica interina da O1.11 permaneceu deliberadamente congelada em 13/7/21 durante toda a
+execução parcial, por decisão de recalcular apenas no fechamento formal; o balde "Em desenvolvimento"
+(7 itens, ex.: #4/#5/#6/#7/#8/#9/#11) é inalterado por esta Work Order). Contribuição da Onda 1 ao MVP:
+6,34 → **9,7561 pontos**
+(20% × 48,7805%). Percentual Global do MVP 1.0: 33,34% exato → **36,7561%** exato (Foundation 20,0 +
+Onda 1 9,7561 + Onda 2 7,0), exibido **37%**. **Por instrução expressa do Product Owner,
+`.ai/dashboard/DASHBOARD_STATE.md` não foi editado** — o Dashboard oficial permanece D-1, atualizado pelo
+Product Owner via `[atualizar dashboard]`.
+
+**Dívidas não bloqueantes registradas nesta sessão:** catálogo de eventos configuráveis por notificação
+permanece pendente de documentação formal de produto — a ser endereçado em Work Order futura quando os
+workflows operacionais correspondentes existirem. Nenhuma dívida anterior da O1.11 foi resolvida ou
+alterada nesta etapa (dívida LOW de `DataProtection` permanece deferida ao Gate Final pós-O1.14).
+
+**O1.12 NÃO foi iniciada** (permanece em `backlog/`, Draft/Planejada, dependente de O1.11 ter fechado —
+condição agora satisfeita, mas abertura formal requer nova autorização explícita). **O1.13.5 NÃO foi
+iniciada** (permanece em `backlog/`, Draft/Planejada, não aprovada). **O Gate Final da Onda 1** (auditoria
+consolidada dos 41 entregáveis, GAPs, dívidas, hardening, validação integrada e revisão de Design
+consolidada, após O1.11→O1.12→O1.13→O1.13.5→O1.14) **não foi antecipado** — permanece planejado para
+depois da conclusão de todas as Work Orders remanescentes da Onda 1, conforme já registrado neste
+documento.

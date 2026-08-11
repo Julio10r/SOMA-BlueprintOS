@@ -1283,3 +1283,93 @@ usado nas sprints anteriores (recálculo ocorre no fechamento, não durante a ex
 **O1.11 permanece em `active/`.** **O1.12 NÃO foi iniciada** (permanece em `backlog/`, dependente de
 O1.11 fechar formalmente). **O1.13.5 (Fundação dos Agents Especialistas Linx) NÃO foi iniciada**
 (permanece em `backlog/`, Draft/Planejada).
+
+## Encerramento formal da Sprint O1.11 — decisão do Product Owner sobre #24 e conclusão 7/7 (11/08/2026)
+
+**Decisão formal do Product Owner sobre o item #24 (Configuração de Notificações):** não retirar da
+O1.11; implementar em **escopo mínimo de fundação** — configuração administrativa persistente por
+Unidade de Negócio (notificações por e-mail ativado/inativado, e-mail remetente com validação de
+formato, nome do remetente), explicitamente sem motor operacional de notificações (sem envio real de
+e-mail, SMTP, SendGrid/equivalente, filas, workers, scheduler, retry, templates, histórico, preferências
+por usuário, WhatsApp/Teams/push/SMS, motor de eventos ou qualquer integração externa de entrega).
+
+**Catálogo de eventos configuráveis:** verificado antes de implementar — não existe documentação formal
+aprovada com o conjunto de eventos de notificação em `docs/product/`, `.ai/work-orders/` ou
+`DECISIONS.md`. Por isso nenhum catálogo/checkbox de eventos foi criado nesta sessão; a tela exibe apenas
+uma indicação textual discreta de que o catálogo será configurável quando os workflows operacionais
+correspondentes existirem. O modelo de dados (`ConfiguracaoNotificacao`, com `Id` próprio) permite
+adicionar essa evolução no futuro (ex.: uma tabela `ConfiguracaoNotificacaoEventos` referenciando este
+`Id`) sem redesenho destrutivo.
+
+**Implementado:** `ConfiguracaoNotificacao` (Domain) — relação 1:1 com `UnidadeNegocio`, mesmo padrão
+físico de `ConfiguracaoErp`, com a regra de integridade "não é possível ativar sem e-mail remetente
+configurado" e defaults seguros (`EmailAtivado = false`). `ConfiguracaoNotificacaoConfiguration` (EF
+Core, índice único em `UnidadeNegocioId`). Migration `AddConfiguracaoNotificacaoO111` — aditiva
+(`CREATE TABLE` + índice único), revisada manualmente, `dotnet ef migrations has-pending-model-changes`
+confirma nenhuma divergência entre modelo e migrations; não aplicada a um SQL Server local nesta sessão
+(Docker indisponível no ambiente de execução, mesma limitação já registrada nas etapas anteriores desta
+Work Order) — não altera dados de produção. Endpoints `GET`/`PUT /api/administracao/unidades-negocio/{id}/configuracao-notificacao`
+protegidos por `RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.SistemaGerenciar))` — reaproveitada
+a permissão `Sistema.Gerenciar` já usada por Identity Providers/Parâmetros/Feature Flags, nenhuma
+permissão nova criada — mais `CsrfHeaderFilter` nas mutações. `unidadeNegocioId` sempre explícito no path
+do recurso administrado, nunca da sessão/corpo da requisição — mesma barreira de isolamento cross-BU dos
+demais 6 módulos da O1.11. Frontend: novo módulo `frontend/web/src/administration/notification-configuration/`
+(mesmo padrão físico dos demais módulos O1.11: types/services/hooks/components/pages/routes/tests),
+reaproveitando `UnidadeNegocioSeletor`; rota `/administracao/configuracao-notificacao` e item de menu
+(`Sistema.Gerenciar`) registrados. Visual AZZAS/SOMA preservado, sem etapa de Design separada.
+
+**Testes re-executados nesta sessão:** Backend — `dotnet build backend/BlueprintOS.sln`: 0 erros, 0
+avisos. `dotnet test`: **557 testes unitários + 7 de integração aprovados**, 0 falhas (9 testes novos de
+`ConfiguracaoNotificacaoUseCases` — leitura, criação, edição idempotente, ativação com e-mail válido,
+rejeição de ativação sem e-mail, rejeição de formato inválido, isolamento entre duas Unidades de Negócio,
+404 de Unidade de Negócio inexistente — sem nenhuma regressão nos demais módulos). Frontend — `npm run
+build` (`tsc -b`/`vite build`): aprovado. `npm run test` (Vitest): **98 testes aprovados** em 17 arquivos
+(4 testes novos de `ConfiguracaoNotificacaoPage` — estado configurado, 404 como estado vazio,
+ativar/inativar e salvar, ausência de catálogo de eventos fictício — sem regressão).
+
+**Chrome/MCP:** dispensado. Funcionalidade administrativa simples (formulário CRUD 1:1); persistência,
+isolamento por BU, validação de e-mail e interação de formulário foram exercitados diretamente pelos
+testes automatizados de backend e frontend — mesmo raciocínio já aplicado às demais 6 sub-telas desta
+Work Order.
+
+**Segurança:** revisão focada na nova superfície (#24). Nenhum achado CRITICAL ou HIGH. RBAC real via
+policy (nunca por nome de Perfil); `unidadeNegocioId` sempre do path; CSRF nas mutações; sem mass
+assignment (`Id` sempre gerado no servidor); validação de e-mail no backend reaproveitando
+`EmailUsuarioValidator` já auditado na O1.6; sem segredo/dado sensível nesta entidade (não usa
+`ISegredoProtector`, logo a dívida LOW conhecida da O1.11 sobre `DataProtection` não é afetada e
+permanece deferida ao Gate Final pós-O1.14).
+
+**Dívidas:** nenhuma dívida nova bloqueante. Registrado como nota não bloqueante: catálogo de eventos
+configuráveis por notificação permanece pendente de documentação formal de produto, a ser endereçado em
+Work Order futura quando os workflows operacionais correspondentes existirem. Nenhuma dívida anterior da
+O1.11 foi resolvida ou alterada nesta etapa.
+
+**Auditoria final dos 7 entregáveis da O1.11:** #3 Seleção de Unidade de Negócio, #13 Cadastro de
+Unidades de Negócio, #20 Identity Providers por UN, #21 Configuração de ERP por UN, #22 Parâmetros
+gerais, #23 Feature Flags e #24 Configuração de Notificações — todos com evidência real de código,
+persistência e testes automatizados aprovados (ver tabela completa no Relatório final da Work Order,
+`.ai/work-orders/completed/O1.11-FundacaoMultiUnidadeDeNegocioEConfiguracao.md`). **Status formal: O1.11
+Concluída (7/7).**
+
+**Fechamento:** Work Order movida de `.ai/work-orders/active/` para `.ai/work-orders/completed/`.
+`.ai/work-orders/active/` volta a ficar vazio.
+
+**Métrica oficial da Onda 1 recalculada neste fechamento** (mesma regra-fonte,
+`.ai/dashboard/DASHBOARD_STATE.md`): **41 entregáveis / 20 Concluído / 7 Em desenvolvimento / 14
+Planejado / 48,7805% de Progresso Técnico** (exibido **49%**; 20 ÷ 41). Antes: 13 / 7 / 21 / 32%.
+Mudança: os 7 entregáveis da O1.11 (#3, #13, #20, #21, #22, #23, #24) passam de Planejado para
+**Concluído** (a métrica interina desta Work Order permaneceu deliberadamente congelada em 13/7/21
+durante toda a execução parcial, por decisão de recalcular apenas no fechamento formal; o balde "Em
+desenvolvimento" de 7 itens — ex.: #4/#5/#6/#7/#8/#9/#11 — é inalterado por esta Work Order). Contribuição
+da Onda 1 ao MVP: 6,34 → **9,7561 pontos** (20% × 48,7805%). Percentual Global do MVP 1.0: 33,34% exato
+→ **36,7561%** exato (Foundation 20,0 + Onda 1 9,7561 + Onda 2 7,0), exibido **37%**. **Por instrução
+expressa do Product Owner, `.ai/dashboard/DASHBOARD_STATE.md` não foi editado** — o Dashboard oficial
+permanece D-1, atualizado pelo Product Owner via `[atualizar dashboard]`.
+
+**O1.12 NÃO foi iniciada** (permanece em `backlog/`, Draft/Planejada — a dependência de O1.11 fechar
+formalmente está agora satisfeita, mas a abertura formal da O1.12 requer nova autorização explícita do
+Product Owner, não concedida nesta sessão). **O1.13.5 (Fundação dos Agents Especialistas Linx) NÃO foi
+iniciada** (permanece em `backlog/`, Draft/Planejada, não aprovada). **O Gate Final da Onda 1** (auditoria
+consolidada dos 41 entregáveis, GAPs, dívidas, hardening, validação integrada e revisão de Design
+consolidada, previsto para depois de O1.11→O1.12→O1.13→O1.13.5→O1.14) **NÃO foi antecipado** nesta
+sessão — apenas preservado como planejamento já registrado.
