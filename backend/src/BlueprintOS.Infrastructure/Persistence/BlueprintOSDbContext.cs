@@ -13,6 +13,8 @@ public sealed class BlueprintOSDbContext(DbContextOptions<BlueprintOSDbContext> 
     public DbSet<PerfilPermissao> PerfisPermissoes => Set<PerfilPermissao>();
     public DbSet<UsuarioPerfil> UsuariosPerfis => Set<UsuarioPerfil>();
     public DbSet<UsuarioCentroCusto> UsuariosCentrosCusto => Set<UsuarioCentroCusto>();
+    public DbSet<FilialMetadado> FiliaisMetadados => Set<FilialMetadado>();
+    public DbSet<CentroCustoMetadado> CentrosCustoMetadados => Set<CentroCustoMetadado>();
     public DbSet<CodigoVerificacaoOtp> CodigosVerificacaoOtp => Set<CodigoVerificacaoOtp>();
     public DbSet<OtpRequestThrottle> OtpRequestThrottles => Set<OtpRequestThrottle>();
     public DbSet<SessaoAutenticacao> SessoesAutenticacao => Set<SessaoAutenticacao>();

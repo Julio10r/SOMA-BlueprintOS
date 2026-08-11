@@ -111,14 +111,15 @@ public sealed class ObterUsuarioUseCase(IUsuarioRepository usuarios) : IObterUsu
 public sealed class CriarUsuarioUseCase(
     IUsuarioRepository usuarios,
     IPerfilRepository perfis,
+    ICentroCustoVinculoValidator centrosCusto,
     TimeProvider clock) : ICriarUsuarioUseCase
 {
     public async Task<RbacResultado<UsuarioDto>> ExecuteAsync(
         UsuarioInput input, Guid unidadeNegocioId, IReadOnlyList<string> permissoesDoAtor, CancellationToken ct) =>
-        await CriarUsuarioUseCase.Executar(usuarios, perfis, clock, permissoesDoAtor, input, unidadeNegocioId, ct);
+        await CriarUsuarioUseCase.Executar(usuarios, perfis, centrosCusto, clock, permissoesDoAtor, input, unidadeNegocioId, ct);
 
     internal static async Task<RbacResultado<UsuarioDto>> Executar(
-        IUsuarioRepository usuarios, IPerfilRepository perfis, TimeProvider clock,
+        IUsuarioRepository usuarios, IPerfilRepository perfis, ICentroCustoVinculoValidator centrosCusto, TimeProvider clock,
         IReadOnlyList<string>? permissoesDoAtor, UsuarioInput input, Guid unidadeNegocioId, CancellationToken ct)
     {
         var nome = (input.Nome ?? string.Empty).Trim();
@@ -162,27 +163,28 @@ public sealed class CriarUsuarioUseCase(
             }
         }
 
+        // O1.6-L2 — nenhum código ERP inexistente ou de outra Unidade de Negócio pode ser vinculado.
+        var centrosCustoResolvidos = await centrosCusto.ValidarEAncorarAsync(input.CentrosCusto, unidadeNegocioId, ct);
+        if (!centrosCustoResolvidos.Sucesso)
+        {
+            return RbacResultado<UsuarioDto>.Erro(centrosCustoResolvidos.Falha, centrosCustoResolvidos.Mensagem!);
+        }
+
         var agora = clock.GetUtcNow();
         var usuario = new Usuario(email, nome, unidadeNegocioId, input.TodosCentrosCusto, agora);
         await usuarios.AdicionarAsync(usuario, ct);
         await usuarios.SubstituirPerfisAsync(usuario.Id, perfisResolvidos.Valor!.Select(x => x.Id).ToArray(), ct);
-        await usuarios.SubstituirCentrosCustoAsync(usuario.Id, NormalizarCentrosCusto(input.CentrosCusto), ct);
+        await usuarios.SubstituirCentrosCustoAsync(usuario.Id, centrosCustoResolvidos.Valor!, ct);
         await usuarios.SalvarAlteracoesAsync(ct);
 
         return RbacResultado<UsuarioDto>.Ok(await UsuarioProjection.ProjetarUmAsync(usuarios, usuario, ct));
     }
-
-    internal static string[] NormalizarCentrosCusto(IReadOnlyList<string>? codigos) =>
-        (codigos ?? [])
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Select(x => x.Trim())
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
 }
 
 public sealed class AtualizarUsuarioUseCase(
     IUsuarioRepository usuarios,
     IPerfilRepository perfis,
+    ICentroCustoVinculoValidator centrosCusto,
     TimeProvider clock) : IAtualizarUsuarioUseCase
 {
     public async Task<RbacResultado<UsuarioDto>> ExecuteAsync(
@@ -222,10 +224,17 @@ public sealed class AtualizarUsuarioUseCase(
                 $"Você não pode vincular Perfis com permissões que não possui: {string.Join(", ", acimaDoAtor)}.");
         }
 
+        // O1.6-L2 — nenhum código ERP inexistente ou de outra Unidade de Negócio pode ser vinculado.
+        var centrosCustoResolvidos = await centrosCusto.ValidarEAncorarAsync(input.CentrosCusto, unidadeNegocioId, ct);
+        if (!centrosCustoResolvidos.Sucesso)
+        {
+            return RbacResultado<UsuarioDto>.Erro(centrosCustoResolvidos.Falha, centrosCustoResolvidos.Mensagem!);
+        }
+
         var agora = clock.GetUtcNow();
         usuario.Atualizar(nome, input.TodosCentrosCusto, agora);
         await usuarios.SubstituirPerfisAsync(usuario.Id, perfisResolvidos.Valor!.Select(x => x.Id).ToArray(), ct);
-        await usuarios.SubstituirCentrosCustoAsync(usuario.Id, CriarUsuarioUseCase.NormalizarCentrosCusto(input.CentrosCusto), ct);
+        await usuarios.SubstituirCentrosCustoAsync(usuario.Id, centrosCustoResolvidos.Valor!, ct);
         await usuarios.SalvarAlteracoesAsync(ct);
 
         return RbacResultado<UsuarioDto>.Ok(await UsuarioProjection.ProjetarUmAsync(usuarios, usuario, ct));

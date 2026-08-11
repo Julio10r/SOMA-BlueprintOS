@@ -1,4 +1,5 @@
 using BlueprintOS.Application.Identity;
+using BlueprintOS.Application.Identity.Contracts;
 using BlueprintOS.Application.Identity.Models;
 using BlueprintOS.Domain.Identity;
 
@@ -13,14 +14,61 @@ public sealed class UsuarioUseCasesTests
     private static readonly Guid Bu = Guid.NewGuid();
     private static readonly Guid OutraBu = Guid.NewGuid();
 
-    private sealed record Cenario(FakeUsuarioRepositoryCompleto Usuarios, FakePerfilRepository Perfis, FakePermissaoRepository Permissoes);
+    private sealed record Cenario(
+        FakeUsuarioRepositoryCompleto Usuarios, FakePerfilRepository Perfis, FakePermissaoRepository Permissoes,
+        FakeCentroCustoVinculoValidator CentrosCusto);
+
+    /// <summary>Resolução da dívida O1.6-L2: mesma decisão do validador real
+    /// (<c>CentroCustoVinculoValidator</c>) reduzida a memória — códigos em <see cref="Existentes"/> são
+    /// aceitos (e ancorados à primeira Unidade de Negócio que os usar); qualquer outro código é rejeitado
+    /// como inexistente no ERP; um código já ancorado a outra Unidade de Negócio é rejeitado como
+    /// cross-BU.</summary>
+    private sealed class FakeCentroCustoVinculoValidator : ICentroCustoVinculoValidator
+    {
+        public HashSet<string> Existentes { get; } = new(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, Guid> AncoradoEm { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+        public Task<RbacResultado<IReadOnlyList<string>>> ValidarEAncorarAsync(
+            IReadOnlyList<string>? codigosErp, Guid unidadeNegocioId, CancellationToken ct)
+        {
+            var normalizados = (codigosErp ?? [])
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            foreach (var codigo in normalizados)
+            {
+                if (AncoradoEm.TryGetValue(codigo, out var bu))
+                {
+                    if (bu != unidadeNegocioId)
+                    {
+                        return Task.FromResult(RbacResultado<IReadOnlyList<string>>.Erro(
+                            RbacFalha.CentroCustoInvalido, $"O Centro de Custo '{codigo}' pertence a outra Unidade de Negócio."));
+                    }
+                    continue;
+                }
+
+                if (!Existentes.Contains(codigo))
+                {
+                    return Task.FromResult(RbacResultado<IReadOnlyList<string>>.Erro(
+                        RbacFalha.CentroCustoInvalido, $"O Centro de Custo '{codigo}' não existe no ERP."));
+                }
+
+                AncoradoEm[codigo] = unidadeNegocioId;
+            }
+
+            return Task.FromResult(RbacResultado<IReadOnlyList<string>>.Ok((IReadOnlyList<string>)normalizados));
+        }
+    }
 
     private static Cenario Arrange()
     {
         var permissoes = new FakePermissaoRepository();
         var perfis = new FakePerfilRepository { Permissoes = permissoes };
         var usuarios = new FakeUsuarioRepositoryCompleto { PerfilLookup = perfis.All };
-        return new Cenario(usuarios, perfis, permissoes);
+        var centrosCusto = new FakeCentroCustoVinculoValidator { Existentes = { "cc-001", "cc-002", "cc-003" } };
+        return new Cenario(usuarios, perfis, permissoes, centrosCusto);
     }
 
     private static readonly IReadOnlyList<string> AtorOnipotente = PermissaoCatalogo.Codigos.ToArray();
@@ -48,8 +96,8 @@ public sealed class UsuarioUseCasesTests
         return usuario;
     }
 
-    private static CriarUsuarioUseCase Criar(Cenario c) => new(c.Usuarios, c.Perfis, TimeProvider.System);
-    private static AtualizarUsuarioUseCase Atualizar(Cenario c) => new(c.Usuarios, c.Perfis, TimeProvider.System);
+    private static CriarUsuarioUseCase Criar(Cenario c) => new(c.Usuarios, c.Perfis, c.CentrosCusto, TimeProvider.System);
+    private static AtualizarUsuarioUseCase Atualizar(Cenario c) => new(c.Usuarios, c.Perfis, c.CentrosCusto, TimeProvider.System);
     private static AlterarStatusUsuarioUseCase AlterarStatus(Cenario c) => new(c.Usuarios, TimeProvider.System);
 
     [Fact]
@@ -276,5 +324,58 @@ public sealed class UsuarioUseCasesTests
 
         Assert.False(resultado.Sucesso);
         Assert.Equal(RbacFalha.UltimoAdministradorSeniorAtivo, resultado.Falha);
+    }
+
+    // ---- O1.6-L2 — validação real do vínculo Usuário×Centro de Custo ----
+
+    /// <summary>Um código ERP que não existe é rejeitado — nunca aceito como texto livre.</summary>
+    [Fact]
+    public async Task Criar_Should_Reject_CentroCusto_Not_Found_In_Erp()
+    {
+        var c = Arrange();
+
+        var resultado = await Criar(c).ExecuteAsync(
+            new UsuarioInput("Bruno Lima", "bruno.lima@somagrupo.com.br", [], ["cc-inexistente"], false),
+            Bu, AtorOnipotente, CancellationToken.None);
+
+        Assert.False(resultado.Sucesso);
+        Assert.Equal(RbacFalha.CentroCustoInvalido, resultado.Falha);
+    }
+
+    /// <summary>Um código ERP já ancorado a outra Unidade de Negócio não pode ser vinculado a um usuário de
+    /// uma Unidade de Negócio diferente — fecha o vetor de vínculo cross-BU da dívida O1.6-L2.</summary>
+    [Fact]
+    public async Task Criar_Should_Reject_CentroCusto_Anchored_To_Another_UnidadeNegocio()
+    {
+        var c = Arrange();
+        await Criar(c).ExecuteAsync(
+            new UsuarioInput("Usuário Bu", "usuario.bu@somagrupo.com.br", [], ["cc-001"], false),
+            Bu, AtorOnipotente, CancellationToken.None);
+
+        var resultado = await Criar(c).ExecuteAsync(
+            new UsuarioInput("Usuário OutraBu", "usuario.outrabu@somagrupo.com.br", [], ["cc-001"], false),
+            OutraBu, AtorOnipotente, CancellationToken.None);
+
+        Assert.False(resultado.Sucesso);
+        Assert.Equal(RbacFalha.CentroCustoInvalido, resultado.Falha);
+    }
+
+    /// <summary>Editar um usuário existente também passa pela mesma validação — não é um cuidado exclusivo
+    /// da criação.</summary>
+    [Fact]
+    public async Task Atualizar_Should_Reject_CentroCusto_Not_Found_In_Erp()
+    {
+        var c = Arrange();
+        var perfil = CriarPerfil(c, Bu, "Analista", PermissaoCatalogo.PedidoCriar);
+        var criado = await Criar(c).ExecuteAsync(
+            new UsuarioInput("Usuário", "usuario@somagrupo.com.br", [perfil.Id], ["cc-001"], false), Bu, AtorOnipotente, CancellationToken.None);
+
+        var resultado = await Atualizar(c).ExecuteAsync(
+            criado.Valor!.Id,
+            new UsuarioInput("Usuário", "usuario@somagrupo.com.br", [perfil.Id], ["cc-999"], false),
+            Bu, AtorOnipotente, CancellationToken.None);
+
+        Assert.False(resultado.Sucesso);
+        Assert.Equal(RbacFalha.CentroCustoInvalido, resultado.Falha);
     }
 }

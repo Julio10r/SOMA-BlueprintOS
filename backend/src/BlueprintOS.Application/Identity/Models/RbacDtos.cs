@@ -63,6 +63,11 @@ public enum RbacFalha
     UsuarioNaoEncontrado,
     PerfilInvalido,
     UltimoAdministradorSeniorAtivo,
+
+    /// <summary>Resolução da dívida O1.6-L2: um código ERP de Centro de Custo informado no vínculo
+    /// Usuário×Centro de Custo não existe no ERP, ou já está ancorado (via <c>CentroCustoMetadado</c>) a
+    /// outra Unidade de Negócio — nenhum dos dois casos é aceito.</summary>
+    CentroCustoInvalido,
 }
 
 /// <summary>Resultado de operação de escrita de Perfil. Nunca lança exceção para falha de regra de

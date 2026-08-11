@@ -76,6 +76,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAprovarEnriquecimentoFornecedorUseCase, AprovarEnriquecimentoFornecedorUseCase>();
         services.AddScoped<IRejeitarEnriquecimentoFornecedorUseCase, RejeitarEnriquecimentoFornecedorUseCase>();
 
+        // O1.7 — Filiais e Centros de Custo integrados ao ERP (leitura real + metadados locais +Compras) e
+        // a validação de vínculo Usuário×Centro de Custo (O1.6-L2) são registradas em
+        // IdentityServiceCollectionExtensions.AddRbacCore — reaproveitadas aqui via AddIdentityAuthCore,
+        // chamado junto de AddInfrastructure na composição raiz (Program.cs).
+
         services.Configure<CnpjConsultaOptions>(configuration.GetSection(CnpjConsultaOptions.SectionName));
         services.AddHttpClient<ICnpjConsultaProvider, BrasilApiCnpjProvider>((provider, client) =>
         {

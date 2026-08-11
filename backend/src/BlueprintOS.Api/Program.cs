@@ -225,6 +225,8 @@ app.MapAuth();
 app.MapBootstrap();
 app.MapPerfis();
 app.MapUsuarios();
+app.MapFiliais();
+app.MapCentrosCusto();
 if (app.Environment.IsDevelopment())
 {
     app.MapDevelopmentOtpDiagnostics();

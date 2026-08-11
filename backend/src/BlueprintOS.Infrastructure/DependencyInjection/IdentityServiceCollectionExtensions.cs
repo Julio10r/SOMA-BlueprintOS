@@ -1,7 +1,10 @@
 using BlueprintOS.Application.Identity;
 using BlueprintOS.Application.Identity.Contracts;
 using BlueprintOS.Application.Identity.Models;
+using BlueprintOS.Infrastructure.Administration;
 using BlueprintOS.Infrastructure.Identity;
+using BlueprintOS.Infrastructure.Integrations.ERP.Contracts;
+using BlueprintOS.Infrastructure.Integrations.ERP.Soma;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -62,6 +65,21 @@ public static class IdentityServiceCollectionExtensions
         services.AddScoped<ICriarUsuarioUseCase, CriarUsuarioUseCase>();
         services.AddScoped<IAtualizarUsuarioUseCase, AtualizarUsuarioUseCase>();
         services.AddScoped<IAlterarStatusUsuarioUseCase, AlterarStatusUsuarioUseCase>();
+
+        // O1.7 — Filiais e Centros de Custo integrados ao ERP. IAtualizarUsuarioUseCase/ICriarUsuarioUseCase
+        // (acima) dependem de ICentroCustoVinculoValidator para a resolução da dívida O1.6-L2 — registrado
+        // aqui (e não apenas em AddInfrastructure) para que os dois pontos de composição do host que
+        // registram os casos de uso de Usuário (Program.cs e testes de host mínimo) resolvam a árvore de
+        // dependências completa.
+        services.AddScoped<IFilialErpReader, SomaFilialReader>();
+        services.AddScoped<ICentroCustoErpReader, SomaCentroCustoReader>();
+        services.AddScoped<IFilialMetadadoRepository, FilialMetadadoRepository>();
+        services.AddScoped<ICentroCustoMetadadoRepository, CentroCustoMetadadoRepository>();
+        services.AddScoped<IListarFiliaisUseCase, ListarFiliaisUseCase>();
+        services.AddScoped<IAtualizarMetadadoFilialUseCase, AtualizarMetadadoFilialUseCase>();
+        services.AddScoped<IListarCentrosCustoUseCase, ListarCentrosCustoUseCase>();
+        services.AddScoped<IAtualizarMetadadoCentroCustoUseCase, AtualizarMetadadoCentroCustoUseCase>();
+        services.AddScoped<ICentroCustoVinculoValidator, CentroCustoVinculoValidator>();
     }
 
     /// <summary>Fundação Backend do Bootstrap (Work Order O1.4.3, etapa O1.4.3.1). Registra

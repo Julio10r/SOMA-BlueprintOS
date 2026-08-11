@@ -121,6 +121,7 @@ public static class UsuariosController
         RbacFalha.EmailDuplicado => Results.Conflict(new { code = "email_duplicado", message = resultado.Mensagem }),
         RbacFalha.UltimoAdministradorSeniorAtivo => Results.Conflict(new { code = "ultimo_administrador_senior_ativo", message = resultado.Mensagem }),
         RbacFalha.PerfilInvalido => Results.BadRequest(new { code = "perfil_invalido", message = resultado.Mensagem }),
+        RbacFalha.CentroCustoInvalido => Results.BadRequest(new { code = "centro_custo_invalido", message = resultado.Mensagem }),
         RbacFalha.EscalonamentoDePrivilegio => Results.Json(
             new { code = "escalonamento_de_privilegio", message = resultado.Mensagem },
             statusCode: StatusCodes.Status403Forbidden),
