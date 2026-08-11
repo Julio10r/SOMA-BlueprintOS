@@ -130,7 +130,7 @@ Novas Work Orders propostas para conclusão da Onda 1, todas em status **Draft (
 | O1.11 | Fundação Multi-Unidade de Negócio e Configuração | ESTRUTURA + DESIGN | #3, #13, #20, #21, #22, #23, #24 | O1.6 | ✅ **CONCLUÍDA (11/08/2026)** — 7/7 entregáveis implementados e validados; #24 (Notificações) entregue em escopo mínimo de fundação, por decisão formal do Product Owner (sem catálogo de eventos, sem motor de envio) | [O1.11](work-orders/completed/O1.11-FundacaoMultiUnidadeDeNegocioEConfiguracao.md) |
 | O1.12 | Workflow, Aprovação, Alçadas e Controle Orçamentário | ESTRUTURA + DESIGN | #25, #26, #27, #28 | O1.5, O1.9 | [O1.12](work-orders/completed/O1.12-WorkflowAprovacaoAlcadasOrcamento.md) — ✅ Concluída |
 | O1.13 | Administração Operacional e Monitoramento | ESTRUTURA + DESIGN | #29, #30, #31, #32 | Nenhuma bloqueante | [O1.13](work-orders/completed/O1.13-AdministracaoOperacionalEMonitoramento.md) — ✅ Concluída |
-| O1.14 | Blueprint de Banco e Validação Funcional Final | ESTRUTURA | #36, #37, #38, #39, #40, #41 (+ evolução de #33–#35) | O1.5, O1.6, O1.7, O1.8, O1.9 | [O1.14](work-orders/backlog/O1.14-BlueprintDeBancoEValidacaoFuncionalFinal.md) |
+| O1.14 | Blueprint de Banco e Validação Funcional Final | ESTRUTURA | #36, #37, #38, #39, #40, #41 (+ evolução de #33–#35) | O1.5, O1.6, O1.7, O1.8, O1.9 | ✅ **CONCLUÍDA (11/08/2026)** — `docs/database/Database.md` consolidado, `docs/audits/O1.14-InventarioDividasEGaps.md` produzido, 689/689 testes backend aprovados, sem migration pendente | [O1.14](work-orders/completed/O1.14-BlueprintDeBancoEValidacaoFuncionalFinal.md) |
 
 ### Ressalvas remanescentes da Security Validation independente da O1.5 (aceitas pelo Product Owner em 11/08/2026)
 
@@ -487,3 +487,45 @@ executado.
 
 **A O1.14 NÃO foi iniciada** (permanece em `backlog/`, Draft/Planejada). **O Gate Final da Onda 1 NÃO foi
 antecipado.**
+
+## O1.14 — Blueprint de Banco e Validação Funcional Final — ABERTA E CONCLUÍDA (11/08/2026)
+
+Movida de `backlog/` para `active/` e, na mesma sessão, para `completed/`. Última sprint planejada da
+sequência atual da Onda 1. Consolidou (sem redigir do zero, conforme D7/ADR-0021) o blueprint
+administrativo incremental já produzido por O1.5–O1.13.5 em `docs/database/Database.md`: fatias de
+Unidades de Alocação/CC×UA (O1.8/O1.9), Multi-BU (O1.11), Workflow/Alçada/Orçamento (O1.12), Fornecedores
+(B1/B2/B2.1) e Conhecimento Linx (O1.13.5) acrescentadas; catálogo RBAC completo (19 permissões) com
+mapeamento de enforcement por controller; tabela de fonte canônica ERP × +Compras por domínio; mapa de
+relacionamentos com cardinalidades reais; matriz de rastreabilidade Domínio → Entidade → Tabela →
+Migration → API → Frontend; estado das migrations (execução real, sem drift).
+
+Produzido `docs/audits/O1.14-InventarioDividasEGaps.md`, consolidando 18 dívidas técnicas e 4 GAPs
+funcionais a partir de `.ai/BACKLOG.md` e das seções finais de todos os Work Orders `completed/` de O1.1 a
+O1.13.5 — eliminando duplicidade documental entre sprints. Nenhuma dívida foi quitada nesta sprint.
+
+**Achado novo desta auditoria:** DEB-03 (MEDIUM, não bloqueante) — `ObterSincronizacaoFornecedorUseCase`
+busca `SincronizacaoFornecedor` por `Id` sem filtro de `BusinessUnit`; endpoint restrito a
+`Sistema.Gerenciar`, dado não sensível de terceiros, registrado para hardening pós-Gate Final. Nenhum
+achado CRITICAL/HIGH.
+
+**Reconciliação Agents Linx × AI Factory:** confirmado explicitamente que a O1.13.5 entrega apenas MVP de
+memória persistente/versionamento/proveniência com busca textual/estruturada — RAG com vector store/
+embeddings, orquestração multi-agente (Maestro) e observabilidade completa (`docs/agents/ai-factory/`)
+permanecem exclusivamente arquitetura-alvo, sem implementação de código correspondente.
+
+Backend: `dotnet build` 0 erros/0 avisos; `dotnet test` 689/689 aprovados (682 unitários + 7 integração),
+sem regressão em relação à baseline de entrada. Frontend não alterado nesta sprint; suíte de 116 testes
+(Vitest) permanece válida.
+
+**Reconciliação da Onda 1:** os entregáveis #36–#41 têm agora conteúdo objetivo correspondente. Nenhuma
+reclassificação de status foi feita na matriz oficial dos 41 entregáveis nesta sessão — fica para a etapa
+de auditoria exaustiva pós-O1.14. Progresso técnico da Onda 1 não alterado por esta sprint.
+`[atualizar dashboard]` não foi executado.
+
+**Work Order:** movida para `.ai/work-orders/completed/O1.14-BlueprintDeBancoEValidacaoFuncionalFinal.md`.
+
+**A Onda 1 NÃO foi declarada concluída.** **O Gate Final da Onda 1 NÃO foi executado.** **O Design Review
+NÃO foi iniciado.** **A Onda 2 NÃO foi iniciada.** Próxima etapa (apenas registrada, não iniciada):
+auditoria individual dos 41 entregáveis com evidência objetiva, revisão de status, implementação de GAPs,
+quitação de dívidas razoáveis (inventário desta sprint), hardening, validação integrada, reconciliação de
+documentação/métricas, e só então decisão sobre a conclusão a 100% da Onda 1.

@@ -1520,3 +1520,75 @@ pelos critérios desta sprint).
 
 **A O1.14 NÃO foi iniciada** (permanece em `backlog/`, Draft/Planejada). **O Gate Final da Onda 1 NÃO foi
 antecipado** nesta sessão.
+
+---
+
+## Sprint O1.14 — Blueprint de Banco e Validação Funcional Final — ✅ concluída (11/08/2026)
+
+**Status:** ✅ concluída e encerrada formalmente. Última sprint planejada da sequência atual da Onda 1 —
+**a Onda 1 NÃO foi declarada concluída** por esta sprint; permanece pendente uma etapa específica e
+separada de auditoria exaustiva dos 41 entregáveis, implementação de GAPs, pagamento/hardening de
+dívidas e Gate Final, seguida de revisão consolidada de Design e só então a Onda 2.
+
+**Objetivo:** consolidar o blueprint administrativo incremental já produzido por O1.5–O1.13.5 (D7,
+ADR-0021) num documento único e reconciliado com o modelo EF Core/migrations reais — sem redigir
+blueprint novo do zero — e realizar a validação funcional final da fundação administrativa da Onda 1.
+
+**Entregas desta sprint:**
+
+- `docs/database/Database.md` consolidado: fatias de Unidades de Alocação/CC×UA (O1.8/O1.9), Multi-BU
+  (O1.11), Workflow/Alçada/Orçamento (O1.12), Fornecedores (B1/B2/B2.1) e Conhecimento Linx (O1.13.5)
+  acrescentadas ao documento; catálogo RBAC completo (19 permissões) com mapeamento de enforcement por
+  controller; tabela de fonte canônica ERP × +Compras por domínio; mapa de relacionamentos com
+  cardinalidades reais (Fluent API); matriz de rastreabilidade Domínio → Entidade → Tabela → Migration →
+  API → Frontend; estado das migrations (execução real de `dotnet ef migrations list`/
+  `has-pending-model-changes` — nenhuma pendência, nenhum drift).
+- `docs/audits/O1.14-InventarioDividasEGaps.md` (novo): 18 dívidas técnicas e 4 GAPs funcionais
+  consolidados a partir de `.ai/BACKLOG.md` e das seções finais de todos os Work Orders `completed/` de
+  O1.1 a O1.13.5, com origem, severidade, superfície e status (Resolvida/Aberta/Superada/Não aplicável),
+  eliminando duplicidade documental entre sprints — nenhuma dívida foi quitada nesta sprint.
+- Auditoria técnica direta (duas frentes): (1) modelo EF Core/RBAC/Multi-BU/migrations — confirmou
+  ausência de drift e identificou um achado **MEDIUM** novo (DEB-03: leitura de `SincronizacaoFornecedor`
+  por Id sem filtro de BU em `ObterSincronizacaoFornecedorUseCase`, não bloqueante); (2) reconciliação
+  Agents Linx × AI Factory — confirmou que a O1.13.5 entrega apenas MVP de memória/versionamento/
+  proveniência com busca textual, e que todo o aparato de RAG/embeddings/vector store/orquestração
+  multi-agente/observabilidade completa descrito em `docs/agents/ai-factory/` permanece exclusivamente
+  arquitetura-alvo, sem implementação de código correspondente.
+- Nenhum achado **CRITICAL** ou **HIGH** de segurança nesta sprint.
+
+**Validações executadas:**
+
+- `dotnet build backend/BlueprintOS.sln`: aprovado, 0 erros, 0 avisos.
+- `dotnet test backend/BlueprintOS.sln`: aprovado, 689/689 (682 unitários + 7 integração), sem regressão
+  em relação à baseline de entrada (O1.13.5).
+- `dotnet ef migrations list` / `dotnet ef migrations has-pending-model-changes`: executados, saída
+  literal registrada em `docs/database/Database.md` — nenhuma migration pendente.
+- Frontend não alterado (sprint documental/de banco); suíte de 116 testes (Vitest) permanece válida,
+  não reexecutada por ausência de mudança.
+- Chrome/MCP dispensado — código, migrations e testes forneceram evidência suficiente para esta sprint
+  predominantemente documental.
+
+**Reconciliação da Onda 1:** os entregáveis oficiais #36–#41 (Blueprint funcional do banco, Matriz tela ×
+campo × entidade, Matriz +Compras × ERP, mapeamento de APIs, mapeamento de integrações, validação
+funcional) têm agora conteúdo objetivo correspondente produzido nesta sprint. A reclassificação formal de
+status desses itens na matriz oficial dos 41 entregáveis **não foi feita nesta sessão** — fica para a
+etapa de auditoria exaustiva pós-O1.14, por instrução explícita desta sessão (nenhum recálculo por
+otimismo). O percentual técnico oficial da Onda 1 **não foi alterado** por esta sprint.
+
+**Critérios de aceite:** os 3 critérios da Work Order foram satisfeitos com evidência objetiva. Work Order
+movida de `active/` para `completed/`
+([O1.14](work-orders/completed/O1.14-BlueprintDeBancoEValidacaoFuncionalFinal.md)).
+
+**Confirmações explícitas de encerramento desta sessão:**
+
+- A **Onda 1 NÃO foi declarada concluída**.
+- O **Gate Final da Onda 1 NÃO foi executado**.
+- O **Design Review NÃO foi iniciado**.
+- A **Onda 2 NÃO foi iniciada**.
+- `[atualizar dashboard]` **não** foi executado, conforme instrução permanente do handbook e desta sessão.
+
+**Próxima etapa (apenas registrada, não iniciada):** auditoria individual dos 41 entregáveis com evidência
+objetiva para cada "Concluído", revisão de todos os "Em desenvolvimento"/"Planejado", identificação de
+GAPs reais, implementação do que faltar, quitação das dívidas do inventário desta sprint razoavelmente
+solucionáveis antes da Onda 2, hardening, validação integrada, reconciliação de documentação/métricas, e
+só então decisão sobre a conclusão a 100% da Onda 1 — seguida de revisão consolidada de Design e Onda 2.
