@@ -15,6 +15,9 @@ import { ErpConfiguracaoRoutes } from "../administration/erp-configuration/route
 import { ParametrosRoutes } from "../administration/parameters/routes/ParametrosRoutes";
 import { FeatureFlagsRoutes } from "../administration/feature-flags/routes/FeatureFlagsRoutes";
 import { ConfiguracaoNotificacaoRoutes } from "../administration/notification-configuration/routes/ConfiguracaoNotificacaoRoutes";
+import { RegrasWorkflowRoutes } from "../administration/workflow/routes/RegrasWorkflowRoutes";
+import { AlcadasAprovacaoRoutes } from "../administration/alcadas/routes/AlcadasAprovacaoRoutes";
+import { RegrasOrcamentariasRoutes } from "../administration/orcamento/routes/RegrasOrcamentariasRoutes";
 import { BusinessUnitGate } from "../business-unit/components/BusinessUnitGate";
 import { Dashboard } from "../analytics/pages/Dashboard";
 import { FornecedoresPage } from "../procurement/suppliers/pages/FornecedoresPage";
@@ -58,6 +61,9 @@ export function AppRoutes() {
                     <Route path="/administracao/parametros/*" element={<ParametrosRoutes />} />
                     <Route path="/administracao/feature-flags/*" element={<FeatureFlagsRoutes />} />
                     <Route path="/administracao/configuracao-notificacao/*" element={<ConfiguracaoNotificacaoRoutes />} />
+                    <Route path="/administracao/regras-workflow/*" element={<RegrasWorkflowRoutes />} />
+                    <Route path="/administracao/alcadas-aprovacao/*" element={<AlcadasAprovacaoRoutes />} />
+                    <Route path="/administracao/regras-orcamentarias/*" element={<RegrasOrcamentariasRoutes />} />
                     <Route path="/fornecedores" element={<FornecedoresPage />} />
                     <Route path="/pedidos" element={<PedidosPage />} />
                     <Route path="/negociacoes" element={<NegociacoesPage />} />

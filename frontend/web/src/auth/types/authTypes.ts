@@ -24,5 +24,8 @@ export const PERMISSOES = {
   unidadeAlocacaoGerenciar: "UnidadeAlocacao.Gerenciar",
   unidadeNegocioGerenciar: "UnidadeNegocio.Gerenciar",
   configuracaoErpGerenciar: "ConfiguracaoErp.Gerenciar",
-  sistemaGerenciar: "Sistema.Gerenciar"
+  sistemaGerenciar: "Sistema.Gerenciar",
+  workflowGerenciar: "Workflow.Gerenciar",
+  alcadaGerenciar: "Alcada.Gerenciar",
+  orcamentoGerenciar: "Orcamento.Gerenciar"
 } as const;
