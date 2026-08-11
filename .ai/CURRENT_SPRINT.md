@@ -822,3 +822,64 @@ Duas reclassificações de entregável, ambas com regra documental prévia e exp
 `.ai/work-orders/active/` está **vazio** (somente `.gitkeep`). Não há Work Order aprovada/em execução. A próxima frente de trabalho depende de decisão e autorização explícitas do Product Owner.
 
 **Ressalva de escopo sobre o Dashboard:** o comando permanente `[atualizar dashboard]` **não** foi executado neste fechamento — sua rotina exige também atualizar o workflow n8n e validar a URL publicada, o que não foi feito. O `DASHBOARD_STATE.md` foi atualizado como parte deste fechamento documental autorizado pelo Product Owner (a própria nota de cabeçalho do documento admite edição por Work Order explícita que a autorize); o Dashboard HTML publicado permanece exibindo os valores anteriores até a próxima execução do comando.
+
+---
+
+## Abertura e execução da Sprint O1.6 — Usuários (Backend Real) — 11/08/2026
+
+Work Order movida de `.ai/work-orders/backlog/` para `.ai/work-orders/active/` e, na mesma sessão, executada integralmente e encerrada — ver seção seguinte. Data de aprovação preenchida como 11/08/2026. Nenhum percentual técnico foi alterado apenas pela abertura.
+
+## Encerramento formal da Sprint O1.6 — Usuários (Backend Real) — 11/08/2026
+
+**Objetivo:** substituir o mock de `administration/users` por backend e persistência reais, com vínculo de Perfis (O1.5) e Centros de Custo, flag "Acesso a todos" e a regra do Administrador Sênior (D1, ADR-0021).
+
+### Implementação
+
+- **Backend** (`BlueprintOS.Domain/Application/Infrastructure/Api`, projeto Identity): `Usuario` estendido com `TodosCentrosCusto`/`CriadoEm`/`AtualizadoEm` e comportamentos `Atualizar`/`Ativar`/`Inativar`; `IUsuarioRepository`/`UsuarioRepository` estendidos com listagem, leitura, vínculos (`UsuariosPerfis`/`UsuariosCentrosCusto`, ambos já existentes desde O1.4.2) e contagem de Administradores Sênior ativos; `IPerfilRepository` estendido com leitura em lote por Ids e Unidade de Negócio; casos de uso novos em `UsuarioUseCases.cs` (Criar/Atualizar/AlterarStatus/Listar/Obter); `UsuariosController` (Api/Administration), mesmo padrão físico e de enforcement de `PerfisController` (O1.5) — policy `permissao:Usuario.Gerenciar`, CSRF no grupo, 401/403/404/409 tratados explicitamente.
+- **Migration** `20260811165339_AddUsuarioGestaoO16`: colunas novas em `Usuarios`; FK de `UsuariosCentrosCusto` → `Usuarios` (ausente desde a criação da tabela em O1.4.2); backfill de auditoria (mesmo padrão da migration O1.5). Aplicada ao banco de desenvolvimento `MaisCompras`; `has-pending-model-changes` limpo.
+- **Frontend** (`administration/users`): `usuariosMockApi.ts` excluído; `usuariosApi.ts` novo (cliente HTTP real, mesmo padrão de `perfisApi.ts`); tipos, hook (`useUsuarios`, com estado `acessoNegado`), componentes (`UsuarioTable`, `PerfisResumo`, `UsuarioForm`, `ConfirmToggleAtivoUsuarioModal`) e páginas ajustados para a forma real do `UsuarioDto` (perfis como `{id, nome, ativo}[]`, `ativo: boolean` em vez de `status` textual); e-mail não editável após a criação.
+- **Não-escalonamento de privilégio estendido ao vínculo:** um ator sem uma permissão não pode vinculá-la a nenhum usuário via Perfil, mesmo possuindo `Usuario.Gerenciar` — sem esta checagem, `Usuario.Gerenciar` seria um caminho indireto para qualquer permissão do sistema.
+- **Regra do Administrador Sênior:** reaproveita `AdministradorSeniorInvariantService` (O1.4.3.2) sem duplicar a lógica; bloqueia com 409 a inativação que deixaria a Unidade de Negócio sem nenhum Administrador Sênior ativo, escopada corretamente por Unidade de Negócio.
+
+### Testes
+
+- Backend: **493 aprovados** (488 unitários + 5 integração; baseline O1.5 477 → +16 novos em `UsuarioUseCasesTests.cs`), 0 falhas. `dotnet build` 0 erros/0 avisos.
+- Frontend: **67 aprovados** (baseline O1.5 61 → +6 líquidos, com 10 testes novos de integração HTTP real substituindo os 4 do mock), 0 falhas. `tsc -b`/`vite build` limpos.
+
+### Smoke test real (Chrome DevTools MCP, backend + frontend + SQL Server de dev)
+
+Login OTP real como `julio.cesar@somagrupo.com.br` (Administrador Sênior criado pelo Bootstrap) via `GET /dev/otp` (exclusivo de Development). Fluxo completo executado e aprovado:
+
+1. Listagem real de Usuários (`GET /api/administracao/usuarios`) — usuário "Julio Cesar" exibido com 1 Perfil, 0 Centro de Custo, Ativo.
+2. Criação de usuário "Maria Teste O1.6" vinculando o Perfil "Analista (O1.5 smoke)" e o Centro de Custo `CC-001` — `POST /api/administracao/usuarios` → 201, refletido imediatamente na listagem (1 Perfil, 1 Centro de Custo).
+3. Inativação do usuário criado (`PATCH .../status` `{ativo: false}`) → 200, status "Inativo" na interface.
+4. Reativação do mesmo usuário → 200, status "Ativo".
+5. **Tentativa de inativar "Julio Cesar" (único Administrador Sênior ativo)** → **409 real do backend**, mensagem "A operação deixaria a Unidade de Negócio sem nenhum Administrador Sênior ativo." exibida na interface; usuário permanece Ativo. Confirma a regra do Administrador Sênior (D1, ADR-0021) end-to-end.
+
+Massa de teste ("Maria Teste O1.6") **permanece no banco de desenvolvimento**, mesmo precedente de dados técnicos de smoke test aceito na O1.5 — não removida, sem exclusão física criada, sem migration de limpeza.
+
+### Revisão de segurança
+
+Revisão própria (não houve Security Validation independente dedicada nesta sprint — dívida não bloqueante registrada em `.ai/BACKLOG.md`, O1.6-M1). Nenhum achado CRITICAL/HIGH. Pontos verificados: enforcement real (não apenas schema) via policy `Usuario.Gerenciar`; escopo por Unidade de Negócio em toda leitura/escrita; não-escalonamento de privilégio no vínculo de Perfil; regra do Administrador Sênior escopada corretamente por Unidade de Negócio (testada inclusive contra um segundo Administrador Sênior ativo em outra Unidade de Negócio, que não deve contar como salvaguarda); e-mail imutável após a criação; ausência de exclusão física.
+
+### Reconciliação dos entregáveis oficiais da Onda 1
+
+Entregáveis **#15 "Usuários"** e **#16 "Usuário por Unidade de Negócio"** passam de **"Em desenvolvimento"**/**"Planejado"** para **"Concluído"**: o mock de `administration/users` foi substituído por persistência real, com `Usuario.UnidadeNegocioId` como escopo obrigatório de toda leitura/escrita (isolamento entre Unidades de Negócio comprovado por teste), satisfazendo ambos os entregáveis. Nenhum outro entregável foi alterado por esta sprint. **Nota:** por instrução expressa do Product Owner nesta sessão, o arquivo `.ai/dashboard/DASHBOARD_STATE.md` **não** foi editado — a reconciliação e o recálculo abaixo são registrados apenas nesta CURRENT_SPRINT.md, em PROJECT_STATE.md e em BACKLOG.md; a atualização do Dashboard oficial permanece com o Product Owner (rotina `[atualizar dashboard]`, não executada).
+
+**Recálculo do Progresso Técnico da Onda 1** (metodologia oficial de `DASHBOARD_STATE.md`, "Política dos percentuais" — só entregável "Concluído" conta; "Em desenvolvimento" sem percentual individual contribui 0):
+
+| Métrica | Antes (fechamento O1.5) | Depois (fechamento O1.6) |
+|---|---|---|
+| Total de entregáveis da Onda 1 | 41 | 41 (inalterado) |
+| Concluído | 8 | **10** (+#15, +#16) |
+| Em desenvolvimento | 11 | **10** (−#15) |
+| Planejado | 22 | **21** (−#16) |
+| Progresso Técnico | 20% (19,5122% exato) | **24%** (10 ÷ 41 = 24,3902% exato) |
+| Contribuição da Onda 1 ao MVP | 3,9 pontos | **4,9 pontos** (20% × 24,3902%) |
+| Percentual Global do MVP 1.0 | 30,90% (exibido 31%) | **31,90%** exato (Foundation 20,0 + Onda 1 4,88 + Onda 2 7,0), exibido **32%** |
+
+### Estado final: NENHUMA SPRINT ATIVA
+
+`.ai/work-orders/active/` está vazio. `O1.6-GestaoDeUsuariosBackendReal.md` movida para `.ai/work-orders/completed/`. **`O1.7-FiliaisECentrosDeCustoIntegradosAoErp.md` permanece em `.ai/work-orders/backlog/`, status Draft/Planejada — não iniciada.**
+
+**Ressalva de escopo sobre o Dashboard:** por instrução expressa do Product Owner nesta sessão, a rotina `[atualizar dashboard]` **não** foi executada e `dashboard/DASHBOARD_STATE.md` **não** foi tocado manualmente. O Dashboard publicado permanece exibindo os valores do fechamento da O1.5 até que o Product Owner execute o comando.
