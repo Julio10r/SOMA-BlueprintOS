@@ -25,6 +25,15 @@ public sealed class PerfilRepository(BlueprintOSDbContext db) : IPerfilRepositor
     public Task<Perfil?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct) =>
         db.Perfis.SingleOrDefaultAsync(x => x.Id == id && x.UnidadeNegocioId == unidadeNegocioId, ct);
 
+    public async Task<IReadOnlyList<Perfil>> ObterPorIdsEUnidadeNegocioAsync(
+        IReadOnlyCollection<Guid> ids, Guid unidadeNegocioId, CancellationToken ct)
+    {
+        if (ids.Count == 0) return [];
+        return await db.Perfis
+            .Where(x => ids.Contains(x.Id) && x.UnidadeNegocioId == unidadeNegocioId)
+            .ToListAsync(ct);
+    }
+
     public async Task<IReadOnlyDictionary<Guid, IReadOnlyList<string>>> ObterPermissoesPorPerfilAsync(
         IReadOnlyCollection<Guid> perfilIds, CancellationToken ct)
     {

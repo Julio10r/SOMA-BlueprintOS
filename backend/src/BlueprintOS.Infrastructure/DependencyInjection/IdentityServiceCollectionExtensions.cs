@@ -54,6 +54,14 @@ public static class IdentityServiceCollectionExtensions
         services.AddScoped<IAtualizarPerfilUseCase, AtualizarPerfilUseCase>();
         services.AddScoped<IAlterarStatusPerfilUseCase, AlterarStatusPerfilUseCase>();
         services.AddScoped<IListarCatalogoPermissoesUseCase, ListarCatalogoPermissoesUseCase>();
+
+        // O1.6 — Gestão de Usuários (Backend Real). IUsuarioRepository já é registrado por
+        // AddIdentityAuthCore (Login OTP), e IPerfilRepository por AddBootstrapCore — reaproveitados aqui.
+        services.AddScoped<IListarUsuariosUseCase, ListarUsuariosUseCase>();
+        services.AddScoped<IObterUsuarioUseCase, ObterUsuarioUseCase>();
+        services.AddScoped<ICriarUsuarioUseCase, CriarUsuarioUseCase>();
+        services.AddScoped<IAtualizarUsuarioUseCase, AtualizarUsuarioUseCase>();
+        services.AddScoped<IAlterarStatusUsuarioUseCase, AlterarStatusUsuarioUseCase>();
     }
 
     /// <summary>Fundação Backend do Bootstrap (Work Order O1.4.3, etapa O1.4.3.1). Registra

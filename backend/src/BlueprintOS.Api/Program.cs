@@ -224,6 +224,7 @@ app.MapFornecedorSync();
 app.MapAuth();
 app.MapBootstrap();
 app.MapPerfis();
+app.MapUsuarios();
 if (app.Environment.IsDevelopment())
 {
     app.MapDevelopmentOtpDiagnostics();

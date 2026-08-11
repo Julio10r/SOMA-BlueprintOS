@@ -13,6 +13,9 @@ public sealed class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
         builder.Property(x => x.Email).IsRequired().HasMaxLength(320);
         builder.Property(x => x.Nome).IsRequired().HasMaxLength(200);
         builder.Property(x => x.Status).HasConversion<int>();
+        builder.Property(x => x.TodosCentrosCusto).IsRequired().HasDefaultValue(false);
+        builder.Property(x => x.CriadoEm).IsRequired();
+        builder.Property(x => x.AtualizadoEm).IsRequired();
         builder.HasIndex(x => x.Email).IsUnique();
     }
 }

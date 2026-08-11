@@ -87,5 +87,11 @@ public sealed class UsuarioCentroCustoConfiguration : IEntityTypeConfiguration<U
         builder.ToTable("UsuariosCentrosCusto");
         builder.HasKey(x => new { x.UsuarioId, x.CentroCustoCodigoErp });
         builder.Property(x => x.CentroCustoCodigoErp).IsRequired().HasMaxLength(50);
+
+        // O1.6 — fecha o FK para Usuarios que faltava desde a criação da tabela (O1.4.2): sem ele, um
+        // UsuarioId inválido poderia gerar vínculo órfão. Não há FK para "Centro de Custo": não existe
+        // tabela local de Centro de Custo nesta sprint (a integração ERP, D3/ADR-0021, é escopo futuro) —
+        // o vínculo é pelo código ERP como texto.
+        builder.HasOne<Usuario>().WithMany().HasForeignKey(x => x.UsuarioId).OnDelete(DeleteBehavior.Restrict);
     }
 }

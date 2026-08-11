@@ -21,6 +21,33 @@ public sealed record PerfilDto(
 /// (evita atribuição cruzada de Perfis entre Unidades de Negócio).</summary>
 public sealed record PerfilInput(string Nome, string Descricao, IReadOnlyList<string> Permissoes);
 
+/// <summary>Um Perfil vinculado a um Usuário, na projeção de leitura de <see cref="UsuarioDto"/>.</summary>
+public sealed record UsuarioPerfilResumoDto(Guid Id, string Nome, bool Ativo);
+
+/// <summary>Projeção de leitura de um Usuário (O1.6 — Gestão de Usuários). <c>CentrosCusto</c> traz os
+/// códigos ERP explicitamente vinculados; quando <c>TodosCentrosCusto</c> é verdadeiro, o vínculo explícito
+/// é irrelevante para efeito de acesso (escopo declarado da Work Order — sem integração ERP nesta sprint).</summary>
+public sealed record UsuarioDto(
+    Guid Id,
+    string Nome,
+    string Email,
+    Guid UnidadeNegocioId,
+    bool Ativo,
+    IReadOnlyList<UsuarioPerfilResumoDto> Perfis,
+    IReadOnlyList<string> CentrosCusto,
+    bool TodosCentrosCusto,
+    DateTimeOffset CriadoEm,
+    DateTimeOffset AtualizadoEm);
+
+/// <summary>Entrada de criação/edição de Usuário. <c>UnidadeNegocioId</c> é deliberadamente ausente — vem
+/// sempre da identidade autenticada, nunca do cliente (mesmo cuidado de <see cref="PerfilInput"/>).</summary>
+public sealed record UsuarioInput(
+    string Nome,
+    string Email,
+    IReadOnlyList<Guid> Perfis,
+    IReadOnlyList<string> CentrosCusto,
+    bool TodosCentrosCusto);
+
 public enum RbacFalha
 {
     Nenhuma = 0,
@@ -30,6 +57,12 @@ public enum RbacFalha
     PerfilNaoEncontrado,
     UltimoPerfilAdministrativo,
     EscalonamentoDePrivilegio,
+    EmailObrigatorio,
+    EmailInvalido,
+    EmailDuplicado,
+    UsuarioNaoEncontrado,
+    PerfilInvalido,
+    UltimoAdministradorSeniorAtivo,
 }
 
 /// <summary>Resultado de operação de escrita de Perfil. Nunca lança exceção para falha de regra de

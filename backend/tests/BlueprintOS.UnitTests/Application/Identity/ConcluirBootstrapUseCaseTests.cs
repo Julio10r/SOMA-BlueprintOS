@@ -243,6 +243,25 @@ public sealed class ConcluirBootstrapUseCaseTests
             Task.FromResult(All.SingleOrDefault(x => x.Id == id));
 
         public Task AdicionarAsync(Usuario usuario, CancellationToken ct) { All.Add(usuario); return Task.CompletedTask; }
+
+        // Membros da O1.6 (Gestão de Usuários) não exercitados pelos testes de conclusão do Bootstrap.
+        public Task<IReadOnlyList<Usuario>> ListarPorUnidadeNegocioAsync(Guid unidadeNegocioId, CancellationToken ct) =>
+            throw new NotSupportedException();
+        public Task<Usuario?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct) =>
+            throw new NotSupportedException();
+        public Task<Usuario?> ObterPorEmailEUnidadeNegocioAsync(string email, Guid unidadeNegocioId, CancellationToken ct) =>
+            throw new NotSupportedException();
+        public Task<IReadOnlyDictionary<Guid, IReadOnlyList<BlueprintOS.Application.Identity.Models.UsuarioPerfilResumoDto>>> ObterPerfisPorUsuarioAsync(
+            IReadOnlyCollection<Guid> usuarioIds, CancellationToken ct) => throw new NotSupportedException();
+        public Task<IReadOnlyDictionary<Guid, IReadOnlyList<string>>> ObterCentrosCustoPorUsuarioAsync(
+            IReadOnlyCollection<Guid> usuarioIds, CancellationToken ct) => throw new NotSupportedException();
+        public Task SubstituirPerfisAsync(Guid usuarioId, IReadOnlyCollection<Guid> perfilIds, CancellationToken ct) =>
+            throw new NotSupportedException();
+        public Task SubstituirCentrosCustoAsync(Guid usuarioId, IReadOnlyCollection<string> codigosErp, CancellationToken ct) =>
+            throw new NotSupportedException();
+        public Task<int> ContarAdministradoresSeniorAtivosAsync(Guid unidadeNegocioId, Guid? excluirUsuarioId, CancellationToken ct) =>
+            throw new NotSupportedException();
+        public Task SalvarAlteracoesAsync(CancellationToken ct) => throw new NotSupportedException();
     }
 
     private sealed class FakeUsuarioPerfilRepository : IUsuarioPerfilRepository

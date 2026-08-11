@@ -21,6 +21,11 @@ public interface IPerfilRepository
 
     Task<Perfil?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct);
 
+    /// <summary>Usado pela Gestão de Usuários (O1.6) para validar, em lote, que todos os Perfis informados
+    /// no vínculo pertencem à Unidade de Negócio da sessão — um Id de Perfil de outra Unidade é rejeitado
+    /// como inválido, nunca vinculado silenciosamente.</summary>
+    Task<IReadOnlyList<Perfil>> ObterPorIdsEUnidadeNegocioAsync(IReadOnlyCollection<Guid> ids, Guid unidadeNegocioId, CancellationToken ct);
+
     /// <summary>Códigos de permissão vinculados a cada Perfil informado, para montar a listagem sem N+1.</summary>
     Task<IReadOnlyDictionary<Guid, IReadOnlyList<string>>> ObterPermissoesPorPerfilAsync(
         IReadOnlyCollection<Guid> perfilIds, CancellationToken ct);

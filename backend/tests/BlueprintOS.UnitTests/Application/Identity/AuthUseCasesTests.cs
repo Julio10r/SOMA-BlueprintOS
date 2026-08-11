@@ -218,6 +218,26 @@ internal sealed class FakeUsuarioRepository : IUsuarioRepository
 
     public Task<Usuario?> ObterPorIdAsync(Guid id, CancellationToken ct) =>
         Task.FromResult(_usuarios.SingleOrDefault(x => x.Id == id));
+
+    // Membros da O1.6 (Gestão de Usuários) não exercitados pelos testes de autenticação/OTP (O1.4.x) —
+    // este fake é deliberadamente mínimo; ver FakeUsuarioRepositoryCompleto para os testes de O1.6.
+    public Task<IReadOnlyList<Usuario>> ListarPorUnidadeNegocioAsync(Guid unidadeNegocioId, CancellationToken ct) =>
+        throw new NotSupportedException();
+    public Task<Usuario?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct) =>
+        throw new NotSupportedException();
+    public Task<Usuario?> ObterPorEmailEUnidadeNegocioAsync(string email, Guid unidadeNegocioId, CancellationToken ct) =>
+        throw new NotSupportedException();
+    public Task<IReadOnlyDictionary<Guid, IReadOnlyList<BlueprintOS.Application.Identity.Models.UsuarioPerfilResumoDto>>> ObterPerfisPorUsuarioAsync(
+        IReadOnlyCollection<Guid> usuarioIds, CancellationToken ct) => throw new NotSupportedException();
+    public Task<IReadOnlyDictionary<Guid, IReadOnlyList<string>>> ObterCentrosCustoPorUsuarioAsync(
+        IReadOnlyCollection<Guid> usuarioIds, CancellationToken ct) => throw new NotSupportedException();
+    public Task SubstituirPerfisAsync(Guid usuarioId, IReadOnlyCollection<Guid> perfilIds, CancellationToken ct) =>
+        throw new NotSupportedException();
+    public Task SubstituirCentrosCustoAsync(Guid usuarioId, IReadOnlyCollection<string> codigosErp, CancellationToken ct) =>
+        throw new NotSupportedException();
+    public Task<int> ContarAdministradoresSeniorAtivosAsync(Guid unidadeNegocioId, Guid? excluirUsuarioId, CancellationToken ct) =>
+        throw new NotSupportedException();
+    public Task SalvarAlteracoesAsync(CancellationToken ct) => throw new NotSupportedException();
 }
 
 internal sealed class FakeCodigoRepository : ICodigoVerificacaoOtpRepository

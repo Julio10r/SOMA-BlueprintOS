@@ -28,6 +28,9 @@ public sealed class FakePerfilRepository : IPerfilRepository
     public Task<Perfil?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct) =>
         Task.FromResult(All.SingleOrDefault(x => x.Id == id && x.UnidadeNegocioId == unidadeNegocioId));
 
+    public Task<IReadOnlyList<Perfil>> ObterPorIdsEUnidadeNegocioAsync(IReadOnlyCollection<Guid> ids, Guid unidadeNegocioId, CancellationToken ct) =>
+        Task.FromResult<IReadOnlyList<Perfil>>(All.Where(x => ids.Contains(x.Id) && x.UnidadeNegocioId == unidadeNegocioId).ToArray());
+
     public Task<IReadOnlyDictionary<Guid, IReadOnlyList<string>>> ObterPermissoesPorPerfilAsync(
         IReadOnlyCollection<Guid> perfilIds, CancellationToken ct)
     {
@@ -72,6 +75,103 @@ public sealed class FakePerfilRepository : IPerfilRepository
         }
 
         return Task.CompletedTask;
+    }
+
+    public Task SalvarAlteracoesAsync(CancellationToken ct) { Salvamentos++; return Task.CompletedTask; }
+}
+
+/// <summary>Test double em memória de <see cref="IUsuarioRepository"/> para os testes da Gestão de
+/// Usuários (O1.6) — completo, ao contrário dos fakes mínimos de Auth/Bootstrap (O1.4.x), que só
+/// exercitam a criação e a leitura por e-mail/id.</summary>
+public sealed class FakeUsuarioRepositoryCompleto : IUsuarioRepository
+{
+    public List<Usuario> All { get; } = [];
+    public List<UsuarioPerfil> Perfis { get; } = [];
+    public List<UsuarioCentroCusto> CentrosCusto { get; } = [];
+    public int Salvamentos { get; private set; }
+
+    public Task<Usuario?> ObterPorEmailAsync(string email, CancellationToken ct) =>
+        Task.FromResult(All.SingleOrDefault(x => x.Email == email));
+
+    public Task<Usuario?> ObterPorIdAsync(Guid id, CancellationToken ct) =>
+        Task.FromResult(All.SingleOrDefault(x => x.Id == id));
+
+    public Task AdicionarAsync(Usuario usuario, CancellationToken ct) { All.Add(usuario); return Task.CompletedTask; }
+
+    public Task<IReadOnlyList<Usuario>> ListarPorUnidadeNegocioAsync(Guid unidadeNegocioId, CancellationToken ct) =>
+        Task.FromResult<IReadOnlyList<Usuario>>(All.Where(x => x.UnidadeNegocioId == unidadeNegocioId).OrderBy(x => x.Nome).ToArray());
+
+    public Task<Usuario?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct) =>
+        Task.FromResult(All.SingleOrDefault(x => x.Id == id && x.UnidadeNegocioId == unidadeNegocioId));
+
+    public Task<Usuario?> ObterPorEmailEUnidadeNegocioAsync(string email, Guid unidadeNegocioId, CancellationToken ct) =>
+        Task.FromResult(All.SingleOrDefault(x => x.Email == email && x.UnidadeNegocioId == unidadeNegocioId));
+
+    public Task<IReadOnlyDictionary<Guid, IReadOnlyList<BlueprintOS.Application.Identity.Models.UsuarioPerfilResumoDto>>> ObterPerfisPorUsuarioAsync(
+        IReadOnlyCollection<Guid> usuarioIds, CancellationToken ct)
+    {
+        var mapa = Perfis
+            .Where(v => usuarioIds.Contains(v.UsuarioId))
+            .GroupBy(v => v.UsuarioId)
+            .ToDictionary(
+                g => g.Key,
+                g => (IReadOnlyList<BlueprintOS.Application.Identity.Models.UsuarioPerfilResumoDto>)g
+                    .Select(v => PerfilLookup?.SingleOrDefault(p => p.Id == v.PerfilId))
+                    .Where(p => p is not null)
+                    .Select(p => new BlueprintOS.Application.Identity.Models.UsuarioPerfilResumoDto(p!.Id, p.Nome, p.Ativo))
+                    .ToArray());
+
+        return Task.FromResult<IReadOnlyDictionary<Guid, IReadOnlyList<BlueprintOS.Application.Identity.Models.UsuarioPerfilResumoDto>>>(mapa);
+    }
+
+    /// <summary>Catálogo de Perfis usado apenas para resolver Nome/Ativo na projeção acima — os testes
+    /// que exercitam vínculos populam esta lista a partir do mesmo <see cref="FakePerfilRepository"/>
+    /// usado no cenário.</summary>
+    public List<Perfil>? PerfilLookup { get; set; }
+
+    public Task<IReadOnlyDictionary<Guid, IReadOnlyList<string>>> ObterCentrosCustoPorUsuarioAsync(
+        IReadOnlyCollection<Guid> usuarioIds, CancellationToken ct)
+    {
+        var mapa = CentrosCusto
+            .Where(v => usuarioIds.Contains(v.UsuarioId))
+            .GroupBy(v => v.UsuarioId)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(v => v.CentroCustoCodigoErp).OrderBy(x => x, StringComparer.Ordinal).ToArray());
+
+        return Task.FromResult<IReadOnlyDictionary<Guid, IReadOnlyList<string>>>(mapa);
+    }
+
+    public Task SubstituirPerfisAsync(Guid usuarioId, IReadOnlyCollection<Guid> perfilIds, CancellationToken ct)
+    {
+        Perfis.RemoveAll(v => v.UsuarioId == usuarioId && !perfilIds.Contains(v.PerfilId));
+        foreach (var perfilId in perfilIds.Where(id => !Perfis.Any(v => v.UsuarioId == usuarioId && v.PerfilId == id)))
+        {
+            Perfis.Add(new UsuarioPerfil(usuarioId, perfilId));
+        }
+        return Task.CompletedTask;
+    }
+
+    public Task SubstituirCentrosCustoAsync(Guid usuarioId, IReadOnlyCollection<string> codigosErp, CancellationToken ct)
+    {
+        CentrosCusto.RemoveAll(v => v.UsuarioId == usuarioId && !codigosErp.Contains(v.CentroCustoCodigoErp, StringComparer.OrdinalIgnoreCase));
+        foreach (var codigo in codigosErp.Where(c => !CentrosCusto.Any(v => v.UsuarioId == usuarioId && string.Equals(v.CentroCustoCodigoErp, c, StringComparison.OrdinalIgnoreCase))))
+        {
+            CentrosCusto.Add(new UsuarioCentroCusto(usuarioId, codigo));
+        }
+        return Task.CompletedTask;
+    }
+
+    public Task<int> ContarAdministradoresSeniorAtivosAsync(Guid unidadeNegocioId, Guid? excluirUsuarioId, CancellationToken ct)
+    {
+        var candidatos = All.Where(u => u.UnidadeNegocioId == unidadeNegocioId && u.EstaAtivo());
+        if (excluirUsuarioId is not null) candidatos = candidatos.Where(u => u.Id != excluirUsuarioId.Value);
+
+        var idsComPerfilAdmin = Perfis
+            .Where(v => PerfilLookup is not null && PerfilLookup.Any(p =>
+                p.Id == v.PerfilId && p.UnidadeNegocioId == unidadeNegocioId && p.Ativo && p.Nome == Perfil.AdministradorSenior))
+            .Select(v => v.UsuarioId)
+            .ToHashSet();
+
+        return Task.FromResult(candidatos.Count(u => idsComPerfilAdmin.Contains(u.Id)));
     }
 
     public Task SalvarAlteracoesAsync(CancellationToken ct) { Salvamentos++; return Task.CompletedTask; }
