@@ -883,3 +883,61 @@ Entregáveis **#15 "Usuários"** e **#16 "Usuário por Unidade de Negócio"** pa
 `.ai/work-orders/active/` está vazio. `O1.6-GestaoDeUsuariosBackendReal.md` movida para `.ai/work-orders/completed/`. **`O1.7-FiliaisECentrosDeCustoIntegradosAoErp.md` permanece em `.ai/work-orders/backlog/`, status Draft/Planejada — não iniciada.**
 
 **Ressalva de escopo sobre o Dashboard:** por instrução expressa do Product Owner nesta sessão, a rotina `[atualizar dashboard]` **não** foi executada e `dashboard/DASHBOARD_STATE.md` **não** foi tocado manualmente. O Dashboard publicado permanece exibindo os valores do fechamento da O1.5 até que o Product Owner execute o comando.
+
+---
+
+## Abertura e execução da Sprint O1.7 — Filiais e Centros de Custo Integrados ao ERP — 11/08/2026
+
+Work Order movida de `.ai/work-orders/backlog/` para `.ai/work-orders/active/` e, na mesma sessão, executada integralmente e encerrada — ver seção seguinte. Status atualizado para "Ativa (em execução)"; data de aprovação preenchida como 11/08/2026. Nenhum percentual técnico foi alterado apenas pela abertura.
+
+## Encerramento formal da Sprint O1.7 — Filiais e Centros de Custo Integrados ao ERP — 11/08/2026
+
+**Objetivo:** implementar integração ERP real de Filiais e Centros de Custo (D3, ADR-0021), com o ERP permanecendo fonte canônica e o +Compras mantendo apenas metadados locais (Descrição, ativação/inativação), resolvendo também a dívida O1.6-L2 (vínculo Usuário×Centro de Custo por código ERP em texto, sem validação real).
+
+### Descoberta técnica
+
+Confirmado por leitura da Work Order, ADR-0020/ADR-0021 e código: `administration/branches`/`cost-centers` eram 100% mock em ambas as pontas (frontend com `filiaisMockApi.ts`/`centrosCustoMockApi.ts`; nenhum backend/persistência/migration para Filial/Centro de Custo). O catálogo RBAC (O1.5) já reservava `PermissaoCatalogo.FilialGerenciar`/`CentroCustoGerenciar` (Guids estáveis, nenhuma migration de permissão nova necessária). Padrão de referência para os readers ERP: `IFornecedorErpReader`/`SomaFornecedorReader` (B2.1/B2.1.2) — introspecção dinâmica de schema via `INFORMATION_SCHEMA.COLUMNS`, paginação `OFFSET/FETCH`, validação de `InitialCatalog == SOMA_DESENV`, teste de integração com early-return quando `ErpConnection` não está configurada.
+
+### Implementação
+
+- **Backend** (`BlueprintOS.Domain/Application/Infrastructure/Api`): `IFilialErpReader`/`SomaFilialReader` e `ICentroCustoErpReader`/`SomaCentroCustoReader` (introspecção dinâmica, mesmo padrão de `SomaFornecedorReader`); entidades de metadados locais `FilialMetadado`/`CentroCustoMetadado` (`DescricaoMaisCompras` opcional, `AtivoNoMaisCompras`, `UnidadeNegocioId`); repositórios EF (`IFilialMetadadoRepository`/`ICentroCustoMetadadoRepository`); use cases `Listar`/`AtualizarMetadado` para cada domínio (join em memória ERP×metadados locais; código ERP sem metadado local é considerado Ativo por padrão); `FiliaisController`/`CentrosCustoController` (Api/Administration), mesmo padrão físico/enforcement de `PerfisController`/`UsuariosController` — policy `permissao:Filial.Gerenciar`/`CentroCusto.Gerenciar`, CSRF no grupo. Nenhum endpoint de criação/edição/exclusão do dado ERP — apenas leitura combinada e atualização de metadados locais.
+- **Migration** `20260811173904_AddFilialCentroCustoMetadadosO17`: tabelas `FiliaisMetadados` (índice único por `UnidadeNegocioId`+`CodigoErp` — cada Unidade de Negócio pode ter seu próprio metadado local para a mesma Filial) e `CentrosCustoMetadados` (índice único **global** por `CodigoErp` — um Centro de Custo só pode estar ancorado a **uma** Unidade de Negócio por vez, fechando deliberadamente o vetor cross-BU do vínculo Usuário×Centro de Custo). Gerada com `dotnet ef migrations add`; **não aplicada** ao banco (sem VPN/SQL Server corporativo disponível nesta sessão — geração de migration não exigiu conexão real).
+- **Resolução da dívida O1.6-L2:** nova abstração `ICentroCustoVinculoValidator`/`CentroCustoVinculoValidator` (Infrastructure), injetada em `CriarUsuarioUseCase`/`AtualizarUsuarioUseCase`. Para cada código informado no vínculo Usuário×Centro de Custo: se já ancorado a outra Unidade de Negócio → rejeitado (`RbacFalha.CentroCustoInvalido`); se inexistente no ERP → rejeitado; se existente e ainda não ancorado → cria o `CentroCustoMetadado` "sob demanda", ancorado à Unidade de Negócio do ator. Decisão explícita: validação em tempo de execução no caso de uso em vez de FK física em `UsuariosCentrosCusto` — a FK exigiria que o metadado já existisse antes do primeiro vínculo, o que não é garantido; a validação sob demanda evita impor uma ordem de operações artificial ao usuário final, com a integridade garantida pelo índice único global.
+- **Frontend** (`administration/branches`/`cost-centers`): `filiaisMockApi.ts`/`centrosCustoMockApi.ts` excluídos; `filiaisApi.ts`/`centrosCustoApi.ts` novos (clientes HTTP reais, mesmo padrão de `usuariosApi.ts`); tipos/hooks/páginas ajustados para a forma real dos DTOs (`temMetadadoLocal`, `id` sempre igual ao código ERP); nenhum redesign.
+- **Correção de regressão identificada em revisão pós-implementação (ainda dentro desta sprint):** `administration/users` (formulário de vínculo Usuário×Centro de Custo) consumia `services/costCenterCatalog.ts`, catálogo mockado local (`cc-001`…`cc-005`) — esses códigos seriam rejeitados pelo novo `ICentroCustoVinculoValidator` real, quebrando a criação/edição de usuário com Centro de Custo específico. `costCenterCatalog.ts` removido; `UsuarioFormPage`/`UsuarioForm`/`UsuarioDetalhesPage` passaram a consumir `GET /api/administracao/centros-custo` real (registrado como O1.7-L2, **Resolvida**, em `.ai/BACKLOG.md`).
+- **Correção de concorrência identificada em revisão pós-implementação (ainda dentro desta sprint):** a corrida entre duas requisições concorrentes ancorando o mesmo Centro de Custo pela primeira vez (vínculo de usuário, ou edição de metadado por duas Unidades de Negócio diferentes) resultaria em `DbUpdateException` não tratada (500) ao violar o índice único global — a integridade dos dados nunca esteve em risco, mas o erro não era traduzido para uma resposta de negócio limpa. `CentroCustoMetadadoRepository.SalvarAlteracoesAsync` agora traduz a violação para `DuplicateRecordException`; `CentroCustoVinculoValidator` e o novo `AtualizarMetadadoCentroCustoUseCase` (verificação prévia de âncora por outra Unidade de Negócio) capturam essa exceção e retornam `RbacFalha.CentroCustoInvalido`/`ErpMetadadoFalha.AncoradoPorOutraUnidadeDeNegocio` (novo, mapeado para HTTP 409 em `CentrosCustoController`). Registrado como O1.7-M1, **Resolvida**, em `.ai/BACKLOG.md`.
+
+### Testes
+
+- Backend: **500 aprovados** (499 unitários + 1 novo teste de regressão cross-BU; baseline O1.6 493 → +7 novos em `FilialCentroCustoUseCasesTests.cs`) + **7 integração** (early-return sem VPN/`ErpConnection`), 0 falhas. `dotnet build` 0 erros/0 avisos.
+- Frontend: **68 aprovados** (baseline O1.6 67 → +1 líquido, com reescrita completa dos testes de Filiais/Centros de Custo para interceptar `fetch` real e ajuste do teste de `administration/users` para consumir o endpoint real de Centros de Custo), 0 falhas. `tsc -b`/`vite build` limpos.
+
+### Decisão sobre uso do Chrome/MCP
+
+**Dispensado.** A cobertura automatizada (testes unitários dos use cases/validador, incluindo o cenário cross-BU e a corrida de concorrência; testes de integração HTTP real do frontend simulando 401/403/200; builds limpos de backend e frontend) foi considerada suficiente para os critérios de aceite da Work Order. Nenhum comportamento visual/interativo introduzido exigia validação manual, e o fluxo de autenticação/autorização não foi alterado por esta sprint. Smoke test real contra o ERP `SOMA_DESENV` (listar Filiais/Centros de Custo reais, ativar/inativar localmente) **não foi executado** — ambiente sem VPN corporativa disponível nesta sessão, mesma dependência ambiental já registrada em B2.1.3 e na própria Work Order (seção "Riscos").
+
+### Segurança
+
+Revisão própria (não houve Security Validation independente dedicada — mesma dívida não bloqueante já registrada em O1.6-M1). Revisão de código pós-implementação (multi-dimensional: correção, segurança, simplificação, reuso, eficiência) identificou e corrigiu, ainda dentro desta sprint, os dois achados de maior relevância (regressão de `administration/users` e corrida de concorrência, ambos acima). Pontos verificados sem achado CRITICAL/HIGH remanescente: enforcement real via policy `Filial.Gerenciar`/`CentroCusto.Gerenciar`; nenhum endpoint de criação/edição/exclusão do dado ERP; escopo por Unidade de Negócio na autoridade de escrita dos metadados locais (Centro de Custo com âncora global única — não é possível duas Unidades de Negócio escreverem metadados conflitantes para o mesmo código; Filial com metadado único por Unidade de Negócio); vínculo Usuário×Centro de Custo validado contra o ERP real e cross-BU explicitamente rejeitado; ausência de exclusão física. Registrada como dívida não bloqueante (O1.7-I1, INFORMATIONAL) a decisão de produto ainda pendente sobre se a **leitura** do catálogo ERP de Filiais/Centros de Custo deve ser visível a todas as Unidades de Negócio (padrão atual, replicando o já usado para Fornecedores) ou filtrada por Unidade de Negócio de origem — sem risco, pois nenhuma escrita cross-BU é possível.
+
+### Reconciliação dos entregáveis oficiais da Onda 1
+
+Entregáveis **#14 "Empresas e filiais"** e **#18 "Centros de Custo"** passam de **"Em desenvolvimento"** para **"Concluído"**: os mocks de `administration/branches`/`cost-centers` foram substituídos por integração ERP real combinada com metadados locais reais, satisfazendo ambos os entregáveis. **#11 "Módulo de Administração"** permanece "Em desenvolvimento" (apenas `allocation-units` segue mockado, escopo da O1.8). Nenhum outro entregável foi alterado por esta sprint. **Nota:** por instrução expressa do Product Owner nesta sessão, o arquivo `.ai/dashboard/DASHBOARD_STATE.md` **não** foi editado — a reconciliação e o recálculo abaixo são registrados apenas nesta CURRENT_SPRINT.md, em PROJECT_STATE.md e em BACKLOG.md; a atualização do Dashboard oficial permanece com o Product Owner (rotina `[atualizar dashboard]`, não executada).
+
+**Recálculo do Progresso Técnico da Onda 1** (metodologia oficial de `DASHBOARD_STATE.md`, "Política dos percentuais" — só entregável "Concluído" conta; "Em desenvolvimento" sem percentual individual contribui 0):
+
+| Métrica | Antes (fechamento O1.6) | Depois (fechamento O1.7) |
+|---|---|---|
+| Total de entregáveis da Onda 1 | 41 | 41 (inalterado) |
+| Concluído | 10 | **12** (+#14, +#18) |
+| Em desenvolvimento | 10 | **8** (−#14, −#18) |
+| Planejado | 21 | **21** (inalterado) |
+| Progresso Técnico | 24% (24,3902% exato) | **29%** (12 ÷ 41 = 29,2683% exato) |
+| Contribuição da Onda 1 ao MVP | 4,9 pontos | **5,85 pontos** (20% × 29,2683%) |
+| Percentual Global do MVP 1.0 | 31,90% exato, exibido 32% | **32,85%** exato (Foundation 20,0 + Onda 1 5,85 + Onda 2 7,0), exibido **33%** |
+
+### Estado final: NENHUMA SPRINT ATIVA
+
+`.ai/work-orders/active/` está vazio. `O1.7-FiliaisECentrosDeCustoIntegradosAoErp.md` movida para `.ai/work-orders/completed/`. **`O1.8-UnidadesDeAlocacaoPersistenciaReal.md` permanece em `.ai/work-orders/backlog/`, status Draft/Planejada — não iniciada.**
+
+**Ressalva de escopo sobre o Dashboard:** por instrução expressa do Product Owner nesta sessão, a rotina `[atualizar dashboard]` **não** foi executada e `dashboard/DASHBOARD_STATE.md` **não** foi tocado manualmente. O Dashboard publicado permanece exibindo os valores do fechamento da O1.6 até que o Product Owner execute o comando.
