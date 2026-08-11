@@ -268,3 +268,62 @@ A **O1.9 está formalmente CONCLUÍDA** ([Work Order](work-orders/completed/O1.9
 **Observação para planejamento (Agents Linx):** decisão do Product Owner de incluir na Onda 1 uma fundação para agentes especialistas Linx (ERP/Database Specialist, memória persistente, RAG, sem SQL livre de IA em produção) — preservada para O1.10–O1.14. Nenhum conflito ou dependência evidente identificado entre essa necessidade e o que já foi implementado em O1.5–O1.9; não implementada nesta sprint (fora de escopo, conforme instrução explícita).
 
 **O1.10 não foi iniciada:** permanece em `backlog/`, Draft/Planejada — não movida, não aberta, não implementada. **Nenhuma Work Order está ativa** após este fechamento.
+
+### Planejamento dos Agents Especialistas Linx (11/08/2026)
+
+Antes de abrir a O1.10, análise obrigatória das cinco Work Orders restantes da Onda 1 (O1.10–O1.14), para
+decidir onde encaixar a nova decisão do Product Owner de incluir, ainda na Onda 1, a fundação para os Agents
+especialistas Linx ERP Specialist e Linx Database Specialist (memória persistente, proveniência do
+conhecimento, sem SQL livre de IA em produção — ver prompt da sessão).
+
+**Mapa das Work Orders analisadas:**
+
+- **O1.10** — Conclusão do Vertical Slice (O1.2.2): migração estrutural pura de pastas horizontais restantes
+  (Negociações, Configurações, Pedidos) para Vertical Slice + Shell/Menu refletindo Administração real.
+  Nenhuma dependência de conhecimento ERP.
+- **O1.11** — Fundação Multi-Unidade de Negócio e Configuração: Seleção/Cadastro de BU, Identity Providers,
+  Configuração de ERP **por BU** (qual ERP usar, não o schema dele), Parâmetros gerais, Feature Flags,
+  Notificações. Depende de O1.6.
+- **O1.12** — Workflow, Alçadas, Aprovação e Controle Orçamentário (estrutura configurável, não motor
+  operacional — esse é Onda 3). Depende de O1.5 e O1.9.
+- **O1.13** — Administração Operacional e Monitoramento: telas de monitor/auditoria consumindo dados já
+  reais de sincronização de Fornecedores (B2.1.3). Sem dependência bloqueante.
+- **O1.14** — Blueprint de Banco e Validação Funcional Final: consolidação documental do que O1.5–O1.9 já
+  implementaram (Matriz tela×campo×entidade, Matriz +Compras×ERP, mapeamento de APIs/integrações). Depende
+  de O1.5–O1.9; **não deve ser redigida isoladamente antes das implementações reais** (D7).
+
+**Onde começam integrações ERP mais profundas:** nenhuma das cinco. A única integração ERP real hoje é
+Fornecedor (`SomaFornecedorReader`, B2.1/B2.1.2) e Filial/Centro de Custo (`SomaFilialReader`/
+`SomaCentroCustoReader`, O1.7) — ambas por introspecção dinâmica de schema, já em produção nesta base de
+código. Item e Pedido integrados ao Linx **não aparecem em nenhuma das O1.10–O1.14**: O1.12 exclui
+explicitamente "regras de negócio de orçamento por processo de compra" para a Onda 3; O1.13 exclui
+explicitamente integrações "que ainda não existem (ex.: Nota Fiscal, Pagamento)" para a Onda 4. Ou seja: as
+integrações que mais precisariam do conhecimento profundo dos Agents Linx (Item, Pedido) estão fora da
+Onda 1 por decisão já registrada — a fundação dos Agents antecipa a base de conhecimento, sem antecipar as
+próprias integrações.
+
+**Decisão de encaixe:** nenhuma das cinco Work Orders tem objetivo naturalmente compatível com esta fundação
+(A = não), e incorporá-la a qualquer uma delas distorceria seu escopo declarado (C = não recomendado). Não
+há dependência dura que exija a fundação **antes** de O1.10–O1.13 (B = não bloqueante) — é paralelizável.
+Recomenda-se uma **nova Work Order própria** (D), posicionada entre O1.13 e O1.14 na sequência (E), seguindo
+a mesma convenção de numeração hierárquica já usada no projeto para inserir etapas sem renumerar Work Orders
+existentes (ex.: O1.4.1–O1.4.3.4): **O1.13.5 — Fundação dos Agents Especialistas Linx (Conhecimento
+ERP/Banco)**, criada em `.ai/work-orders/backlog/O1.13.5-FundacaoAgentsEspecialistasLinx.md`, status
+Draft/Planejada, **não iniciada, não aprovada**. Dependências arquiteturais (F): nenhuma bloqueante;
+reaproveita o padrão de introspecção dinâmica de schema já validado em B2.1/O1.7; deve concluir antes do
+fechamento formal da O1.14 (para que o blueprint final possa opcionalmente referenciá-la), mas não é
+dependência dura de nenhuma das O1.10–O1.13.
+
+**MVP proposto para a fundação (G):** base de conhecimento persistente e versionada (`LinxKnowledgeEntry` ou
+equivalente) com proveniência explícita (Descoberto/Inferido/Validado/Aprovado), mecanismo de recuperação
+por busca (RAG mais sofisticado fica para evolução futura, sem exigir redesenho), acesso READ-ONLY
+controlado ao `SOMA_DESENV`, e RBAC real protegendo a promoção de conhecimento a "Aprovado". Os dois papéis
+de Agent (ERP Specialist, Database Specialist) ficam definidos como consumidores/produtores dessa base —
+nenhuma execução autônoma de SQL de escrita, nesta ou em qualquer Work Order futura sem governança própria.
+
+**Numeração:** proposta como O1.13.5 por analogia às sub-etapas já existentes no projeto (O1.4.1–O1.4.3.4);
+se o Product Owner preferir outra posição/numeração na sequência restante da Onda 1, a Work Order criada
+pode ser renomeada/reposicionada antes de qualquer aprovação — nada foi iniciado, aberto ou implementado.
+
+**Impacto na sequência restante da Onda 1:** nenhum bloqueio identificado. A O1.13.5 pode ser executada em
+paralelo a O1.10–O1.13, a qualquer momento a partir de agora, sem impedir a execução desta sessão (O1.10).
