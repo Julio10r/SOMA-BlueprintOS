@@ -13,7 +13,7 @@
 | [`completed/`](completed/) | Concluído | Evidência de build, testes, commit e push já registrada |
 | [`superseded/`](superseded/) | Superada por decisão arquitetural posterior | O escopo original nunca foi concluído nos termos em que foi aberto, e uma decisão posterior (ADR) tornou esse escopo obsoleto. Criado pela ADR-0021 (10/08/2026) — ver `.ai/DECISIONS.md`. |
 
-Atualmente `active/` contém a **O1.5 — RBAC Real**, aberta formalmente em 11/08/2026 (ver `.ai/CURRENT_SPRINT.md`). Sua implementação está concluída e a Security Validation independente foi aprovada com ressalvas; a Work Order permanece em `active/` até o aceite formal das ressalvas pelo Product Owner, mesmo procedimento adotado na O1.4.3.
+Atualmente `active/` está **vazio** (somente `.gitkeep`) — **nenhuma Work Order aprovada ou em execução**. A **O1.5 — RBAC Real** foi formalmente concluída em 11/08/2026, após o aceite formal das ressalvas da Security Validation independente pelo Product Owner, e está em [`completed/O1.5-RbacReal.md`](completed/O1.5-RbacReal.md) — mesmo procedimento adotado na O1.4.3. A próxima frente candidata do caminho crítico é a **O1.6 — Usuários (Backend Real)**, que permanece em [`backlog/`](backlog/) com status Draft/Planejada; sua ativação depende de autorização explícita do Product Owner.
 
 ## Regra de unicidade
 

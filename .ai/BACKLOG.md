@@ -121,7 +121,7 @@ Novas Work Orders propostas para conclusão da Onda 1, todas em status **Draft (
 
 | Código | Título | Tipo | Entregáveis cobertos | Dependências | Work Order |
 |---|---|---|---|---|---|
-| O1.5 | RBAC Real (Perfis, Permissões, Policies, Enforcement) | ESTRUTURA | #9, #17 | **ATIVA (11/08/2026)** — implementação concluída; Security Validation independente APROVADA COM RESSALVAS (0 CRITICAL/0 HIGH após correções); aguardando aceite formal das ressalvas pelo Product Owner. 477 testes backend + 61 frontend aprovados; mock de Perfis removido; migration aplicada; enforcement real (401/403/200) comprovado por teste de pipeline HTTP e smoke test em Chrome. Ver [rbac-o1.5.md](../docs/architecture/rbac-o1.5.md) | [O1.5](work-orders/active/O1.5-RbacReal.md) |
+| O1.5 | RBAC Real (Perfis, Permissões, Policies, Enforcement) | ESTRUTURA | #9, #17 | ✅ **CONCLUÍDA (11/08/2026)** — implementação concluída; Security Validation independente APROVADA COM RESSALVAS (0 CRITICAL/0 HIGH após correções); **ressalvas aceitas formalmente pelo Product Owner em 11/08/2026** (as pendências seguem abertas e rastreadas na tabela abaixo). 477 testes backend + 61 frontend aprovados; mock de Perfis removido; migration aplicada ao banco de desenvolvimento; enforcement real (401/403/200) comprovado por teste de pipeline HTTP e smoke test em Chrome. Ver [rbac-o1.5.md](../docs/architecture/rbac-o1.5.md) | [O1.5](work-orders/completed/O1.5-RbacReal.md) |
 | O1.6 | Usuários (Backend Real) | ESTRUTURA | #15, #16 | O1.5 | [O1.6](work-orders/backlog/O1.6-GestaoDeUsuariosBackendReal.md) |
 | O1.7 | Filiais e Centros de Custo Integrados ao ERP | ESTRUTURA | #14, #18 | Acesso ao ERP `SOMA_DESENV`/VPN | [O1.7](work-orders/backlog/O1.7-FiliaisECentrosDeCustoIntegradosAoErp.md) |
 | O1.8 | Unidades de Alocação (Persistência Real) | ESTRUTURA | #19 | Nenhuma bloqueante | [O1.8](work-orders/backlog/O1.8-UnidadesDeAlocacaoPersistenciaReal.md) |
@@ -132,9 +132,9 @@ Novas Work Orders propostas para conclusão da Onda 1, todas em status **Draft (
 | O1.13 | Administração Operacional e Monitoramento | ESTRUTURA + DESIGN | #29, #30, #31, #32 | Nenhuma bloqueante | [O1.13](work-orders/backlog/O1.13-AdministracaoOperacionalEMonitoramento.md) |
 | O1.14 | Blueprint de Banco e Validação Funcional Final | ESTRUTURA | #36, #37, #38, #39, #40, #41 (+ evolução de #33–#35) | O1.5, O1.6, O1.7, O1.8, O1.9 | [O1.14](work-orders/backlog/O1.14-BlueprintDeBancoEValidacaoFuncionalFinal.md) |
 
-### Ressalvas remanescentes da Security Validation independente da O1.5 (11/08/2026)
+### Ressalvas remanescentes da Security Validation independente da O1.5 (aceitas pelo Product Owner em 11/08/2026)
 
-Registradas como pendências rastreáveis, no mesmo modelo dos findings aceitos da O1.4.3. Nenhuma é bloqueante para Development; nenhuma foi corrigida silenciosamente.
+Registradas como pendências rastreáveis, no mesmo modelo dos findings aceitos da O1.4.3. Nenhuma é bloqueante para Development; nenhuma foi corrigida silenciosamente. **O aceite formal do Product Owner (11/08/2026) encerrou a Work Order O1.5, não estas pendências: todas permanecem ABERTAS e explicitamente rastreadas aqui.** Nenhuma foi removida, ocultada ou reclassificada de severidade pelo aceite.
 
 | # | Severidade | Descrição | Situação |
 |---|---|---|---|
@@ -146,6 +146,22 @@ Registradas como pendências rastreáveis, no mesmo modelo dos findings aceitos 
 | O1.5-I2 | INFORMATIONAL | `RequestIdentity.Permissoes` documentado como defesa em profundidade, mas nenhum caso de uso o lê: a policy é a única checagem. | Aberta |
 | O1.5-I3 | INFORMATIONAL | Testes de enforcement usam endpoints `/probe-*` sintéticos com a mesma composição de `Program.cs`; não detectam a remoção de `.RequireAuthorization(...)` do controller real. | Aberta |
 | O1.5-I4 | INFORMATIONAL | `Fornecedor.*` e `Pedido.*` existem no catálogo, mas nenhum endpoint os exige — os endpoints de Fornecedores/Negociações seguem protegidos apenas por autenticação. **D2 (ADR-0021) não está satisfeita para essas superfícies**, fora do escopo declarado da O1.5. | Aberta |
+
+### Fechamento formal da O1.5 e pendências mantidas em rastreamento (11/08/2026)
+
+A **O1.5 está formalmente CONCLUÍDA** ([Work Order](work-orders/completed/O1.5-RbacReal.md)) após o aceite formal das ressalvas pelo Product Owner (Julio Cesar) em 11/08/2026. Fechamento exclusivamente documental — nenhum código funcional, migration, banco ou dado de banco alterado. As pendências abaixo permanecem **abertas e rastreadas**; o aceite do PO **não** as fecha.
+
+| Pendência mantida | Situação | Tratamento previsto |
+|---|---|---|
+| **Enforcement de `Fornecedor.*` e `Pedido.*`** — códigos existem no catálogo, mas nenhum endpoint os exige; endpoints de Fornecedores/Negociações seguem protegidos apenas por autenticação. **D2 (ADR-0021) satisfeita apenas parcialmente.** | Aberta — **deliberadamente fora do escopo da O1.5** por decisão do Product Owner (11/08/2026); escopo não expandido | Work Order futura dedicada; rastreada também como **O1.5-I4** na tabela acima |
+| **Ressalvas de segurança remanescentes**: O1.5-M1 (MEDIUM), O1.5-L1, O1.5-L2, O1.5-L3 (LOW), O1.5-I1..I4 (INFORMATIONAL) | Abertas — aceitas pelo Product Owner como não bloqueantes para Development, **não** removidas | Sprint(s) futura(s); detalhe na tabela "Ressalvas remanescentes" acima |
+| **Catálogo definitivo de Perfis de negócio** (quais Perfis existem e o que cada um contém) | Aberta — pendência de **conteúdo do Product Owner**, herdada de O1.4.1 §12. A O1.5 entregou a mecânica e o catálogo de **Permissões** derivado apenas dos códigos já documentados; nenhum Perfil foi inventado. Único Perfil de negócio existente: "Administrador Sênior" (Bootstrap) | Decisão de produto; **não** decidida no fechamento da O1.5 |
+| **Nomenclatura da permissão de acesso a Centros de Custo** (`CentroCusto.Acessar`?) | Aberta — deliberadamente **não** incluída no catálogo para não inventar nomenclatura; registrada em `docs/product/ComprasFuncional.md` | Decisão de produto; **não** decidida no fechamento da O1.5 |
+| **Quatro Perfis inativos de smoke test no banco de desenvolvimento** (`Analista (O1.5 smoke)`, `Aprovador (smoke UI)`, `Pos-hardening`, `Verificacao pos-hardening`) | **Mantidos deliberadamente** por decisão do Product Owner (11/08/2026): são dados técnicos reutilizáveis em testes futuros. Não removidos; nenhuma exclusão física no modelo; nenhuma migration de limpeza criada. Apenas registrados como dados de teste existentes no ambiente de desenvolvimento | **Atividade futura de saneamento, anterior à promoção para HOMOLOGAÇÃO/REVIEW** — **não** pertence à O1.5 e **não** deve ser executada agora |
+
+**Métrica oficial da Onda 1 recalculada neste fechamento** (regra-fonte: `.ai/dashboard/DASHBOARD_STATE.md`, "Política dos percentuais" — só conta entregável "Concluído"; "Em desenvolvimento" sem percentual individual contribui 0): **41 entregáveis / 8 Concluído / 11 Em desenvolvimento / 22 Planejado / 20% de Progresso Técnico** (19,51% exato). Antes: 7 / 11 / 23 / 17%. Nenhum entregável foi criado, retirado, absorvido ou substituído. Mudanças: **#17 "Perfis, papéis e permissões"** Em desenvolvimento → **Concluído** (a única condição registrada que o mantinha em "Em desenvolvimento" era o aceite formal das ressalvas, agora satisfeito); **#9 "Perfis de usuário simulados"** Planejado → **Em desenvolvimento** (aplicando a reclassificação já recomendada por escrito no `DASHBOARD_STATE.md`; contribui 0, sem percentual individual). **#11 "Módulo de Administração"** permanece Em desenvolvimento (apenas `profiles` deixou de ser mockada).
+
+**O1.6 não foi iniciada:** permanece em [`backlog/O1.6-GestaoDeUsuariosBackendReal.md`](work-orders/backlog/O1.6-GestaoDeUsuariosBackendReal.md), Draft/Planejada — não movida, não aberta, não implementada. É apenas a próxima candidata do caminho crítico. **Nenhuma Work Order está ativa** após este fechamento.
 
 Caminho crítico: O1.5 → O1.6 → (O1.7 ‖ O1.8) → O1.9 → O1.12 → O1.14. Paralelizáveis desde o início: O1.10, O1.13 (e O1.11 após O1.6 iniciar). A ativação da primeira Work Order (O1.5) depende de autorização explícita do Product Owner — nenhuma foi autorizada por esta sessão.
 

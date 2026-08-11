@@ -674,10 +674,10 @@ Nenhum achado MÉDIO/ALTO identificado nesta revisão por leitura de código —
 
 ---
 
-## Sprint O1.5 — RBAC Real (Perfis, Permissões, Policies, Enforcement) — aberta em 11/08/2026
+## Sprint O1.5 — RBAC Real (Perfis, Permissões, Policies, Enforcement) — aberta em 11/08/2026 — ✅ CONCLUÍDA (11/08/2026)
 
 Status:
-**ATIVA — implementação concluída, Security Validation independente executada (APROVADA COM RESSALVAS), aguardando aceite formal das ressalvas pelo Product Owner.** A Work Order permanece em `.ai/work-orders/active/O1.5-RbacReal.md` e **não** foi movida para `completed/`, seguindo exatamente o precedente da O1.4.3 (só encerrada formalmente depois do aceite explícito das ressalvas pelo Product Owner).
+**✅ CONCLUÍDA (11/08/2026).** Implementação concluída, Security Validation independente executada (APROVADA COM RESSALVAS; 0 CRITICAL / 0 HIGH remanescentes) e **ressalvas aceitas formalmente pelo Product Owner em 11/08/2026** — ver "Encerramento formal da Sprint O1.5" ao final deste documento. A Work Order foi movida para `.ai/work-orders/completed/O1.5-RbacReal.md`, seguindo exatamente o precedente da O1.4.3.
 
 Objetivo:
 Transformar a fundação visual/mockada de Perfis e Permissões em RBAC real e efetivamente aplicado, fechando o ciclo Perfil → Permissões → Usuário×Perfil → Identidade autenticada → Policies → Enforcement (ADR-0020 itens 7/8/9/10; ADR-0021 decisão D2).
@@ -763,7 +763,7 @@ Executada por revisor logicamente isolado, sem acesso ao raciocínio do implemen
 ### Pendências e limitações honestas
 
 - **Enforcement com sessão real de um usuário sem permissão não foi validado manualmente**: exigiria criar um segundo usuário, e a API de Usuários só existe na O1.6. O cenário está coberto por teste automatizado de pipeline HTTP real (401/403/200 reais) e pelo 403 real obtido via esquema de Development.
-- **Progresso técnico da Onda 1 mantido em 17%**, deliberadamente: a regra oficial só conta entregável "Concluído", e a O1.5 não está formalmente concluída (aguarda aceite das ressalvas). Nenhum percentual foi inflado por abertura ou por implementação de sprint.
+- **Progresso técnico da Onda 1 mantido em 17%** durante a execução, deliberadamente: a regra oficial só conta entregável "Concluído", e a O1.5 não estava formalmente concluída (aguardava aceite das ressalvas). Nenhum percentual foi inflado por abertura ou por implementação de sprint. *(Recalculado no fechamento de 11/08/2026 — ver "Encerramento formal da Sprint O1.5" ao final deste documento.)*
 - **O comando `[atualizar dashboard]` NÃO foi executado**: sua rotina exige atualização do workflow n8n e validação da URL publicada, fora do alcance desta sessão. `DASHBOARD_STATE.md` recebeu apenas atualização documental mínima das observações dos entregáveis #9/#17, sem alterar status nem percentual.
 - Resíduo de smoke test no banco de desenvolvimento: quatro Perfis **inativos** (`Analista (O1.5 smoke)`, `Aprovador (smoke UI)`, `Pos-hardening`, `Verificacao pos-hardening`). Não removidos porque o modelo não tem exclusão física, por decisão de produto.
 - Commit/push: commits criados **localmente**; **push NÃO realizado**, pendente de autorização explícita do Product Owner.
@@ -771,3 +771,54 @@ Executada por revisor logicamente isolado, sem acesso ao raciocínio do implemen
 ### O1.6 não foi iniciada
 
 `O1.6-GestaoDeUsuariosBackendReal.md` permanece em `.ai/work-orders/backlog/`, status Draft/Planejada. Nenhum escopo de O1.6 ou de sprints posteriores foi antecipado.
+
+---
+
+## Encerramento formal da Sprint O1.5 — aceite das ressalvas pelo Product Owner (11/08/2026)
+
+**Natureza desta sessão:** exclusivamente documental/governança. Nenhum código funcional (backend `.cs`, frontend `.ts`/`.tsx`), migration, configuração, banco de dados ou dado de banco foi alterado. Nenhuma sprint nova foi iniciada.
+
+### Aceite formal do Product Owner (Julio Cesar, 11/08/2026)
+
+O Product Owner analisou o relatório final da sprint e registrou seis decisões formais:
+
+1. **Ressalvas remanescentes ACEITAS** — parecer APROVADA COM RESSALVAS aceito, com 0 CRITICAL / 0 HIGH remanescentes (HIGH e MEDIUM apontados foram corrigidos na própria sprint, com teste de regressão). O aceite **não** remove nem oculta as pendências: O1.5-M1, O1.5-L1..L3 e O1.5-I1..I4 permanecem **explicitamente rastreadas e abertas** em `.ai/BACKLOG.md`.
+2. **Enforcement de `Fornecedor.*` e `Pedido.*` fica FORA da O1.5** — escopo não expandido agora; pendência mantida formalmente rastreada como **O1.5-I4** (D2 da ADR-0021 satisfeita apenas parcialmente para essas superfícies).
+3. **Migration `20260811143355_AddRbacPerfilPermissaoCatalogo` ACEITA** como já aplicada ao banco de desenvolvimento compartilhado `MaisCompras`. **Produção não foi tocada.**
+4. **Cobertura automatizada do cenário "usuário autenticado sem permissões" ACEITA como suficiente** — nenhum usuário artificial foi criado para repetir o cenário manualmente; a **O1.6 não foi iniciada**.
+5. **Os quatro Perfis inativos de smoke test PERMANECEM no banco de desenvolvimento** (`Analista (O1.5 smoke)`, `Aprovador (smoke UI)`, `Pos-hardening`, `Verificacao pos-hardening`), por serem dados técnicos reutilizáveis em testes futuros. **Não removidos**; **nenhuma exclusão física criada**; **nenhuma migration de limpeza criada**. Registrados apenas como dados de teste existentes no ambiente. O saneamento é responsabilidade de uma **atividade futura anterior à promoção para HOMOLOGAÇÃO/REVIEW** — **não** pertence à O1.5 e **não** foi executada agora.
+6. **Pendências de produto seguem PENDENTES** — catálogo definitivo de Perfis de negócio e nomenclatura de `CentroCusto.Acessar` **não** foram decididos nem implementados.
+
+### Sprint O1.5 — FORMALMENTE CONCLUÍDA
+
+Work Order movida de `.ai/work-orders/active/` para **`.ai/work-orders/completed/O1.5-RbacReal.md`**. Todos os cinco critérios de aceite marcados como atendidos, com nota explícita sobre as ressalvas aceitas (ver tabela de critérios na Work Order). Este aceite **não** constitui autorização para promoção a Homologação — os gates de Homologação já registrados permanecem válidos.
+
+### Recálculo do Progresso Técnico da Onda 1 (regra documental aplicada)
+
+**Regra-fonte:** `.ai/dashboard/DASHBOARD_STATE.md`, seção "Política dos percentuais" — Progresso Técnico de uma Onda = (entregáveis com status "Concluído" ÷ total de entregáveis), somando-se fração de entregáveis "Em desenvolvimento" **apenas** quando houver percentual individual explicitamente registrado (sem percentual individual, contribuem 0 — nunca estimado).
+
+Duas reclassificações de entregável, ambas com regra documental prévia e explícita:
+
+- **#17 "Perfis, papéis e permissões": Em desenvolvimento → Concluído.** A observação do próprio `DASHBOARD_STATE.md` registrava que o item "permanece 'Em desenvolvimento' **porque a O1.5 aguarda o aceite formal das ressalvas** da Security Validation independente" — e a mesma condição estava registrada em `.ai/PROJECT_STATE.md` e nesta `CURRENT_SPRINT.md`. Essa era a **única** condição pendente registrada, e ela foi satisfeita pelo aceite formal de 11/08/2026. RBAC real, persistido, com enforcement comprovado (401/403/200) em teste de pipeline HTTP e smoke test real.
+- **#9 "Perfis de usuário simulados": Planejado → Em desenvolvimento.** Aplica-se exatamente a reclassificação já **recomendada por escrito** no `DASHBOARD_STATE.md` de 11/08/2026, incluindo o efeito ali previsto. Sem percentual individual registrado, **contribui 0** ao Progresso Técnico — nenhum progresso parcial foi estimado.
+- **#11 "Módulo de Administração" permanece "Em desenvolvimento"** — apenas `profiles` deixou de ser mockada; `users`, `branches`, `cost-centers` e `allocation-units` seguem mockadas (O1.6–O1.8).
+
+| Métrica | Antes do fechamento | Depois do fechamento |
+|---|---|---|
+| Total de entregáveis da Onda 1 | 41 | 41 (nenhum criado, retirado, absorvido ou substituído) |
+| Concluído | 7 | **8** (+#17) |
+| Em desenvolvimento | 11 | **11** (+#9, −#17) |
+| Planejado | 23 | **22** (−#9) |
+| Progresso Técnico | 17% (17,07% exato) | **20%** (19,51% exato = 8 ÷ 41) |
+| Contribuição da Onda 1 ao MVP | 3,4 pontos | **3,9 pontos** (20% × 19,51%) |
+| Percentual Global do MVP 1.0 | 30,41% (exibido 30%) | **30,90%** (exibido **31%**) |
+
+### O1.6 continua NÃO iniciada
+
+`O1.6-GestaoDeUsuariosBackendReal.md` permanece em `.ai/work-orders/backlog/`, status Draft/Planejada — **não** movida, **não** aberta, **não** implementada. É apenas a próxima candidata do caminho crítico (O1.5 → O1.6 → …).
+
+### Estado final: NENHUMA SPRINT ATIVA
+
+`.ai/work-orders/active/` está **vazio** (somente `.gitkeep`). Não há Work Order aprovada/em execução. A próxima frente de trabalho depende de decisão e autorização explícitas do Product Owner.
+
+**Ressalva de escopo sobre o Dashboard:** o comando permanente `[atualizar dashboard]` **não** foi executado neste fechamento — sua rotina exige também atualizar o workflow n8n e validar a URL publicada, o que não foi feito. O `DASHBOARD_STATE.md` foi atualizado como parte deste fechamento documental autorizado pelo Product Owner (a própria nota de cabeçalho do documento admite edição por Work Order explícita que a autorize); o Dashboard HTML publicado permanece exibindo os valores anteriores até a próxima execução do comando.
