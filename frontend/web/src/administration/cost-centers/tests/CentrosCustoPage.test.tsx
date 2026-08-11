@@ -9,9 +9,9 @@ import { CentrosCustoRoutes } from "../routes/CentrosCustoRoutes";
  * `centrosCustoMockApi.ts` removido nesta sprint. Mesmo padrao de integracao HTTP de
  * `administration/users/tests/UsuariosPage.test.tsx` (O1.6): fetch interceptado.
  *
- * O teste anterior de "Unidade de Alocacao padrao"/"quantidade de vinculos" foi removido: esses campos
- * representam o relacionamento N:N com Unidade de Alocacao (ADR-0020, item 5), que e escopo da O1.9 — o
- * backend desta sprint (O1.7) nao devolve esse dado (divida tecnica documentada no relatorio final).
+ * O1.9 — o vinculo real N:N com Unidade de Alocacao (`unidadeAlocacaoPadraoNome`/
+ * `quantidadeUnidadesAlocacaoVinculadas`) e testado nos casos abaixo, substituindo o teste removido na O1.7
+ * (que documentava esses campos como sempre indefinidos/zero, dívida ja resolvida).
  */
 type CentroCustoApiDto = {
   codigoErp: string;
@@ -20,6 +20,8 @@ type CentroCustoApiDto = {
   ativoNoMaisCompras: boolean;
   temMetadadoLocal: boolean;
   atualizadoEm?: string | null;
+  unidadeAlocacaoPadraoNome?: string | null;
+  quantidadeUnidadesAlocacaoVinculadas: number;
 };
 
 function centroCustoDto(over: Partial<CentroCustoApiDto> = {}): CentroCustoApiDto {
@@ -30,14 +32,20 @@ function centroCustoDto(over: Partial<CentroCustoApiDto> = {}): CentroCustoApiDt
     ativoNoMaisCompras: true,
     temMetadadoLocal: false,
     atualizadoEm: "2026-07-01T09:00:00Z",
+    unidadeAlocacaoPadraoNome: null,
+    quantidadeUnidadesAlocacaoVinculadas: 0,
     ...over
   };
 }
 
 type Rota = { status: number; body?: unknown };
+type UnidadeAlocacaoApiDto = { id: string; nome: string; ativo: boolean };
+type VinculoApiDto = { id: string; nome: string; ativo: boolean; padrao: boolean };
 
 let rotas: Map<string, Rota>;
 let centrosCusto: CentroCustoApiDto[];
+let unidadesAlocacao: UnidadeAlocacaoApiDto[];
+let vinculosPorCodigo: Map<string, VinculoApiDto[]>;
 
 beforeEach(() => {
   centrosCusto = [
@@ -47,6 +55,11 @@ beforeEach(() => {
     centroCustoDto({ codigoErp: "1004", descricaoErp: "OPERACOES DE LOJA" }),
     centroCustoDto({ codigoErp: "1005", descricaoErp: "RECURSOS HUMANOS", ativoNoMaisCompras: false, temMetadadoLocal: true })
   ];
+  unidadesAlocacao = [
+    { id: "ua-1", nome: "Farm", ativo: true },
+    { id: "ua-2", nome: "Animale", ativo: true }
+  ];
+  vinculosPorCodigo = new Map();
   rotas = new Map<string, Rota>();
   vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
@@ -54,6 +67,29 @@ beforeEach(() => {
 
     if (method === "GET" && url === "/api/administracao/centros-custo") {
       return { ok: true, status: 200, json: async () => centrosCusto } as Response;
+    }
+
+    if (method === "GET" && url === "/api/administracao/unidades-alocacao") {
+      return { ok: true, status: 200, json: async () => unidadesAlocacao } as Response;
+    }
+
+    const vinculoMatch = url.match(/^\/api\/administracao\/centros-custo\/([^/]+)\/unidades-alocacao$/);
+    if (vinculoMatch) {
+      const codigo = decodeURIComponent(vinculoMatch[1]);
+      if (method === "GET") {
+        return { ok: true, status: 200, json: async () => vinculosPorCodigo.get(codigo) ?? [] } as Response;
+      }
+      if (method === "PUT") {
+        const body = init?.body ? JSON.parse(String(init.body)) : {};
+        const ids: string[] = body.unidadeAlocacaoIds ?? [];
+        const padraoId: string | null = body.padraoId ?? null;
+        const atualizado = ids.map((id) => {
+          const unidade = unidadesAlocacao.find((u) => u.id === id)!;
+          return { id: unidade.id, nome: unidade.nome, ativo: unidade.ativo, padrao: id === padraoId };
+        });
+        vinculosPorCodigo.set(codigo, atualizado);
+        return { ok: true, status: 200, json: async () => atualizado } as Response;
+      }
     }
 
     if (method === "PUT" && url.startsWith("/api/administracao/centros-custo/")) {
@@ -177,5 +213,36 @@ describe("CentrosCustoPage", () => {
     renderCentrosCusto();
 
     expect(await screen.findByText(/nao tem permissao para acessar a Gestao de Centros de Custo/i)).toBeInTheDocument();
+  });
+
+  it("vincula Unidades de Alocacao reais e define a padrao, refletindo na listagem", async () => {
+    renderCentrosCusto();
+    const row = (await screen.findByText("ADMINISTRATIVO CORPORATIVO")).closest("tr")!;
+    await userEvent.click(within(row).getByRole("button", { name: "Editar" }));
+
+    await screen.findByRole("heading", { name: "Unidades de Alocacao vinculadas" });
+    await userEvent.click(screen.getByRole("checkbox", { name: /Farm/i }));
+    await userEvent.click(screen.getByRole("checkbox", { name: /Animale/i }));
+
+    const linhaFarm = screen.getByText("Farm").closest("label")!;
+    await userEvent.click(within(linhaFarm).getByRole("radio", { name: "Padrao" }));
+
+    await userEvent.click(screen.getByRole("button", { name: "Salvar vinculo" }));
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Salvar vinculo" })).toBeEnabled());
+
+    await userEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Detalhes do centro de custo" })).toBeInTheDocument());
+  });
+
+  it("nao permite marcar como padrao uma Unidade de Alocacao nao selecionada", async () => {
+    renderCentrosCusto();
+    const row = (await screen.findByText("ADMINISTRATIVO CORPORATIVO")).closest("tr")!;
+    await userEvent.click(within(row).getByRole("button", { name: "Editar" }));
+
+    await screen.findByRole("heading", { name: "Unidades de Alocacao vinculadas" });
+    const linhaFarm = screen.getByText("Farm").closest("label")!;
+
+    expect(within(linhaFarm).getByRole("radio", { name: "Padrao" })).toBeDisabled();
   });
 });

@@ -8,8 +8,8 @@ import { statusCentroCusto, type CentroCusto } from "../types/centroCustoTypes";
  * Visualizacao somente leitura de um Centro de Custo: mantem a separacao
  * entre "Dados do ERP" e "Dados +Compras" tambem na tela de detalhe,
  * reforcando que Codigo/Descricao ERP/Unidade de Negocio vem do ERP e
- * nunca sao alterados aqui. Exibe tambem, com dados mockados, a
- * preparacao do relacionamento com Unidade de Alocacao.
+ * nunca sao alterados aqui. Exibe tambem o resumo real do vinculo N:N
+ * com Unidade de Alocacao (O1.9, ADR-0020 item 6).
  */
 export function CentroCustoDetalhesPage() {
   const { id } = useParams<{ id: string }>();
@@ -91,7 +91,7 @@ export function CentroCustoDetalhesPage() {
           </div>
 
           <div className="data-block">
-            <div className="section-title">Unidades de Alocacao (preparacao do relacionamento)</div>
+            <div className="section-title">Unidades de Alocacao vinculadas</div>
             <div className="data-grid">
               <div className="field-readonly">
                 <span>Unidade de Alocacao padrao</span>

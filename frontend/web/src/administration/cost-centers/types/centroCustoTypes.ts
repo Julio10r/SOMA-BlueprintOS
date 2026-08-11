@@ -13,12 +13,10 @@ export type StatusCentroCusto = "Ativo" | "Inativo";
  * metadados locais para este codigo — quando `false`, `ativoNoMaisCompras`
  * reflete o padrao "Ativo" definido pelo backend (O1.7).
  *
- * unidadeAlocacaoPadraoNome e quantidadeUnidadesAlocacaoVinculadas
- * representam o relacionamento N:N com Unidade de Alocacao previsto pela
- * ADR-0020 (item 5) — o modulo Unidades de Alocacao e o proprio
- * relacionamento sao escopo da O1.9 (fora de escopo desta sprint); o
- * backend da O1.7 nao devolve esses dados, por isso ficam sempre
- * indefinidos/zero aqui (divida tecnica documentada no relatorio da O1.7).
+ * `unidadeAlocacaoPadraoNome` e `quantidadeUnidadesAlocacaoVinculadas`
+ * refletem o relacionamento N:N real com Unidade de Alocacao (O1.9,
+ * ADR-0020 item 6) — populados pelo backend a partir do vinculo real,
+ * substituindo o valor sempre indefinido/zero da O1.7.
  */
 export type CentroCusto = {
   id: string;
@@ -38,12 +36,27 @@ export type CentroCusto = {
  * Entrada de edicao permitida pelo +Compras. Nao existe entrada de
  * criacao: Centro de Custo nunca e criado pelo +Compras (ADR-0020, item 3)
  * e CodigoErp/DescricaoErp/UnidadeNegocioId sao somente leitura, de origem
- * ERP, e por isso nao aparecem aqui. O vinculo com Unidade de Alocacao
- * tambem nao e editavel nesta etapa (modulo ainda nao implementado).
+ * ERP, e por isso nao aparecem aqui. O vinculo com Unidade de Alocacao e
+ * editado separadamente (ver `UnidadeAlocacaoVinculoResumo`/O1.9).
  */
 export type CentroCustoUpdateInput = {
   descricaoMaisCompras?: string;
   ativoNoMaisCompras: boolean;
+};
+
+/** Uma Unidade de Alocacao disponivel para vinculo (catalogo real, O1.8). */
+export type UnidadeAlocacaoParaVinculo = {
+  id: string;
+  nome: string;
+  ativo: boolean;
+};
+
+/** Um vinculo real de Unidade de Alocacao com o Centro de Custo (O1.9, ADR-0020 item 6). */
+export type UnidadeAlocacaoVinculoResumo = {
+  id: string;
+  nome: string;
+  ativo: boolean;
+  padrao: boolean;
 };
 
 export function statusCentroCusto(centroCusto: CentroCusto): StatusCentroCusto {
