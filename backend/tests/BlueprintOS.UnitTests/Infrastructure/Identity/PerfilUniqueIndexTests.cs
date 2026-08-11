@@ -34,8 +34,8 @@ public sealed class PerfilUniqueIndexTests
         var dbName = Guid.NewGuid().ToString();
 
         await using var db = CreateContext(dbName);
-        db.Perfis.Add(new Perfil(Perfil.AdministradorSenior, Guid.NewGuid()));
-        db.Perfis.Add(new Perfil(Perfil.AdministradorSenior, Guid.NewGuid()));
+        db.Perfis.Add(new Perfil(Perfil.AdministradorSenior, string.Empty, Guid.NewGuid(), DateTimeOffset.UtcNow));
+        db.Perfis.Add(new Perfil(Perfil.AdministradorSenior, string.Empty, Guid.NewGuid(), DateTimeOffset.UtcNow));
 
         await db.SaveChangesAsync();
 

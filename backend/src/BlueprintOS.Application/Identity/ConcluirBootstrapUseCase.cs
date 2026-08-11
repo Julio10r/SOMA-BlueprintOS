@@ -20,6 +20,7 @@ public sealed class ConcluirBootstrapUseCase(
     IUnidadeNegocioRepository unidadesNegocio,
     IUsuarioRepository usuarios,
     IPerfilRepository perfis,
+    IPermissaoRepository permissoes,
     IUsuarioPerfilRepository usuariosPerfis,
     TimeProvider clock,
     ILogger<ConcluirBootstrapUseCase> logger) : IConcluirBootstrapUseCase
@@ -91,9 +92,21 @@ public sealed class ConcluirBootstrapUseCase(
         var perfil = await perfis.ObterPorNomeEUnidadeNegocioAsync(Perfil.AdministradorSenior, unidadeNegocio.Id, ct);
         if (perfil is null)
         {
-            perfil = new Perfil(Perfil.AdministradorSenior, unidadeNegocio.Id);
+            perfil = new Perfil(
+                Perfil.AdministradorSenior,
+                "Acesso administrativo integral do +Compras, criado pelo Bootstrap Mode (ADR-0020, item 12).",
+                unidadeNegocio.Id,
+                agora);
             await perfis.AdicionarAsync(perfil, ct);
         }
+
+        // O1.5 (RBAC Real) — o Perfil "Administrador Sênior" recebe o catálogo completo de permissões.
+        // Sem isto, a partir da O1.5 o primeiro administrador criado pelo Bootstrap teria zero permissões
+        // efetivas e nenhum endpoint administrativo seria acessível a ninguém — o sistema nasceria
+        // irrecuperável. Idempotente (`VincularPermissoesAsync` ignora vínculos já existentes), portanto
+        // também completa um Perfil criado por um Bootstrap anterior à O1.5.
+        var catalogoCompleto = await permissoes.ObterPorCodigosAsync(PermissaoCatalogo.Codigos, ct);
+        await perfis.VincularPermissoesAsync(perfil.Id, catalogoCompleto.Select(x => x.Id).ToArray(), ct);
 
         // Passo 5 (seção 13).
         var vinculo = new UsuarioPerfil(usuario.Id, perfil.Id);

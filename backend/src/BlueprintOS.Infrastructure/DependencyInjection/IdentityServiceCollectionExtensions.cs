@@ -32,8 +32,28 @@ public static class IdentityServiceCollectionExtensions
         services.AddScoped<IObterIdentidadeAtualUseCase, ObterIdentidadeAtualUseCase>();
 
         AddBootstrapCore(services, configuration);
+        AddRbacCore(services);
 
         return services;
+    }
+
+    /// <summary>O1.5 — RBAC Real. Registra a resolução das permissões efetivas (consumida pelo pipeline de
+    /// autenticação a cada requisição) e os casos de uso da Gestão de Perfis.
+    ///
+    /// <c>IPerfilRepository</c>/<c>IUsuarioPerfilRepository</c> já são registrados por
+    /// <see cref="AddBootstrapCore"/> (O1.4.3.2) e são reaproveitados aqui — a O1.5 estende os contratos
+    /// existentes em vez de criar um segundo caminho de acesso aos mesmos dados.</summary>
+    private static void AddRbacCore(IServiceCollection services)
+    {
+        services.AddScoped<IPermissaoRepository, PermissaoRepository>();
+        services.AddScoped<IPermissoesEfetivasResolver, PermissoesEfetivasResolver>();
+
+        services.AddScoped<IListarPerfisUseCase, ListarPerfisUseCase>();
+        services.AddScoped<IObterPerfilUseCase, ObterPerfilUseCase>();
+        services.AddScoped<ICriarPerfilUseCase, CriarPerfilUseCase>();
+        services.AddScoped<IAtualizarPerfilUseCase, AtualizarPerfilUseCase>();
+        services.AddScoped<IAlterarStatusPerfilUseCase, AlterarStatusPerfilUseCase>();
+        services.AddScoped<IListarCatalogoPermissoesUseCase, ListarCatalogoPermissoesUseCase>();
     }
 
     /// <summary>Fundação Backend do Bootstrap (Work Order O1.4.3, etapa O1.4.3.1). Registra

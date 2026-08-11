@@ -11,6 +11,7 @@ namespace BlueprintOS.Application.Identity;
 public sealed class ObterIdentidadeAtualUseCase(
     ISessaoAutenticacaoRepository sessoes,
     IUsuarioRepository usuarios,
+    IPermissoesEfetivasResolver permissoesEfetivas,
     TimeProvider clock,
     IOptions<AuthSessionOptions> sessionOptions) : IObterIdentidadeAtualUseCase
 {
@@ -33,6 +34,10 @@ public sealed class ObterIdentidadeAtualUseCase(
         await sessoes.AtualizarAsync(sessao, ct);
         await sessoes.SalvarAlteracoesAsync(ct);
 
-        return new IdentidadeAtualDto(usuario.Id, usuario.Email, usuario.Nome, sessao.UnidadeNegocioId);
+        // Permissões efetivas resolvidas a cada requisição, junto com a revalidação da sessão (§2.5): o
+        // mesmo princípio de "nunca confiar em estado congelado no login" vale para a autorização.
+        var permissoes = await permissoesEfetivas.ResolverAsync(usuario.Id, sessao.UnidadeNegocioId, ct);
+
+        return new IdentidadeAtualDto(usuario.Id, usuario.Email, usuario.Nome, sessao.UnidadeNegocioId, permissoes);
     }
 }

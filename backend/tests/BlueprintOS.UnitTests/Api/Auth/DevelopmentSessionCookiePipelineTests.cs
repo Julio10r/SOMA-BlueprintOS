@@ -118,7 +118,7 @@ public sealed class DevelopmentSessionCookiePipelineTests : IAsyncDisposable
         public Task<IdentidadeAtualDto?> ExecuteAsync(string sessionRawToken, CancellationToken ct)
         {
             IdentidadeAtualDto? resultado = sessionRawToken == ValidToken
-                ? new IdentidadeAtualDto(Guid.NewGuid(), "julio.cesar@somagrupo.com.br", "Julio Cesar", Guid.NewGuid())
+                ? new IdentidadeAtualDto(Guid.NewGuid(), "julio.cesar@somagrupo.com.br", "Julio Cesar", Guid.NewGuid(), [])
                 : null;
             return Task.FromResult(resultado);
         }

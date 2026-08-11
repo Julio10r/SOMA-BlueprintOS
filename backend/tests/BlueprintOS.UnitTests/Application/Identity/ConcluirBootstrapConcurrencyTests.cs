@@ -99,6 +99,7 @@ public sealed class ConcluirBootstrapConcurrencyTests
             new UnidadeNegocioRepository(db),
             new UsuarioRepository(db),
             new PerfilRepository(db),
+            new PermissaoRepository(db),
             new UsuarioPerfilRepository(db),
             TimeProvider.System,
             NullLogger<ConcluirBootstrapUseCase>.Instance);

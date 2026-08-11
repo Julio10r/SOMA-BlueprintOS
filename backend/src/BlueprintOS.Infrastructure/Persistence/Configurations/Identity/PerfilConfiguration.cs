@@ -12,6 +12,13 @@ public sealed class PerfilConfiguration : IEntityTypeConfiguration<Perfil>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Nome).IsRequired().HasMaxLength(120);
 
+        // O1.5 — RBAC Real. `Descricao` recebe defaultValue "" na migration para que a linha do Perfil
+        // "Administrador Sênior" eventualmente já criada pelo Bootstrap (O1.4.3.2) continue válida sem
+        // nenhuma alteração destrutiva de dados.
+        builder.Property(x => x.Descricao).IsRequired().HasMaxLength(400);
+        builder.Property(x => x.CriadoEm).IsRequired();
+        builder.Property(x => x.AtualizadoEm).IsRequired();
+
         // Fecha a divergência nº 4 da Work Order O1.4.3 (seção 4/12): sem este índice, uma corrida teórica
         // poderia criar dois Perfis com o mesmo nome na mesma Unidade de Negócio — relevante porque a
         // conclusão do Bootstrap (O1.4.3.2) faz "criar ou reaproveitar" o Perfil "Administrador Sênior" via
@@ -29,7 +36,19 @@ public sealed class PermissaoConfiguration : IEntityTypeConfiguration<Permissao>
         builder.ToTable("Permissoes");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Codigo).IsRequired().HasMaxLength(100);
+        builder.Property(x => x.Descricao).IsRequired().HasMaxLength(400);
         builder.HasIndex(x => x.Codigo).IsUnique();
+
+        // O1.5 — o catálogo global de permissões é dado de referência, não dado de usuário: nasce com o
+        // schema, via seed determinístico com Ids estáveis vindos de PermissaoCatalogo (fonte central
+        // única). Não existe tela de criação de Permissão — a ADR-0020 (item 8) trata o catálogo como
+        // atômico e definido pelo produto, não editável em runtime.
+        builder.HasData(PermissaoCatalogo.Todas.Select(definicao => new
+        {
+            definicao.Id,
+            definicao.Codigo,
+            definicao.Descricao,
+        }));
     }
 }
 
@@ -39,6 +58,13 @@ public sealed class PerfilPermissaoConfiguration : IEntityTypeConfiguration<Perf
     {
         builder.ToTable("PerfisPermissoes");
         builder.HasKey(x => new { x.PerfilId, x.PermissaoId });
+
+        // O1.5 — integridade referencial explícita. Sem estas FKs, um `PerfilId`/`PermissaoId` inválido
+        // (manipulação de Id, corrida de exclusão) poderia gerar vínculo órfão e, na leitura por JOIN,
+        // simplesmente desaparecer — falhando de forma silenciosa em um caminho de autorização.
+        // `Restrict` deliberado: nenhuma exclusão em cascata em dado de RBAC.
+        builder.HasOne<Perfil>().WithMany().HasForeignKey(x => x.PerfilId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Permissao>().WithMany().HasForeignKey(x => x.PermissaoId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -48,6 +74,9 @@ public sealed class UsuarioPerfilConfiguration : IEntityTypeConfiguration<Usuari
     {
         builder.ToTable("UsuariosPerfis");
         builder.HasKey(x => new { x.UsuarioId, x.PerfilId });
+
+        builder.HasOne<Usuario>().WithMany().HasForeignKey(x => x.UsuarioId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Perfil>().WithMany().HasForeignKey(x => x.PerfilId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 

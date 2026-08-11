@@ -1,6 +1,8 @@
 using BlueprintOS.Core.Publication.Contracts;
 using BlueprintOS.Core.Publication.Models;
+using BlueprintOS.Api.Administration;
 using BlueprintOS.Api.Auth;
+using BlueprintOS.Api.Authorization;
 using BlueprintOS.Api.Identity;
 using BlueprintOS.Api.Middleware;
 using BlueprintOS.Api.Negotiations;
@@ -122,6 +124,10 @@ else
 
 builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, BootstrapNaoConcluidoAuthorizationHandler>();
 
+// O1.5 — RBAC Real. Handler idiomático de Authorization que decide sobre as claims de permissão já
+// publicadas pelo authentication handler (nenhum I/O por decisão de autorização).
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, BlueprintOS.Api.Authorization.PermissaoAuthorizationHandler>();
+
 builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
@@ -136,6 +142,10 @@ builder.Services.AddAuthorization(options =>
         .AddAuthenticationSchemes(BootstrapAuthScheme)
         .RequireAuthenticatedUser()
         .AddRequirements(new BootstrapNaoConcluidoRequirement()));
+
+    // O1.5 — uma policy por permissão do catálogo, geradas por iteração sobre PermissaoCatalogo (fonte
+    // central única). Nenhum código de permissão é escrito literalmente aqui nem nos endpoints.
+    options.AddRbacPolicies();
 });
 
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -213,6 +223,7 @@ app.MapFornecedorDiscovery();
 app.MapFornecedorSync();
 app.MapAuth();
 app.MapBootstrap();
+app.MapPerfis();
 if (app.Environment.IsDevelopment())
 {
     app.MapDevelopmentOtpDiagnostics();

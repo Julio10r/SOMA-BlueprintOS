@@ -40,14 +40,18 @@ public sealed class SessionCookieAuthenticationHandler(
             return AuthenticateResult.Fail("Sessão inválida, expirada ou revogada.");
         }
 
-        var claims = new[]
+        // O1.5 — as permissões efetivas já foram resolvidas no banco pelo caso de uso acima (união dos
+        // Perfis ativos vinculados). São publicadas como claims aqui, uma única vez por requisição, para
+        // que as policies de autorização decidam sem nenhum I/O adicional.
+        var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, identidade.UsuarioId.ToString()),
-            new Claim(ClaimTypes.Email, identidade.Email),
-            new Claim(ClaimTypes.Name, identidade.Nome),
-            new Claim("unidade_negocio_id", identidade.UnidadeNegocioId.ToString()),
-            new Claim(ClaimTypes.Role, "Buyer"),
+            new(ClaimTypes.NameIdentifier, identidade.UsuarioId.ToString()),
+            new(ClaimTypes.Email, identidade.Email),
+            new(ClaimTypes.Name, identidade.Nome),
+            new("unidade_negocio_id", identidade.UnidadeNegocioId.ToString()),
+            new(ClaimTypes.Role, "Buyer"),
         };
+        claims.AddRange(Authorization.RbacPolicies.ToClaims(identidade.Permissoes));
         var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, Scheme.Name));
         return AuthenticateResult.Success(new AuthenticationTicket(principal, Scheme.Name));
     }

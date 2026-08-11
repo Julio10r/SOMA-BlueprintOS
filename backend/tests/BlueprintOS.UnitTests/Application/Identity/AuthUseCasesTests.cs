@@ -130,7 +130,7 @@ public sealed class AuthUseCasesTests
         var logout = new LogoutUseCase(sessoes, TimeProvider.System, NullLogger<LogoutUseCase>.Instance);
         await logout.ExecuteAsync(login.SessionRawToken!, CancellationToken.None);
 
-        var obter = new ObterIdentidadeAtualUseCase(sessoes, usuarios, TimeProvider.System, Options.Create(new AuthSessionOptions()));
+        var obter = new ObterIdentidadeAtualUseCase(sessoes, usuarios, new FakePermissoesEfetivasResolver(), TimeProvider.System, Options.Create(new AuthSessionOptions()));
         var identidade = await obter.ExecuteAsync(login.SessionRawToken!, CancellationToken.None);
 
         Assert.Null(identidade);
@@ -146,7 +146,7 @@ public sealed class AuthUseCasesTests
 
         usuarios.Inativar(usuario.Id);
 
-        var obter = new ObterIdentidadeAtualUseCase(sessoes, usuarios, TimeProvider.System, Options.Create(new AuthSessionOptions()));
+        var obter = new ObterIdentidadeAtualUseCase(sessoes, usuarios, new FakePermissoesEfetivasResolver(), TimeProvider.System, Options.Create(new AuthSessionOptions()));
         var identidade = await obter.ExecuteAsync(login.SessionRawToken!, CancellationToken.None);
 
         Assert.Null(identidade);

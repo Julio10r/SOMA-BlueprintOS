@@ -198,7 +198,7 @@ public sealed class BootstrapAuthorizationPipelineTests : IAsyncDisposable
     {
         public Task<IdentidadeAtualDto?> ExecuteAsync(string sessionRawToken, CancellationToken ct) =>
             sessionRawToken == "sessao-normal-valida"
-                ? Task.FromResult<IdentidadeAtualDto?>(new IdentidadeAtualDto(Guid.NewGuid(), "ana@somagrupo.com.br", "Ana", Guid.NewGuid()))
+                ? Task.FromResult<IdentidadeAtualDto?>(new IdentidadeAtualDto(Guid.NewGuid(), "ana@somagrupo.com.br", "Ana", Guid.NewGuid(), []))
                 : Task.FromResult<IdentidadeAtualDto?>(null);
     }
 }

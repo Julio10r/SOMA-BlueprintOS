@@ -162,7 +162,7 @@ public sealed class DevelopmentCurrentIdentityPipelineTests : IAsyncDisposable
         public Task<IdentidadeAtualDto?> ExecuteAsync(string sessionRawToken, CancellationToken ct)
         {
             IdentidadeAtualDto? resultado = sessionRawToken == ValidToken
-                ? new IdentidadeAtualDto(SessionUserId, "julio.cesar@somagrupo.com.br", "Julio Cesar", Guid.NewGuid())
+                ? new IdentidadeAtualDto(SessionUserId, "julio.cesar@somagrupo.com.br", "Julio Cesar", Guid.NewGuid(), [])
                 : null;
             return Task.FromResult(resultado);
         }

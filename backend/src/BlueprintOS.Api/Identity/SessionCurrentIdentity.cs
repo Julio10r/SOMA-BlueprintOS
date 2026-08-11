@@ -23,6 +23,14 @@ public sealed class SessionCurrentIdentity(IHttpContextAccessor httpContextAcces
         }
 
         var role = user.FindFirst(ClaimTypes.Role)?.Value ?? "Buyer";
-        return new RequestIdentity(userId, role);
+
+        // O1.5 — Unidade de Negócio e permissões efetivas vêm exclusivamente das claims já publicadas
+        // pelo authentication handler a partir do banco. Continua sem I/O aqui. O esquema exclusivo de
+        // Development (X-Development-User-Id) não emite estas claims, então `UnidadeNegocioId` fica nulo e
+        // os casos de uso administrativos falham fechado — nunca assumem uma Unidade de Negócio.
+        Guid? unidadeNegocioId = Guid.TryParse(user.FindFirst("unidade_negocio_id")?.Value, out var bu) ? bu : null;
+        var permissoes = user.FindAll(Authorization.RbacClaims.Permissao).Select(x => x.Value).ToArray();
+
+        return new RequestIdentity(userId, role, unidadeNegocioId, permissoes);
     }
 }

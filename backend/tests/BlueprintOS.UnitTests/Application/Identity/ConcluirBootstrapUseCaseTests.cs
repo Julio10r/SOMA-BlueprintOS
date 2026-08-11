@@ -150,7 +150,7 @@ public sealed class ConcluirBootstrapUseCaseTests
         // criado por uma etapa anterior de gestão de Perfis) — a conclusão deve reaproveitar, não duplicar.
         var buExistente = new UnidadeNegocio("Filial com Perfil Pronto", "filial-com-perfil-pronto");
         ctx.UnidadesNegocio.All.Add(buExistente);
-        var perfilExistente = new Perfil(Perfil.AdministradorSenior, buExistente.Id);
+        var perfilExistente = new Perfil(Perfil.AdministradorSenior, "Perfil administrativo pré-existente.", buExistente.Id, DateTimeOffset.UtcNow);
         ctx.Perfis.All.Add(perfilExistente);
 
         var resultado = await useCase.ExecuteAsync(
@@ -168,8 +168,8 @@ public sealed class ConcluirBootstrapUseCaseTests
     {
         var ctx = new FakeContext(estadoAusente);
         var useCase = new ConcluirBootstrapUseCase(
-            ctx.Estados, ctx.Sessoes, ctx.UnidadesNegocio, ctx.Usuarios, ctx.Perfis, ctx.UsuariosPerfis,
-            TimeProvider.System, NullLogger<ConcluirBootstrapUseCase>.Instance);
+            ctx.Estados, ctx.Sessoes, ctx.UnidadesNegocio, ctx.Usuarios, ctx.Perfis, ctx.Perfis.Permissoes,
+            ctx.UsuariosPerfis, TimeProvider.System, NullLogger<ConcluirBootstrapUseCase>.Instance);
         return (useCase, ctx);
     }
 
@@ -243,16 +243,6 @@ public sealed class ConcluirBootstrapUseCaseTests
             Task.FromResult(All.SingleOrDefault(x => x.Id == id));
 
         public Task AdicionarAsync(Usuario usuario, CancellationToken ct) { All.Add(usuario); return Task.CompletedTask; }
-    }
-
-    private sealed class FakePerfilRepository : IPerfilRepository
-    {
-        public List<Perfil> All { get; } = [];
-
-        public Task<Perfil?> ObterPorNomeEUnidadeNegocioAsync(string nome, Guid unidadeNegocioId, CancellationToken ct) =>
-            Task.FromResult(All.SingleOrDefault(x => x.Nome == nome && x.UnidadeNegocioId == unidadeNegocioId));
-
-        public Task AdicionarAsync(Perfil perfil, CancellationToken ct) { All.Add(perfil); return Task.CompletedTask; }
     }
 
     private sealed class FakeUsuarioPerfilRepository : IUsuarioPerfilRepository

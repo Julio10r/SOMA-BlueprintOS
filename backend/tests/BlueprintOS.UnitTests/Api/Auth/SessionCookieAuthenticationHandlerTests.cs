@@ -40,7 +40,7 @@ public sealed class SessionCookieAuthenticationHandlerTests
     [Fact]
     public async Task Should_Succeed_And_Set_Claims_When_Session_Valid()
     {
-        var identidade = new IdentidadeAtualDto(Guid.NewGuid(), "ana@somagrupo.com.br", "Ana", Guid.NewGuid());
+        var identidade = new IdentidadeAtualDto(Guid.NewGuid(), "ana@somagrupo.com.br", "Ana", Guid.NewGuid(), []);
         var handler = await CreateHandlerAsync(new FakeObterIdentidadeAtualUseCase(identidade), cookieValue: "token-valido");
 
         var result = await handler.AuthenticateAsync();

@@ -117,9 +117,15 @@ public static class AuthController
             return Results.Unauthorized();
         }
 
+        // O1.5 — as permissões efetivas acompanham a identidade para que o frontend possa REFLETIR o
+        // acesso (esconder menu/ação). Isto é exclusivamente UX: o backend continua sendo a única
+        // barreira, e cada endpoint protegido revalida a permissão por policy independentemente do que o
+        // cliente faça com esta lista.
+        var permissoes = user.FindAll(Authorization.RbacClaims.Permissao).Select(x => x.Value).ToArray();
+
         return Results.Ok(new
         {
-            usuario = new { id = usuarioId, email, nome, unidadeNegocioId },
+            usuario = new { id = usuarioId, email, nome, unidadeNegocioId, permissoes },
         });
     }
 }
