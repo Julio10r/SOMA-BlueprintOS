@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { listCentrosCusto, updateCentroCusto } from "../services/centrosCustoMockApi";
+import { listCentrosCusto, updateCentroCusto } from "../services/centrosCustoApi";
 import type { CentroCusto, CentroCustoUpdateInput } from "../types/centroCustoTypes";
 
 export function useCentrosCusto() {

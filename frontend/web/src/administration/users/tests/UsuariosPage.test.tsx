@@ -174,18 +174,32 @@ describe("UsuariosPage — integracao com a API real", () => {
       id: "33333333-3333-3333-3333-333333333333",
       nome: "Bruno Lima",
       todosCentrosCusto: false,
-      centrosCusto: ["cc-001"],
+      centrosCusto: ["CC-001"],
       perfis: []
     });
     rotas.set("GET /api/administracao/usuarios", { status: 200, body: [alvo] });
     rotas.set(`GET /api/administracao/usuarios/${alvo.id}`, { status: 200, body: alvo });
+    rotas.set("GET /api/administracao/centros-custo", {
+      status: 200,
+      body: [{
+        id: "CC-001",
+        codigoErp: "CC-001",
+        descricaoErp: "Compras Corporativo",
+        ativoNoMaisCompras: true,
+        unidadeNegocioId: alvo.unidadeNegocioId,
+        temMetadadoLocal: false,
+        quantidadeUnidadesAlocacaoVinculadas: 0,
+        criadoEm: alvo.criadoEm,
+        atualizadoEm: alvo.atualizadoEm
+      }]
+    });
 
     renderUsuarios();
     const row = (await screen.findByText("Bruno Lima")).closest("tr")!;
     await userEvent.click(within(row).getByRole("button", { name: "Visualizar" }));
 
     expect(await screen.findByRole("heading", { name: "Bruno Lima" })).toBeInTheDocument();
-    expect(screen.getByText("CC-001")).toBeInTheDocument();
+    expect(await screen.findByText("CC-001")).toBeInTheDocument();
     expect(screen.getByText("Nenhum perfil vinculado a este usuario.")).toBeInTheDocument();
   });
 

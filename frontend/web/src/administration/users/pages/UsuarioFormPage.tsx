@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { listCentrosCusto } from "../../cost-centers/services/centrosCustoApi";
+import type { CentroCusto } from "../../cost-centers/types/centroCustoTypes";
 import { listPerfis } from "../../profiles/services/perfisApi";
 import type { Perfil } from "../../profiles/types/perfilTypes";
 import { UsuarioForm } from "../components/UsuarioForm";
@@ -11,20 +13,26 @@ export function UsuarioFormPage() {
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [perfisDisponiveis, setPerfisDisponiveis] = useState<Perfil[]>([]);
+  const [centrosCustoDisponiveis, setCentrosCustoDisponiveis] = useState<CentroCusto[]>([]);
   const [loadingUsuario, setLoadingUsuario] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoadingUsuario(true);
-    Promise.all([id ? getUsuario(id) : Promise.resolve(null), listPerfis().catch(() => [])])
-      .then(([foundUsuario, perfis]) => {
+    Promise.all([
+      id ? getUsuario(id) : Promise.resolve(null),
+      listPerfis().catch(() => []),
+      listCentrosCusto().catch(() => [])
+    ])
+      .then(([foundUsuario, perfis, centrosCusto]) => {
         if (id && !foundUsuario) {
           setError("Usuario nao encontrado.");
           return;
         }
         setUsuario(foundUsuario);
         setPerfisDisponiveis(perfis);
+        setCentrosCustoDisponiveis(centrosCusto);
       })
       .finally(() => setLoadingUsuario(false));
   }, [id]);
@@ -60,6 +68,7 @@ export function UsuarioFormPage() {
         <UsuarioForm
           usuario={usuario ?? undefined}
           perfisDisponiveis={perfisDisponiveis}
+          centrosCustoDisponiveis={centrosCustoDisponiveis}
           error={error}
           loading={saving}
           onSubmit={handleSubmit}

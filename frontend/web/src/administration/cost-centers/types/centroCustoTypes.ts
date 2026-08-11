@@ -1,17 +1,24 @@
 export type StatusCentroCusto = "Ativo" | "Inativo";
 
 /**
- * Centro de Custo (Gestao de Centros de Custo, ADR-0020 item 3). Dado
- * mestre integrado do ERP: CodigoErp e DescricaoErp vem da sincronizacao
- * com o ERP e nunca sao alterados/normalizados pelo +Compras. O +Compras
+ * Centro de Custo (Gestao de Centros de Custo, ADR-0020 item 3, O1.7). Dado
+ * mestre integrado do ERP: CodigoErp e DescricaoErp vem da leitura real do
+ * ERP e nunca sao alterados/normalizados pelo +Compras. O +Compras
  * armazena apenas os metadados locais permitidos: DescricaoMaisCompras
  * (opcional) e AtivoNoMaisCompras (controlado exclusivamente pelo
  * +Compras, sem refletir no ERP).
  *
+ * `id` e sempre igual a `codigoErp` (nao existe Id local proprio de Centro
+ * de Custo). `temMetadadoLocal` indica se ja existe um registro de
+ * metadados locais para este codigo — quando `false`, `ativoNoMaisCompras`
+ * reflete o padrao "Ativo" definido pelo backend (O1.7).
+ *
  * unidadeAlocacaoPadraoNome e quantidadeUnidadesAlocacaoVinculadas
- * representam, com dados mockados, o relacionamento N:N com Unidade de
- * Alocacao previsto pela ADR-0020 (item 5) — o modulo Unidades de
- * Alocacao ainda nao foi implementado; apenas a relacao e preparada aqui.
+ * representam o relacionamento N:N com Unidade de Alocacao previsto pela
+ * ADR-0020 (item 5) — o modulo Unidades de Alocacao e o proprio
+ * relacionamento sao escopo da O1.9 (fora de escopo desta sprint); o
+ * backend da O1.7 nao devolve esses dados, por isso ficam sempre
+ * indefinidos/zero aqui (divida tecnica documentada no relatorio da O1.7).
  */
 export type CentroCusto = {
   id: string;
@@ -20,6 +27,7 @@ export type CentroCusto = {
   descricaoMaisCompras?: string;
   ativoNoMaisCompras: boolean;
   unidadeNegocioId: string;
+  temMetadadoLocal: boolean;
   unidadeAlocacaoPadraoNome?: string;
   quantidadeUnidadesAlocacaoVinculadas: number;
   criadoEm: string;

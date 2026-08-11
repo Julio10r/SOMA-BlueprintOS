@@ -6,9 +6,10 @@ import { statusCentroCusto, type StatusCentroCusto } from "../types/centroCustoT
 
 /**
  * Listagem de Centros de Custo (Gestao de Centros de Custo, ADR-0020
- * item 3). Fundacao visual da Sprint O1.3.4: dados mockados em memoria
- * (services/centrosCustoMockApi.ts), sem integracao com API real e sem
- * escrita no ERP.
+ * item 3). Integracao real com o ERP `SOMA_DESENV` (O1.7 — Filiais e
+ * Centros de Custo Integrados ao ERP), via `services/centrosCustoApi.ts`:
+ * leitura combinada com os metadados locais do +Compras, sem escrita no
+ * ERP.
  *
  * Nao existe acao de criacao: Centro de Custo e um dado mestre integrado
  * do ERP, nunca criado pelo +Compras (por isso nao ha botao "Novo Centro

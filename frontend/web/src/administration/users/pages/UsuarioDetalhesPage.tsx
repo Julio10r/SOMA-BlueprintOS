@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { listCentrosCusto } from "../../cost-centers/services/centrosCustoApi";
+import type { CentroCusto } from "../../cost-centers/types/centroCustoTypes";
 import { listPerfis } from "../../profiles/services/perfisApi";
 import type { Perfil } from "../../profiles/types/perfilTypes";
 import { StatusBadge } from "../../../shared/components/StatusBadge";
 import { PerfisResumo } from "../components/PerfisResumo";
-import { costCenterCatalog } from "../services/costCenterCatalog";
 import { getUsuario } from "../services/usuariosApi";
 import { statusDoUsuario, type Usuario } from "../types/userTypes";
 
@@ -13,26 +14,28 @@ export function UsuarioDetalhesPage() {
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [perfis, setPerfis] = useState<Perfil[]>([]);
+  const [centrosCusto, setCentrosCusto] = useState<CentroCusto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    Promise.all([getUsuario(id), listPerfis().catch(() => [])])
-      .then(([found, todosPerfis]) => {
+    Promise.all([getUsuario(id), listPerfis().catch(() => []), listCentrosCusto().catch(() => [])])
+      .then(([found, todosPerfis, todosCentrosCusto]) => {
         if (!found) {
           setError("Usuario nao encontrado.");
           return;
         }
         setUsuario(found);
         setPerfis(todosPerfis);
+        setCentrosCusto(todosCentrosCusto);
       })
       .finally(() => setLoading(false));
   }, [id]);
 
   const centrosCustoVinculados = usuario
-    ? costCenterCatalog.filter((centroCusto) => usuario.centrosCusto.includes(centroCusto.id))
+    ? centrosCusto.filter((centroCusto) => usuario.centrosCusto.includes(centroCusto.id))
     : [];
 
   return (
@@ -78,8 +81,8 @@ export function UsuarioDetalhesPage() {
               <div className="data-grid">
                 {centrosCustoVinculados.map((centroCusto) => (
                   <div className="field-readonly" key={centroCusto.id}>
-                    <span>{centroCusto.codigo}</span>
-                    <strong>{centroCusto.descricao}</strong>
+                    <span>{centroCusto.codigoErp}</span>
+                    <strong>{centroCusto.descricaoMaisCompras || centroCusto.descricaoErp}</strong>
                   </div>
                 ))}
               </div>

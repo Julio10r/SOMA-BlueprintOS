@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { StatusBadge } from "../../../shared/components/StatusBadge";
-import { getFilial } from "../services/filiaisMockApi";
+import { getFilial } from "../services/filiaisApi";
 import { statusFilial, type Filial } from "../types/filialTypes";
 
 /**
@@ -26,7 +26,8 @@ export function FilialDetalhesPage() {
         return;
       }
       setFilial(found);
-    }).finally(() => setLoading(false));
+    }).catch((e) => setError(e instanceof Error ? e.message : "Erro ao carregar a filial."))
+      .finally(() => setLoading(false));
   }, [id]);
 
   return (

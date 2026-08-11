@@ -52,3 +52,37 @@ Migration correspondente: `20260811143355_AddRbacPerfilPermissaoCatalogo`, aplic
 desenvolvimento `MaisCompras` em 11/08/2026. Detalhe do conteúdo e dos dois blocos de SQL manual
 (backfill de timestamps e concessão do catálogo ao Administrador Sênior já existente) em
 [rbac-o1.5.md](../architecture/rbac-o1.5.md), seção 9.
+
+### Filiais e Centros de Custo integrados ao ERP (O1.7) — implementado e persistido
+
+> ERP canônico × +Compras (ADR-0020, item 2/3; D3, ADR-0021): Filial e Centro de Custo são dado mestre
+> do ERP `SOMA_DESENV`, lido em tempo real por `IFilialErpReader`/`SomaFilialReader` e
+> `ICentroCustoErpReader`/`SomaCentroCustoReader` (introspecção dinâmica de schema via
+> `INFORMATION_SCHEMA.COLUMNS`, mesmo padrão de `SomaFornecedorReader`, B2.1/B2.1.2) — **nunca**
+> persistido como cópia local. O +Compras persiste **apenas** os dois metadados locais permitidos
+> (`DescricaoMaisCompras` opcional, `AtivoNoMaisCompras`), em uma tabela própria por domínio, correlacionada
+> ao ERP unicamente pelo código (`CodigoErp`/`CodigoCliFor`) — nunca pelo conteúdo (descrição/nome), que
+> permanece somente leitura, de origem ERP.
+
+| Tabela | Chave | Colunas | Constraints |
+|---|---|---|---|
+| `FiliaisMetadados` | `Id` | `CodigoErp` (correlação com `CADASTRO_CLI_FOR`/ERP), `DescricaoMaisCompras` (opcional), `AtivoNoMaisCompras`, `UnidadeNegocioId`, `CriadoEm`, `AtualizadoEm` | Único `IX_FiliaisMetadados_UnidadeNegocioId_CodigoErp` — cada Unidade de Negócio mantém seu próprio metadado local independente para a mesma Filial ERP. Sem exclusão física (só ativação/inativação) |
+| `CentrosCustoMetadados` | `Id` | `CodigoErp` (correlação com `CENTRO_CUSTO`/ERP), `DescricaoMaisCompras` (opcional), `AtivoNoMaisCompras`, `UnidadeNegocioId`, `CriadoEm`, `AtualizadoEm` | Único **global** `IX_CentrosCustoMetadados_CodigoErp` — um Centro de Custo só pode estar ancorado a **uma** Unidade de Negócio por vez (decisão deliberada: fecha o vetor cross-BU do vínculo Usuário×Centro de Custo, O1.6-L2). Sem exclusão física |
+
+Ausência de metadado local para um código ERP retornado pela leitura em tempo real é tratada como
+**Ativo por padrão** (decisão da O1.7, ver `.ai/BACKLOG.md`) — o metadado só é criado na primeira
+edição/ativação manual pela tela de gestão, ou "sob demanda" pelo validador de vínculo Usuário×Centro
+de Custo (abaixo).
+
+**Resolução da dívida O1.6-L2** (`UsuariosCentrosCusto.CentroCustoCodigoErp`, texto livre desde O1.4.2,
+sem tabela local): a coluna continua texto (sem FK física — ver decisão em `.ai/BACKLOG.md`, O1.6-L2),
+mas passa a ser **validada em tempo de execução** por `ICentroCustoVinculoValidator`/
+`CentroCustoVinculoValidator` antes de qualquer persistência em `UsuariosCentrosCusto`: código
+inexistente no ERP é rejeitado; código já ancorado a outra Unidade de Negócio (`CentrosCustoMetadados`)
+é rejeitado; código válido e ainda não ancorado tem seu `CentroCustoMetadado` criado "sob demanda",
+ancorado à Unidade de Negócio do ator. A integridade do vínculo é garantida pelo índice único global de
+`CentrosCustoMetadados.CodigoErp`, não por FK física.
+
+Migration correspondente: `20260811173904_AddFilialCentroCustoMetadadosO17`, **gerada mas não aplicada**
+ao banco de desenvolvimento `MaisCompras` — sem VPN/acesso ao SQL Server corporativo disponível na
+sessão de implementação (mesma dependência ambiental de B2.1.3/O1.7, ver Work Order, seção "Riscos").

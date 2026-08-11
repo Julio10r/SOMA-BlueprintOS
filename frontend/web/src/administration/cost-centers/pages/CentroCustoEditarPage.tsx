@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { CentroCustoForm } from "../components/CentroCustoForm";
-import { getCentroCusto, updateCentroCusto } from "../services/centrosCustoMockApi";
+import { getCentroCusto, updateCentroCusto } from "../services/centrosCustoApi";
 import type { CentroCusto, CentroCustoUpdateInput } from "../types/centroCustoTypes";
 
 /**

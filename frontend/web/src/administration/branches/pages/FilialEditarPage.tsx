@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FilialForm } from "../components/FilialForm";
-import { getFilial, updateFilial } from "../services/filiaisMockApi";
+import { getFilial, updateFilial } from "../services/filiaisApi";
 import type { Filial, FilialUpdateInput } from "../types/filialTypes";
 
 /**
@@ -26,7 +26,8 @@ export function FilialEditarPage() {
         return;
       }
       setFilial(found);
-    }).finally(() => setLoadingFilial(false));
+    }).catch((e) => setError(e instanceof Error ? e.message : "Erro ao carregar a filial."))
+      .finally(() => setLoadingFilial(false));
   }, [id]);
 
   async function handleSubmit(input: FilialUpdateInput) {

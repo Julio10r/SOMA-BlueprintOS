@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { listFiliais, updateFilial } from "../services/filiaisMockApi";
+import { listFiliais, updateFilial } from "../services/filiaisApi";
 import type { Filial, FilialUpdateInput } from "../types/filialTypes";
 
 export function useFiliais() {

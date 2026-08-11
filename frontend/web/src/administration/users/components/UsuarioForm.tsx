@@ -1,11 +1,12 @@
 import { FormEvent, useState } from "react";
+import type { CentroCusto } from "../../cost-centers/types/centroCustoTypes";
 import type { Perfil } from "../../profiles/types/perfilTypes";
-import { costCenterCatalog } from "../services/costCenterCatalog";
 import type { Usuario, UsuarioInput } from "../types/userTypes";
 
-export function UsuarioForm({ usuario, perfisDisponiveis, error, loading, onSubmit, onCancel }: {
+export function UsuarioForm({ usuario, perfisDisponiveis, centrosCustoDisponiveis, error, loading, onSubmit, onCancel }: {
   usuario?: Usuario;
   perfisDisponiveis: Perfil[];
+  centrosCustoDisponiveis: CentroCusto[];
   error: string | null;
   loading: boolean;
   onSubmit: (input: UsuarioInput) => void;
@@ -104,7 +105,7 @@ export function UsuarioForm({ usuario, perfisDisponiveis, error, loading, onSubm
         </label>
         {!todosCentrosCusto && (
           <div className="data-grid">
-            {costCenterCatalog.map((centroCusto) => (
+            {centrosCustoDisponiveis.map((centroCusto) => (
               <label key={centroCusto.id} className="field-readonly">
                 <input
                   type="checkbox"
@@ -112,8 +113,8 @@ export function UsuarioForm({ usuario, perfisDisponiveis, error, loading, onSubm
                   onChange={() => toggleCentroCusto(centroCusto.id)}
                   disabled={loading}
                 />
-                <strong>{centroCusto.codigo}</strong>
-                <span>{centroCusto.descricao}</span>
+                <strong>{centroCusto.codigoErp}</strong>
+                <span>{centroCusto.descricaoMaisCompras || centroCusto.descricaoErp}</span>
               </label>
             ))}
           </div>
