@@ -12,15 +12,19 @@ import { UnidadesAlocacaoRoutes } from "../administration/allocation-units/route
 import { Dashboard } from "../analytics/pages/Dashboard";
 import { FornecedoresPage } from "../procurement/suppliers/pages/FornecedoresPage";
 import { PedidosPage } from "../procurement/orders/pages/PedidosPage";
-import { NegociacoesPage } from "../pages/Negociacoes/NegociacoesPage";
+import { NegociacoesPage } from "../negotiations/pages/NegociacoesPage";
 import { IndicadoresPage } from "../analytics/pages/IndicadoresPage";
 import { AgentesIAPage } from "../ai/pages/AgentesIAPage";
-import { ConfiguracoesPage } from "../pages/Configuracoes/ConfiguracoesPage";
+import { ConfiguracoesPage } from "../settings/pages/ConfiguracoesPage";
 
 /**
- * Rotas do Portal +Compras. Fornecedores e o unico modulo com integracao
- * real ao backend (BlueprintOS.Api); os demais sao telas demonstrativas
- * (mock data local) ate a entrega de seus respectivos dominios.
+ * Rotas do Portal +Compras. Fornecedores, Perfis, Usuarios, Filiais, Centros
+ * de Custo e Unidades de Alocacao (Administracao) tem integracao real ao
+ * backend (BlueprintOS.Api, O1.5-O1.9); Pedidos, Negociacoes, Indicadores e
+ * Agentes IA permanecem telas demonstrativas (mock data local) ate a
+ * entrega de seus respectivos dominios (O1.2.2/D5, ADR-0021 — migracao
+ * estrutural para Vertical Slice concluida na O1.10, sem alteracao de
+ * comportamento funcional).
  */
 export function AppRoutes() {
   return (
