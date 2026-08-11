@@ -68,7 +68,27 @@ public enum RbacFalha
     /// Usuário×Centro de Custo não existe no ERP, ou já está ancorado (via <c>CentroCustoMetadado</c>) a
     /// outra Unidade de Negócio — nenhum dos dois casos é aceito.</summary>
     CentroCustoInvalido,
+
+    /// <summary>O1.8 — Unidade de Alocação não encontrada (Id inexistente, ou de outra Unidade de
+    /// Negócio — nunca revelado como distinção, sempre tratado como "não encontrada").</summary>
+    UnidadeAlocacaoNaoEncontrada,
 }
+
+/// <summary>Projeção de leitura de uma Unidade de Alocação (O1.8 — Persistência Real). Sem vínculo com
+/// Centro de Custo nesta sprint (escopo da O1.9).</summary>
+public sealed record UnidadeAlocacaoDto(
+    Guid Id,
+    string Nome,
+    string Descricao,
+    Guid UnidadeNegocioId,
+    bool Ativo,
+    DateTimeOffset CriadoEm,
+    DateTimeOffset AtualizadoEm);
+
+/// <summary>Entrada de criação/edição de Unidade de Alocação. <c>UnidadeNegocioId</c> é deliberadamente
+/// ausente — vem sempre da identidade autenticada, nunca do cliente (mesmo cuidado de
+/// <see cref="UsuarioInput"/>/<see cref="PerfilInput"/>).</summary>
+public sealed record UnidadeAlocacaoInput(string Nome, string Descricao);
 
 /// <summary>Resultado de operação de escrita de Perfil. Nunca lança exceção para falha de regra de
 /// negócio esperada — a camada de API traduz <see cref="Falha"/> em código HTTP.</summary>

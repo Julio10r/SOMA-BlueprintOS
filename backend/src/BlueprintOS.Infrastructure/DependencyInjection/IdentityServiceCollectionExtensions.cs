@@ -80,6 +80,15 @@ public static class IdentityServiceCollectionExtensions
         services.AddScoped<IListarCentrosCustoUseCase, ListarCentrosCustoUseCase>();
         services.AddScoped<IAtualizarMetadadoCentroCustoUseCase, AtualizarMetadadoCentroCustoUseCase>();
         services.AddScoped<ICentroCustoVinculoValidator, CentroCustoVinculoValidator>();
+
+        // O1.8 — Unidades de Alocação (Persistência Real). Sem vínculo com Centro de Custo nesta sprint
+        // (escopo da O1.9) e sem integração ERP (ADR-0020, item 4).
+        services.AddScoped<IUnidadeAlocacaoRepository, UnidadeAlocacaoRepository>();
+        services.AddScoped<IListarUnidadesAlocacaoUseCase, ListarUnidadesAlocacaoUseCase>();
+        services.AddScoped<IObterUnidadeAlocacaoUseCase, ObterUnidadeAlocacaoUseCase>();
+        services.AddScoped<ICriarUnidadeAlocacaoUseCase, CriarUnidadeAlocacaoUseCase>();
+        services.AddScoped<IAtualizarUnidadeAlocacaoUseCase, AtualizarUnidadeAlocacaoUseCase>();
+        services.AddScoped<IAlterarStatusUnidadeAlocacaoUseCase, AlterarStatusUnidadeAlocacaoUseCase>();
     }
 
     /// <summary>Fundação Backend do Bootstrap (Work Order O1.4.3, etapa O1.4.3.1). Registra

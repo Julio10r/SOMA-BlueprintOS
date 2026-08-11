@@ -227,6 +227,7 @@ app.MapPerfis();
 app.MapUsuarios();
 app.MapFiliais();
 app.MapCentrosCusto();
+app.MapUnidadesAlocacao();
 if (app.Environment.IsDevelopment())
 {
     app.MapDevelopmentOtpDiagnostics();
