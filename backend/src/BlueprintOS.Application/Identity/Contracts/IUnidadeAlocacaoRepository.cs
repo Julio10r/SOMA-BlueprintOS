@@ -11,6 +11,10 @@ public interface IUnidadeAlocacaoRepository
 
     Task<UnidadeAlocacao?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct);
 
+    /// <summary>Resolução em lote para validar o vínculo Centro de Custo × Unidade de Alocação (O1.9): um
+    /// Id fora da Unidade de Negócio da sessão nunca é aceito, mesmo que exista em outra BU.</summary>
+    Task<IReadOnlyList<UnidadeAlocacao>> ObterPorIdsEUnidadeNegocioAsync(IReadOnlyCollection<Guid> ids, Guid unidadeNegocioId, CancellationToken ct);
+
     Task<bool> ExisteComNomeAsync(string nome, Guid unidadeNegocioId, Guid? excluirId, CancellationToken ct);
 
     Task AdicionarAsync(UnidadeAlocacao unidadeAlocacao, CancellationToken ct);

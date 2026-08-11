@@ -16,6 +16,15 @@ public sealed class UnidadeAlocacaoRepository(BlueprintOSDbContext db) : IUnidad
     public Task<UnidadeAlocacao?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct) =>
         db.UnidadesAlocacao.SingleOrDefaultAsync(x => x.Id == id && x.UnidadeNegocioId == unidadeNegocioId, ct);
 
+    public async Task<IReadOnlyList<UnidadeAlocacao>> ObterPorIdsEUnidadeNegocioAsync(
+        IReadOnlyCollection<Guid> ids, Guid unidadeNegocioId, CancellationToken ct)
+    {
+        if (ids.Count == 0) return [];
+        return await db.UnidadesAlocacao
+            .Where(x => ids.Contains(x.Id) && x.UnidadeNegocioId == unidadeNegocioId)
+            .ToListAsync(ct);
+    }
+
     public Task<bool> ExisteComNomeAsync(string nome, Guid unidadeNegocioId, Guid? excluirId, CancellationToken ct)
     {
         var nomeNormalizado = nome.ToLower();

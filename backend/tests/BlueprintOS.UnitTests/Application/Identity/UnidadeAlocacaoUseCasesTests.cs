@@ -26,6 +26,12 @@ public sealed class UnidadeAlocacaoUseCasesTests
         public Task<UnidadeAlocacao?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct) =>
             Task.FromResult(All.SingleOrDefault(x => x.Id == id && x.UnidadeNegocioId == unidadeNegocioId));
 
+        public Task<IReadOnlyList<UnidadeAlocacao>> ObterPorIdsEUnidadeNegocioAsync(
+            IReadOnlyCollection<Guid> ids, Guid unidadeNegocioId, CancellationToken ct) =>
+            Task.FromResult((IReadOnlyList<UnidadeAlocacao>)All
+                .Where(x => ids.Contains(x.Id) && x.UnidadeNegocioId == unidadeNegocioId)
+                .ToArray());
+
         public Task<bool> ExisteComNomeAsync(string nome, Guid unidadeNegocioId, Guid? excluirId, CancellationToken ct) =>
             Task.FromResult(All.Any(x =>
                 x.UnidadeNegocioId == unidadeNegocioId

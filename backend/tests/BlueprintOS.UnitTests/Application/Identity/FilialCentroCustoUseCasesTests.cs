@@ -81,6 +81,43 @@ public sealed class FilialCentroCustoUseCasesTests
         public Task SalvarAlteracoesAsync(CancellationToken ct) => Task.CompletedTask;
     }
 
+    /// <summary>Fake vazio — os testes de O1.7 nesta classe não exercitam o vínculo N:N com Unidade de
+    /// Alocação (O1.9), então nunca há vínculos a listar.</summary>
+    private sealed class FakeCentroCustoUnidadeAlocacaoRepositoryVazio : ICentroCustoUnidadeAlocacaoRepository
+    {
+        public Task<IReadOnlyList<CentroCustoUnidadeAlocacao>> ListarPorCentroCustoMetadadoAsync(Guid centroCustoMetadadoId, CancellationToken ct) =>
+            Task.FromResult((IReadOnlyList<CentroCustoUnidadeAlocacao>)Array.Empty<CentroCustoUnidadeAlocacao>());
+
+        public Task<IReadOnlyDictionary<Guid, IReadOnlyList<CentroCustoUnidadeAlocacao>>> ListarPorCentrosCustoMetadadoAsync(
+            IReadOnlyCollection<Guid> centroCustoMetadadoIds, CancellationToken ct) =>
+            Task.FromResult((IReadOnlyDictionary<Guid, IReadOnlyList<CentroCustoUnidadeAlocacao>>)new Dictionary<Guid, IReadOnlyList<CentroCustoUnidadeAlocacao>>());
+
+        public Task SubstituirVinculosAsync(Guid centroCustoMetadadoId, IReadOnlyList<(Guid UnidadeAlocacaoId, bool Padrao)> vinculos, CancellationToken ct) =>
+            Task.CompletedTask;
+
+        public Task SalvarAlteracoesAsync(CancellationToken ct) => Task.CompletedTask;
+    }
+
+    /// <summary>Fake vazio — os testes de O1.7 nesta classe não cadastram Unidades de Alocação.</summary>
+    private sealed class FakeUnidadeAlocacaoRepositoryVazio : IUnidadeAlocacaoRepository
+    {
+        public Task<IReadOnlyList<UnidadeAlocacao>> ListarPorUnidadeNegocioAsync(Guid unidadeNegocioId, CancellationToken ct) =>
+            Task.FromResult((IReadOnlyList<UnidadeAlocacao>)Array.Empty<UnidadeAlocacao>());
+
+        public Task<UnidadeAlocacao?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct) =>
+            Task.FromResult<UnidadeAlocacao?>(null);
+
+        public Task<IReadOnlyList<UnidadeAlocacao>> ObterPorIdsEUnidadeNegocioAsync(IReadOnlyCollection<Guid> ids, Guid unidadeNegocioId, CancellationToken ct) =>
+            Task.FromResult((IReadOnlyList<UnidadeAlocacao>)Array.Empty<UnidadeAlocacao>());
+
+        public Task<bool> ExisteComNomeAsync(string nome, Guid unidadeNegocioId, Guid? excluirId, CancellationToken ct) =>
+            Task.FromResult(false);
+
+        public Task AdicionarAsync(UnidadeAlocacao unidadeAlocacao, CancellationToken ct) => Task.CompletedTask;
+
+        public Task SalvarAlteracoesAsync(CancellationToken ct) => Task.CompletedTask;
+    }
+
     [Fact]
     public async Task ListarFiliais_Should_Combine_Erp_With_Local_Metadata_And_Default_To_Active()
     {
@@ -143,7 +180,7 @@ public sealed class FilialCentroCustoUseCasesTests
         reader.CentrosCusto.Add(new CentroCustoErpDto("CC-001", "Compras Corporativo", DateTimeOffset.UtcNow));
         var metadados = new FakeCentroCustoMetadadoRepository();
 
-        var useCase = new ListarCentrosCustoUseCase(reader, metadados);
+        var useCase = new ListarCentrosCustoUseCase(reader, metadados, new FakeCentroCustoUnidadeAlocacaoRepositoryVazio(), new FakeUnidadeAlocacaoRepositoryVazio());
         var resultado = await useCase.ExecuteAsync(Bu, CancellationToken.None);
 
         var item = Assert.Single(resultado);
@@ -155,7 +192,7 @@ public sealed class FilialCentroCustoUseCasesTests
     [Fact]
     public async Task AtualizarMetadadoCentroCusto_Should_Reject_Unknown_Erp_Code()
     {
-        var useCase = new AtualizarMetadadoCentroCustoUseCase(new FakeCentroCustoErpReader(), new FakeCentroCustoMetadadoRepository(), TimeProvider.System);
+        var useCase = new AtualizarMetadadoCentroCustoUseCase(new FakeCentroCustoErpReader(), new FakeCentroCustoMetadadoRepository(), new FakeCentroCustoUnidadeAlocacaoRepositoryVazio(), new FakeUnidadeAlocacaoRepositoryVazio(), TimeProvider.System);
 
         var resultado = await useCase.ExecuteAsync("CC-999", new CentroCustoMetadadoInput(null, true), Bu, CancellationToken.None);
 
@@ -171,7 +208,7 @@ public sealed class FilialCentroCustoUseCasesTests
         reader.CentrosCusto.Add(new CentroCustoErpDto("CC-001", "Compras Corporativo", null));
         var metadados = new FakeCentroCustoMetadadoRepository();
         metadados.Registros.Add(new CentroCustoMetadado("CC-001", outraUnidade, DateTimeOffset.UtcNow));
-        var useCase = new AtualizarMetadadoCentroCustoUseCase(reader, metadados, TimeProvider.System);
+        var useCase = new AtualizarMetadadoCentroCustoUseCase(reader, metadados, new FakeCentroCustoUnidadeAlocacaoRepositoryVazio(), new FakeUnidadeAlocacaoRepositoryVazio(), TimeProvider.System);
 
         var resultado = await useCase.ExecuteAsync("CC-001", new CentroCustoMetadadoInput("Tentativa cross-BU", true), Bu, CancellationToken.None);
 

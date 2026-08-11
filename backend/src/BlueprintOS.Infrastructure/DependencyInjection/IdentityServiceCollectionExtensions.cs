@@ -89,6 +89,12 @@ public static class IdentityServiceCollectionExtensions
         services.AddScoped<ICriarUnidadeAlocacaoUseCase, CriarUnidadeAlocacaoUseCase>();
         services.AddScoped<IAtualizarUnidadeAlocacaoUseCase, AtualizarUnidadeAlocacaoUseCase>();
         services.AddScoped<IAlterarStatusUnidadeAlocacaoUseCase, AlterarStatusUnidadeAlocacaoUseCase>();
+
+        // O1.9 — Centro de Custo × Unidade de Alocação (N:N). ICentroCustoMetadadoRepository/
+        // ICentroCustoErpReader/IUnidadeAlocacaoRepository já registrados acima — reaproveitados aqui.
+        services.AddScoped<ICentroCustoUnidadeAlocacaoRepository, CentroCustoUnidadeAlocacaoRepository>();
+        services.AddScoped<IListarVinculosUnidadeAlocacaoUseCase, ListarVinculosUnidadeAlocacaoUseCase>();
+        services.AddScoped<ISubstituirVinculosUnidadeAlocacaoUseCase, SubstituirVinculosUnidadeAlocacaoUseCase>();
     }
 
     /// <summary>Fundação Backend do Bootstrap (Work Order O1.4.3, etapa O1.4.3.1). Registra

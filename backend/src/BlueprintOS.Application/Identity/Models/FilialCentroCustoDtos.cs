@@ -25,15 +25,34 @@ public sealed record CentroCustoDto(
     string? DescricaoMaisCompras,
     bool AtivoNoMaisCompras,
     bool TemMetadadoLocal,
-    DateTimeOffset? AtualizadoEm);
+    DateTimeOffset? AtualizadoEm,
+    string? UnidadeAlocacaoPadraoNome,
+    int QuantidadeUnidadesAlocacaoVinculadas);
 
 public sealed record CentroCustoMetadadoInput(string? DescricaoMaisCompras, bool AtivoNoMaisCompras);
+
+/// <summary>Um vínculo de Unidade de Alocação com um Centro de Custo, na projeção de leitura do
+/// relacionamento N:N (O1.9).</summary>
+public sealed record UnidadeAlocacaoVinculoDto(Guid Id, string Nome, bool Ativo, bool Padrao);
+
+/// <summary>Substitui integralmente o conjunto de Unidades de Alocação vinculadas a um Centro de Custo.
+/// <c>PadraoId</c>, quando informado, deve estar entre <c>UnidadeAlocacaoIds</c> — nunca um Id fora do
+/// vínculo que está sendo definido na mesma requisição.</summary>
+public sealed record SubstituirVinculosUnidadeAlocacaoInput(IReadOnlyList<Guid> UnidadeAlocacaoIds, Guid? PadraoId);
 
 public enum ErpMetadadoFalha
 {
     Nenhuma = 0,
     CodigoErpNaoEncontrado,
     AncoradoPorOutraUnidadeDeNegocio,
+
+    /// <summary>O1.9 — um Id de Unidade de Alocação informado no vínculo não existe, ou existe em outra
+    /// Unidade de Negócio (nunca revelado como distinção, sempre tratado como inválido).</summary>
+    UnidadeAlocacaoInvalida,
+
+    /// <summary>O1.9 — <c>PadraoId</c> foi informado, mas não está entre os Ids vinculados na mesma
+    /// requisição.</summary>
+    PadraoForaDoVinculo,
 }
 
 public sealed record ErpMetadadoResultado<T>(bool Sucesso, ErpMetadadoFalha Falha, string? Mensagem, T? Valor)
