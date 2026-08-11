@@ -128,7 +128,7 @@ Novas Work Orders propostas para conclusão da Onda 1, todas em status **Draft (
 | O1.9 | Centro de Custo × Unidade de Alocação (N:N) | ESTRUTURA | (condição de fechamento de #18/#19) | O1.7, O1.8 | [O1.9](work-orders/backlog/O1.9-CentroDeCustoXUnidadeDeAlocacaoNN.md) |
 | O1.10 | Conclusão do Vertical Slice (O1.2.2) | ESTRUTURA | #4, #5, #6, #7, #8 | Parcial; integração final depende de O1.5–O1.9 | [O1.10](work-orders/backlog/O1.10-ConclusaoVerticalSlice.md) |
 | O1.11 | Fundação Multi-Unidade de Negócio e Configuração | ESTRUTURA + DESIGN | #3, #13, #20, #21, #22, #23, #24 | O1.6 | ✅ **CONCLUÍDA (11/08/2026)** — 7/7 entregáveis implementados e validados; #24 (Notificações) entregue em escopo mínimo de fundação, por decisão formal do Product Owner (sem catálogo de eventos, sem motor de envio) | [O1.11](work-orders/completed/O1.11-FundacaoMultiUnidadeDeNegocioEConfiguracao.md) |
-| O1.12 | Workflow, Aprovação, Alçadas e Controle Orçamentário | ESTRUTURA + DESIGN | #25, #26, #27, #28 | O1.5, O1.9 | [O1.12](work-orders/backlog/O1.12-WorkflowAprovacaoAlcadasOrcamento.md) |
+| O1.12 | Workflow, Aprovação, Alçadas e Controle Orçamentário | ESTRUTURA + DESIGN | #25, #26, #27, #28 | O1.5, O1.9 | [O1.12](work-orders/completed/O1.12-WorkflowAprovacaoAlcadasOrcamento.md) — ✅ Concluída |
 | O1.13 | Administração Operacional e Monitoramento | ESTRUTURA + DESIGN | #29, #30, #31, #32 | Nenhuma bloqueante | [O1.13](work-orders/backlog/O1.13-AdministracaoOperacionalEMonitoramento.md) |
 | O1.14 | Blueprint de Banco e Validação Funcional Final | ESTRUTURA | #36, #37, #38, #39, #40, #41 (+ evolução de #33–#35) | O1.5, O1.6, O1.7, O1.8, O1.9 | [O1.14](work-orders/backlog/O1.14-BlueprintDeBancoEValidacaoFuncionalFinal.md) |
 
@@ -424,3 +424,40 @@ consolidada dos 41 entregáveis, GAPs, dívidas, hardening, validação integrad
 consolidada, após O1.11→O1.12→O1.13→O1.13.5→O1.14) **não foi antecipado** — permanece planejado para
 depois da conclusão de todas as Work Orders remanescentes da Onda 1, conforme já registrado neste
 documento.
+
+## O1.12 — Workflow, Alçadas, Aprovação e Controle Orçamentário — CONCLUÍDA (11/08/2026)
+
+**A O1.12 está formalmente CONCLUÍDA.** Escopo entregue: fundação configurável real (sem mock) de
+`RegraWorkflow`, `AlcadaAprovacao` e `RegraOrcamentaria` — persistência EF Core/SQL Server (migration
+`20260811215629_AddAdministracaoWorkflowAlcadaOrcamentoO112`, aplicada ao banco de Desenvolvimento
+corporativo), RBAC real (3 novas permissões: `Workflow.Gerenciar`, `Alcada.Gerenciar`,
+`Orcamento.Gerenciar`), isolamento Multi-BU (O1.11) e referência real a Centro de Custo (O1.9) — nenhum
+motor de aprovação operacional ou integração ERP implementado, conforme "Fora de escopo" da própria Work
+Order. Gap de integração identificado e corrigido durante a execução: o frontend usava `codigoErp` (ERP)
+em vez do Guid interno de `CentroCustoMetadado` nos seletores de Alçadas/Orçamento — corrigido expondo
+`CentroCustoMetadadoId` (campo aditivo) no `CentroCustoDto` já existente. Duas revisões de segurança
+independentes, focadas exclusivamente nas mudanças desta sprint, não encontraram nenhum achado
+CRITICAL/HIGH/MEDIUM. Backend: 564 → 621 testes (+57), todos verdes; frontend: 98 → 110 testes (+12),
+todos verdes; builds limpos. Work Order movida de `active/` para `completed/`
+([O1.12](work-orders/completed/O1.12-WorkflowAprovacaoAlcadasOrcamento.md)).
+
+**Métrica oficial da Onda 1 recalculada neste fechamento** (mesma regra-fonte,
+`.ai/dashboard/DASHBOARD_STATE.md`, "Política dos percentuais" — só conta entregável "Concluído"):
+**41 entregáveis / 24 Concluído / 7 Em desenvolvimento / 10 Planejado / 58,5366% de Progresso Técnico**
+(exibido **59%**; 24 ÷ 41). Antes: 20 / 7 / 14 / 49%. Mudança: **#25** "Estrutura de Workflow", **#26**
+"Configuração de alçadas", **#27** "Estrutura de aprovação" e **#28** "Estrutura de controle
+orçamentário" — todos Planejado → **Concluído** (evidência de entrega 100% do escopo de ESTRUTURA, não do
+motor operacional, que pertence à Onda 3 e não foi antecipado). Contribuição da Onda 1 ao MVP: 9,7561 →
+**11,70732 pontos** (20% × 58,5366%). Percentual Global do MVP 1.0: 36,7561% exato → **38,70732%** exato
+(Foundation 20,0 + Onda 1 11,70732 + Onda 2 7,0), exibido **39%**. `[atualizar dashboard]` **não** foi
+executado nesta sessão, conforme instrução permanente da Work Order — o Dashboard oficial permanece D-1,
+atualizado pelo Product Owner.
+
+**Dívidas novas registradas (não bloqueantes, para o Gate Final da Onda 1):** catálogo de `TipoProcesso`
+(RegraWorkflow) e de critério de negócio de Alçada permanecem pendência de produto; fonte de verdade do
+saldo orçamentário (RegraOrcamentaria) não definida — ambos fora de escopo desta sprint, pertencem à Onda
+3/4. Nenhuma dívida anterior estava diretamente na superfície modificada por esta sprint.
+
+**O1.13 NÃO foi iniciada** (permanece em `backlog/`, Draft/Planejada). **O1.13.5 NÃO foi iniciada**
+(permanece em `backlog/`, Draft/Planejada, não aprovada). **O Gate Final da Onda 1 não foi antecipado** —
+permanece planejado para depois de O1.13→O1.13.5→O1.14, conforme já registrado neste documento.

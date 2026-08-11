@@ -902,6 +902,8 @@ Catálogo inicial de parâmetros para a Onda 1 não está definido; entidade nas
 
 > A partir da revisão R1.1 (ADR-0020), `RegraWorkflow`, `AlcadaAprovacao` e `RegraOrcamentaria` pertencem a `Administração`, não mais a `Configurações`. `Configurações` passa a conter apenas preferências pessoais do usuário (Conta, Preferências, Tema, Idioma), sem entidade própria especificada nesta revisão.
 
+> **Atualização O1.12 (11/08/2026):** as três entidades abaixo foram implementadas como fundação configurável real (persistência EF Core/SQL Server, RBAC real via `PermissaoCatalogo` — `Workflow.Gerenciar`/`Alcada.Gerenciar`/`Orcamento.Gerenciar`, CRUD administrativo por Unidade de Negócio no backend e no frontend, sem exclusão física). O motor operacional de execução (workflow orquestrando o processo de compras, aprovação transacional real, validação de saldo orçamentário) permanece fora de escopo — pertence à Onda 3, conforme a Work Order O1.12. As pendências de produto já registradas abaixo (etapas de workflow, catálogo definitivo de critério de alçada, fonte de saldo orçamentário) continuam abertas e não foram resolvidas por esta sprint — apenas o cadastro/estrutura foi implementado com os campos hoje decidíveis.
+
 ## Entidade: RegraWorkflow
 
 ### Objetivo
@@ -918,7 +920,7 @@ Consumida, a partir da Onda 3, pelo motor de workflow (`Workflow`/`WorkflowRunne
 
 ### Banco +Compras
 
-Entidade lógica `RegraWorkflow`: nome, `UnidadeNegocioId`, etapas (estrutura ainda não definida — **PENDÊNCIA**, ver `ComprasFuncional.md`), condições de aplicação, status.
+Entidade lógica `RegraWorkflow`: nome, `UnidadeNegocioId`, `TipoProcesso` (texto livre — sem catálogo formal ainda), ordem/sequência, ativo/inativo. **Implementada na O1.12** (`Domain.Identity.RegraWorkflow`, tabela `RegrasWorkflow`). Etapas/condições estruturadas do motor de workflow em si (estrutura ainda não definida — **PENDÊNCIA**, ver `ComprasFuncional.md`) permanecem fora de escopo — pertencem ao motor operacional da Onda 3.
 
 ### Banco ERP
 
@@ -960,7 +962,7 @@ Consumida, a partir da Onda 3, pelo fluxo transacional de aprovação de compra.
 
 ### Banco +Compras
 
-Entidade lógica `AlcadaAprovacao`: nome, `UnidadeNegocioId`, critério (valor/categoria/centro de custo — **PENDÊNCIA** de catálogo definitivo), nível/ordem, aprovador ou perfil aprovador, status.
+Entidade lógica `AlcadaAprovacao`: nome, `UnidadeNegocioId`, `TipoCriterio` (Valor/Categoria/CentroCusto), `ValorMinimo`/`ValorMaximo` (quando critério=Valor), `Nivel` (ordem), `AprovadorUsuarioId` ou `AprovadorPerfilId` (exatamente um dos dois, validado no domínio), `CentroCustoMetadadoId` (opcional, quando aplicável), ativo/inativo. **Implementada na O1.12** (`Domain.Identity.AlcadaAprovacao`, tabela `AlcadasAprovacao`), com validação cross-BU de aprovador/Centro de Custo na camada de aplicação. Catálogo definitivo de critério de negócio (categoria de compra, por exemplo) permanece **PENDÊNCIA** de produto.
 
 ### Banco ERP
 
@@ -1002,11 +1004,11 @@ Consumida, a partir da Onda 3/4, pela validação de orçamento antes de uma sol
 
 ### Banco +Compras
 
-Entidade lógica `RegraOrcamentaria`: `UnidadeNegocioId`, `CentroCustoId` (vínculo com `Administração > Gestão de Centros de Custo`, ADR-0020), categoria (opcional), período, limite, comportamento em estouro (Bloquear/Alertar/Exigir aprovação adicional).
+Entidade lógica `RegraOrcamentaria`: nome, `UnidadeNegocioId`, `CentroCustoMetadadoId` (FK real para `Administração > Gestão de Centros de Custo`, O1.9), `ValorLimite` (decimal), `Periodo` (Mensal/Trimestral/Anual), ativo/inativo. **Implementada na O1.12** (`Domain.Identity.RegraOrcamentaria`, tabela `RegrasOrcamentarias`) como cadastro/estrutura — sem reserva contábil, consumo real, integração ERP ou bloqueio operacional. Categoria (opcional) e comportamento em estouro (Bloquear/Alertar/Exigir aprovação adicional) não foram implementados por dependerem do motor operacional da Onda 3.
 
 ### Banco ERP
 
-**PENDÊNCIA:** fonte de verdade do saldo orçamentário (ERP financeiro, planilha corporativa, ou saldo próprio do +Compras) não definida — ver `ComprasFuncional.md`.
+**PENDÊNCIA:** fonte de verdade do saldo orçamentário (ERP financeiro, planilha corporativa, ou saldo próprio do +Compras) não definida — ver `ComprasFuncional.md`. Não resolvida pela O1.12 (fora de escopo, conforme Work Order).
 
 ### Relacionamentos
 

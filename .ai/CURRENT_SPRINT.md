@@ -357,6 +357,39 @@ Pendências (fora do escopo desta sprint, não bloqueantes):
 
 ---
 
+## Sprint O1.12 — Workflow, Alçadas, Aprovação e Controle Orçamentário (11/08/2026) — ✅ concluída
+
+**Status:** ✅ concluída e encerrada formalmente em 11/08/2026. Escopo: fundação configurável real (sem mock, sem motor operacional) de Workflow, Alçadas de Aprovação e Controle Orçamentário, cobrindo os entregáveis #25–#28 da matriz oficial. Work Order: [O1.12](./work-orders/completed/O1.12-WorkflowAprovacaoAlcadasOrcamento.md) (relatório final completo lá).
+
+**Estado inicial:** `main` limpo e sincronizado com `origin/main` (0/0); O1.11 concluída em `completed/`; `active/` vazio; O1.12 em `backlog/Draft`. Baseline: backend 564 testes (557 unitários + 7 integração), frontend 98 testes.
+
+**Descoberta técnica confirmou como REAL e reutilizável, sem segunda representação:** RBAC (O1.5 — `PermissaoCatalogo`/`RbacPolicies`), Centro de Custo × Unidade de Alocação (O1.9), isolamento Multi-BU por path da rota (O1.11). `WorkflowRunner`/`Workflow` existentes (`BlueprintOS.Core.Workflows`) confirmados como motor genérico de orquestração de agentes de IA, sem relação com o domínio de Compras — não reaproveitado por não se aplicar a esta fundação configurável.
+
+**Entregas:**
+- **Backend** (`Domain`/`Application`/`Infrastructure`/`Api`, namespace `Identity`, mesmo padrão físico da O1.11): `RegraWorkflow` (nome, `UnidadeNegocioId`, `TipoProcesso` texto livre, ordem, ativo/inativo); `AlcadaAprovacao` (nome, `UnidadeNegocioId`, `TipoCriterio` Valor/Categoria/CentroCusto, `ValorMinimo`/`ValorMaximo`, `Nivel`, `AprovadorUsuarioId` XOR `AprovadorPerfilId`, `CentroCustoMetadadoId` opcional, ativo/inativo — validação de domínio de nível/faixa/aprovador único, validação de aplicação de mesma BU para aprovador e Centro de Custo); `RegraOrcamentaria` (nome, `UnidadeNegocioId`, `CentroCustoMetadadoId` FK real, `ValorLimite`, `Periodo` Mensal/Trimestral/Anual, ativo/inativo — sem reserva contábil/consumo real/integração ERP). RBAC real: 3 novas permissões (`Workflow.Gerenciar`, `Alcada.Gerenciar`, `Orcamento.Gerenciar`). Endpoints Minimal API escopados por `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/...`, `RequireAuthorization(RbacPolicies.For(...))` + `CsrfHeaderFilter` em todas as escritas. Migration `20260811215629_AddAdministracaoWorkflowAlcadaOrcamentoO112` gerada, revisada e **aplicada com sucesso ao banco de Desenvolvimento corporativo** (`SOMA_DESENV`, via VPN).
+- **Frontend** (Vertical Slice, mesmo padrão físico da O1.11): `administration/workflow`, `administration/alcadas`, `administration/orcamento` — listagem, criar, editar, ativar/inativar, sem exclusão física, consumindo APIs reais, RBAC real filtrando itens de menu em `AppShell.tsx`.
+- **Correção de integração durante a sprint:** o frontend inicialmente usava `codigoErp` (identidade ERP) como se fosse o `CentroCustoMetadadoId` (Guid) exigido pelo backend nos formulários de Alçadas/Orçamento — identificado antes do fechamento e corrigido expondo `CentroCustoMetadadoId` como campo aditivo em `CentroCustoDto` (já existente, sem endpoint novo) e ajustando os seletores para usar o Guid real, desabilitando Centros de Custo sem metadado local.
+- **Testes:** backend 564 → 621 (+57 testes: Domain/Application/Infrastructure/Api das 3 estruturas, casos de erro cross-BU/aprovador inválido/faixa inválida/BU inexistente), todos aprovados. Frontend 98 → 110 (+12 testes), todos aprovados.
+
+**Validações executadas:**
+- `dotnet build backend/BlueprintOS.sln`: aprovado, 0 erros, 0 avisos.
+- `dotnet test backend/tests/BlueprintOS.UnitTests`: aprovado, 621/621.
+- `dotnet ef migrations has-pending-model-changes`: confirma modelo sincronizado após aplicação da migration.
+- `npx tsc -b`, `npm run test` (Vitest), `npm run build`: aprovados, 110/110 testes, build limpo.
+- **Revisão de segurança:** duas execuções independentes focadas exclusivamente nas mudanças desta sprint (RBAC/CSRF em todos os endpoints, isolamento cross-BU/IDOR em todas as FKs e lookups por Id, mass assignment, exposição do novo campo). Resultado: **0 CRITICAL, 0 HIGH, 0 MEDIUM** nas duas execuções.
+- **Chrome/MCP:** dispensado — evidência de build/testes unitários e de integração (RBAC 401/403/200, isolamento cross-BU, validação de domínio) foi suficiente para os critérios de aceite desta sprint de estrutura administrativa; sem fluxo dinâmico complexo que exigisse validação manual em navegador.
+
+**Pendências (fora do escopo desta sprint, não bloqueantes, registradas para o Gate Final da Onda 1):**
+- Catálogo de `TipoProcesso` (RegraWorkflow) e de critério de negócio de Alçada permanecem pendência de produto.
+- Fonte de verdade do saldo orçamentário (RegraOrcamentaria) não definida — pertence à Onda 3/4.
+- `RegraWorkflow.Ordem` sem unicidade; `RegraOrcamentaria` permite múltiplas regras por Centro de Custo/Período — decisões conservadoras, sem exigência de unicidade na documentação atual.
+
+**Reconciliação da matriz dos 41 entregáveis:** #25 "Estrutura de Workflow", #26 "Configuração de alçadas", #27 "Estrutura de aprovação", #28 "Estrutura de controle orçamentário" — todos Planejado → Concluído, com evidência de entrega 100% do escopo de ESTRUTURA (não do motor operacional). Nova métrica: **41 entregáveis / 24 Concluído / 7 Em desenvolvimento / 10 Planejado / 58,5366% de Progresso Técnico** (exibido 59%). MVP global: 36,7561% → **38,70732%** exato (exibido 39%). Detalhe completo em `.ai/BACKLOG.md`.
+
+**Encerramento:** Work Order movida para `.ai/work-orders/completed/O1.12-WorkflowAprovacaoAlcadasOrcamento.md`. `active/` vazio. **O1.13 permanece em `backlog/`, Draft/Planejada — não iniciada.** **O1.13.5 permanece em `backlog/`, Draft/Planejada — não iniciada.** **O Gate Final da Onda 1 não foi antecipado.**
+
+---
+
 ## O1.4.2.1 — Security Hardening da Autenticação OTP (07/08/2026)
 
 **Status:** implementação técnica concluída. **A O1.4.2 permanece não concluída** — esta é uma micro-iteração de hardening sobre a mesma sprint, não um encerramento. Aguarda uma **nova** Security Validation independente antes de qualquer avanço para Bootstrap/Administrador Sênior.
