@@ -1112,3 +1112,99 @@ Operacional, Blueprint de Banco) e essa necessidade — os Agents Linx não fora
 `.ai/work-orders/active/` está vazio. `O1.9-CentroDeCustoXUnidadeDeAlocacaoNN.md` movida para `.ai/work-orders/completed/`. **`O1.10-ConclusaoVerticalSlice.md` permanece em `.ai/work-orders/backlog/`, status Draft/Planejada — não iniciada.**
 
 **Ressalva de escopo sobre o Dashboard:** por instrução expressa do Product Owner, a rotina `[atualizar dashboard]` **não** foi executada e `dashboard/DASHBOARD_STATE.md` **não** foi tocado manualmente. O Dashboard publicado permanece D-1, atualizado pelo Product Owner ao final do dia.
+
+## Planejamento dos Agents Especialistas Linx (11/08/2026)
+
+Antes de abrir a O1.10, análise obrigatória das Work Orders O1.10–O1.14 para decidir o encaixe da nova
+decisão do Product Owner de incluir, ainda na Onda 1, a fundação dos Agents especialistas Linx ERP
+Specialist e Linx Database Specialist (memória persistente, proveniência do conhecimento, sem SQL livre de
+IA em produção). Análise completa e decisão registradas em `.ai/BACKLOG.md`. Resumo: nenhuma das cinco
+Work Orders analisadas tem escopo natural para essa fundação; as integrações ERP mais profundas com
+Item/Pedido pertencem às Ondas 3/4, fora do escopo de O1.10–O1.14. Recomendada e criada uma nova Work Order
+— **O1.13.5 — Fundação dos Agents Especialistas Linx (Conhecimento ERP/Banco)** —, em
+`.ai/work-orders/backlog/O1.13.5-FundacaoAgentsEspecialistasLinx.md`, status Draft/Planejada. **Não
+iniciada, não aprovada, não implementada.**
+
+## Abertura e execução da Sprint O1.10 — Conclusão do Vertical Slice — 11/08/2026
+
+Work Order movida de `.ai/work-orders/backlog/` para `.ai/work-orders/active/` e, na mesma sessão, executada
+integralmente e encerrada — ver seção seguinte. Status atualizado para "Concluída"; data de aprovação
+preenchida como 11/08/2026. Nenhum percentual técnico foi alterado apenas pela abertura.
+
+## Encerramento formal da Sprint O1.10 — Conclusão do Vertical Slice — 11/08/2026
+
+### Objetivo canônico
+
+Concluir a migração arquitetural iniciada em O1.2.1, aplicando o padrão Vertical Slice (ADR-0020) aos
+módulos ainda em estrutura horizontal — Negociações, Configurações, Pedidos onde incompleto — e demais
+resíduos identificados pela auditoria (D5, ADR-0021), sem redesenhar funcionalidades.
+
+### Descoberta técnica
+
+`pages/Negociacoes/NegociacoesPage.tsx` e `pages/Configuracoes/ConfiguracoesPage.tsx`: MOCK, em pasta
+horizontal (`pages/`). `procurement/orders/pages/PedidosPage.tsx`: MOCK, mas já fisicamente em Vertical
+Slice desde antes desta sprint — a menção "Pedidos onde incompleto" no objetivo da Work Order refere-se à
+ausência de domínio/backend real, explicitamente fora de escopo. `core/AppShell.tsx`: menu já listava todos
+os módulos de Administração, mas só "Perfis" era filtrado por permissão RBAC real — Usuários/Filiais/
+Centros de Custo/Unidades de Alocação apareciam incondicionalmente, apesar de já terem RBAC real desde
+O1.6–O1.9. `CnpjSearch`/`ApprovalPanel`/`CadastroFornecedor` (classificados "Parcial" na auditoria original,
+10/08/2026): inspecionados, já possuem tratamento adequado de loading/erro — classificação desatualizada.
+
+### Implementação
+
+- Migração estrutural (`git mv`, preservando histórico): `pages/Negociacoes/` → `negotiations/pages/`;
+  `pages/Configuracoes/` → `settings/pages/` (mesmo padrão físico de página única de `analytics/`/`ai/`,
+  módulos ainda demonstrativos). Pasta horizontal `pages/` removida por completo. Imports atualizados em
+  `core/AppRoutes.tsx`.
+- `core/AppShell.tsx`: itens de menu de Usuários/Filiais/Centros de Custo/Unidades de Alocação passam a ser
+  filtrados pela permissão RBAC real correspondente (`Usuario.Gerenciar`/`Filial.Gerenciar`/
+  `CentroCusto.Gerenciar`/`UnidadeAlocacao.Gerenciar`), reaproveitando as constantes já existentes em
+  `PERMISSOES` — nenhuma permissão nova criada. Reforçado no código que isso é exclusivamente UX (esconder
+  item do menu nunca é a barreira de segurança).
+- Nenhuma alteração de comportamento funcional, contrato de API ou UI além do reflexo de RBAC no menu
+  (intencional, um dos critérios de aceite — não parte da migração estrutural pura em si).
+
+### Testes
+
+Frontend: **74/74 aprovados** (9 arquivos, sem regressão), `tsc -b`/`vite build` limpos. Nenhum teste novo
+necessário — migração estrutural pura e checagem de menu já cobertas pelo padrão existente (Perfis, O1.5).
+
+### Decisão sobre uso do Chrome/MCP
+
+**Dispensado.** Build e suíte automatizada (incluindo os testes reais de Administração que exercitam
+navegação/rotas) fornecem evidência suficiente para uma migração estrutural pura e uma checagem de
+visibilidade de menu já comprovada pelo mesmo padrão em Perfis desde a O1.5.
+
+### Segurança
+
+Revisão proporcional ao risco — superfície alterada é puramente frontend/estrutural, sem novo endpoint ou
+mudança de backend. Nenhum achado CRITICAL/HIGH: a filtragem de menu por permissão é exclusivamente
+cosmética — o backend já exige a permissão real em cada endpoint (O1.5–O1.9) independentemente do que o
+menu exibe; nenhuma decisão de autorização passou a depender do frontend.
+
+### Dívidas
+
+Nenhuma dívida nova bloqueante. Nenhuma dívida anterior quitada nesta sprint (a classificação "Parcial" de
+CnpjSearch/ApprovalPanel/CadastroFornecedor, investigada, não configurou uma dívida real).
+
+### Reconciliação dos entregáveis oficiais da Onda 1
+
+Nenhum entregável passa a "Concluído" nesta sprint. **#4** "Shell principal", **#5** "Menu e navegação
+completa", **#7** "Frontend mockado navegável da v1.0" e **#8** "Estados de loading/vazio/sucesso/erro"
+avançam mas permanecem "Em desenvolvimento" — Negociações/Pedidos/Indicadores/Agentes IA/Configurações
+continuam demonstrativos (mock); a implementação de domínio real desses módulos pertence a Ondas futuras.
+Progresso técnico da Onda 1 **inalterado**: 41 entregáveis / 13 Concluído / 7 Em desenvolvimento / 21
+Planejado / **32%** (31,7073% exato). MVP Global **inalterado**: 33,34% exato, exibido 33%. **Por
+instrução expressa do Product Owner, `.ai/dashboard/DASHBOARD_STATE.md` não foi editado.**
+
+### Estado final: NENHUMA SPRINT ATIVA
+
+`.ai/work-orders/active/` está vazio. `O1.10-ConclusaoVerticalSlice.md` movida para
+`.ai/work-orders/completed/`. **`O1.11-FundacaoMultiUnidadeDeNegocioEConfiguracao.md` permanece em
+`.ai/work-orders/backlog/`, status Draft/Planejada — não iniciada.** A eventual Work Order
+**O1.13.5-FundacaoAgentsEspecialistasLinx.md** permanece em `.ai/work-orders/backlog/`, status
+Draft/Planejada — não iniciada, não aprovada.
+
+**Ressalva de escopo sobre o Dashboard:** por instrução expressa do Product Owner, a rotina
+`[atualizar dashboard]` **não** foi executada e `dashboard/DASHBOARD_STATE.md` **não** foi tocado
+manualmente. O Dashboard publicado permanece D-1, atualizado pelo Product Owner ao final do dia.

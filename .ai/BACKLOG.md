@@ -327,3 +327,17 @@ pode ser renomeada/reposicionada antes de qualquer aprovação — nada foi inic
 
 **Impacto na sequência restante da Onda 1:** nenhum bloqueio identificado. A O1.13.5 pode ser executada em
 paralelo a O1.10–O1.13, a qualquer momento a partir de agora, sem impedir a execução desta sessão (O1.10).
+
+### Fechamento formal da O1.10 (11/08/2026)
+
+A **O1.10 está formalmente CONCLUÍDA** ([Work Order](work-orders/completed/O1.10-ConclusaoVerticalSlice.md)). Migração estrutural pura das duas últimas pastas horizontais do frontend (`pages/Negociacoes` → `negotiations/pages`, `pages/Configuracoes` → `settings/pages`, via `git mv`) — a pasta `pages/` deixa de existir. `procurement/orders/pages/PedidosPage.tsx` já estava em Vertical Slice, sem ação estrutural pendente. `core/AppShell.tsx` atualizado para filtrar os itens de menu de Usuários/Filiais/Centros de Custo/Unidades de Alocação pela permissão RBAC real correspondente, mesmo padrão já aplicado a Perfis desde a O1.5 (reaproveitadas as constantes existentes de `PERMISSOES`, nenhuma permissão nova). Nenhum achado CRITICAL/HIGH — superfície alterada é puramente frontend/estrutural.
+
+**Frontend:** `npm run build` (`tsc -b`/`vite build`) aprovado. `npm test` — **74 aprovados** (9 arquivos), sem regressão. Investigados `CnpjSearch`/`ApprovalPanel`/`CadastroFornecedor` (classificados "Parcial" na auditoria original) — já possuem tratamento adequado de loading/erro; a classificação estava desatualizada, nenhuma dívida real encontrada.
+
+**Backend:** nenhuma alteração — escopo da O1.10 é puramente frontend/estrutural, conforme a Work Order.
+
+**Chrome/MCP:** dispensado — build e suíte automatizada suficientes para uma migração estrutural pura e uma checagem de visibilidade de menu já comprovada pelo mesmo padrão em Perfis.
+
+**Métrica oficial da Onda 1 — inalterada neste fechamento**: **41 entregáveis / 13 Concluído / 7 Em desenvolvimento / 21 Planejado / 32% de Progresso Técnico**. Nenhum entregável passa a "Concluído": #4 "Shell principal", #5 "Menu e navegação completa", #6 "Dashboard inicial", #7 "Frontend mockado navegável" e #8 "Estados de loading/vazio/sucesso/erro" avançam mas permanecem "Em desenvolvimento" — Negociações/Pedidos/Indicadores/Agentes IA/Configurações continuam demonstrativos (mock), como já documentado; a implementação de domínio real desses módulos pertence a Ondas futuras. **Por instrução expressa do Product Owner, `.ai/dashboard/DASHBOARD_STATE.md` não foi editado.**
+
+**O1.11 não foi iniciada:** permanece em `backlog/`, Draft/Planejada — não movida, não aberta, não implementada. **A eventual Work Order O1.13.5 (Fundação dos Agents Especialistas Linx) permanece em `backlog/`, Draft/Planejada — não iniciada, não aprovada.** Nenhuma Work Order está ativa após este fechamento.
