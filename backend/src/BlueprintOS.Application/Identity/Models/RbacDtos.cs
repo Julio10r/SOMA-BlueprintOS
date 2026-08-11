@@ -93,6 +93,21 @@ public enum RbacFalha
     /// tentar ativar as notificações por e-mail.</summary>
     EmailRemetenteInvalido,
     ConfiguracaoNotificacaoNaoEncontrada,
+
+    // ---- O1.12 — Fundação de Administração (Workflow, Alçadas, Controle Orçamentário) ----
+    TipoProcessoObrigatorio,
+    OrdemInvalida,
+    RegraWorkflowNaoEncontrada,
+
+    NivelInvalido,
+    FaixaDeValorInvalida,
+    AprovadorInvalido,
+    CentroCustoObrigatorio,
+    CentroCustoInvalidoNaUnidadeDeNegocio,
+    AlcadaAprovacaoNaoEncontrada,
+
+    ValorLimiteInvalido,
+    RegraOrcamentariaNaoEncontrada,
 }
 
 /// <summary>Projeção de leitura de uma Unidade de Alocação (O1.8 — Persistência Real). Sem vínculo com

@@ -160,6 +160,27 @@ public sealed class RbacEnforcementPipelineTests : IAsyncDisposable
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
+    /// <summary>O1.12 — as 3 novas permissões de fundação de Administração (Workflow/Alçadas/Orçamento)
+    /// seguem o MESMO pipeline de enforcement das demais: 401 sem sessão, 403 sem a permissão, 200 com a
+    /// permissão. Não é um mecanismo próprio — apenas mais 3 entradas no catálogo genérico já coberto por
+    /// <see cref="RbacPoliciesTests.AddRbacPolicies_Should_Register_One_Policy_Per_Catalog_Permission"/>.</summary>
+    [Fact]
+    public async Task Should_Enforce_401_403_200_For_The_New_O112_Administration_Permissions()
+    {
+        var semSessao = await StartAsync(PermissaoCatalogo.WorkflowGerenciar);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await semSessao.GetAsync("/probe-workflow")).StatusCode);
+
+        var semPermissao = await StartAsync();
+        ComSessao(semPermissao);
+        Assert.Equal(HttpStatusCode.Forbidden, (await semPermissao.GetAsync("/probe-workflow")).StatusCode);
+
+        var comPermissao = await StartAsync(PermissaoCatalogo.WorkflowGerenciar, PermissaoCatalogo.AlcadaGerenciar, PermissaoCatalogo.OrcamentoGerenciar);
+        ComSessao(comPermissao);
+        Assert.Equal(HttpStatusCode.OK, (await comPermissao.GetAsync("/probe-workflow")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await comPermissao.GetAsync("/probe-alcada")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await comPermissao.GetAsync("/probe-orcamento")).StatusCode);
+    }
+
     /// <summary>Endpoint inexistente sob uma sessão autorizada continua 404 — a autorização não transforma
     /// ausência de rota em negação, e não vaza a diferença.</summary>
     [Fact]
@@ -227,6 +248,12 @@ public sealed class RbacEnforcementPipelineTests : IAsyncDisposable
             .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.PerfilGerenciar));
         _app.MapGet("/probe-pedidos", () => "ok")
             .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.PedidoCriar));
+        _app.MapGet("/probe-workflow", () => "ok")
+            .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.WorkflowGerenciar));
+        _app.MapGet("/probe-alcada", () => "ok")
+            .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.AlcadaGerenciar));
+        _app.MapGet("/probe-orcamento", () => "ok")
+            .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.OrcamentoGerenciar));
 
         await _app.StartAsync();
 

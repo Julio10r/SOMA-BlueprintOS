@@ -40,6 +40,13 @@ public static class PermissaoCatalogo
     public const string PedidoAprovar = "Pedido.Aprovar";
     public const string PedidoCancelar = "Pedido.Cancelar";
 
+    /// <summary>O1.12 — Fundação de Administração (Workflow, Alçadas, Controle Orçamentário), ADR-0020
+    /// (revisão R1.1/ADR-0020). Apenas o cadastro administrativo destas 3 estruturas; nenhuma delas
+    /// autoriza a execução do motor operacional correspondente (fora de escopo desta sprint).</summary>
+    public const string WorkflowGerenciar = "Workflow.Gerenciar";
+    public const string AlcadaGerenciar = "Alcada.Gerenciar";
+    public const string OrcamentoGerenciar = "Orcamento.Gerenciar";
+
     private static readonly PermissaoDefinicao[] Definicoes =
     [
         Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000001"), UnidadeNegocioGerenciar, "Criar, editar e inativar Unidades de Negócio"),
@@ -56,6 +63,9 @@ public static class PermissaoCatalogo
         Definir(new Guid("b1a5c4e0-0001-4a10-9f01-00000000000c"), PedidoCriar, "Criar pedido de compra"),
         Definir(new Guid("b1a5c4e0-0001-4a10-9f01-00000000000d"), PedidoAprovar, "Aprovar pedido de compra"),
         Definir(new Guid("b1a5c4e0-0001-4a10-9f01-00000000000e"), PedidoCancelar, "Cancelar pedido de compra"),
+        Definir(new Guid("b1a5c4e0-0001-4a10-9f01-00000000000f"), WorkflowGerenciar, "Criar, editar e ativar/inativar Regras de Workflow por Unidade de Negócio"),
+        Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000010"), AlcadaGerenciar, "Criar, editar e ativar/inativar Alçadas de Aprovação por Unidade de Negócio"),
+        Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000011"), OrcamentoGerenciar, "Criar, editar e ativar/inativar Regras Orçamentárias por Unidade de Negócio"),
     ];
 
     /// <summary>Catálogo completo, na ordem canônica de apresentação.</summary>

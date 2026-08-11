@@ -48,6 +48,9 @@ public sealed class PermissaoCatalogoTests
     [InlineData("UnidadeAlocacao.Gerenciar")]
     [InlineData("ConfiguracaoErp.Gerenciar")]
     [InlineData("Fornecedor.Aprovar")]
+    [InlineData("Workflow.Gerenciar")]
+    [InlineData("Alcada.Gerenciar")]
+    [InlineData("Orcamento.Gerenciar")]
     public void Should_Contain_Permissions_Documented_In_ComprasFuncional(string codigo) =>
         Assert.True(PermissaoCatalogo.Existe(codigo));
 

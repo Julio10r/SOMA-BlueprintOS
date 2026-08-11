@@ -239,6 +239,9 @@ app.MapConfiguracaoErp();
 app.MapConfiguracaoNotificacao();
 app.MapParametros();
 app.MapFeatureFlags();
+app.MapRegrasWorkflow();
+app.MapAlcadasAprovacao();
+app.MapRegrasOrcamentarias();
 if (app.Environment.IsDevelopment())
 {
     app.MapDevelopmentOtpDiagnostics();

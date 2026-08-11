@@ -132,6 +132,26 @@ public static class IdentityServiceCollectionExtensions
         services.AddScoped<IListarFeatureFlagsUseCase, ListarFeatureFlagsUseCase>();
         services.AddScoped<ICriarFeatureFlagUseCase, CriarFeatureFlagUseCase>();
         services.AddScoped<IAlterarStatusFeatureFlagUnidadeUseCase, AlterarStatusFeatureFlagUnidadeUseCase>();
+
+        // O1.12 — Fundação de Administração (Workflow, Alçadas, Controle Orçamentário). Apenas CRUD
+        // administrativo por Unidade de Negócio; nenhum motor operacional é registrado aqui.
+        services.AddScoped<IRegraWorkflowRepository, RegraWorkflowRepository>();
+        services.AddScoped<IListarRegrasWorkflowUseCase, ListarRegrasWorkflowUseCase>();
+        services.AddScoped<ICriarRegraWorkflowUseCase, CriarRegraWorkflowUseCase>();
+        services.AddScoped<IAtualizarRegraWorkflowUseCase, AtualizarRegraWorkflowUseCase>();
+        services.AddScoped<IAlterarStatusRegraWorkflowUseCase, AlterarStatusRegraWorkflowUseCase>();
+
+        services.AddScoped<IAlcadaAprovacaoRepository, AlcadaAprovacaoRepository>();
+        services.AddScoped<IListarAlcadasAprovacaoUseCase, ListarAlcadasAprovacaoUseCase>();
+        services.AddScoped<ICriarAlcadaAprovacaoUseCase, CriarAlcadaAprovacaoUseCase>();
+        services.AddScoped<IAtualizarAlcadaAprovacaoUseCase, AtualizarAlcadaAprovacaoUseCase>();
+        services.AddScoped<IAlterarStatusAlcadaAprovacaoUseCase, AlterarStatusAlcadaAprovacaoUseCase>();
+
+        services.AddScoped<IRegraOrcamentariaRepository, RegraOrcamentariaRepository>();
+        services.AddScoped<IListarRegrasOrcamentariasUseCase, ListarRegrasOrcamentariasUseCase>();
+        services.AddScoped<ICriarRegraOrcamentariaUseCase, CriarRegraOrcamentariaUseCase>();
+        services.AddScoped<IAtualizarRegraOrcamentariaUseCase, AtualizarRegraOrcamentariaUseCase>();
+        services.AddScoped<IAlterarStatusRegraOrcamentariaUseCase, AlterarStatusRegraOrcamentariaUseCase>();
     }
 
     /// <summary>Fundação Backend do Bootstrap (Work Order O1.4.3, etapa O1.4.3.1). Registra

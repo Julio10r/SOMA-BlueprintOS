@@ -31,6 +31,11 @@ public sealed class BlueprintOSDbContext(DbContextOptions<BlueprintOSDbContext> 
     public DbSet<FeatureFlag> FeatureFlags => Set<FeatureFlag>();
     public DbSet<FeatureFlagUnidadeNegocio> FeatureFlagsUnidadesNegocio => Set<FeatureFlagUnidadeNegocio>();
 
+    // O1.12 — Fundação de Administração (Workflow, Alçadas, Controle Orçamentário).
+    public DbSet<RegraWorkflow> RegrasWorkflow => Set<RegraWorkflow>();
+    public DbSet<AlcadaAprovacao> AlcadasAprovacao => Set<AlcadaAprovacao>();
+    public DbSet<RegraOrcamentaria> RegrasOrcamentarias => Set<RegraOrcamentaria>();
+
     public DbSet<Fornecedor> Fornecedores => Set<Fornecedor>();
     public DbSet<FornecedorCnpjConsultaHistorico> FornecedoresCnpjConsultas => Set<FornecedorCnpjConsultaHistorico>();
     public DbSet<FornecedorEnriquecimentoAnalise> FornecedoresEnriquecimentoAnalises => Set<FornecedorEnriquecimentoAnalise>();
