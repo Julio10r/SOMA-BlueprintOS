@@ -117,6 +117,10 @@ public static class IdentityServiceCollectionExtensions
         services.AddScoped<ISalvarConfiguracaoErpUseCase, SalvarConfiguracaoErpUseCase>();
         services.AddScoped<IAlterarStatusConfiguracaoErpUseCase, AlterarStatusConfiguracaoErpUseCase>();
 
+        services.AddScoped<IConfiguracaoNotificacaoRepository, ConfiguracaoNotificacaoRepository>();
+        services.AddScoped<IObterConfiguracaoNotificacaoUseCase, ObterConfiguracaoNotificacaoUseCase>();
+        services.AddScoped<ISalvarConfiguracaoNotificacaoUseCase, SalvarConfiguracaoNotificacaoUseCase>();
+
         services.AddScoped<IParametroRepository, ParametroRepository>();
         services.AddScoped<IListarParametrosUseCase, ListarParametrosUseCase>();
         services.AddScoped<ICriarParametroUseCase, CriarParametroUseCase>();

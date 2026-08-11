@@ -14,6 +14,7 @@ import { IdentityProvidersRoutes } from "../administration/identity-providers/ro
 import { ErpConfiguracaoRoutes } from "../administration/erp-configuration/routes/ErpConfiguracaoRoutes";
 import { ParametrosRoutes } from "../administration/parameters/routes/ParametrosRoutes";
 import { FeatureFlagsRoutes } from "../administration/feature-flags/routes/FeatureFlagsRoutes";
+import { ConfiguracaoNotificacaoRoutes } from "../administration/notification-configuration/routes/ConfiguracaoNotificacaoRoutes";
 import { BusinessUnitGate } from "../business-unit/components/BusinessUnitGate";
 import { Dashboard } from "../analytics/pages/Dashboard";
 import { FornecedoresPage } from "../procurement/suppliers/pages/FornecedoresPage";
@@ -56,6 +57,7 @@ export function AppRoutes() {
                     <Route path="/administracao/configuracao-erp/*" element={<ErpConfiguracaoRoutes />} />
                     <Route path="/administracao/parametros/*" element={<ParametrosRoutes />} />
                     <Route path="/administracao/feature-flags/*" element={<FeatureFlagsRoutes />} />
+                    <Route path="/administracao/configuracao-notificacao/*" element={<ConfiguracaoNotificacaoRoutes />} />
                     <Route path="/fornecedores" element={<FornecedoresPage />} />
                     <Route path="/pedidos" element={<PedidosPage />} />
                     <Route path="/negociacoes" element={<NegociacoesPage />} />

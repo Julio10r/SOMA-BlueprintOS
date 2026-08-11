@@ -26,6 +26,7 @@ public sealed class BlueprintOSDbContext(DbContextOptions<BlueprintOSDbContext> 
     // O1.11 — Administração de Unidades de Negócio e Configuração Técnica.
     public DbSet<IdentityProvider> IdentityProviders => Set<IdentityProvider>();
     public DbSet<ConfiguracaoErp> ConfiguracoesErp => Set<ConfiguracaoErp>();
+    public DbSet<ConfiguracaoNotificacao> ConfiguracoesNotificacao => Set<ConfiguracaoNotificacao>();
     public DbSet<Parametro> Parametros => Set<Parametro>();
     public DbSet<FeatureFlag> FeatureFlags => Set<FeatureFlag>();
     public DbSet<FeatureFlagUnidadeNegocio> FeatureFlagsUnidadesNegocio => Set<FeatureFlagUnidadeNegocio>();

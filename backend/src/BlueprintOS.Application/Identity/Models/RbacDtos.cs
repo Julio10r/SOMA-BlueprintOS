@@ -88,6 +88,11 @@ public enum RbacFalha
     ParametroDuplicado,
     FeatureFlagNaoEncontrada,
     FeatureFlagDuplicada,
+
+    /// <summary>O1.11, item #24 — Configuração de Notificações. E-mail remetente inválido, ou ausente ao
+    /// tentar ativar as notificações por e-mail.</summary>
+    EmailRemetenteInvalido,
+    ConfiguracaoNotificacaoNaoEncontrada,
 }
 
 /// <summary>Projeção de leitura de uma Unidade de Alocação (O1.8 — Persistência Real). Sem vínculo com

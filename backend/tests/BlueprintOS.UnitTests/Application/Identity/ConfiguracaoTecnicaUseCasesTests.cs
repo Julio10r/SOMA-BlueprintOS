@@ -146,4 +146,160 @@ public sealed class ConfiguracaoTecnicaUseCasesTests
         Assert.False(resultado.Sucesso);
         Assert.Equal(RbacFalha.UnidadeNegocioNaoEncontrada, resultado.Falha);
     }
+
+    // ---- O1.11, item #24 — Configuração de Notificações por Unidade de Negócio ----
+
+    private sealed class FakeConfiguracaoNotificacaoRepository : IConfiguracaoNotificacaoRepository
+    {
+        public List<ConfiguracaoNotificacao> All { get; } = [];
+
+        public Task<ConfiguracaoNotificacao?> ObterPorUnidadeNegocioAsync(Guid unidadeNegocioId, CancellationToken ct) =>
+            Task.FromResult(All.SingleOrDefault(x => x.UnidadeNegocioId == unidadeNegocioId));
+
+        public Task AdicionarAsync(ConfiguracaoNotificacao configuracaoNotificacao, CancellationToken ct) { All.Add(configuracaoNotificacao); return Task.CompletedTask; }
+        public Task SalvarAlteracoesAsync(CancellationToken ct) => Task.CompletedTask;
+    }
+
+    [Fact]
+    public async Task ObterConfiguracaoNotificacao_Should_Return_NotFound_When_UnidadeNegocio_Does_Not_Exist()
+    {
+        var unidades = new FakeUnidadeNegocioRepositoryMinimo();
+        var useCase = new ObterConfiguracaoNotificacaoUseCase(unidades, new FakeConfiguracaoNotificacaoRepository());
+
+        var resultado = await useCase.ExecuteAsync(Guid.NewGuid(), CancellationToken.None);
+
+        Assert.False(resultado.Sucesso);
+        Assert.Equal(RbacFalha.UnidadeNegocioNaoEncontrada, resultado.Falha);
+    }
+
+    [Fact]
+    public async Task ObterConfiguracaoNotificacao_Should_Return_Null_When_Not_Yet_Configured()
+    {
+        var (unidades, buId) = ArrangeUnidade();
+        var useCase = new ObterConfiguracaoNotificacaoUseCase(unidades, new FakeConfiguracaoNotificacaoRepository());
+
+        var resultado = await useCase.ExecuteAsync(buId, CancellationToken.None);
+
+        Assert.True(resultado.Sucesso);
+        Assert.Null(resultado.Valor);
+    }
+
+    [Fact]
+    public async Task SalvarConfiguracaoNotificacao_Should_Return_NotFound_When_UnidadeNegocio_Does_Not_Exist()
+    {
+        var unidades = new FakeUnidadeNegocioRepositoryMinimo();
+        var useCase = new SalvarConfiguracaoNotificacaoUseCase(
+            unidades, new FakeConfiguracaoNotificacaoRepository(), TimeProvider.System, NullLogger<SalvarConfiguracaoNotificacaoUseCase>.Instance);
+
+        var resultado = await useCase.ExecuteAsync(Guid.NewGuid(), new ConfiguracaoNotificacaoInput(false, null, null), CancellationToken.None);
+
+        Assert.False(resultado.Sucesso);
+        Assert.Equal(RbacFalha.UnidadeNegocioNaoEncontrada, resultado.Falha);
+    }
+
+    [Fact]
+    public async Task SalvarConfiguracaoNotificacao_Should_Create_With_Safe_Defaults_When_Disabled_And_No_Email()
+    {
+        var (unidades, buId) = ArrangeUnidade();
+        var repo = new FakeConfiguracaoNotificacaoRepository();
+        var useCase = new SalvarConfiguracaoNotificacaoUseCase(
+            unidades, repo, TimeProvider.System, NullLogger<SalvarConfiguracaoNotificacaoUseCase>.Instance);
+
+        var resultado = await useCase.ExecuteAsync(buId, new ConfiguracaoNotificacaoInput(false, null, null), CancellationToken.None);
+
+        Assert.True(resultado.Sucesso);
+        Assert.False(resultado.Valor!.EmailAtivado);
+        Assert.Null(resultado.Valor.EmailRemetente);
+        Assert.Single(repo.All);
+    }
+
+    [Fact]
+    public async Task SalvarConfiguracaoNotificacao_Should_Reject_Activation_Without_Sender_Email()
+    {
+        var (unidades, buId) = ArrangeUnidade();
+        var useCase = new SalvarConfiguracaoNotificacaoUseCase(
+            unidades, new FakeConfiguracaoNotificacaoRepository(), TimeProvider.System, NullLogger<SalvarConfiguracaoNotificacaoUseCase>.Instance);
+
+        var resultado = await useCase.ExecuteAsync(buId, new ConfiguracaoNotificacaoInput(true, null, "SOMA"), CancellationToken.None);
+
+        Assert.False(resultado.Sucesso);
+        Assert.Equal(RbacFalha.EmailRemetenteInvalido, resultado.Falha);
+    }
+
+    [Fact]
+    public async Task SalvarConfiguracaoNotificacao_Should_Reject_Invalid_Email_Format()
+    {
+        var (unidades, buId) = ArrangeUnidade();
+        var useCase = new SalvarConfiguracaoNotificacaoUseCase(
+            unidades, new FakeConfiguracaoNotificacaoRepository(), TimeProvider.System, NullLogger<SalvarConfiguracaoNotificacaoUseCase>.Instance);
+
+        var resultado = await useCase.ExecuteAsync(buId, new ConfiguracaoNotificacaoInput(true, "nao-e-um-email", "SOMA"), CancellationToken.None);
+
+        Assert.False(resultado.Sucesso);
+        Assert.Equal(RbacFalha.EmailRemetenteInvalido, resultado.Falha);
+    }
+
+    [Fact]
+    public async Task SalvarConfiguracaoNotificacao_Should_Activate_With_Valid_Email_And_Persist_Sender_Name()
+    {
+        var (unidades, buId) = ArrangeUnidade();
+        var repo = new FakeConfiguracaoNotificacaoRepository();
+        var useCase = new SalvarConfiguracaoNotificacaoUseCase(
+            unidades, repo, TimeProvider.System, NullLogger<SalvarConfiguracaoNotificacaoUseCase>.Instance);
+
+        var resultado = await useCase.ExecuteAsync(buId, new ConfiguracaoNotificacaoInput(true, "Notificacoes@Soma.Com.Br", "SOMA Grupo"), CancellationToken.None);
+
+        Assert.True(resultado.Sucesso);
+        Assert.True(resultado.Valor!.EmailAtivado);
+        Assert.Equal("notificacoes@soma.com.br", resultado.Valor.EmailRemetente);
+        Assert.Equal("SOMA Grupo", resultado.Valor.NomeRemetente);
+    }
+
+    [Fact]
+    public async Task SalvarConfiguracaoNotificacao_Should_Update_Existing_Configuration_Idempotently()
+    {
+        var (unidades, buId) = ArrangeUnidade();
+        var repo = new FakeConfiguracaoNotificacaoRepository();
+        var useCase = new SalvarConfiguracaoNotificacaoUseCase(
+            unidades, repo, TimeProvider.System, NullLogger<SalvarConfiguracaoNotificacaoUseCase>.Instance);
+
+        var criado = await useCase.ExecuteAsync(buId, new ConfiguracaoNotificacaoInput(true, "a@soma.com.br", "A"), CancellationToken.None);
+        Assert.True(criado.Sucesso);
+        Assert.Single(repo.All);
+
+        var atualizado = await useCase.ExecuteAsync(buId, new ConfiguracaoNotificacaoInput(false, "a@soma.com.br", "B"), CancellationToken.None);
+
+        Assert.True(atualizado.Sucesso);
+        Assert.Single(repo.All);
+        Assert.Equal(criado.Valor!.Id, atualizado.Valor!.Id);
+        Assert.False(atualizado.Valor.EmailAtivado);
+        Assert.Equal("B", atualizado.Valor.NomeRemetente);
+    }
+
+    [Fact]
+    public async Task SalvarConfiguracaoNotificacao_Should_Isolate_Configurations_Between_Business_Units()
+    {
+        var repoUnidades = new FakeUnidadeNegocioRepositoryMinimo();
+        var unidadeA = new UnidadeNegocio("SOMA A", "soma-a");
+        var unidadeB = new UnidadeNegocio("SOMA B", "soma-b");
+        repoUnidades.All.Add(unidadeA);
+        repoUnidades.All.Add(unidadeB);
+
+        var repo = new FakeConfiguracaoNotificacaoRepository();
+        var useCase = new SalvarConfiguracaoNotificacaoUseCase(
+            repoUnidades, repo, TimeProvider.System, NullLogger<SalvarConfiguracaoNotificacaoUseCase>.Instance);
+
+        await useCase.ExecuteAsync(unidadeA.Id, new ConfiguracaoNotificacaoInput(true, "a@soma.com.br", "A"), CancellationToken.None);
+        await useCase.ExecuteAsync(unidadeB.Id, new ConfiguracaoNotificacaoInput(true, "b@soma.com.br", "B"), CancellationToken.None);
+
+        Assert.Equal(2, repo.All.Count);
+
+        var obterUseCase = new ObterConfiguracaoNotificacaoUseCase(repoUnidades, repo);
+        var configA = await obterUseCase.ExecuteAsync(unidadeA.Id, CancellationToken.None);
+        var configB = await obterUseCase.ExecuteAsync(unidadeB.Id, CancellationToken.None);
+
+        Assert.Equal("a@soma.com.br", configA.Valor!.EmailRemetente);
+        Assert.Equal("b@soma.com.br", configB.Valor!.EmailRemetente);
+        Assert.NotEqual(configA.Valor.Id, configB.Valor.Id);
+    }
 }

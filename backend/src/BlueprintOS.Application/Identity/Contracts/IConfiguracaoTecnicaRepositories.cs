@@ -27,6 +27,17 @@ public interface IConfiguracaoErpRepository
     Task SalvarAlteracoesAsync(CancellationToken ct);
 }
 
+/// <summary>Repositório de Configuração de Notificações por Unidade de Negócio (O1.11, item #24) —
+/// relação 1:1, mesmo padrão de <see cref="IConfiguracaoErpRepository"/>.</summary>
+public interface IConfiguracaoNotificacaoRepository
+{
+    Task<ConfiguracaoNotificacao?> ObterPorUnidadeNegocioAsync(Guid unidadeNegocioId, CancellationToken ct);
+
+    Task AdicionarAsync(ConfiguracaoNotificacao configuracaoNotificacao, CancellationToken ct);
+
+    Task SalvarAlteracoesAsync(CancellationToken ct);
+}
+
 /// <summary>Repositório de Parâmetros gerais (O1.11) — globais (<c>UnidadeNegocioId == null</c>) ou por
 /// Unidade de Negócio.</summary>
 public interface IParametroRepository

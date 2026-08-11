@@ -236,6 +236,7 @@ app.MapMe();
 app.MapUnidadesNegocio();
 app.MapIdentityProviders();
 app.MapConfiguracaoErp();
+app.MapConfiguracaoNotificacao();
 app.MapParametros();
 app.MapFeatureFlags();
 if (app.Environment.IsDevelopment())

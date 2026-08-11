@@ -47,6 +47,23 @@ public sealed record ConfiguracaoErpDto(
     DateTimeOffset CriadoEm,
     DateTimeOffset AtualizadoEm);
 
+// ---- O1.11 — Configuração de Notificações por Unidade de Negócio (item #24) ----
+
+/// <summary>Escopo mínimo de fundação aprovado pelo Product Owner: apenas o canal e-mail
+/// (ativado/inativado, remetente e nome do remetente). Sem catálogo de eventos nesta sprint — não existe
+/// documentação formal aprovada com o conjunto de eventos (verificado em docs/product/, work orders e
+/// ADRs); será endereçado quando os workflows operacionais correspondentes existirem.</summary>
+public sealed record ConfiguracaoNotificacaoInput(bool EmailAtivado, string? EmailRemetente, string? NomeRemetente);
+
+public sealed record ConfiguracaoNotificacaoDto(
+    Guid Id,
+    Guid UnidadeNegocioId,
+    bool EmailAtivado,
+    string? EmailRemetente,
+    string? NomeRemetente,
+    DateTimeOffset CriadoEm,
+    DateTimeOffset AtualizadoEm);
+
 // ---- O1.11 — Parâmetros gerais ----
 
 public sealed record ParametroCriarInput(string Chave, string Valor, string Descricao, Guid? UnidadeNegocioId);

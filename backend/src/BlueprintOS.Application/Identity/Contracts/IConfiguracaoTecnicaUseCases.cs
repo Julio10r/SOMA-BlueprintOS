@@ -73,6 +73,18 @@ public interface IAlterarStatusConfiguracaoErpUseCase
     Task<RbacResultado<ConfiguracaoErpDto>> ExecuteAsync(Guid unidadeNegocioId, bool ativo, CancellationToken ct);
 }
 
+// ---- O1.11 — Configuração de Notificações por Unidade de Negócio (item #24) ----
+
+public interface IObterConfiguracaoNotificacaoUseCase
+{
+    Task<RbacResultado<ConfiguracaoNotificacaoDto?>> ExecuteAsync(Guid unidadeNegocioId, CancellationToken ct);
+}
+
+public interface ISalvarConfiguracaoNotificacaoUseCase
+{
+    Task<RbacResultado<ConfiguracaoNotificacaoDto>> ExecuteAsync(Guid unidadeNegocioId, ConfiguracaoNotificacaoInput input, CancellationToken ct);
+}
+
 // ---- O1.11 — Parâmetros gerais ----
 
 public interface IListarParametrosUseCase

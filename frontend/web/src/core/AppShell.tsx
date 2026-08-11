@@ -29,6 +29,7 @@ const navItems: NavItem[] = [
   { to: "/administracao/identity-providers", label: "Identity Providers", permissao: PERMISSOES.sistemaGerenciar },
   { to: "/administracao/parametros", label: "Parametros", permissao: PERMISSOES.sistemaGerenciar },
   { to: "/administracao/feature-flags", label: "Feature Flags", permissao: PERMISSOES.sistemaGerenciar },
+  { to: "/administracao/configuracao-notificacao", label: "Configuracao de Notificacoes", permissao: PERMISSOES.sistemaGerenciar },
   { to: "/fornecedores", label: "Fornecedores" },
   { to: "/pedidos", label: "Pedidos" },
   { to: "/negociacoes", label: "Negociacoes" },
