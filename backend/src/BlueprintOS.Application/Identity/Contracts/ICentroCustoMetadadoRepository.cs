@@ -16,6 +16,10 @@ public interface ICentroCustoMetadadoRepository
     /// Negócio um código ERP já está ancorado, antes de permitir um vínculo Usuário×Centro de Custo.</summary>
     Task<CentroCustoMetadado?> ObterPorCodigoErpGlobalAsync(string codigoErp, CancellationToken ct);
 
+    /// <summary>O1.12 — usado para validar FKs de Centro de Custo em Alçadas de Aprovação/Regras
+    /// Orçamentárias: um Id existente porém de outra Unidade de Negócio nunca é aceito.</summary>
+    Task<CentroCustoMetadado?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct);
+
     Task AdicionarAsync(CentroCustoMetadado metadado, CancellationToken ct);
 
     Task SalvarAlteracoesAsync(CancellationToken ct);

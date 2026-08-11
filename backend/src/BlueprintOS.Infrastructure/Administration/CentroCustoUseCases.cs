@@ -78,7 +78,8 @@ public sealed class ListarCentrosCustoUseCase(
             local is not null,
             local?.AtualizadoEm ?? erp.UltimaAlteracaoEm,
             resumo.PadraoNome,
-            resumo.Quantidade);
+            resumo.Quantidade,
+            local?.Id);
     }
 }
 
@@ -171,7 +172,7 @@ public sealed class AtualizarMetadadoCentroCustoUseCase(
         var resumo = await VinculoUnidadeAlocacaoResumo.ObterUmAsync(vinculos, unidadesAlocacao, local.Id, unidadeNegocioId, ct);
         var dto = new CentroCustoDto(erp.CodigoErp, erp.DescricaoErp,
             local.DescricaoMaisCompras, local.AtivoNoMaisCompras, true, local.AtualizadoEm,
-            resumo.PadraoNome, resumo.Quantidade);
+            resumo.PadraoNome, resumo.Quantidade, local.Id);
         return ErpMetadadoResultado<CentroCustoDto>.Ok(dto);
     }
 }

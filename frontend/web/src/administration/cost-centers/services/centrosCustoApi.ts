@@ -38,6 +38,7 @@ type CentroCustoApiDto = {
   atualizadoEm?: string | null;
   unidadeAlocacaoPadraoNome?: string | null;
   quantidadeUnidadesAlocacaoVinculadas: number;
+  centroCustoMetadadoId?: string | null;
 };
 
 type UnidadeAlocacaoApiDto = {
@@ -105,6 +106,7 @@ function paraCentroCusto(dto: CentroCustoApiDto): CentroCusto {
     ativoNoMaisCompras: dto.ativoNoMaisCompras,
     unidadeNegocioId: "",
     temMetadadoLocal: dto.temMetadadoLocal,
+    centroCustoMetadadoId: dto.centroCustoMetadadoId ?? undefined,
     unidadeAlocacaoPadraoNome: dto.unidadeAlocacaoPadraoNome ?? undefined,
     quantidadeUnidadesAlocacaoVinculadas: dto.quantidadeUnidadesAlocacaoVinculadas,
     criadoEm: atualizadoEm,

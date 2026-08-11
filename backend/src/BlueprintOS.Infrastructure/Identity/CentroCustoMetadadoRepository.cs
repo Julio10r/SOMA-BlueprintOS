@@ -21,6 +21,9 @@ public sealed class CentroCustoMetadadoRepository(BlueprintOSDbContext db) : ICe
     public Task<CentroCustoMetadado?> ObterPorCodigoErpGlobalAsync(string codigoErp, CancellationToken ct) =>
         db.CentrosCustoMetadados.FirstOrDefaultAsync(x => x.CodigoErp == codigoErp, ct);
 
+    public Task<CentroCustoMetadado?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct) =>
+        db.CentrosCustoMetadados.SingleOrDefaultAsync(x => x.Id == id && x.UnidadeNegocioId == unidadeNegocioId, ct);
+
     public Task AdicionarAsync(CentroCustoMetadado metadado, CancellationToken ct)
     {
         db.CentrosCustoMetadados.Add(metadado);

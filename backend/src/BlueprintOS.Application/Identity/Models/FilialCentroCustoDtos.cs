@@ -27,7 +27,13 @@ public sealed record CentroCustoDto(
     bool TemMetadadoLocal,
     DateTimeOffset? AtualizadoEm,
     string? UnidadeAlocacaoPadraoNome,
-    int QuantidadeUnidadesAlocacaoVinculadas);
+    int QuantidadeUnidadesAlocacaoVinculadas,
+    /// <summary>Id interno do <see cref="Domain.Identity.CentroCustoMetadado"/> (O1.7), exposto a partir da
+    /// O1.12 para permitir que outras estruturas (Alçadas, Regras Orçamentárias) referenciem o Centro de
+    /// Custo por FK real. <c>null</c> quando <see cref="TemMetadadoLocal"/> é <c>false</c> — nesse caso o
+    /// Centro de Custo ainda não pode ser referenciado por essas estruturas até que algum metadado local
+    /// seja criado (ex.: pela primeira edição em Gestão de Centros de Custo).</summary>
+    Guid? CentroCustoMetadadoId = null);
 
 public sealed record CentroCustoMetadadoInput(string? DescricaoMaisCompras, bool AtivoNoMaisCompras);
 

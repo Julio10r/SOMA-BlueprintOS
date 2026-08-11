@@ -42,6 +42,9 @@ public sealed class CentroCustoUnidadeAlocacaoUseCasesTests
         public Task<CentroCustoMetadado?> ObterPorCodigoErpGlobalAsync(string codigoErp, CancellationToken ct) =>
             Task.FromResult(Registros.FirstOrDefault(x => x.CodigoErp == codigoErp));
 
+        public Task<CentroCustoMetadado?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct) =>
+            Task.FromResult(Registros.SingleOrDefault(x => x.Id == id && x.UnidadeNegocioId == unidadeNegocioId));
+
         public Task AdicionarAsync(CentroCustoMetadado metadado, CancellationToken ct)
         {
             Registros.Add(metadado);

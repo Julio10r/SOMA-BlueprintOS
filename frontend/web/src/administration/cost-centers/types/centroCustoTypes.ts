@@ -13,6 +13,14 @@ export type StatusCentroCusto = "Ativo" | "Inativo";
  * metadados locais para este codigo — quando `false`, `ativoNoMaisCompras`
  * reflete o padrao "Ativo" definido pelo backend (O1.7).
  *
+ * `centroCustoMetadadoId` (O1.12) e o Id interno real do
+ * `CentroCustoMetadado` no backend, usado para referenciar o Centro de
+ * Custo por FK real em outras estruturas (Alcadas de Aprovacao, Regras
+ * Orcamentarias). E `undefined` quando `temMetadadoLocal` e `false` — o
+ * Centro de Custo ainda nao pode ser referenciado por essas estruturas
+ * ate que algum metadado local seja criado (ex.: pela primeira edicao em
+ * Gestao de Centros de Custo).
+ *
  * `unidadeAlocacaoPadraoNome` e `quantidadeUnidadesAlocacaoVinculadas`
  * refletem o relacionamento N:N real com Unidade de Alocacao (O1.9,
  * ADR-0020 item 6) — populados pelo backend a partir do vinculo real,
@@ -26,6 +34,7 @@ export type CentroCusto = {
   ativoNoMaisCompras: boolean;
   unidadeNegocioId: string;
   temMetadadoLocal: boolean;
+  centroCustoMetadadoId?: string;
   unidadeAlocacaoPadraoNome?: string;
   quantidadeUnidadesAlocacaoVinculadas: number;
   criadoEm: string;
