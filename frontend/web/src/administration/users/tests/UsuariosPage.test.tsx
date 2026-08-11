@@ -40,7 +40,14 @@ describe("UsuariosPage", () => {
     expect(await screen.findByText("Elisa Prado")).toBeInTheDocument();
   });
 
-  it("visualiza os perfis e centros de custo de um usuario existente", async () => {
+  /**
+   * Ajustado pela O1.5: a lista de Perfis disponiveis deixou de vir de um mock de frontend
+   * e passou a vir de `GET /administracao/perfis` (API real). Neste teste nao ha backend,
+   * e a pagina trata a falha degradando para "nenhum perfil vinculado" em vez de quebrar —
+   * comportamento intencional enquanto a Gestao de Usuarios permanece mockada (escopo da
+   * O1.6). O vinculo de Centro de Custo, que continua mockado neste modulo, segue exibido.
+   */
+  it("visualiza os centros de custo de um usuario existente e degrada sem a API de Perfis", async () => {
     renderUsuarios();
     await screen.findByText("Ana Souza");
 
@@ -48,8 +55,8 @@ describe("UsuariosPage", () => {
     await userEvent.click(within(row).getByRole("button", { name: "Visualizar" }));
 
     expect(await screen.findByRole("heading", { name: "Bruno Lima" })).toBeInTheDocument();
-    expect(screen.getByText("Analista")).toBeInTheDocument();
     expect(screen.getByText("CC-001")).toBeInTheDocument();
+    expect(screen.getByText("Nenhum perfil vinculado a este usuario.")).toBeInTheDocument();
   });
 
   it("inativa um usuario ativo em vez de excluir", async () => {

@@ -1,16 +1,25 @@
 import type { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/hooks/useAuth";
+import { PERMISSOES } from "../auth/types/authTypes";
 
 type NavItem = {
   to: string;
   label: string;
   end?: boolean;
+  /**
+   * Quando presente, o item so aparece se o usuario possuir a permissao efetiva
+   * correspondente (O1.5). Isto e exclusivamente UX: a rota e, principalmente, a API
+   * continuam protegidas no backend — esconder o item nunca e a barreira de seguranca.
+   * Itens sem `permissao` pertencem a modulos que ainda nao tem RBAC real (fora do
+   * escopo da O1.5) e permanecem visiveis como antes.
+   */
+  permissao?: string;
 };
 
 const navItems: NavItem[] = [
   { to: "/", label: "Dashboard", end: true },
-  { to: "/administracao/perfis", label: "Perfis" },
+  { to: "/administracao/perfis", label: "Perfis", permissao: PERMISSOES.perfilGerenciar },
   { to: "/administracao/usuarios", label: "Usuarios" },
   { to: "/administracao/filiais", label: "Filiais" },
   { to: "/administracao/centros-custo", label: "Centros de Custo" },
@@ -31,6 +40,7 @@ const navItems: NavItem[] = [
 export function AppShell({ children }: { children: ReactNode }) {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
+  const permissoesEfetivas = (usuario?.permissoes ?? []).map((codigo) => codigo.toLowerCase());
 
   async function handleLogout() {
     await logout();
@@ -50,7 +60,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="app-body">
         <nav className="app-sidebar" aria-label="Navegacao do portal +Compras">
           <ul>
-            {navItems.map((item) => (
+            {navItems
+              .filter((item) => !item.permissao || permissoesEfetivas.includes(item.permissao.toLowerCase()))
+              .map((item) => (
               <li key={item.to}>
                 <NavLink
                   to={item.to}

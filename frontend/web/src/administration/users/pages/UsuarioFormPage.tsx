@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { listPerfis } from "../../profiles/services/perfisMockApi";
+import { listPerfis } from "../../profiles/services/perfisApi";
 import type { Perfil } from "../../profiles/types/perfilTypes";
 import { UsuarioForm } from "../components/UsuarioForm";
 import { createUsuario, getUsuario, updateUsuario } from "../services/usuariosMockApi";
@@ -17,7 +17,7 @@ export function UsuarioFormPage() {
 
   useEffect(() => {
     setLoadingUsuario(true);
-    Promise.all([id ? getUsuario(id) : Promise.resolve(null), listPerfis()])
+    Promise.all([id ? getUsuario(id) : Promise.resolve(null), listPerfis().catch(() => [])])
       .then(([foundUsuario, perfis]) => {
         if (id && !foundUsuario) {
           setError("Usuario nao encontrado.");

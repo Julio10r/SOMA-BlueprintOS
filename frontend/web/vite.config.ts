@@ -12,6 +12,12 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/fornecedores": backend,
+      // O1.5 — API real da Gestão de Perfis (RBAC). Prefixada com /api de proposito:
+      // "/administracao" e espaco de rotas da SPA e nunca deve ser encaminhado ao backend.
+      "/api": {
+        target: backend,
+        changeOrigin: true
+      },
       "/auth": {
         target: backend,
         changeOrigin: true

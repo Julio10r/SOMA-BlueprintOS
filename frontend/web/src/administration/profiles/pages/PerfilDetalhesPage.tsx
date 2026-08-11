@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { StatusBadge } from "../../../shared/components/StatusBadge";
 import { PermissoesResumo } from "../components/PermissoesResumo";
-import { getPerfil } from "../services/perfisMockApi";
-import type { Perfil } from "../types/perfilTypes";
+import { usePermissionCatalog } from "../hooks/usePerfis";
+import { getPerfil, PerfilAcessoNegadoError } from "../services/perfisApi";
+import { statusDoPerfil, type Perfil } from "../types/perfilTypes";
 
 export function PerfilDetalhesPage() {
   const { id } = useParams<{ id: string }>();
@@ -11,17 +12,30 @@ export function PerfilDetalhesPage() {
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [acessoNegado, setAcessoNegado] = useState(false);
+  const catalogo = usePermissionCatalog();
 
   useEffect(() => {
     if (!id) return;
+    let ativo = true;
     setLoading(true);
-    getPerfil(id).then((found) => {
-      if (!found) {
-        setError("Perfil nao encontrado.");
-        return;
+    (async () => {
+      try {
+        const encontrado = await getPerfil(id);
+        if (!ativo) return;
+        if (!encontrado) setError("Perfil nao encontrado.");
+        else setPerfil(encontrado);
+      } catch (err) {
+        if (!ativo) return;
+        if (err instanceof PerfilAcessoNegadoError) setAcessoNegado(true);
+        else setError(err instanceof Error ? err.message : "Falha ao carregar perfil.");
+      } finally {
+        if (ativo) setLoading(false);
       }
-      setPerfil(found);
-    }).finally(() => setLoading(false));
+    })();
+    return () => {
+      ativo = false;
+    };
   }, [id]);
 
   return (
@@ -32,17 +46,22 @@ export function PerfilDetalhesPage() {
         <p>Visualizacao somente leitura das permissoes atribuidas a este perfil.</p>
       </header>
 
+      {(acessoNegado || catalogo.acessoNegado) && (
+        <section className="card">
+          <div className="notice notice-warn">Voce nao tem permissao para visualizar perfis.</div>
+        </section>
+      )}
       {error && <div className="notice notice-crit">{error}</div>}
-      {loading && <div className="empty-state">Carregando perfil...</div>}
+      {loading && !acessoNegado && <div className="empty-state">Carregando perfil...</div>}
 
       {perfil && (
         <section className="card">
           <div className="card-heading">
             <div>
-              <div className="section-title">{perfil.unidadeNegocio}</div>
+              <div className="section-title">Perfil</div>
               <h2>{perfil.nome}</h2>
             </div>
-            <StatusBadge value={perfil.status} tone="situacao" />
+            <StatusBadge value={statusDoPerfil(perfil)} tone="situacao" />
           </div>
           <p>{perfil.descricao}</p>
           <div className="data-grid">
@@ -57,7 +76,7 @@ export function PerfilDetalhesPage() {
           </div>
           <div className="data-block">
             <div className="section-title">Permissoes</div>
-            <PermissoesResumo permissoes={perfil.permissoes} />
+            <PermissoesResumo permissoes={perfil.permissoes} catalogo={catalogo.permissoes} />
           </div>
           <div className="actions">
             <button type="button" className="btn btn-secondary" onClick={() => navigate("..", { relative: "path" })}>

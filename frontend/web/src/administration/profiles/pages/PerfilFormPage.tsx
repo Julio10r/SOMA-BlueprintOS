@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { PerfilForm } from "../components/PerfilForm";
-import { createPerfil, getPerfil, updatePerfil } from "../services/perfisMockApi";
+import { usePermissionCatalog } from "../hooks/usePerfis";
+import { createPerfil, getPerfil, PerfilAcessoNegadoError, updatePerfil } from "../services/perfisApi";
 import type { Perfil, PerfilInput } from "../types/perfilTypes";
 
 export function PerfilFormPage() {
@@ -11,35 +12,49 @@ export function PerfilFormPage() {
   const [loadingPerfil, setLoadingPerfil] = useState(Boolean(id));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [acessoNegado, setAcessoNegado] = useState(false);
+  const catalogo = usePermissionCatalog();
 
   useEffect(() => {
     if (!id) return;
+    let ativo = true;
     setLoadingPerfil(true);
-    getPerfil(id).then((found) => {
-      if (!found) {
-        setError("Perfil nao encontrado.");
-        return;
+    (async () => {
+      try {
+        const encontrado = await getPerfil(id);
+        if (!ativo) return;
+        if (!encontrado) setError("Perfil nao encontrado.");
+        else setPerfil(encontrado);
+      } catch (err) {
+        if (!ativo) return;
+        if (err instanceof PerfilAcessoNegadoError) setAcessoNegado(true);
+        else setError(err instanceof Error ? err.message : "Falha ao carregar perfil.");
+      } finally {
+        if (ativo) setLoadingPerfil(false);
       }
-      setPerfil(found);
-    }).finally(() => setLoadingPerfil(false));
+    })();
+    return () => {
+      ativo = false;
+    };
   }, [id]);
 
   async function handleSubmit(input: PerfilInput) {
     setSaving(true);
     setError(null);
     try {
-      if (id) {
-        await updatePerfil(id, input);
-      } else {
-        await createPerfil(input);
-      }
+      if (id) await updatePerfil(id, input);
+      else await createPerfil(input);
       navigate("..", { relative: "path" });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao salvar perfil.");
+      if (err instanceof PerfilAcessoNegadoError) setAcessoNegado(true);
+      else setError(err instanceof Error ? err.message : "Falha ao salvar perfil.");
     } finally {
       setSaving(false);
     }
   }
+
+  const carregando = loadingPerfil || catalogo.loading;
+  const negado = acessoNegado || catalogo.acessoNegado;
 
   return (
     <div className="page-stack">
@@ -49,12 +64,19 @@ export function PerfilFormPage() {
         <p>Perfis definem, em conjunto, o acesso efetivo de um usuario ao +Compras.</p>
       </header>
 
-      {loadingPerfil ? (
+      {negado ? (
+        <section className="card">
+          <div className="notice notice-warn">
+            Voce nao tem permissao para gerenciar perfis.
+          </div>
+        </section>
+      ) : carregando ? (
         <div className="empty-state">Carregando perfil...</div>
       ) : (
         <PerfilForm
           perfil={perfil ?? undefined}
-          error={error}
+          permissoes={catalogo.permissoes}
+          error={error ?? catalogo.error}
           loading={saving}
           onSubmit={handleSubmit}
           onCancel={() => navigate("..", { relative: "path" })}

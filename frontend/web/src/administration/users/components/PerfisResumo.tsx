@@ -1,4 +1,3 @@
-import { permissionCatalog } from "../../profiles/services/permissionCatalog";
 import type { Perfil } from "../../profiles/types/perfilTypes";
 
 /**
@@ -28,14 +27,21 @@ export function PerfisResumo({ perfilIds, todosPerfis }: { perfilIds: string[]; 
         ({permissoesHerdadas.size} permissao(oes) no total). Nao existe permissao individual de usuario.
       </div>
       <div className="data-grid">
-        {permissionCatalog
-          .filter((permissao) => permissoesHerdadas.has(permissao.id))
-          .map((permissao) => (
-            <div className="field-readonly" key={permissao.id}>
-              <span>{permissao.recurso}</span>
-              <strong>{permissao.acao}</strong>
-            </div>
-          ))}
+        {Array.from(permissoesHerdadas)
+          .sort()
+          .map((codigo) => {
+            // O codigo do catalogo tem o formato `Recurso.Acao` (ver PermissaoCatalogo no
+            // backend); a decomposicao para exibicao dispensa consultar o catalogo aqui.
+            const separador = codigo.indexOf(".");
+            const recurso = separador > 0 ? codigo.slice(0, separador) : codigo;
+            const acao = separador > 0 ? codigo.slice(separador + 1) : codigo;
+            return (
+              <div className="field-readonly" key={codigo}>
+                <span>{recurso}</span>
+                <strong>{acao}</strong>
+              </div>
+            );
+          })}
       </div>
     </div>
   );

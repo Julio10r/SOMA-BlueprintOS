@@ -1,11 +1,22 @@
 import { FormEvent, useState } from "react";
-import { groupPermissionsByRecurso, permissionCatalog } from "../services/permissionCatalog";
-import type { Perfil, PerfilInput, StatusPerfil } from "../types/perfilTypes";
+import { groupPermissionsByRecurso } from "../services/permissionCatalog";
+import type { Perfil, PerfilInput, Permissao } from "../types/perfilTypes";
 
-const gruposPermissoes = groupPermissionsByRecurso(permissionCatalog);
-
-export function PerfilForm({ perfil, error, loading, onSubmit, onCancel }: {
+/**
+ * Estrutura visual preservada da fundacao aprovada (O1.3.1). Mudancas funcionalmente
+ * necessarias na O1.5:
+ * - o catalogo de permissoes chega por props (vindo de `GET /administracao/permissoes`)
+ *   em vez de uma lista estatica no frontend;
+ * - o campo livre "Unidade de Negocio" foi removido: o backend usa sempre a Unidade de
+ *   Negocio da sessao autenticada e ignoraria o valor digitado — manter o campo seria
+ *   exibir um controle sem efeito;
+ * - o campo "Status" foi removido do formulario: ativacao/inativacao passa a ser uma acao
+ *   propria (`PATCH .../status`), com confirmacao, porque revoga acesso de todos os
+ *   usuarios vinculados.
+ */
+export function PerfilForm({ perfil, permissoes, error, loading, onSubmit, onCancel }: {
   perfil?: Perfil;
+  permissoes: Permissao[];
   error: string | null;
   loading: boolean;
   onSubmit: (input: PerfilInput) => void;
@@ -13,17 +24,19 @@ export function PerfilForm({ perfil, error, loading, onSubmit, onCancel }: {
 }) {
   const [nome, setNome] = useState(perfil?.nome ?? "");
   const [descricao, setDescricao] = useState(perfil?.descricao ?? "");
-  const [status, setStatus] = useState<StatusPerfil>(perfil?.status ?? "Ativo");
-  const [unidadeNegocio, setUnidadeNegocio] = useState(perfil?.unidadeNegocio ?? "SOMA");
-  const [permissoes, setPermissoes] = useState<string[]>(perfil?.permissoes ?? []);
+  const [selecionadas, setSelecionadas] = useState<string[]>(perfil?.permissoes ?? []);
 
-  function togglePermissao(id: string) {
-    setPermissoes((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
+  const grupos = groupPermissionsByRecurso(permissoes);
+
+  function togglePermissao(codigo: string) {
+    setSelecionadas((current) =>
+      current.includes(codigo) ? current.filter((item) => item !== codigo) : [...current, codigo]
+    );
   }
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    onSubmit({ nome, descricao, status, unidadeNegocio, permissoes });
+    onSubmit({ nome, descricao, permissoes: selecionadas });
   }
 
   return (
@@ -50,41 +63,31 @@ export function PerfilForm({ perfil, error, loading, onSubmit, onCancel }: {
         <input value={descricao} onChange={(event) => setDescricao(event.target.value)} required disabled={loading} />
       </label>
 
-      <div className="input-row">
-        <label>
-          Unidade de Negocio
-          <input value={unidadeNegocio} onChange={(event) => setUnidadeNegocio(event.target.value)} required disabled={loading} />
-        </label>
-        <label>
-          Status
-          <select value={status} onChange={(event) => setStatus(event.target.value as StatusPerfil)} disabled={loading}>
-            <option value="Ativo">Ativo</option>
-            <option value="Inativo">Inativo</option>
-          </select>
-        </label>
-      </div>
-
       <div className="data-block">
         <div className="section-title">Permissoes</div>
-        {gruposPermissoes.map(([recurso, permissoesDoRecurso]) => (
-          <div key={recurso} className="data-block">
-            <div className="section-title">{recurso}</div>
-            <div className="data-grid">
-              {permissoesDoRecurso.map((permissao) => (
-                <label key={permissao.id} className="field-readonly">
-                  <input
-                    type="checkbox"
-                    checked={permissoes.includes(permissao.id)}
-                    onChange={() => togglePermissao(permissao.id)}
-                    disabled={loading}
-                  />
-                  <strong>{permissao.acao}</strong>
-                  <span>{permissao.descricao}</span>
-                </label>
-              ))}
+        {grupos.length === 0 ? (
+          <div className="empty-state">Nenhuma permissao disponivel no catalogo.</div>
+        ) : (
+          grupos.map(([recurso, permissoesDoRecurso]) => (
+            <div key={recurso} className="data-block">
+              <div className="section-title">{recurso}</div>
+              <div className="data-grid">
+                {permissoesDoRecurso.map((permissao) => (
+                  <label key={permissao.codigo} className="field-readonly">
+                    <input
+                      type="checkbox"
+                      checked={selecionadas.includes(permissao.codigo)}
+                      onChange={() => togglePermissao(permissao.codigo)}
+                      disabled={loading}
+                    />
+                    <strong>{permissao.acao}</strong>
+                    <span>{permissao.descricao}</span>
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       <div className="actions">

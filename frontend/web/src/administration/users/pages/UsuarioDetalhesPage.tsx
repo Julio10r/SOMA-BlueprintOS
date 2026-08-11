@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { listPerfis } from "../../profiles/services/perfisMockApi";
+import { listPerfis } from "../../profiles/services/perfisApi";
 import type { Perfil } from "../../profiles/types/perfilTypes";
 import { StatusBadge } from "../../../shared/components/StatusBadge";
 import { PerfisResumo } from "../components/PerfisResumo";
@@ -19,7 +19,7 @@ export function UsuarioDetalhesPage() {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    Promise.all([getUsuario(id), listPerfis()])
+    Promise.all([getUsuario(id), listPerfis().catch(() => [])])
       .then(([found, todosPerfis]) => {
         if (!found) {
           setError("Usuario nao encontrado.");
