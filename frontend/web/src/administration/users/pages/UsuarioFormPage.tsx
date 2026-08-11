@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { listPerfis } from "../../profiles/services/perfisApi";
 import type { Perfil } from "../../profiles/types/perfilTypes";
 import { UsuarioForm } from "../components/UsuarioForm";
-import { createUsuario, getUsuario, updateUsuario } from "../services/usuariosMockApi";
+import { createUsuario, getUsuario, updateUsuario } from "../services/usuariosApi";
 import type { Usuario, UsuarioInput } from "../types/userTypes";
 
 export function UsuarioFormPage() {

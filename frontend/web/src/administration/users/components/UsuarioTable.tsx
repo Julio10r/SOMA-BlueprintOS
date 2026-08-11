@@ -1,5 +1,5 @@
 import { StatusBadge } from "../../../shared/components/StatusBadge";
-import type { Usuario } from "../types/userTypes";
+import { statusDoUsuario, type Usuario } from "../types/userTypes";
 
 export function UsuarioTable({ usuarios, onVisualizar, onEditar, onToggleAtivo }: {
   usuarios: Usuario[];
@@ -27,7 +27,7 @@ export function UsuarioTable({ usuarios, onVisualizar, onEditar, onToggleAtivo }
             <td>{usuario.email}</td>
             <td>{usuario.perfis.length}</td>
             <td>{usuario.todosCentrosCusto ? "Todos" : usuario.centrosCusto.length}</td>
-            <td><StatusBadge value={usuario.status} tone="situacao" /></td>
+            <td><StatusBadge value={statusDoUsuario(usuario)} tone="situacao" /></td>
             <td>
               <div className="actions">
                 <button type="button" className="btn btn-secondary" onClick={() => onVisualizar(usuario)}>
@@ -37,7 +37,7 @@ export function UsuarioTable({ usuarios, onVisualizar, onEditar, onToggleAtivo }
                   Editar
                 </button>
                 <button type="button" className="btn btn-secondary" onClick={() => onToggleAtivo(usuario)}>
-                  {usuario.status === "Ativo" ? "Inativar" : "Ativar"}
+                  {usuario.ativo ? "Inativar" : "Ativar"}
                 </button>
               </div>
             </td>

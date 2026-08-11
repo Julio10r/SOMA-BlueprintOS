@@ -5,8 +5,8 @@ import type { Perfil } from "../../profiles/types/perfilTypes";
 import { StatusBadge } from "../../../shared/components/StatusBadge";
 import { PerfisResumo } from "../components/PerfisResumo";
 import { costCenterCatalog } from "../services/costCenterCatalog";
-import { getUsuario } from "../services/usuariosMockApi";
-import type { Usuario } from "../types/userTypes";
+import { getUsuario } from "../services/usuariosApi";
+import { statusDoUsuario, type Usuario } from "../types/userTypes";
 
 export function UsuarioDetalhesPage() {
   const { id } = useParams<{ id: string }>();
@@ -50,10 +50,10 @@ export function UsuarioDetalhesPage() {
         <section className="card">
           <div className="card-heading">
             <div>
-              <div className="section-title">{usuario.unidadeNegocio}</div>
+              <div className="section-title">Usuario</div>
               <h2>{usuario.nome}</h2>
             </div>
-            <StatusBadge value={usuario.status} tone="situacao" />
+            <StatusBadge value={statusDoUsuario(usuario)} tone="situacao" />
           </div>
           <p>{usuario.email}</p>
           <div className="data-grid">
@@ -65,7 +65,7 @@ export function UsuarioDetalhesPage() {
 
           <div className="data-block">
             <div className="section-title">Perfis e permissoes herdadas</div>
-            <PerfisResumo perfilIds={usuario.perfis} todosPerfis={perfis} />
+            <PerfisResumo perfis={usuario.perfis} catalogoPerfis={perfis} />
           </div>
 
           <div className="data-block">

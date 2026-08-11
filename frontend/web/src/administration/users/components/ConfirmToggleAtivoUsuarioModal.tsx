@@ -13,7 +13,7 @@ export function ConfirmToggleAtivoUsuarioModal({ usuario, error, loading, onConf
   onConfirm: () => void;
   onCancel: () => void;
 }) {
-  const ativando = usuario.status === "Inativo";
+  const ativando = !usuario.ativo;
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-toggle-usuario-title">
       <div className="card modal-card">

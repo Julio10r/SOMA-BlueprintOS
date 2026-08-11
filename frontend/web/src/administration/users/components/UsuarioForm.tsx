@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import type { Perfil } from "../../profiles/types/perfilTypes";
 import { costCenterCatalog } from "../services/costCenterCatalog";
-import type { StatusUsuario, Usuario, UsuarioInput } from "../types/userTypes";
+import type { Usuario, UsuarioInput } from "../types/userTypes";
 
 export function UsuarioForm({ usuario, perfisDisponiveis, error, loading, onSubmit, onCancel }: {
   usuario?: Usuario;
@@ -12,10 +12,10 @@ export function UsuarioForm({ usuario, perfisDisponiveis, error, loading, onSubm
   onCancel: () => void;
 }) {
   const [nome, setNome] = useState(usuario?.nome ?? "");
+  // O e-mail nao e editavel na edicao (O1.6, identifica a conta e o fluxo de Login OTP) —
+  // o campo permanece somente leitura quando `usuario` existe.
   const [email, setEmail] = useState(usuario?.email ?? "");
-  const [status, setStatus] = useState<StatusUsuario>(usuario?.status ?? "Ativo");
-  const [unidadeNegocio] = useState(usuario?.unidadeNegocio ?? "SOMA");
-  const [perfis, setPerfis] = useState<string[]>(usuario?.perfis ?? []);
+  const [perfis, setPerfis] = useState<string[]>(usuario?.perfis.map((p) => p.id) ?? []);
   const [todosCentrosCusto, setTodosCentrosCusto] = useState(usuario?.todosCentrosCusto ?? false);
   const [centrosCusto, setCentrosCusto] = useState<string[]>(usuario?.centrosCusto ?? []);
 
@@ -32,12 +32,9 @@ export function UsuarioForm({ usuario, perfisDisponiveis, error, loading, onSubm
     onSubmit({
       nome,
       email,
-      status,
       perfis,
       todosCentrosCusto,
-      centrosCusto: todosCentrosCusto ? [] : centrosCusto,
-      filiais: usuario?.filiais ?? [],
-      unidadeNegocio
+      centrosCusto: todosCentrosCusto ? [] : centrosCusto
     });
   }
 
@@ -54,22 +51,20 @@ export function UsuarioForm({ usuario, perfisDisponiveis, error, loading, onSubm
 
       <label>
         E-mail
-        <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required disabled={loading} />
+        <input
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          required
+          disabled={loading || Boolean(usuario)}
+          readOnly={Boolean(usuario)}
+        />
       </label>
-
-      <div className="input-row">
-        <label>
-          Unidade de Negocio
-          <input value={unidadeNegocio} disabled readOnly />
-        </label>
-        <label>
-          Status
-          <select value={status} onChange={(event) => setStatus(event.target.value as StatusUsuario)} disabled={loading}>
-            <option value="Ativo">Ativo</option>
-            <option value="Inativo">Inativo</option>
-          </select>
-        </label>
-      </div>
+      {usuario && (
+        <p className="empty-state">
+          O e-mail nao pode ser alterado apos a criacao. Use a acao Ativar/Inativar para revogar o acesso.
+        </p>
+      )}
 
       {error && <div className="notice notice-crit">{error}</div>}
 

@@ -6,9 +6,9 @@ import { useUsuarios } from "../hooks/useUsuarios";
 import type { Usuario } from "../types/userTypes";
 
 /**
- * Listagem de Usuarios (Gestao de Usuarios, ADR-0020). Fundacao visual da
- * Sprint O1.3.2: dados mockados em memoria (services/usuariosMockApi.ts),
- * sem integracao com API real, seguindo o padrao de administration/profiles.
+ * Listagem de Usuarios (Gestao de Usuarios). A partir da O1.6, consome a API real
+ * (`administracao/usuarios`), substituindo o mock em memoria da fundacao visual
+ * (Sprint O1.3.2) — mesmo padrao de integracao de `administration/profiles` (O1.5).
  *
  * Usuarios nunca sao excluidos fisicamente: permanecem auditaveis e apenas
  * transitam entre Ativo/Inativo, mesmo padrao de Filiais, Centros de Custo
@@ -16,7 +16,7 @@ import type { Usuario } from "../types/userTypes";
  */
 export function UsuariosPage() {
   const navigate = useNavigate();
-  const { usuarios, loading, error, toggleAtivo } = useUsuarios();
+  const { usuarios, loading, error, acessoNegado, toggleAtivo } = useUsuarios();
   const [usuarioParaAlternar, setUsuarioParaAlternar] = useState<Usuario | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [erroToggle, setErroToggle] = useState<string | null>(null);
@@ -43,32 +43,39 @@ export function UsuariosPage() {
         <p>Usuarios recebem acesso ao +Compras por meio de Perfis e Centros de Custo. Nunca ha permissao individual.</p>
       </header>
 
-      <section className="card">
-        <div className="card-heading">
-          <div>
-            <div className="section-title">Usuarios</div>
-            <h2>Usuarios cadastrados</h2>
+      {acessoNegado ? (
+        <section className="card">
+          <div className="notice notice-crit">Voce nao tem permissao para acessar a Gestao de Usuarios.</div>
+        </section>
+      ) : (
+        <section className="card">
+          <div className="card-heading">
+            <div>
+              <div className="section-title">Usuarios</div>
+              <h2>Usuarios cadastrados</h2>
+            </div>
+            <button type="button" className="btn btn-primary" onClick={() => navigate("novo")}>
+              Novo usuario
+            </button>
           </div>
-          <button type="button" className="btn btn-primary" onClick={() => navigate("novo")}>
-            Novo usuario
-          </button>
-        </div>
 
-        {error && <div className="notice notice-crit">{error}</div>}
-        {loading ? (
-          <div className="empty-state">Carregando usuarios...</div>
-        ) : (
-          <UsuarioTable
-            usuarios={usuarios}
-            onVisualizar={(usuario) => navigate(usuario.id)}
-            onEditar={(usuario) => navigate(`${usuario.id}/editar`)}
-            onToggleAtivo={(usuario) => {
-              setErroToggle(null);
-              setUsuarioParaAlternar(usuario);
-            }}
-          />
-        )}
-      </section>
+          {error ? (
+            <div className="notice notice-crit">{error}</div>
+          ) : loading ? (
+            <div className="empty-state">Carregando usuarios...</div>
+          ) : (
+            <UsuarioTable
+              usuarios={usuarios}
+              onVisualizar={(usuario) => navigate(usuario.id)}
+              onEditar={(usuario) => navigate(`${usuario.id}/editar`)}
+              onToggleAtivo={(usuario) => {
+                setErroToggle(null);
+                setUsuarioParaAlternar(usuario);
+              }}
+            />
+          )}
+        </section>
+      )}
 
       {usuarioParaAlternar && (
         <ConfirmToggleAtivoUsuarioModal
