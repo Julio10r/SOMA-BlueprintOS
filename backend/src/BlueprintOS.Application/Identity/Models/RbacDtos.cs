@@ -108,6 +108,22 @@ public enum RbacFalha
 
     ValorLimiteInvalido,
     RegraOrcamentariaNaoEncontrada,
+
+    // ---- O1.13.5 — Fundação dos Agents Especialistas Linx (base de conhecimento) ----
+    ConhecimentoLinxNaoEncontrado,
+    AssuntoObrigatorio,
+    ConteudoObrigatorio,
+    FonteObrigatoria,
+
+    /// <summary>Transição de <see cref="BlueprintOS.Domain.Knowledge.Linx.LinxConhecimentoProveniencia"/>
+    /// não permitida pela máquina de estados de <c>LinxKnowledgeEntry.Promover</c> (pular etapa, rebaixar,
+    /// ou reabrir uma entrada já Aprovada).</summary>
+    TransicaoProvenienciaInvalida,
+
+    /// <summary>Uma nova descoberta/inferência para o mesmo <c>VersaoRaizId</c> contradiz o conteúdo da
+    /// versão mais recente já Validada/Aprovada — a Work Order (seção 12) proíbe substituição automática:
+    /// o conflito é registrado e exige tratamento/validação explícita, nunca aceito silenciosamente.</summary>
+    ConflitoDeConhecimentoDetectado,
 }
 
 /// <summary>Projeção de leitura de uma Unidade de Alocação (O1.8 — Persistência Real). Sem vínculo com

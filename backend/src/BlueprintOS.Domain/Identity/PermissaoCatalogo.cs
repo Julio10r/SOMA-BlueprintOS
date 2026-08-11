@@ -47,6 +47,13 @@ public static class PermissaoCatalogo
     public const string AlcadaGerenciar = "Alcada.Gerenciar";
     public const string OrcamentoGerenciar = "Orcamento.Gerenciar";
 
+    /// <summary>O1.13.5 — Fundação dos Agents Especialistas Linx. <see cref="ConhecimentoLinxGerenciar"/>
+    /// cobre registrar descobertas/inferências e promover até "Validado". <see cref="ConhecimentoLinxAprovar"/>
+    /// é a permissão dedicada exigida pela Work Order (seção 9/18) especificamente para a promoção final e
+    /// sensível a "Aprovado" — nunca concedida junto do catálogo básico por padrão implícito.</summary>
+    public const string ConhecimentoLinxGerenciar = "ConhecimentoLinx.Gerenciar";
+    public const string ConhecimentoLinxAprovar = "ConhecimentoLinx.Aprovar";
+
     private static readonly PermissaoDefinicao[] Definicoes =
     [
         Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000001"), UnidadeNegocioGerenciar, "Criar, editar e inativar Unidades de Negócio"),
@@ -66,6 +73,8 @@ public static class PermissaoCatalogo
         Definir(new Guid("b1a5c4e0-0001-4a10-9f01-00000000000f"), WorkflowGerenciar, "Criar, editar e ativar/inativar Regras de Workflow por Unidade de Negócio"),
         Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000010"), AlcadaGerenciar, "Criar, editar e ativar/inativar Alçadas de Aprovação por Unidade de Negócio"),
         Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000011"), OrcamentoGerenciar, "Criar, editar e ativar/inativar Regras Orçamentárias por Unidade de Negócio"),
+        Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000012"), ConhecimentoLinxGerenciar, "Registrar descobertas/inferências e validar conhecimento dos Agents Especialistas Linx"),
+        Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000013"), ConhecimentoLinxAprovar, "Promover conhecimento dos Agents Especialistas Linx a 'Aprovado'"),
     ];
 
     /// <summary>Catálogo completo, na ordem canônica de apresentação.</summary>

@@ -4,6 +4,7 @@ using BlueprintOS.Api.Administration;
 using BlueprintOS.Api.Auth;
 using BlueprintOS.Api.Authorization;
 using BlueprintOS.Api.Identity;
+using BlueprintOS.Api.Knowledge;
 using BlueprintOS.Api.Middleware;
 using BlueprintOS.Api.Negotiations;
 using BlueprintOS.Api.Suppliers;
@@ -243,6 +244,7 @@ app.MapRegrasWorkflow();
 app.MapAlcadasAprovacao();
 app.MapRegrasOrcamentarias();
 app.MapMonitoramentoOperacional();
+app.MapLinxKnowledge();
 if (app.Environment.IsDevelopment())
 {
     app.MapDevelopmentOtpDiagnostics();

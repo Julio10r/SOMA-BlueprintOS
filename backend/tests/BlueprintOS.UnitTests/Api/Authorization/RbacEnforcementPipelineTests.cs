@@ -181,6 +181,32 @@ public sealed class RbacEnforcementPipelineTests : IAsyncDisposable
         Assert.Equal(HttpStatusCode.OK, (await comPermissao.GetAsync("/probe-orcamento")).StatusCode);
     }
 
+    /// <summary>O1.13.5 — as 2 novas permissões da base de conhecimento dos Agents Especialistas Linx
+    /// seguem o MESMO pipeline genérico de enforcement: 401 sem sessão, 403 sem a permissão, 200 com a
+    /// permissão. A permissão de "Aprovar" é dedicada — possuir "Gerenciar" não autoriza o endpoint que
+    /// exige "Aprovar" (Work Order O1.13.5, seções 9/18: aprovação nunca é concedida implicitamente por
+    /// quem apenas registra/valida conhecimento).</summary>
+    [Fact]
+    public async Task Should_Enforce_401_403_200_For_The_New_O1135_ConhecimentoLinx_Permissions()
+    {
+        var semSessao = await StartAsync(PermissaoCatalogo.ConhecimentoLinxAprovar);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await semSessao.GetAsync("/probe-conhecimento-linx-aprovar")).StatusCode);
+
+        var semPermissao = await StartAsync();
+        ComSessao(semPermissao);
+        Assert.Equal(HttpStatusCode.Forbidden, (await semPermissao.GetAsync("/probe-conhecimento-linx-aprovar")).StatusCode);
+
+        // Ter a permissão de Gerenciar não é suficiente para o endpoint dedicado de Aprovar.
+        var apenasGerenciar = await StartAsync(PermissaoCatalogo.ConhecimentoLinxGerenciar);
+        ComSessao(apenasGerenciar);
+        Assert.Equal(HttpStatusCode.OK, (await apenasGerenciar.GetAsync("/probe-conhecimento-linx-gerenciar")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await apenasGerenciar.GetAsync("/probe-conhecimento-linx-aprovar")).StatusCode);
+
+        var comAprovar = await StartAsync(PermissaoCatalogo.ConhecimentoLinxAprovar);
+        ComSessao(comAprovar);
+        Assert.Equal(HttpStatusCode.OK, (await comAprovar.GetAsync("/probe-conhecimento-linx-aprovar")).StatusCode);
+    }
+
     /// <summary>Endpoint inexistente sob uma sessão autorizada continua 404 — a autorização não transforma
     /// ausência de rota em negação, e não vaza a diferença.</summary>
     [Fact]
@@ -254,6 +280,10 @@ public sealed class RbacEnforcementPipelineTests : IAsyncDisposable
             .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.AlcadaGerenciar));
         _app.MapGet("/probe-orcamento", () => "ok")
             .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.OrcamentoGerenciar));
+        _app.MapGet("/probe-conhecimento-linx-gerenciar", () => "ok")
+            .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.ConhecimentoLinxGerenciar));
+        _app.MapGet("/probe-conhecimento-linx-aprovar", () => "ok")
+            .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.ConhecimentoLinxAprovar));
 
         await _app.StartAsync();
 

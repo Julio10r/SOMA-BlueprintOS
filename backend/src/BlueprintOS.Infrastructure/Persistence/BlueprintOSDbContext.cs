@@ -1,4 +1,5 @@
 using BlueprintOS.Domain.Identity;
+using BlueprintOS.Domain.Knowledge.Linx;
 using BlueprintOS.Domain.Procurement.Suppliers;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,6 +45,9 @@ public sealed class BlueprintOSDbContext(DbContextOptions<BlueprintOSDbContext> 
     public DbSet<FornecedorSincronizacao> FornecedoresSincronizacoes => Set<FornecedorSincronizacao>();
     public DbSet<SincronizacaoFornecedor> SincronizacoesFornecedores => Set<SincronizacaoFornecedor>();
     public DbSet<ErroSincronizacaoFornecedor> ErrosSincronizacoesFornecedores => Set<ErroSincronizacaoFornecedor>();
+
+    // O1.13.5 — Fundação dos Agents Especialistas Linx (base de conhecimento persistente e versionada).
+    public DbSet<LinxKnowledgeEntry> LinxConhecimentoEntradas => Set<LinxKnowledgeEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

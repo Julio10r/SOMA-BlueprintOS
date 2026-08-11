@@ -1,4 +1,6 @@
 using System.Net.Http.Headers;
+using BlueprintOS.Application.Knowledge.Linx;
+using BlueprintOS.Application.Knowledge.Linx.Contracts;
 using BlueprintOS.Application.Procurement.Negotiations;
 using BlueprintOS.Application.Procurement.Negotiations.Contracts;
 using BlueprintOS.Application.Procurement.Suppliers;
@@ -22,6 +24,7 @@ using BlueprintOS.Infrastructure.Integrations.ERP.Soma;
 using BlueprintOS.Infrastructure.Integrations.CnpjConsulta;
 using BlueprintOS.Infrastructure.Integrations.OpenAI;
 using BlueprintOS.Infrastructure.Knowledge;
+using BlueprintOS.Infrastructure.Knowledge.Linx;
 using BlueprintOS.Infrastructure.Memory;
 using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Repositories;
@@ -113,6 +116,25 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IKnowledgeService, KnowledgeService>();
 
         services.AddSingleton<AgentFactory>();
+
+        // O1.13.5 — Fundação dos Agents Especialistas Linx (base de conhecimento persistente e versionada).
+        // TimeProvider.System já é registrado por AddIdentityAuthCore no host principal; registrado também
+        // aqui para que composições que usam apenas AddInfrastructure (ex.: testes de integração isolados)
+        // resolvam os casos de uso de conhecimento sem depender de outra chamada de registro.
+        services.AddSingleton(TimeProvider.System);
+        services.AddScoped<ILinxKnowledgeRepository, LinxKnowledgeRepository>();
+        services.AddScoped<IRegistrarConhecimentoUseCase, RegistrarConhecimentoUseCase>();
+        services.AddScoped<IPromoverConhecimentoUseCase, PromoverConhecimentoUseCase>();
+        services.AddScoped<IBuscarConhecimentoUseCase, BuscarConhecimentoUseCase>();
+        services.AddScoped<IObterHistoricoConhecimentoUseCase, ObterHistoricoConhecimentoUseCase>();
+        services.AddScoped<ILinxSchemaDiscoveryReader, LinxSchemaDiscoveryReader>();
+
+        // Os dois papéis de Agent (Work Order, seções 7/8) são resolvidos diretamente via DI — não pelo
+        // AgentFactory reflection-based existente, que só reconhece o par (IAIRuntime, IKnowledgeService);
+        // estender essa reflexão para reconhecer IBuscarConhecimentoUseCase exigiria que BlueprintOS.Core
+        // referenciasse BlueprintOS.Application, invertendo a direção de dependência das camadas.
+        services.AddScoped<LinxErpSpecialistAgent>();
+        services.AddScoped<LinxDatabaseSpecialistAgent>();
 
         services.Configure<NegotiationScoreOptions>(configuration.GetSection(NegotiationScoreOptions.SectionName));
         services.AddSingleton<INegotiationMemoryStore, InMemoryNegotiationMemoryStore>();
