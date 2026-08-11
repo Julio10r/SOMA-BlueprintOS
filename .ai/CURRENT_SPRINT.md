@@ -1442,3 +1442,81 @@ iniciada** (permanece em `backlog/`, Draft/Planejada, não aprovada). **O Gate F
 consolidada dos 41 entregáveis, GAPs, dívidas, hardening, validação integrada e revisão de Design
 consolidada, previsto para depois de O1.11→O1.12→O1.13→O1.13.5→O1.14) **NÃO foi antecipado** nesta
 sessão — apenas preservado como planejamento já registrado.
+
+---
+
+## O1.13.5 — Fundação dos Agents Especialistas Linx (Conhecimento ERP/Banco) — ABERTA E CONCLUÍDA (11/08/2026)
+
+**Status:** ✅ **FORMALMENTE CONCLUÍDA (11/08/2026).** Aberta e encerrada na mesma sessão, com aprovação
+explícita do Product Owner registrada na própria Work Order (decisão de 11/08/2026, ver `.ai/BACKLOG.md`,
+"Planejamento dos Agents Especialistas Linx"). Fundação arquitetural (não a implementação operacional
+completa) para os dois Agents Especialistas Linx — `Linx ERP Specialist` e `Linx Database Specialist` —
+com memória persistente e versionada, proveniência explícita (Descoberto/Inferido/Validado/Aprovado) e
+recuperação de conhecimento (MVP de busca textual/estruturada).
+
+**Auditoria prévia obrigatória (WO §3/§4):** confirmou a existência de runtime de Agents (`IAgent`,
+`BaseAgent`, `AgentFactory`, `KnowledgeAgent`) e de um módulo `Knowledge` genérico
+(`IKnowledgeService`/`MarkdownKnowledgeProvider`, baseado em Markdown, sem persistência SQL/proveniência) —
+ambos reutilizados como padrão de referência, nunca duplicados. Confirmou também que
+`SomaFornecedorReader`/`SomaFilialReader`/`SomaCentroCustoReader` (B2.1/O1.7) já validam o padrão exato de
+introspecção dinâmica de schema read-only a reaproveitar para a descoberta Linx.
+
+**Implementado** (Domain/Application/Infrastructure/Api, mesmo padrão físico dos módulos administrativos):
+`LinxKnowledgeEntry` (agregado com máquina de estados de proveniência e versionamento imutável — nunca
+sobrescrita silenciosa, sempre nova linha encadeada), `ILinxKnowledgeRepository`/`LinxKnowledgeRepository`
+(EF Core), `IRegistrarConhecimentoUseCase` (com detecção de conflito contra versão já Validada/Aprovada —
+nunca substitui silenciosamente), `IPromoverConhecimentoUseCase`, `IBuscarConhecimentoUseCase`,
+`IObterHistoricoConhecimentoUseCase`; `LinxErpSpecialistAgent`/`LinxDatabaseSpecialistAgent` (subclasses de
+`BaseAgent`, resolvidas via DI); `LinxSchemaDiscoveryReader`/`ILinxSchemaDiscoveryReader` (introspecção
+read-only de `SOMA_DESENV`, mesmo padrão de guarda de banco/timeout já validado); `LinxKnowledgeController`
+(busca/histórico exigem apenas autenticação; registrar/validar exigem `ConhecimentoLinx.Gerenciar`; a
+promoção final a "Aprovado" exige a permissão DEDICADA `ConhecimentoLinx.Aprovar` — nunca concedida junto
+da permissão básica). Migration `AddLinxKnowledgeO1135` (aditiva: 1 tabela nova + 2 permissões novas no
+catálogo RBAC), gerada via `dotnet ef migrations add` real e **aplicada ao banco de desenvolvimento**
+(`MaisCompras`, via `dotnet ef database update`).
+
+**Segurança (self-review):** 0 CRITICAL, 0 HIGH. Leitor do ERP comprovadamente incapaz de escrita — não
+apenas por convenção, mas por teste de reflexão sobre os contratos (`IFornecedorErpReader`/
+`IFilialErpReader`/`ICentroCustoErpReader`/`ILinxSchemaDiscoveryReader`) que garante que nenhum método fora
+do vocabulário de leitura (`Buscar`/`Listar`/`Obter`) pode existir; nenhum SQL arbitrário (apenas
+`INFORMATION_SCHEMA` parametrizado); RBAC dedicado protegendo "Aprovado"; nenhum caminho de código permite
+que o próprio Agent se autoatribua aprovação (só humanos autenticados via o endpoint protegido); conteúdo
+persistido tratado como dado citado no prompt do Agent, nunca como instrução de sistema — testado
+explicitamente contra um payload de prompt injection/knowledge poisoning; isolamento cross-BU
+(`UnidadeNegocioId` nulo = global, nunca vaza entre BUs); limites de tamanho contra consultas/persistência
+ilimitadas; nenhum secret logado.
+
+**Validação funcional dos dois especialistas:** demonstrada com componentes reais (persistência EF Core,
+use cases reais, Agents reais — não apenas fakes de unidade): descoberta → persistência → consulta
+posterior → resposta do Agent citando proveniência e fonte explícitas, para os dois papéis.
+
+**Testes:** backend 626 → **682 testes unitários** (+56), 7 de integração (inalterado) — **689/689
+aprovados**. `dotnet build`: 0 erros, 0 avisos. Frontend não alterado nesta sprint (fundação
+backend/arquitetural, conforme a própria Work Order) — suíte de 116 testes permanece válida.
+
+**Chrome/MCP:** dispensado — sprint majoritariamente backend/arquitetural, sem frontend administrativo
+exigido pelos critérios de aceite desta Work Order.
+
+**Critérios de aceite:** os 5 critérios da Work Order foram satisfeitos integralmente (base de conhecimento
+persistente real com proveniência explícita; mecanismo de recuperação funcional; RBAC real protegendo
+"Aprovado"; leitor read-only do ERP comprovadamente incapaz de escrita; build/testes verdes). Work Order
+movida de `active/` para `completed/`
+([O1.13.5](work-orders/completed/O1.13.5-FundacaoAgentsEspecialistasLinx.md)).
+
+**Reconciliação da Onda 1 (WO §31):** nenhum dos 41 entregáveis oficiais corresponde diretamente a esta
+fundação (decisão já registrada em `.ai/BACKLOG.md` quando a Work Order foi criada) — o percentual técnico
+da Onda 1 **permanece inalterado nesta sessão** (28 Concluído / 41, mesma baseline de entrada). Registrada
+como entrega arquitetural adicional da Onda 1, sem alterar o denominador 41. `[atualizar dashboard]` **não**
+foi executado, conforme instrução permanente do handbook.
+
+**Dívidas/evoluções futuras registradas (não bloqueantes):** evolução da busca textual/estruturada para
+embeddings/RAG (ponto de extensão já isolado detrás de `IBuscarConhecimentoUseCase`, sem exigir redesenho);
+ingestão dos +300 `obj_*.prg`/documentação Linx (deliberadamente fora de escopo — apenas a estrutura já
+comporta essa evolução futura); frontend administrativo mínimo de consulta/validação/aprovação de
+conhecimento (não exigido pelos critérios de aceite desta Work Order); extração de um helper comum de
+conexão/guarda `SOMA_DESENV`, hoje duplicado 3x entre `SomaFilialReader`/`SomaCentroCustoReader`/
+`LinxSchemaDiscoveryReader` (oportunidade de refatoração registrada, não corrigida por não ser exigida
+pelos critérios desta sprint).
+
+**A O1.14 NÃO foi iniciada** (permanece em `backlog/`, Draft/Planejada). **O Gate Final da Onda 1 NÃO foi
+antecipado** nesta sessão.

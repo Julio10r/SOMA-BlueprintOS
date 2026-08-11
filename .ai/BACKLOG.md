@@ -461,3 +461,29 @@ saldo orçamentário (RegraOrcamentaria) não definida — ambos fora de escopo 
 **O1.13 NÃO foi iniciada** (permanece em `backlog/`, Draft/Planejada). **O1.13.5 NÃO foi iniciada**
 (permanece em `backlog/`, Draft/Planejada, não aprovada). **O Gate Final da Onda 1 não foi antecipado** —
 permanece planejado para depois de O1.13→O1.13.5→O1.14, conforme já registrado neste documento.
+
+## O1.13.5 — Fundação dos Agents Especialistas Linx — ABERTA E CONCLUÍDA (11/08/2026)
+
+Movida de `backlog/` para `active/` e, na mesma sessão, para `completed/`, com aprovação explícita do
+Product Owner. Implementados os critérios de aceite integrais da Work Order: base de conhecimento
+persistente e versionada (`LinxKnowledgeEntry`) com proveniência explícita (Descoberto/Inferido/Validado/
+Aprovado — máquina de estados que nunca pula etapa nem permite auto-aprovação); mecanismo de recuperação
+funcional (busca MVP por especialista/categoria/BU/tags/texto); RBAC dedicado (`ConhecimentoLinx.Gerenciar`/
+`ConhecimentoLinx.Aprovar` — a promoção a "Aprovado" nunca é concedida pela mesma permissão de registro);
+leitor read-only de descoberta de schema do `SOMA_DESENV` (`LinxSchemaDiscoveryReader`), comprovadamente
+incapaz de escrita por teste de reflexão sobre o contrato (nenhum método fora do vocabulário
+Buscar/Listar/Obter pode existir); os dois papéis de Agent (`LinxErpSpecialistAgent`/
+`LinxDatabaseSpecialistAgent`) implementados como consumidores dessa base, com defesa testada contra prompt
+injection/knowledge poisoning. Migration `AddLinxKnowledgeO1135` (aditiva) aplicada ao banco de
+desenvolvimento. Backend: 626 → 682 testes unitários (+56), 7 integração inalterado, 689/689 aprovados;
+build limpo. Revisão de segurança sem achados CRITICAL/HIGH.
+
+**Reconciliação da Onda 1:** confirmado — nenhum dos 41 entregáveis oficiais corresponde diretamente a esta
+fundação (decisão já registrada acima, "Planejamento dos Agents Especialistas Linx"). Progresso técnico da
+Onda 1 permanece inalterado nesta sessão (mesma baseline de entrada). `[atualizar dashboard]` não foi
+executado.
+
+**Work Order:** movida para `.ai/work-orders/completed/O1.13.5-FundacaoAgentsEspecialistasLinx.md`.
+
+**A O1.14 NÃO foi iniciada** (permanece em `backlog/`, Draft/Planejada). **O Gate Final da Onda 1 NÃO foi
+antecipado.**
