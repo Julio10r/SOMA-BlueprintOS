@@ -127,7 +127,7 @@ Novas Work Orders propostas para conclusão da Onda 1, todas em status **Draft (
 | O1.8 | Unidades de Alocação (Persistência Real) | ESTRUTURA | #19 | Nenhuma bloqueante | [O1.8](work-orders/backlog/O1.8-UnidadesDeAlocacaoPersistenciaReal.md) |
 | O1.9 | Centro de Custo × Unidade de Alocação (N:N) | ESTRUTURA | (condição de fechamento de #18/#19) | O1.7, O1.8 | [O1.9](work-orders/backlog/O1.9-CentroDeCustoXUnidadeDeAlocacaoNN.md) |
 | O1.10 | Conclusão do Vertical Slice (O1.2.2) | ESTRUTURA | #4, #5, #6, #7, #8 | Parcial; integração final depende de O1.5–O1.9 | [O1.10](work-orders/backlog/O1.10-ConclusaoVerticalSlice.md) |
-| O1.11 | Fundação Multi-Unidade de Negócio e Configuração | ESTRUTURA + DESIGN | #3, #13, #20, #21, #22, #23, #24 | O1.6 | [O1.11](work-orders/backlog/O1.11-FundacaoMultiUnidadeDeNegocioEConfiguracao.md) |
+| O1.11 | Fundação Multi-Unidade de Negócio e Configuração | ESTRUTURA + DESIGN | #3, #13, #20, #21, #22, #23, #24 | O1.6 | 🟡 **ATIVA (aberta 11/08/2026)** — #3, #13, #20, #21, #22, #23 implementados e validados; #24 (Notificações) bloqueada por falta de UX aprovada | [O1.11](work-orders/active/O1.11-FundacaoMultiUnidadeDeNegocioEConfiguracao.md) |
 | O1.12 | Workflow, Aprovação, Alçadas e Controle Orçamentário | ESTRUTURA + DESIGN | #25, #26, #27, #28 | O1.5, O1.9 | [O1.12](work-orders/backlog/O1.12-WorkflowAprovacaoAlcadasOrcamento.md) |
 | O1.13 | Administração Operacional e Monitoramento | ESTRUTURA + DESIGN | #29, #30, #31, #32 | Nenhuma bloqueante | [O1.13](work-orders/backlog/O1.13-AdministracaoOperacionalEMonitoramento.md) |
 | O1.14 | Blueprint de Banco e Validação Funcional Final | ESTRUTURA | #36, #37, #38, #39, #40, #41 (+ evolução de #33–#35) | O1.5, O1.6, O1.7, O1.8, O1.9 | [O1.14](work-orders/backlog/O1.14-BlueprintDeBancoEValidacaoFuncionalFinal.md) |
@@ -341,3 +341,22 @@ A **O1.10 está formalmente CONCLUÍDA** ([Work Order](work-orders/completed/O1.
 **Métrica oficial da Onda 1 — inalterada neste fechamento**: **41 entregáveis / 13 Concluído / 7 Em desenvolvimento / 21 Planejado / 32% de Progresso Técnico**. Nenhum entregável passa a "Concluído": #4 "Shell principal", #5 "Menu e navegação completa", #6 "Dashboard inicial", #7 "Frontend mockado navegável" e #8 "Estados de loading/vazio/sucesso/erro" avançam mas permanecem "Em desenvolvimento" — Negociações/Pedidos/Indicadores/Agentes IA/Configurações continuam demonstrativos (mock), como já documentado; a implementação de domínio real desses módulos pertence a Ondas futuras. **Por instrução expressa do Product Owner, `.ai/dashboard/DASHBOARD_STATE.md` não foi editado.**
 
 **O1.11 não foi iniciada:** permanece em `backlog/`, Draft/Planejada — não movida, não aberta, não implementada. **A eventual Work Order O1.13.5 (Fundação dos Agents Especialistas Linx) permanece em `backlog/`, Draft/Planejada — não iniciada, não aprovada.** Nenhuma Work Order está ativa após este fechamento.
+
+## O1.11 — Fundação Multi-Unidade de Negócio e Configuração — ABERTA E PARCIALMENTE CONCLUÍDA (11/08/2026)
+
+Movida de `backlog/` para `active/`. Implementados e validados (backend + frontend, build/testes verdes)
+os entregáveis **#3** Seleção de Unidade de Negócio, **#13** Cadastro de Unidades de Negócio, **#20**
+Identity Providers por UN, **#21** Configuração de ERP por UN, **#22** Parâmetros gerais, **#23** Feature
+Flags — todos protegidos pelas permissões RBAC corporativas já existentes (`UnidadeNegocio.Gerenciar`,
+`ConfiguracaoErp.Gerenciar`, `Sistema.Gerenciar`), sem confiar em `UnidadeNegocioId` vindo do corpo da
+requisição para autorização, com segredos (Identity Provider/ConfiguracaoErp) cifrados via
+`IDataProtector` e nunca devolvidos pela API. **Não implementado:** **#24** Configuração de Notificações
+— sem especificação funcional/UX aprovada (`ComprasFuncional.md`/`ComprasUX.md` marcam explicitamente
+como pendência), condição exigida pelos próprios critérios de aceite da Work Order antes de qualquer
+implementação. **O1.11 permanece em `active/` — não foi fechada.** Revisão de segurança sem achados
+CRITICAL/HIGH. Backend: 555 testes aprovados (548 unitários + 7 integração). Frontend: 88 testes
+aprovados (14 arquivos), typecheck e build aprovados. Progresso da Onda 1/MVP global mantido inalterado
+nesta sessão (41 entregáveis / 13 Concluído / 7 Em desenvolvimento / 21 Planejado / 32% exibido; MVP 33%
+exibido) — a reclassificação de #3/#13/#20/#21/#22/#23 para "Concluído" e o recálculo consequente ficam
+para o fechamento formal da O1.11. **O1.12 permanece em `backlog/`, Draft/Planejada — não iniciada.**
+**O1.13.5 permanece em `backlog/`, Draft/Planejada — não iniciada, não aprovada.**

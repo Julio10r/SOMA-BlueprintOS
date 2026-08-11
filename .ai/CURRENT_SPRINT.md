@@ -1208,3 +1208,78 @@ Draft/Planejada — não iniciada, não aprovada.
 **Ressalva de escopo sobre o Dashboard:** por instrução expressa do Product Owner, a rotina
 `[atualizar dashboard]` **não** foi executada e `dashboard/DASHBOARD_STATE.md` **não** foi tocado
 manualmente. O Dashboard publicado permanece D-1, atualizado pelo Product Owner ao final do dia.
+
+## O1.11 — Fundação Multi-Unidade de Negócio e Configuração — ABERTA, PARCIALMENTE CONCLUÍDA (11/08/2026)
+
+**Status: ATIVA.** Movida de `backlog/` para `active/`. **Não foi movida para `completed/`** — um dos
+sete entregáveis do escopo (Configuração de Notificações, #24) permanece bloqueado por ausência de
+especificação funcional/UX aprovada (`docs/product/ComprasFuncional.md` marca explicitamente como
+pendência sem wireframe; `docs/product/ComprasUX.md` idem). Os critérios de aceite da própria Work
+Order exigem "Especificação funcional/UX completa antes da implementação de cada sub-tela sem UX
+aprovado" — não há tal especificação para Notificações, logo não foi implementada. Isto é uma decisão
+de produto pendente, registrada aqui, não um erro de execução.
+
+**Entregado nesta sessão (6 dos 7 entregáveis do escopo):**
+
+- **#3 Seleção de Unidade de Negócio** — `GET /me/unidades-negocio` real; frontend com `BusinessUnitGate`
+  entre `RequireAuth` e `AppShell` (sem alteração de sessão/claims/O1.4.x). Hoje sempre 1 UN por usuário
+  (arquitetura atual é single-BU-por-usuário — `Usuario.UnidadeNegocioId` único, claim de sessão única);
+  decisão explícita de não redesenhar autenticação para suportar N:N Usuário×UnidadeNegocio nesta sprint
+  (fora do escopo real da Onda 1, onde apenas SOMA está ativa). Estrutura do componente já preparada para
+  múltiplas UNs quando essa evolução for aprovada.
+- **#13 Cadastro de Unidades de Negócio** — CRUD real (`Administration/UnidadesNegocioController.cs`),
+  recurso corporativo protegido por `UnidadeNegocio.Gerenciar`, sem exclusão física (apenas
+  Ativar/Inativar), slug único e imutável.
+- **#20 Identity Providers por Unidade de Negócio** — CRUD real por UN, protegido por `Sistema.Gerenciar`;
+  parâmetros sensíveis cifrados via `IDataProtector` (`Microsoft.AspNetCore.DataProtection`), nunca
+  devolvidos pela API (apenas `parametrosConfigurados: boolean`), nunca logados.
+- **#21 Configuração de ERP por Unidade de Negócio** — registro de configuração 1:1 por UN, protegido
+  por `ConfiguracaoErp.Gerenciar`; mesma técnica de proteção de segredo do item anterior; nenhuma
+  operação real de leitura/escrita no ERP.
+- **#22 Parâmetros gerais por Unidade de Negócio** — CRUD real (`Parametro`), global ou por UN, protegido
+  por `Sistema.Gerenciar`; único módulo desta Work Order com exclusão física real (decisão registrada:
+  Parâmetro não é dado mestre de ERP nem possui histórico externo a preservar).
+- **#23 Feature Flags** — catálogo real (nasce vazio, nenhuma flag fictícia semeada), vínculo N:N com
+  Unidade de Negócio, protegido por `Sistema.Gerenciar`.
+
+**Não entregado (bloqueador de produto registrado):**
+
+- **#24 Configuração de Notificações** — sem especificação funcional/UX aprovada. Nenhum código, tela ou
+  stub foi criado. Fica para decisão do Product Owner definir o wireframe/especificação antes de uma
+  implementação futura (dentro da própria O1.11, ainda ativa, ou em Work Order sucessora).
+
+**Backend:** `dotnet build backend/BlueprintOS.sln` — 0 erros, 0 avisos. `dotnet test` — **555 testes
+aprovados** (548 unitários + 7 integração), 0 falhas, sem regressão em O1.5–O1.9. Migration
+`20260811203728_AddConfiguracaoTecnicaO111` — puramente aditiva (5 tabelas novas), aplicada ao banco de
+desenvolvimento local.
+
+**Frontend:** `tsc -b` — 0 erros. `npm run build` — aprovado. `npm test` — **88 testes aprovados** (14
+arquivos), sem regressão, incluindo teste dedicado garantindo que o campo de segredo de Identity
+Provider nunca é pré-preenchido na edição.
+
+**Segurança:** revisão focada nos módulos novos (fronteira multi-tenant). Nenhum achado CRITICAL ou HIGH.
+Nenhum endpoint confia em `UnidadeNegocioId` do corpo da requisição para autorização — a autorização vem
+sempre da permissão RBAC (`UnidadeNegocio.Gerenciar`/`ConfiguracaoErp.Gerenciar`/`Sistema.Gerenciar`), via
+`RequireAuthorization(RbacPolicies.For(...))`, nunca de um campo enviado pelo cliente; o `unidadeNegocioId`
+no path de Identity Providers/ConfiguracaoErp identifica apenas qual recurso está sendo administrado,
+igual ao padrão já usado para outros recursos administrativos protegidos por permissão corporativa.
+Segredos nunca aparecem em texto claro em resposta de API ou log. Todos os endpoints de mutação usam
+`CsrfHeaderFilter`. Dívida LOW registrada: `DataProtectionSegredoProtector` usa um único propósito
+nomeado (`"BlueprintOS.ConfiguracaoTecnica.Segredos.v1"`) compartilhado entre os segredos de Identity
+Provider e de ConfiguracaoErp — não é uma vulnerabilidade explorável (a decifragem só ocorre no backend,
+nunca é exposta via API, e o acesso a cada entidade já é controlado por RBAC), mas separar os propósitos
+por entidade seria mais defensivo; registrado como hardening pós-O1.14.
+
+**Chrome/MCP:** dispensado. Não há troca real de BU em produção (single-BU hoje), nem alteração de
+fluxo de login/sessão. Build e suíte automatizada (backend + frontend) fornecem evidência suficiente.
+
+**Progresso Onda 1 / MVP: mantido inalterado nesta sessão** (41 entregáveis / 13 Concluído / 7 Em
+desenvolvimento / 21 Planejado / 32% exibido, 31,7073% exato; MVP 33,34% exato, exibido 33%) — a
+reclassificação formal dos entregáveis #3/#13/#20/#21/#22/#23 para "Concluído" e o recálculo consequente
+do progresso da Onda 1/MVP global ficam para o fechamento formal da O1.11 (quando o bloqueio de
+Notificações for resolvido e a Work Order puder ser movida para `completed/`), seguindo o mesmo padrão já
+usado nas sprints anteriores (recálculo ocorre no fechamento, não durante a execução).
+
+**O1.11 permanece em `active/`.** **O1.12 NÃO foi iniciada** (permanece em `backlog/`, dependente de
+O1.11 fechar formalmente). **O1.13.5 (Fundação dos Agents Especialistas Linx) NÃO foi iniciada**
+(permanece em `backlog/`, Draft/Planejada).
