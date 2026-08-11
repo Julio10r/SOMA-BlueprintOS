@@ -129,7 +129,7 @@ Novas Work Orders propostas para conclusão da Onda 1, todas em status **Draft (
 | O1.10 | Conclusão do Vertical Slice (O1.2.2) | ESTRUTURA | #4, #5, #6, #7, #8 | Parcial; integração final depende de O1.5–O1.9 | [O1.10](work-orders/backlog/O1.10-ConclusaoVerticalSlice.md) |
 | O1.11 | Fundação Multi-Unidade de Negócio e Configuração | ESTRUTURA + DESIGN | #3, #13, #20, #21, #22, #23, #24 | O1.6 | ✅ **CONCLUÍDA (11/08/2026)** — 7/7 entregáveis implementados e validados; #24 (Notificações) entregue em escopo mínimo de fundação, por decisão formal do Product Owner (sem catálogo de eventos, sem motor de envio) | [O1.11](work-orders/completed/O1.11-FundacaoMultiUnidadeDeNegocioEConfiguracao.md) |
 | O1.12 | Workflow, Aprovação, Alçadas e Controle Orçamentário | ESTRUTURA + DESIGN | #25, #26, #27, #28 | O1.5, O1.9 | [O1.12](work-orders/completed/O1.12-WorkflowAprovacaoAlcadasOrcamento.md) — ✅ Concluída |
-| O1.13 | Administração Operacional e Monitoramento | ESTRUTURA + DESIGN | #29, #30, #31, #32 | Nenhuma bloqueante | [O1.13](work-orders/backlog/O1.13-AdministracaoOperacionalEMonitoramento.md) |
+| O1.13 | Administração Operacional e Monitoramento | ESTRUTURA + DESIGN | #29, #30, #31, #32 | Nenhuma bloqueante | [O1.13](work-orders/completed/O1.13-AdministracaoOperacionalEMonitoramento.md) — ✅ Concluída |
 | O1.14 | Blueprint de Banco e Validação Funcional Final | ESTRUTURA | #36, #37, #38, #39, #40, #41 (+ evolução de #33–#35) | O1.5, O1.6, O1.7, O1.8, O1.9 | [O1.14](work-orders/backlog/O1.14-BlueprintDeBancoEValidacaoFuncionalFinal.md) |
 
 ### Ressalvas remanescentes da Security Validation independente da O1.5 (aceitas pelo Product Owner em 11/08/2026)

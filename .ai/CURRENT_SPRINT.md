@@ -357,6 +357,42 @@ Pendências (fora do escopo desta sprint, não bloqueantes):
 
 ---
 
+## Sprint O1.13 — Administração Operacional e Monitoramento (11/08/2026) — ✅ concluída
+
+**Status:** ✅ concluída na mesma sessão de abertura (autorização explícita do Product Owner para iniciar, executar, validar, fechar e publicar somente a O1.13, sem antecipar O1.13.5/O1.14/Gate Final).
+
+**Objetivo:** telas reais de Administração operacional, Monitor de integrações, Monitor de filas/reprocessamentos e Auditoria/histórico de sincronizações (#29–#32), consumindo exclusivamente os dados reais já persistidos de sincronização de fornecedores (B2.1.3) — sem mock, sem novo motor de sincronização.
+
+**Descoberta técnica prévia (obrigatória antes de codificar):** `SincronizacaoFornecedor`/`ErroSincronizacaoFornecedor` (execução em lote) e `FornecedorSincronizacao` (histórico granular por fornecedor) já eram REAIS. Nenhum endpoint de Fornecedor/Sincronização tinha RBAC — dívida confirmada desde O1.5/B2.1.3 (`Fornecedor.Criar/Editar/Aprovar` cadastradas no catálogo, nunca conectadas a nenhum endpoint). A permissão `Sistema.Gerenciar` já existia com descrição prevendo literalmente "integrações, monitor, filas, logs, saúde" — reaproveitada integralmente. Não existia endpoint de listagem das execuções em lote (só disparo). Frontend era greenfield total nesta área.
+
+**Backend:** `Application/Procurement/Suppliers/{Models/MonitoramentoSincronizacaoDtos.cs, Contracts/IMonitoramentoSincronizacaoUseCases.cs, Contracts/ISincronizacaoFornecedorMonitorRepository.cs, MonitoramentoSincronizacaoUseCases.cs}`; `Infrastructure/Persistence/Repositories/SincronizacaoFornecedorMonitorRepository.cs`; `Api/Administration/MonitoramentoOperacionalController.cs` (`GET /api/administracao/monitoramento/sincronizacoes-fornecedores` e `/{id}`, protegidos por `Sistema.Gerenciar`). Leitura pura sobre tabelas já existentes — nenhuma migration necessária.
+
+**RBAC — quitação de dívida O1.5/B2.1.3 (dentro da superfície tocada por esta sprint):** `FornecedoresController` — `POST`/`consulta-cnpj` → `Fornecedor.Criar`; `PUT`/`DELETE`/análise de enriquecimento → `Fornecedor.Editar`; `aprovar`/`rejeitar` → `Fornecedor.Aprovar` (GETs seguem apenas autenticados). `FornecedorSyncController` (sincronizar, sincronizar/lote, sincronizar-erp, histórico por fornecedor) → `Sistema.Gerenciar` no grupo. `FornecedorDiscoveryController` não tocado (fora da superfície desta sprint). Nenhuma permissão nova criada.
+
+**Frontend:** nova Vertical Slice `frontend/web/src/administration/operational-monitoring/` (`types/`, `services/monitoramentoApi.ts`, `hooks/useMonitorSincronizacoes.ts`, `components/StatusExecucaoBadge.tsx`/`SincronizacoesFornecedoresTable.tsx`, `pages/MonitorIntegracoesPage.tsx` — #29/#30 —, `pages/SincronizacaoDetalhesPage.tsx` — #31, fila de erros sem `StackTrace` —, `pages/AuditoriaFornecedorPage.tsx` — #32, sobre `FornecedorSincronizacaoRepository` já existente —, `routes/`, `tests/`). Rota `/administracao/monitoramento/*` e item de menu "Monitoramento" registrados em `core/AppRoutes.tsx`/`core/AppShell.tsx`. Reaproveitado `UnidadeNegocioSeletor` e classes CSS já existentes; nenhum componente novo de Design System.
+
+**Multi-BU:** filtro por Unidade de Negócio disponível no Monitor; isolamento de fundo permanece dívida herdada e não resolvida (`BusinessUnit` é string livre, sem FK, em `SincronizacaoFornecedor`/`FornecedorSincronizacao`/`Fornecedor`) — fora do escopo estrutural desta sprint, deferida ao Gate Final.
+
+**Testes re-executados e verificados nesta sessão (não apenas relatados pelo agente de implementação):** Backend — `dotnet build backend/BlueprintOS.sln`: 0 erros, 0 avisos. `dotnet test`: **626 testes unitários** (621 → 626, 5 novos de `MonitoramentoSincronizacaoUseCasesTests`) **+ 7 de integração** (inalterado), 0 falhas. Frontend — `npx tsc -b`: aprovado. `npm run build`: aprovado. `npm run test` (Vitest): **116 testes aprovados** em 21 arquivos (110 → 116, 6 novos de `MonitorIntegracoesPage.test.tsx`).
+
+**Chrome/MCP:** dispensado — cobertura automatizada (backend + frontend) suficiente para provar listagem, filtro, detalhe, 404, vazio, erro, 403/forbidden e ação de reprocessar; nenhum fluxo dependia de estado de navegador real não coberto por teste.
+
+**ERP/VPN:** não necessário — toda a implementação é leitura sobre dados já persistidos localmente; nenhum critério de aceite dependia de `SOMA_DESENV`/VPN.
+
+**Segurança:** revisão focada na nova superfície e no RBAC recém-aplicado, verificada por leitura direta de código (não apenas pelo relato do agente de implementação). `StackTrace`/dados sensíveis nunca chegam ao DTO/UI; ação de "reprocessar" reaproveita caso de uso determinístico existente (sem SQL livre, sem escolha arbitrária de tabela/comando ERP pela UI); RBAC granular correto por rota, mesmo padrão de `FeatureFlagsController`. **0 CRITICAL, 0 HIGH, 0 MEDIUM.**
+
+**Dívidas:** **RESOLVIDA** — RBAC ausente em `FornecedoresController`/`FornecedorSyncController` (O1.5/B2.1.3). **MANTIDA** — `BusinessUnit` como string livre sem FK para `UnidadeNegocio` (deferida ao Gate Final). **NÃO APLICÁVEL** — `FornecedorDiscoveryController` (fora da superfície tocada). Observação não bloqueante: não existe infraestrutura de teste de integração HTTP (`WebApplicationFactory`) para RBAC 401/403 em nenhum controller do repositório; enforcement validado por leitura de código e testes unitários de caso de uso, não por teste HTTP end-to-end — candidato a hardening pós-Gate Final.
+
+**Auditoria final dos 4 entregáveis da O1.13:** #29 Administração operacional, #30 Monitor de integrações, #31 Monitor de filas e reprocessamentos, #32 Auditoria e histórico de sincronizações — todos com evidência real de código, RBAC, persistência reaproveitada e testes automatizados aprovados (ver tabela completa no Relatório final da Work Order, `.ai/work-orders/completed/O1.13-AdministracaoOperacionalEMonitoramento.md`). **Status formal: O1.13 Concluída (4/4).**
+
+**Fechamento:** Work Order movida de `.ai/work-orders/backlog/` para `.ai/work-orders/active/` e, na mesma sessão, para `.ai/work-orders/completed/`. `.ai/work-orders/active/` volta a ficar vazio.
+
+**Métrica oficial da Onda 1 recalculada neste fechamento** (mesma regra-fonte, `.ai/dashboard/DASHBOARD_STATE.md`, "Política dos percentuais" — só conta entregável "Concluído"): **41 entregáveis / 28 Concluído / 7 Em desenvolvimento / 6 Planejado / 68,2927% de Progresso Técnico** (exibido **68%**; 28 ÷ 41). Antes: 24 / 7 / 10 / 58,5366% (58%). Mudança: #29, #30, #31, #32 passam de Planejado para **Concluído**. Contribuição da Onda 1 ao MVP: 11,7073 → **13,6585 pontos** (20% × 68,2927%). Percentual Global do MVP 1.0: 38,7073% exato → **40,6585%** exato (Foundation 20,0 + Onda 1 13,6585 + Onda 2 7,0), exibido **41%** (antes 39%). **Por instrução expressa do Product Owner (regra permanente do projeto), `.ai/dashboard/DASHBOARD_STATE.md` não foi editado** — o Dashboard oficial permanece D-1, atualizado pelo Product Owner via `[atualizar dashboard]`.
+
+**O1.13.5 (Fundação dos Agents Especialistas Linx) NÃO foi iniciada** (permanece em `backlog/`, Draft/Planejada, não aprovada — ativos reaproveitáveis já mapeados, não implementados, no Relatório final da Work Order O1.13). **O1.14 (Blueprint de Banco e Validação Funcional Final) NÃO foi iniciada** (permanece em `backlog/`, Draft/Planejada). **O Gate Final da Onda 1** (auditoria consolidada dos 41 entregáveis, GAPs, dívidas, hardening, validação integrada e revisão de Design consolidada, previsto para depois de O1.13→O1.13.5→O1.14) **NÃO foi antecipado** nesta sessão — apenas preservado como planejamento já registrado.
+
+---
+
 ## Sprint O1.12 — Workflow, Alçadas, Aprovação e Controle Orçamentário (11/08/2026) — ✅ concluída
 
 **Status:** ✅ concluída e encerrada formalmente em 11/08/2026. Escopo: fundação configurável real (sem mock, sem motor operacional) de Workflow, Alçadas de Aprovação e Controle Orçamentário, cobrindo os entregáveis #25–#28 da matriz oficial. Work Order: [O1.12](./work-orders/completed/O1.12-WorkflowAprovacaoAlcadasOrcamento.md) (relatório final completo lá).
