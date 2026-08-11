@@ -95,6 +95,39 @@ public static class IdentityServiceCollectionExtensions
         services.AddScoped<ICentroCustoUnidadeAlocacaoRepository, CentroCustoUnidadeAlocacaoRepository>();
         services.AddScoped<IListarVinculosUnidadeAlocacaoUseCase, ListarVinculosUnidadeAlocacaoUseCase>();
         services.AddScoped<ISubstituirVinculosUnidadeAlocacaoUseCase, SubstituirVinculosUnidadeAlocacaoUseCase>();
+
+        // O1.11 — Seleção/Cadastro de Unidades de Negócio e Configuração Técnica por Unidade de Negócio.
+        // IUnidadeNegocioRepository já é registrado por AddBootstrapCore — reaproveitado aqui.
+        services.AddScoped<ISegredoProtector, DataProtectionSegredoProtector>();
+
+        services.AddScoped<IListarMinhasUnidadesNegocioUseCase, ListarMinhasUnidadesNegocioUseCase>();
+        services.AddScoped<IListarUnidadesNegocioUseCase, ListarUnidadesNegocioUseCase>();
+        services.AddScoped<ICriarUnidadeNegocioUseCase, CriarUnidadeNegocioUseCase>();
+        services.AddScoped<IRenomearUnidadeNegocioUseCase, RenomearUnidadeNegocioUseCase>();
+        services.AddScoped<IAlterarStatusUnidadeNegocioUseCase, AlterarStatusUnidadeNegocioUseCase>();
+
+        services.AddScoped<IIdentityProviderRepository, IdentityProviderRepository>();
+        services.AddScoped<IListarIdentityProvidersUseCase, ListarIdentityProvidersUseCase>();
+        services.AddScoped<ICriarIdentityProviderUseCase, CriarIdentityProviderUseCase>();
+        services.AddScoped<IAtualizarIdentityProviderUseCase, AtualizarIdentityProviderUseCase>();
+        services.AddScoped<IAlterarStatusIdentityProviderUseCase, AlterarStatusIdentityProviderUseCase>();
+
+        services.AddScoped<IConfiguracaoErpRepository, ConfiguracaoErpRepository>();
+        services.AddScoped<IObterConfiguracaoErpUseCase, ObterConfiguracaoErpUseCase>();
+        services.AddScoped<ISalvarConfiguracaoErpUseCase, SalvarConfiguracaoErpUseCase>();
+        services.AddScoped<IAlterarStatusConfiguracaoErpUseCase, AlterarStatusConfiguracaoErpUseCase>();
+
+        services.AddScoped<IParametroRepository, ParametroRepository>();
+        services.AddScoped<IListarParametrosUseCase, ListarParametrosUseCase>();
+        services.AddScoped<ICriarParametroUseCase, CriarParametroUseCase>();
+        services.AddScoped<IAtualizarParametroUseCase, AtualizarParametroUseCase>();
+        services.AddScoped<IExcluirParametroUseCase, ExcluirParametroUseCase>();
+
+        services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
+        services.AddScoped<FeatureFlagProjector>();
+        services.AddScoped<IListarFeatureFlagsUseCase, ListarFeatureFlagsUseCase>();
+        services.AddScoped<ICriarFeatureFlagUseCase, CriarFeatureFlagUseCase>();
+        services.AddScoped<IAlterarStatusFeatureFlagUnidadeUseCase, AlterarStatusFeatureFlagUnidadeUseCase>();
     }
 
     /// <summary>Fundação Backend do Bootstrap (Work Order O1.4.3, etapa O1.4.3.1). Registra

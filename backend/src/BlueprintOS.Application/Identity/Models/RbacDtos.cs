@@ -72,6 +72,22 @@ public enum RbacFalha
     /// <summary>O1.8 — Unidade de Alocação não encontrada (Id inexistente, ou de outra Unidade de
     /// Negócio — nunca revelado como distinção, sempre tratado como "não encontrada").</summary>
     UnidadeAlocacaoNaoEncontrada,
+
+    // ---- O1.11 — Administração de Unidades de Negócio e Configuração Técnica ----
+    UnidadeNegocioNaoEncontrada,
+    SlugObrigatorio,
+    SlugInvalido,
+    SlugDuplicado,
+    TipoObrigatorio,
+    IdentityProviderNaoEncontrado,
+    SistemaErpObrigatorio,
+    ConfiguracaoErpNaoEncontrada,
+    ConfiguracaoErpJaConfigurada,
+    ChaveObrigatoria,
+    ParametroNaoEncontrado,
+    ParametroDuplicado,
+    FeatureFlagNaoEncontrada,
+    FeatureFlagDuplicada,
 }
 
 /// <summary>Projeção de leitura de uma Unidade de Alocação (O1.8 — Persistência Real). Sem vínculo com

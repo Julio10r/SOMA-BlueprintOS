@@ -230,6 +230,14 @@ public sealed class ConcluirBootstrapUseCaseTests
             Task.FromResult(ComAdministradorSeniorAtivo.Contains(unidadeNegocioId));
 
         public Task AdicionarAsync(UnidadeNegocio unidadeNegocio, CancellationToken ct) { All.Add(unidadeNegocio); return Task.CompletedTask; }
+
+        public Task<IReadOnlyList<UnidadeNegocio>> ListarTodasAsync(CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<UnidadeNegocio>>(All);
+
+        public Task<bool> ExisteComSlugAsync(string slug, Guid? excluirId, CancellationToken ct) =>
+            Task.FromResult(All.Any(x => x.Slug == slug && (excluirId == null || x.Id != excluirId)));
+
+        public Task SalvarAlteracoesAsync(CancellationToken ct) => Task.CompletedTask;
     }
 
     private sealed class FakeUsuarioRepositoryConclusao : IUsuarioRepository

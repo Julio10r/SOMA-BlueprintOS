@@ -23,6 +23,13 @@ public sealed class BlueprintOSDbContext(DbContextOptions<BlueprintOSDbContext> 
     public DbSet<BootstrapEstado> BootstrapEstados => Set<BootstrapEstado>();
     public DbSet<BootstrapSessao> BootstrapSessoes => Set<BootstrapSessao>();
 
+    // O1.11 — Administração de Unidades de Negócio e Configuração Técnica.
+    public DbSet<IdentityProvider> IdentityProviders => Set<IdentityProvider>();
+    public DbSet<ConfiguracaoErp> ConfiguracoesErp => Set<ConfiguracaoErp>();
+    public DbSet<Parametro> Parametros => Set<Parametro>();
+    public DbSet<FeatureFlag> FeatureFlags => Set<FeatureFlag>();
+    public DbSet<FeatureFlagUnidadeNegocio> FeatureFlagsUnidadesNegocio => Set<FeatureFlagUnidadeNegocio>();
+
     public DbSet<Fornecedor> Fornecedores => Set<Fornecedor>();
     public DbSet<FornecedorCnpjConsultaHistorico> FornecedoresCnpjConsultas => Set<FornecedorCnpjConsultaHistorico>();
     public DbSet<FornecedorEnriquecimentoAnalise> FornecedoresEnriquecimentoAnalises => Set<FornecedorEnriquecimentoAnalise>();

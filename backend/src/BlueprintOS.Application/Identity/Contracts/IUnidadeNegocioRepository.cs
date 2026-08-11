@@ -17,4 +17,16 @@ public interface IUnidadeNegocioRepository
     /// <summary>Rastreia a criação — escrita real ocorre junto com as demais entidades da transação de
     /// conclusão (mesmo <c>DbContext</c> compartilhado, Work Order O1.4.3, seção 13).</summary>
     Task AdicionarAsync(UnidadeNegocio unidadeNegocio, CancellationToken ct);
+
+    // ---- O1.11 — Cadastro de Unidades de Negócio (CRUD real) e seleção pelo usuário ----
+
+    /// <summary>Catálogo corporativo completo — usado tanto pela Administração (CRUD, sem escopo por
+    /// sessão: a UN administrada é o próprio recurso) quanto por `GET /me/unidades-negocio` (hoje sempre
+    /// devolve a única UN do usuário atual, já que o sistema é single-BU-por-usuário).</summary>
+    Task<IReadOnlyList<UnidadeNegocio>> ListarTodasAsync(CancellationToken ct);
+
+    /// <summary>Pré-checagem amigável de unicidade de slug; a garantia real é o índice único no banco.</summary>
+    Task<bool> ExisteComSlugAsync(string slug, Guid? excluirId, CancellationToken ct);
+
+    Task SalvarAlteracoesAsync(CancellationToken ct);
 }

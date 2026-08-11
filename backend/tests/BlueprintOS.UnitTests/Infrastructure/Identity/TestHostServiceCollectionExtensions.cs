@@ -18,6 +18,10 @@ internal static class TestHostServiceCollectionExtensions
     {
         services.AddDbContext<BlueprintOSDbContext>(o => o.UseInMemoryDatabase(Guid.NewGuid().ToString()));
         services.AddIdentityAuthCore(configuration);
+
+        // O1.11 — ISegredoProtector (IdentityProvider/ConfiguracaoErp) depende de IDataProtectionProvider,
+        // registrado em produção por builder.Services.AddDataProtection() em Program.cs.
+        services.AddDataProtection();
         return services;
     }
 }

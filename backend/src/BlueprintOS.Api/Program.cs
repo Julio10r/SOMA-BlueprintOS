@@ -151,6 +151,10 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddIdentityAuthCore(builder.Configuration);
 
+// O1.11 — Data Protection para cifragem de segredos de configuração técnica (IdentityProvider/
+// ConfiguracaoErp), via ISegredoProtector (registrado em AddIdentityAuthCore). Nunca em texto claro.
+builder.Services.AddDataProtection();
+
 // Exatamente uma implementação válida de IOtpEmailSender por ambiente — nunca fallback silencioso
 // (security-design-auth-o1.4.md, §17.3/§17.4). Seleção feita aqui, na composição raiz, exclusivamente
 // por IHostEnvironment.
@@ -228,6 +232,12 @@ app.MapUsuarios();
 app.MapFiliais();
 app.MapCentrosCusto();
 app.MapUnidadesAlocacao();
+app.MapMe();
+app.MapUnidadesNegocio();
+app.MapIdentityProviders();
+app.MapConfiguracaoErp();
+app.MapParametros();
+app.MapFeatureFlags();
 if (app.Environment.IsDevelopment())
 {
     app.MapDevelopmentOtpDiagnostics();

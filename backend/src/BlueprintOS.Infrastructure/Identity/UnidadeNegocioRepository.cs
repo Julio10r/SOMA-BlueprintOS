@@ -24,4 +24,12 @@ public sealed class UnidadeNegocioRepository(BlueprintOSDbContext db) : IUnidade
         db.UnidadesNegocio.Add(unidadeNegocio);
         return Task.CompletedTask;
     }
+
+    public async Task<IReadOnlyList<UnidadeNegocio>> ListarTodasAsync(CancellationToken ct) =>
+        await db.UnidadesNegocio.OrderBy(x => x.Nome).ToListAsync(ct);
+
+    public Task<bool> ExisteComSlugAsync(string slug, Guid? excluirId, CancellationToken ct) =>
+        db.UnidadesNegocio.AnyAsync(x => x.Slug == slug && (excluirId == null || x.Id != excluirId), ct);
+
+    public Task SalvarAlteracoesAsync(CancellationToken ct) => db.SaveChangesAsync(ct);
 }
