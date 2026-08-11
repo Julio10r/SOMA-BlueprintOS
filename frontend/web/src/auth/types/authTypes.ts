@@ -21,5 +21,8 @@ export const PERMISSOES = {
   usuarioGerenciar: "Usuario.Gerenciar",
   filialGerenciar: "Filial.Gerenciar",
   centroCustoGerenciar: "CentroCusto.Gerenciar",
-  unidadeAlocacaoGerenciar: "UnidadeAlocacao.Gerenciar"
+  unidadeAlocacaoGerenciar: "UnidadeAlocacao.Gerenciar",
+  unidadeNegocioGerenciar: "UnidadeNegocio.Gerenciar",
+  configuracaoErpGerenciar: "ConfiguracaoErp.Gerenciar",
+  sistemaGerenciar: "Sistema.Gerenciar"
 } as const;
