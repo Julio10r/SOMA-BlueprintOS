@@ -941,3 +941,54 @@ Entregáveis **#14 "Empresas e filiais"** e **#18 "Centros de Custo"** passam de
 `.ai/work-orders/active/` está vazio. `O1.7-FiliaisECentrosDeCustoIntegradosAoErp.md` movida para `.ai/work-orders/completed/`. **`O1.8-UnidadesDeAlocacaoPersistenciaReal.md` permanece em `.ai/work-orders/backlog/`, status Draft/Planejada — não iniciada.**
 
 **Ressalva de escopo sobre o Dashboard:** por instrução expressa do Product Owner nesta sessão, a rotina `[atualizar dashboard]` **não** foi executada e `dashboard/DASHBOARD_STATE.md` **não** foi tocado manualmente. O Dashboard publicado permanece exibindo os valores do fechamento da O1.6 até que o Product Owner execute o comando.
+
+## Abertura e execução da Sprint O1.8 — Unidades de Alocação, Persistência Real — 11/08/2026
+
+Work Order movida de `.ai/work-orders/backlog/` para `.ai/work-orders/active/` e, na mesma sessão, executada integralmente e encerrada — ver seção seguinte. Status atualizado para "Concluída"; data de aprovação preenchida como 11/08/2026. Nenhum percentual técnico foi alterado apenas pela abertura.
+
+## Encerramento formal da Sprint O1.8 — Unidades de Alocação, Persistência Real — 11/08/2026
+
+### Objetivo canônico
+
+Substituir o CRUD mockado de `administration/allocation-units` por domínio e persistência reais, mantendo Unidade de Alocação exclusiva do +Compras, sem integração ERP (ADR-0020, item 4) e sem o relacionamento N:N com Centro de Custo (ADR-0020, item 5 — escopo explícito da O1.9, fora de escopo aqui).
+
+### Implementação
+
+- **Backend** (`BlueprintOS.Domain/Application/Infrastructure/Api.Identity`): entidade `UnidadeAlocacao` (Nome, Descrição, `UnidadeNegocioId`, Status), mesmo padrão físico de `Usuario` (O1.6) — construtor de fábrica, mutadores controlados (`Atualizar`/`Ativar`/`Inativar`), sem exclusão física. `UnidadeAlocacaoConfiguration` (EF Core, índice único `UnidadeNegocioId`+`Nome`); `IUnidadeAlocacaoRepository`/`UnidadeAlocacaoRepository`; casos de uso `Listar/Obter/Criar/Atualizar/AlterarStatusUnidadeAlocacaoUseCase`; `UnidadesAlocacaoController` (Api/Administration), mesmo padrão físico/enforcement de `UsuariosController` — policy `UnidadeAlocacao.Gerenciar` (permissão já reservada no catálogo desde a O1.5), CSRF no grupo, `UnidadeNegocioId` sempre resolvido da sessão autenticada, nunca do payload.
+- **Migration** `AddUnidadeAlocacaoO18`: `CREATE TABLE UnidadesAlocacao` + índice único `(UnidadeNegocioId, Nome)`. Gerada via `dotnet ef migrations add` real e **aplicada** ao banco de desenvolvimento via `dotnet ef database update` (ambiente com conectividade disponível nesta sessão — junto com as migrations O1.6/O1.7 que ainda estavam pendentes de aplicação).
+- **Frontend** (`administration/allocation-units`): `unidadesAlocacaoMockApi.ts` excluído; `unidadesAlocacaoApi.ts` novo (cliente HTTP real, mesmo padrão de `centrosCustoApi.ts`/O1.7); tipo `UnidadeAlocacao.unidadeNegocioId` (era `unidadeNegocio`, texto livre no mock); campo "Unidade de Negócio" removido do formulário (`UnidadeAlocacaoForm`) e da tabela/detalhes — correção necessária identificada durante a conversão: a Unidade de Negócio é sempre resolvida pelo backend a partir da sessão, nunca escolhida pelo cliente (mesmo cuidado de Usuário/Perfil), não um redesign. Nenhuma outra alteração visual.
+
+### Testes
+
+- Backend: **512 aprovados** (baseline O1.7 500 → +13 novos em `UnidadeAlocacaoUseCasesTests.cs`: criação, unicidade por Unidade de Negócio, isolamento cross-BU, ativação/inativação, listagem escopada) + **7 integração**, 0 falhas. `dotnet build` 0 erros/0 avisos.
+- Frontend: **72 aprovados** (baseline O1.7 68 → +4 líquido, com reescrita completa do teste de `UnidadesAlocacaoPage` para interceptar `fetch` real em vez do mock em memória), 0 falhas. `tsc -b`/`vite build` limpos.
+
+### Decisão sobre uso do Chrome/MCP
+
+**Dispensado.** A cobertura automatizada (testes unitários dos casos de uso, incluindo unicidade por Unidade de Negócio e isolamento cross-BU; testes de integração HTTP real do frontend simulando 401/403/200/409; builds limpos de backend e frontend) foi considerada suficiente para os critérios de aceite da Work Order. Nenhuma interação visual complexa foi introduzida (sem vínculo com Centro de Custo nesta sprint) e nenhum comportamento exigia validação manual.
+
+### Segurança
+
+Revisão proporcional ao risco (sem Security Validation independente dedicada). Pontos verificados sem achado CRITICAL/HIGH: enforcement real via policy `UnidadeAlocacao.Gerenciar` (nunca por nome de Perfil); `UnidadeNegocioId` sempre da sessão, nunca do payload (impede vínculo/leitura/edição/ativação cross-BU, coberto por teste); DTOs de entrada (`UnidadeAlocacaoUpsertRequest`) expõem apenas Nome/Descrição — sem mass assignment de Id/UnidadeNegocioId/Status; ativação/inativação em endpoint dedicado, nunca junto do upsert; migration aditiva, sem exclusão de dados. Registrada como nota não bloqueante: ausência de token de concorrência otimista (`RowVersion`) em `UnidadeAlocacao` — mesmo padrão já vigente em `Usuario`/`Perfil`, não é uma regressão introduzida por esta sprint.
+
+### Reconciliação dos entregáveis oficiais da Onda 1
+
+Entregável **#19 "Unidades de Alocação"** passa de **"Em desenvolvimento"** para **"Concluído"**: o mock de `administration/allocation-units` foi substituído por backend/persistência reais. Nenhum outro entregável foi alterado por esta sprint. **Nota:** por instrução expressa do Product Owner, o arquivo `.ai/dashboard/DASHBOARD_STATE.md` **não** foi editado — a reconciliação e o recálculo abaixo são registrados apenas nesta CURRENT_SPRINT.md, em PROJECT_STATE.md e em BACKLOG.md; a atualização do Dashboard oficial permanece com o Product Owner (rotina `[atualizar dashboard]`, não executada).
+
+**Recálculo do Progresso Técnico da Onda 1** (metodologia oficial de `DASHBOARD_STATE.md`, "Política dos percentuais" — só entregável "Concluído" conta; "Em desenvolvimento" sem percentual individual contribui 0):
+
+| Métrica | Antes (fechamento O1.7) | Depois (fechamento O1.8) |
+|---|---|---|
+| Total de entregáveis da Onda 1 | 41 | 41 (inalterado) |
+| Concluído | 12 | **13** (+#19) |
+| Em desenvolvimento | 8 | **7** (−#19) |
+| Planejado | 21 | **21** (inalterado) |
+| Progresso Técnico | 29% (29,2683% exato) | **32%** (13 ÷ 41 = 31,7073% exato) |
+| Contribuição da Onda 1 ao MVP | 5,85 pontos | **6,34 pontos** (20% × 31,7073%) |
+| Percentual Global do MVP 1.0 | 32,85% exato, exibido 33% | **33,34%** exato (Foundation 20,0 + Onda 1 6,34 + Onda 2 7,0), exibido **33%** |
+
+### Estado final: NENHUMA SPRINT ATIVA
+
+`.ai/work-orders/active/` está vazio. `O1.8-UnidadesDeAlocacaoPersistenciaReal.md` movida para `.ai/work-orders/completed/`. **`O1.9-CentroDeCustoXUnidadeDeAlocacaoNN.md` permanece em `.ai/work-orders/backlog/`, status Draft/Planejada — não iniciada.**
+
+**Ressalva de escopo sobre o Dashboard:** por instrução expressa do Product Owner, a rotina `[atualizar dashboard]` **não** foi executada e `dashboard/DASHBOARD_STATE.md` **não** foi tocado manualmente. O Dashboard publicado permanece D-1, atualizado pelo Product Owner ao final do dia.
