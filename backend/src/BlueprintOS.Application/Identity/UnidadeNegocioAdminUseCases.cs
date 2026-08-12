@@ -42,7 +42,9 @@ public sealed class ListarUnidadesNegocioUseCase(IUnidadeNegocioRepository unida
 }
 
 public sealed class CriarUnidadeNegocioUseCase(
-    IUnidadeNegocioRepository unidadesNegocio, ILogger<CriarUnidadeNegocioUseCase> logger) : ICriarUnidadeNegocioUseCase
+    IUnidadeNegocioRepository unidadesNegocio,
+    CatalogoInicialPerfisDeNegocioUseCase catalogoInicialPerfis,
+    ILogger<CriarUnidadeNegocioUseCase> logger) : ICriarUnidadeNegocioUseCase
 {
     public async Task<RbacResultado<UnidadeNegocioDto>> ExecuteAsync(UnidadeNegocioCriarInput input, CancellationToken ct)
     {
@@ -72,6 +74,12 @@ public sealed class CriarUnidadeNegocioUseCase(
 
         var unidade = new UnidadeNegocio(nome, slug);
         await unidadesNegocio.AdicionarAsync(unidade, ct);
+
+        // Gate Final da Onda 1 (entregável #9) — toda Unidade de Negócio nasce com o catálogo inicial de
+        // Perfis de negócio, na mesma transação/SaveChanges (mesmo DbContext compartilhado pelos
+        // repositórios injetados — mesmo padrão de ConcluirBootstrapUseCase).
+        await catalogoInicialPerfis.GarantirCatalogoAsync(unidade.Id, ct);
+
         await unidadesNegocio.SalvarAlteracoesAsync(ct);
 
         logger.LogInformation(

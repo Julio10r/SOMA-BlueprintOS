@@ -157,7 +157,11 @@ public sealed class ConcluirBootstrapUseCaseTests
             sessaoId, new UnidadeNegocioBootstrapPayload(buExistente.Id, null, null), AdministradorValido, CancellationToken.None);
 
         Assert.True(resultado.Sucesso);
-        Assert.Single(ctx.Perfis.All); // nenhum novo Perfil criado — o existente foi reaproveitado.
+        // O Administrador Sênior pré-existente é reaproveitado, nunca duplicado — os outros 4 Perfis do
+        // catálogo inicial de negócio (Gate Final da Onda 1, entregável #9) são criados junto, pois a BU
+        // ainda não os tinha.
+        Assert.Single(ctx.Perfis.All, p => p.Nome == Perfil.AdministradorSenior);
+        Assert.Equal(5, ctx.Perfis.All.Count(p => p.UnidadeNegocioId == buExistente.Id));
         Assert.Equal(perfilExistente.Id, ctx.UsuariosPerfis.All.Single().PerfilId);
     }
 
@@ -169,7 +173,11 @@ public sealed class ConcluirBootstrapUseCaseTests
         var ctx = new FakeContext(estadoAusente);
         var useCase = new ConcluirBootstrapUseCase(
             ctx.Estados, ctx.Sessoes, ctx.UnidadesNegocio, ctx.Usuarios, ctx.Perfis, ctx.Perfis.Permissoes,
-            ctx.UsuariosPerfis, TimeProvider.System, NullLogger<ConcluirBootstrapUseCase>.Instance);
+            ctx.UsuariosPerfis,
+            new CatalogoInicialPerfisDeNegocioUseCase(
+                ctx.Perfis, ctx.Perfis.Permissoes, TimeProvider.System,
+                NullLogger<CatalogoInicialPerfisDeNegocioUseCase>.Instance),
+            TimeProvider.System, NullLogger<ConcluirBootstrapUseCase>.Instance);
         return (useCase, ctx);
     }
 

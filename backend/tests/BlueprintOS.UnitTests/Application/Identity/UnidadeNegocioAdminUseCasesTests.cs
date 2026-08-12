@@ -39,7 +39,12 @@ public sealed class UnidadeNegocioAdminUseCasesTests
     private static FakeUnidadeNegocioRepository Arrange() => new();
 
     private static CriarUnidadeNegocioUseCase Criar(FakeUnidadeNegocioRepository r) =>
-        new(r, NullLogger<CriarUnidadeNegocioUseCase>.Instance);
+        new(
+            r,
+            new CatalogoInicialPerfisDeNegocioUseCase(
+                new FakePerfilRepository(), new FakePermissaoRepository(), TimeProvider.System,
+                NullLogger<CatalogoInicialPerfisDeNegocioUseCase>.Instance),
+            NullLogger<CriarUnidadeNegocioUseCase>.Instance);
 
     private static RenomearUnidadeNegocioUseCase Renomear(FakeUnidadeNegocioRepository r) =>
         new(r, NullLogger<RenomearUnidadeNegocioUseCase>.Instance);

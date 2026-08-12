@@ -43,7 +43,9 @@ public sealed class ConcluirBootstrapConcurrencyTests
         await using var assertDb = CreateContext(dbName);
         Assert.Equal(1, await assertDb.Usuarios.CountAsync());
         Assert.Equal(1, await assertDb.UnidadesNegocio.CountAsync());
-        Assert.Equal(1, await assertDb.Perfis.CountAsync());
+        // 1 Administrador Sênior + os 4 Perfis do catálogo inicial de negócio (Gate Final da Onda 1,
+        // entregável #9), criados junto na mesma transação — nunca duplicados pela tentativa perdedora.
+        Assert.Equal(5, await assertDb.Perfis.CountAsync());
         Assert.Equal(1, await assertDb.UsuariosPerfis.CountAsync());
 
         var estadoFinal = await assertDb.BootstrapEstados.SingleAsync(x => x.Id == BootstrapEstado.IdFixo);
@@ -101,6 +103,9 @@ public sealed class ConcluirBootstrapConcurrencyTests
             new PerfilRepository(db),
             new PermissaoRepository(db),
             new UsuarioPerfilRepository(db),
+            new CatalogoInicialPerfisDeNegocioUseCase(
+                new PerfilRepository(db), new PermissaoRepository(db), TimeProvider.System,
+                NullLogger<CatalogoInicialPerfisDeNegocioUseCase>.Instance),
             TimeProvider.System,
             NullLogger<ConcluirBootstrapUseCase>.Instance);
     }

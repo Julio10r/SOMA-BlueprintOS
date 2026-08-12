@@ -186,6 +186,11 @@ public static class IdentityServiceCollectionExtensions
         services.AddScoped<IUnidadeNegocioRepository, UnidadeNegocioRepository>();
         services.AddScoped<IPerfilRepository, PerfilRepository>();
         services.AddScoped<IUsuarioPerfilRepository, UsuarioPerfilRepository>();
+
+        // Gate Final da Onda 1 (entregável #9) — catálogo inicial de Perfis de negócio, compartilhado
+        // pelo Bootstrap e pela criação administrativa de novas Unidades de Negócio.
+        services.AddScoped<CatalogoInicialPerfisDeNegocioUseCase>();
+
         services.AddScoped<IConcluirBootstrapUseCase, ConcluirBootstrapUseCase>();
     }
 

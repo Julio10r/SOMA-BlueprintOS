@@ -22,6 +22,7 @@ public sealed class ConcluirBootstrapUseCase(
     IPerfilRepository perfis,
     IPermissaoRepository permissoes,
     IUsuarioPerfilRepository usuariosPerfis,
+    CatalogoInicialPerfisDeNegocioUseCase catalogoInicialPerfis,
     TimeProvider clock,
     ILogger<ConcluirBootstrapUseCase> logger) : IConcluirBootstrapUseCase
 {
@@ -111,6 +112,12 @@ public sealed class ConcluirBootstrapUseCase(
         // Passo 5 (seção 13).
         var vinculo = new UsuarioPerfil(usuario.Id, perfil.Id);
         await usuariosPerfis.AdicionarAsync(vinculo, ct);
+
+        // Gate Final da Onda 1 (entregável #9) — catálogo inicial de Perfis de negócio (Administrador de
+        // BU, Comprador, Aprovador, Requisitante) nasce junto com a própria Unidade de Negócio, na mesma
+        // transação. Idempotente: reexecutar o Bootstrap sobre uma BU existente (ex.: corrida perdida)
+        // nunca duplica Perfil.
+        await catalogoInicialPerfis.GarantirCatalogoAsync(unidadeNegocio.Id, ct);
 
         // Passo 6 (seção 13) — invariante trivialmente satisfeita (primeira criação); método de domínio
         // reutilizável chamado por consistência de código, não uma cópia da regra (seção 14).

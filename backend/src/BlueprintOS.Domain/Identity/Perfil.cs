@@ -64,6 +64,26 @@ public sealed class Perfil
     }
 
     /// <summary>Perfil especial de plataforma, criado pelo Bootstrap (O1.4.3.2) e reaproveitado pelo
-    /// índice único (<c>UnidadeNegocioId</c>, <c>Nome</c>).</summary>
+    /// índice único (<c>UnidadeNegocioId</c>, <c>Nome</c>). Único Perfil com <see cref="EscopoAdministrativo.Produto"/>
+    /// — todos os demais, incluindo <see cref="AdministradorDeBu"/>, têm <see cref="EscopoAdministrativo.Negocio"/>.</summary>
     public const string AdministradorSenior = "Administrador Sênior";
+
+    /// <summary>Catálogo inicial de Perfis de negócio (Gate Final da Onda 1, decisão do Product Owner) —
+    /// não é um catálogo eterno/imutável: novos Perfis poderão ser criados via RBAC conforme novos
+    /// processos surgirem. Escopo de Negócio: administra somente a própria Unidade de Negócio.</summary>
+    public const string AdministradorDeBu = "Administrador de BU";
+
+    /// <summary>Catálogo inicial de Perfis de negócio — operação de compras conforme permissões
+    /// atribuídas. Conjunto de permissões evolui com os módulos futuros (ex.: Pedido.*, ainda sem
+    /// enforcement).</summary>
+    public const string Comprador = "Comprador";
+
+    /// <summary>Catálogo inicial de Perfis de negócio — aprovações conforme permissões e alçadas
+    /// configuradas.</summary>
+    public const string Aprovador = "Aprovador";
+
+    /// <summary>Catálogo inicial de Perfis de negócio — requisições e acompanhamento das próprias
+    /// operações. Hoje sem nenhuma permissão do catálogo aplicável (módulo de Pedido ainda sem
+    /// enforcement) — existe como Perfil vazio, coerente com o estado atual, não uma antecipação.</summary>
+    public const string Requisitante = "Requisitante";
 }
