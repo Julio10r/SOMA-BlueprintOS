@@ -78,6 +78,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDescobrirFornecedoresUseCase, DescobrirFornecedoresUseCase>();
         services.AddScoped<IListarDescobertasUseCase, ListarDescobertasUseCase>();
         services.AddScoped<IConsultarCnpjFornecedorUseCase, ConsultarCnpjFornecedorUseCase>();
+        // B2.7/ADR-0023 — expurgo de retencao (180 dias) do snapshot bruto de consultas de CNPJ.
+        // Nenhum agendador automatico foi introduzido nesta sprint: o mecanismo fica pronto para
+        // invocacao futura (rotina periodica/endpoint administrativo), sem Hangfire/Quartz.
+        services.AddScoped<IExpurgarPayloadBrutoConsultaCnpjUseCase, ExpurgarPayloadBrutoConsultaCnpjUseCase>();
         services.AddScoped<IAnalisarEnriquecimentoFornecedorUseCase, AnalisarEnriquecimentoFornecedorUseCase>();
         services.AddScoped<IAprovarEnriquecimentoFornecedorUseCase, AprovarEnriquecimentoFornecedorUseCase>();
         services.AddScoped<IRejeitarEnriquecimentoFornecedorUseCase, RejeitarEnriquecimentoFornecedorUseCase>();
