@@ -71,7 +71,12 @@ export async function createSupplierDraft(cnpjCpf: string, consulta?: ConsultaCn
       status: "Ativo",
       scoreIA: null,
       beneficiador: false,
-      licenciado: false
+      licenciado: false,
+      // CNAE principal (B2.8): vem exclusivamente da consulta oficial ja revisada em tela — nunca
+      // editavel neste formulario. So e enviado nesta chamada explicita de cadastro, nunca durante
+      // a consulta em si (consultar != persistir).
+      cnaePrincipalCodigo: consulta?.cnaePrincipalCodigo ?? null,
+      cnaePrincipalDescricao: consulta?.cnaePrincipalDescricao ?? null
     })
   });
 }

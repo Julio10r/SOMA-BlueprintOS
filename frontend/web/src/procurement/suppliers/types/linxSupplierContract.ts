@@ -36,6 +36,8 @@ export type Fornecedor = {
   estado?: string | null;
   email?: string | null;
   telefone?: string | null;
+  cnaePrincipalCodigo?: string | null;
+  cnaePrincipalDescricao?: string | null;
 };
 
 export type SituacaoCadastralCnpj = "Ativa" | "Baixada" | "Suspensa" | "Inapta" | "Nula" | "Desconhecida";
@@ -65,6 +67,8 @@ export type ConsultaCnpjResultado = {
   telefone?: string | null;
   naturezaJuridica?: string | null;
   porteEmpresa?: string | null;
+  cnaePrincipalCodigo?: string | null;
+  cnaePrincipalDescricao?: string | null;
   fonteConsulta: string;
   dataConsulta: string;
   statusConsulta: StatusConsultaCnpj;

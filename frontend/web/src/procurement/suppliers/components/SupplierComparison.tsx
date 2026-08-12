@@ -38,6 +38,10 @@ export function SupplierComparison({
           ["NomeFantasia", consulta.nomeFantasia],
           ["TipoPessoa", consulta.tipoPessoa]
         ]} />
+        <DataGrid title="CNAE principal" items={[
+          ["Codigo", formatCnaeCodigo(consulta.cnaePrincipalCodigo)],
+          ["Descricao", consulta.cnaePrincipalDescricao]
+        ]} />
         <DataGrid title="Situacao" items={[
           ["SituacaoCadastral", consulta.situacaoCadastral],
           ["DataSituacaoCadastral", formatDate(consulta.dataSituacaoCadastral)]
@@ -135,4 +139,14 @@ function DivergenceTable({ divergencias, selectedFields, protectedFields, onTogg
 function formatDate(value?: string | null) {
   if (!value) return "Nao informado";
   return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
+}
+
+/**
+ * Aplica a mascara de apresentacao do CNAE (ex.: "6201501" -> "6201-5/01"). Puramente
+ * apresentacional — a persistencia sempre usa a representacao canonica em digitos puros (B2.8).
+ * Codigos fora do formato de 7 digitos sao exibidos sem mascara (nunca lanca excecao).
+ */
+function formatCnaeCodigo(value?: string | null): string | null | undefined {
+  if (!value) return value;
+  return /^\d{7}$/.test(value) ? `${value.slice(0, 4)}-${value.slice(4, 5)}/${value.slice(5, 7)}` : value;
 }

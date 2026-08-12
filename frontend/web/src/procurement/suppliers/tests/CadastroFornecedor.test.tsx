@@ -23,6 +23,8 @@ const consulta = {
   telefone: "11999999999",
   naturezaJuridica: "Sociedade Empresaria",
   porteEmpresa: "ME",
+  cnaePrincipalCodigo: "6201501",
+  cnaePrincipalDescricao: "Desenvolvimento de programas de computador sob encomenda",
   fonteConsulta: "BrasilAPI",
   dataConsulta: "2026-08-01T12:00:00Z",
   statusConsulta: "Sucesso",
@@ -89,6 +91,50 @@ describe("CadastroFornecedor", () => {
     expect(screen.getAllByText("novo@example.invalid").length).toBeGreaterThan(0);
     expect(screen.getByText("ERP")).toBeInTheDocument();
     expect(screen.getByLabelText("Selecionar NomeFantasia")).toBeDisabled();
+  });
+
+  it("exibe o CNAE principal (codigo mascarado + descricao) retornado pela consulta", async () => {
+    mockFetch();
+    render(<CadastroFornecedor />);
+
+    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
+
+    expect(await screen.findByText("6201-5/01")).toBeInTheDocument();
+    expect(screen.getByText("Desenvolvimento de programas de computador sob encomenda")).toBeInTheDocument();
+  });
+
+  it("ausencia de CNAE principal na consulta nao quebra a Review (exibe 'Nao informado')", async () => {
+    mockFetch({ ...consulta, cnaePrincipalCodigo: null as unknown as string, cnaePrincipalDescricao: null as unknown as string }, []);
+    render(<CadastroFornecedor />);
+
+    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
+
+    await screen.findByText("CNAE principal");
+    expect(screen.getAllByText("Nao informado").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /cadastrar fornecedor/i })).toBeInTheDocument();
+  });
+
+  it("envia o CNAE principal no POST de cadastro apenas apos a confirmacao explicita (consultar != persistir)", async () => {
+    const fetchMock = mockFetch(consulta, []);
+    render(<CadastroFornecedor />);
+
+    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
+    const cadastrarButton = await screen.findByRole("button", { name: /cadastrar fornecedor/i });
+
+    expect(fetchMock.mock.calls.some(([input, init]) => String(input) === "/fornecedores" && (init as RequestInit)?.method === "POST")).toBe(false);
+
+    await userEvent.click(cadastrarButton);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      "/fornecedores",
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining("\"cnaePrincipalCodigo\":\"6201501\"")
+      })
+    ));
   });
 
   it("exibe situacao cadastral Desconhecida sem crash quando o backend retorna esse estado", async () => {
