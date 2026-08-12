@@ -6,17 +6,18 @@ namespace BlueprintOS.Api.Suppliers;
 public sealed record FornecedorRequest(string Nome, string Cnpj, string? Categoria, string? Email, string? Telefone,
     string? Website, string? Cidade, string? Estado, string? Pais, string? Status, decimal? ScoreIA,
     FornecedorCanonico? DadosCanonicos = null, string? Cnpj_Cpf = null, string? TipoPessoa = null, string? RazaoSocial = null,
-    bool Beneficiador = false, bool Licenciado = false)
+    bool Beneficiador = false, bool Licenciado = false, string? CnaePrincipalCodigo = null, string? CnaePrincipalDescricao = null)
 {
     public CadastrarFornecedorDto ToCreateDto() => new(Nome, Cnpj, Categoria, Email, Telefone, Website, Cidade, Estado, Pais,
-        Status, ScoreIA, DadosCanonicos, Cnpj_Cpf, TipoPessoa, RazaoSocial, Beneficiador, Licenciado);
+        Status, ScoreIA, DadosCanonicos, Cnpj_Cpf, TipoPessoa, RazaoSocial, Beneficiador, Licenciado, CnaePrincipalCodigo, CnaePrincipalDescricao);
 }
 
 public sealed record AtualizarFornecedorRequest(string Nome, string? Categoria, string? Email, string? Telefone,
     string? Website, string? Cidade, string? Estado, string? Pais, string? Status, decimal? ScoreIA,
     FornecedorCanonico? DadosCanonicos = null, string? Cnpj = null, string? Cnpj_Cpf = null, string? TipoPessoa = null,
-    string? RazaoSocial = null, bool? Beneficiador = null, bool? Licenciado = null)
+    string? RazaoSocial = null, bool? Beneficiador = null, bool? Licenciado = null, string? CnaePrincipalCodigo = null,
+    string? CnaePrincipalDescricao = null)
 {
     public AtualizarFornecedorDto ToDto() => new(Nome, Categoria, Email, Telefone, Website, Cidade, Estado, Pais, Status,
-        ScoreIA, DadosCanonicos, Cnpj, Cnpj_Cpf, TipoPessoa, RazaoSocial, Beneficiador, Licenciado);
+        ScoreIA, DadosCanonicos, Cnpj, Cnpj_Cpf, TipoPessoa, RazaoSocial, Beneficiador, Licenciado, CnaePrincipalCodigo, CnaePrincipalDescricao);
 }

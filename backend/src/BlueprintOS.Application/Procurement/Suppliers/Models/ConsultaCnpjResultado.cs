@@ -72,6 +72,8 @@ public sealed record ConsultaCnpjResultado(
     string? Telefone,
     string? NaturezaJuridica,
     string? PorteEmpresa,
+    string? CnaePrincipalCodigo,
+    string? CnaePrincipalDescricao,
     string FonteConsulta,
     DateTimeOffset DataConsulta,
     StatusConsultaCnpj StatusConsulta,
@@ -88,14 +90,18 @@ public sealed record ConsultaCnpjResultado(
         DateOnly? dataSituacaoCadastral = null, DateOnly? dataAbertura = null,
         string? cep = null, string? logradouro = null, string? numero = null, string? complemento = null,
         string? bairro = null, string? cidade = null, string? estado = null, string? pais = null,
-        string? email = null, string? telefone = null, string? naturezaJuridica = null, string? porteEmpresa = null)
+        string? email = null, string? telefone = null, string? naturezaJuridica = null, string? porteEmpresa = null,
+        string? cnaePrincipalCodigo = null, string? cnaePrincipalDescricao = null)
     {
         var documento = DocumentoFiscal.Create(cnpjCpf).Value;
         if (string.IsNullOrWhiteSpace(fonteConsulta)) throw new ArgumentException("FonteConsulta is required.", nameof(fonteConsulta));
         return new(documento, razaoSocial?.Trim(), nomeFantasia?.Trim(), tipoPessoa?.Trim(), situacaoCadastral,
             dataSituacaoCadastral, dataAbertura, cep?.Trim(), logradouro?.Trim(), numero?.Trim(), complemento?.Trim(),
             bairro?.Trim(), cidade?.Trim(), estado?.Trim(), pais?.Trim(), email?.Trim(), telefone?.Trim(),
-            naturezaJuridica?.Trim(), porteEmpresa?.Trim(), fonteConsulta.Trim(), dataConsulta, StatusConsultaCnpj.Sucesso, null);
+            naturezaJuridica?.Trim(), porteEmpresa?.Trim(),
+            Fornecedor.NormalizarCnaeCodigo(cnaePrincipalCodigo),
+            string.IsNullOrWhiteSpace(cnaePrincipalDescricao) ? null : cnaePrincipalDescricao.Trim(),
+            fonteConsulta.Trim(), dataConsulta, StatusConsultaCnpj.Sucesso, null);
     }
 
     public static ConsultaCnpjResultado CriarFalha(string cnpjCpf, string fonteConsulta, DateTimeOffset dataConsulta,
@@ -110,9 +116,13 @@ public sealed record ConsultaCnpjResultado(
         var mensagem = string.IsNullOrWhiteSpace(mensagemErro) ? MensagemPadrao(tipoErro) : mensagemErro.Trim();
         // SituacaoCadastral so e preenchida em consultas bem-sucedidas (nunca em falha) —
         // separa semanticamente "consulta falhou" de "situacao cadastral desconhecida/nao encontrada".
-        return new(documento, null, null, null, null, null, null, null, null, null,
-            null, null, null, null, null, null, null, null, null, fonteConsulta.Trim(), dataConsulta,
-            StatusConsultaCnpj.Falha, mensagem, tipoErro);
+        return new(documento,
+            RazaoSocial: null, NomeFantasia: null, TipoPessoa: null, SituacaoCadastral: null,
+            DataSituacaoCadastral: null, DataAbertura: null, Cep: null, Logradouro: null, Numero: null,
+            Complemento: null, Bairro: null, Cidade: null, Estado: null, Pais: null, Email: null, Telefone: null,
+            NaturezaJuridica: null, PorteEmpresa: null, CnaePrincipalCodigo: null, CnaePrincipalDescricao: null,
+            FonteConsulta: fonteConsulta.Trim(), DataConsulta: dataConsulta,
+            StatusConsulta: StatusConsultaCnpj.Falha, MensagemErro: mensagem, TipoErro: tipoErro);
     }
 
     private static string MensagemPadrao(TipoErroConsultaCnpj tipoErro) => tipoErro switch

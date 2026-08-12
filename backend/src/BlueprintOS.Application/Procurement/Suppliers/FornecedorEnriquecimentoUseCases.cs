@@ -110,6 +110,10 @@ internal static class FornecedorEnriquecimentoComparer
         Add(divergencias, nameof(Fornecedor.Estado), fornecedor.Estado, consulta.Estado);
         Add(divergencias, nameof(Fornecedor.Email), fornecedor.Email, consulta.Email);
         Add(divergencias, nameof(Fornecedor.Telefone), fornecedor.Telefone, consulta.Telefone);
+        // CNAE principal participa da mesma comparação campo a campo (B2.8) — fornecedor existente
+        // não é atualizado silenciosamente; divergência exige aprovação explícita como qualquer outro campo.
+        Add(divergencias, nameof(Fornecedor.CnaePrincipalCodigo), fornecedor.CnaePrincipalCodigo, consulta.CnaePrincipalCodigo);
+        Add(divergencias, nameof(Fornecedor.CnaePrincipalDescricao), fornecedor.CnaePrincipalDescricao, consulta.CnaePrincipalDescricao);
 
         var alertas = new List<string>();
         if (!DocumentoIgual(fornecedor.Cnpj_Cpf, consulta.Cnpj_Cpf)) alertas.Add("Cnpj_Cpf retornado pela consulta externa diverge do fornecedor.");

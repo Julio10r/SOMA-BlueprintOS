@@ -16,6 +16,10 @@ public sealed class CadastrarFornecedorUseCase(IFornecedorRepository repository,
         var fornecedor = new Fornecedor(Guid.NewGuid(), dto.RazaoSocial ?? dto.Nome, documento, dto.TipoPessoa, dto.Categoria, dto.Email, dto.Telefone,
             dto.Website, dto.Cidade, dto.Estado, dto.Pais, dto.Status ?? "Ativo", dto.ScoreIA, user, DateTimeOffset.UtcNow);
         if (dto.DadosCanonicos is not null) fornecedor.AplicarContratoCanonico(dto.DadosCanonicos, "MaisCompras", DateTimeOffset.UtcNow);
+        // CNAE principal só é persistido nesta operação explícita de cadastro (B2.8) — nunca a
+        // partir de uma consulta isolada. Ambos os campos são opcionais/complementares.
+        if (dto.CnaePrincipalCodigo is not null || dto.CnaePrincipalDescricao is not null)
+            fornecedor.DefinirCnaePrincipal(dto.CnaePrincipalCodigo, dto.CnaePrincipalDescricao, DateTimeOffset.UtcNow);
         await repository.AdicionarAsync(fornecedor, cancellationToken);
         return FornecedorMapper.ToDto(fornecedor);
     }
@@ -33,6 +37,8 @@ public sealed class AtualizarFornecedorUseCase(IFornecedorRepository repository,
         var documento = dto.Cnpj_Cpf ?? dto.Cnpj;
         if (!string.IsNullOrWhiteSpace(documento) && documento != fornecedor.Cnpj_Cpf) fornecedor.AtualizarDocumento(documento, dto.TipoPessoa, DateTimeOffset.UtcNow);
         if (dto.DadosCanonicos is not null) fornecedor.AplicarContratoCanonico(dto.DadosCanonicos, "MaisCompras", DateTimeOffset.UtcNow);
+        if (dto.CnaePrincipalCodigo is not null || dto.CnaePrincipalDescricao is not null)
+            fornecedor.DefinirCnaePrincipal(dto.CnaePrincipalCodigo, dto.CnaePrincipalDescricao, DateTimeOffset.UtcNow);
         await repository.AtualizarAsync(fornecedor, cancellationToken);
         return FornecedorMapper.ToDto(fornecedor);
     }
@@ -78,5 +84,5 @@ internal static class FornecedorMapper
         value.CategoriasFornecimento, value.ForneceMateriais, value.ForneceConsumo, value.ForneceServicos, value.ForneceProdutos,
         value.BusinessUnit, value.ErpSistema, value.ErpFornecedorId, value.Versao, value.HashDadosSincronizaveis,
         value.Cnpj_Cpf, value.RazaoSocial, value.Beneficiador, value.Licenciado, value.CondicaoPagamentoDominioId,
-        value.TipoFornecedorDominioId, value.SubtipoFornecedorDominioId);
+        value.TipoFornecedorDominioId, value.SubtipoFornecedorDominioId, value.CnaePrincipalCodigo, value.CnaePrincipalDescricao);
 }

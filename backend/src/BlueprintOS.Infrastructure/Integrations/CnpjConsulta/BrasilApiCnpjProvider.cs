@@ -108,7 +108,13 @@ public sealed class BrasilApiCnpjProvider(HttpClient httpClient, IOptions<CnpjCo
                 email: payload.Email,
                 telefone: FirstNotBlank(payload.DddTelefone1, payload.DddTelefone2),
                 naturezaJuridica: payload.NaturezaJuridica,
-                porteEmpresa: payload.Porte);
+                porteEmpresa: payload.Porte,
+                cnaePrincipalCodigo: payload.CnaeFiscal?.ToString(),
+                cnaePrincipalDescricao: payload.CnaeFiscalDescricao);
+                // payload.CnaesSecundarios é lido apenas para desserialização segura do payload da
+                // BrasilAPI — nunca mapeado ao contrato canônico. CNAEs secundários morrem nesta
+                // fronteira (B2.8, seção H de docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md):
+                // não atravessam para Application/Domain/DTO de criação/frontend/banco.
             return ComSnapshot(resultadoSucesso, corpoBruto);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -198,5 +204,14 @@ public sealed class BrasilApiCnpjProvider(HttpClient httpClient, IOptions<CnpjCo
         [property: JsonPropertyName("ddd_telefone_1")] string? DddTelefone1,
         [property: JsonPropertyName("ddd_telefone_2")] string? DddTelefone2,
         [property: JsonPropertyName("natureza_juridica")] string? NaturezaJuridica,
-        [property: JsonPropertyName("porte")] string? Porte);
+        [property: JsonPropertyName("porte")] string? Porte,
+        [property: JsonPropertyName("cnae_fiscal")] int? CnaeFiscal,
+        [property: JsonPropertyName("cnae_fiscal_descricao")] string? CnaeFiscalDescricao,
+        // Desserializado apenas para não falhar/perder o restante do payload — nunca lido nem mapeado
+        // ao contrato canônico (B2.8). CNAEs secundários são descartados nesta fronteira.
+        [property: JsonPropertyName("cnaes_secundarios")] IReadOnlyList<BrasilApiCnaeSecundarioItem>? CnaesSecundarios);
+
+    private sealed record BrasilApiCnaeSecundarioItem(
+        [property: JsonPropertyName("codigo")] int? Codigo,
+        [property: JsonPropertyName("descricao")] string? Descricao);
 }
