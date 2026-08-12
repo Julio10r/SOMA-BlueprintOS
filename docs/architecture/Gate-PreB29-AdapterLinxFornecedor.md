@@ -345,6 +345,22 @@ Os desconhecidos residuais (implementação interna de `f_sequenciais`/relação
 
 ---
 
+## 7-A. Decisão do PO — Convergência CREATE→UPDATE e reconsulta obrigatória (contrato explícito da B2.9)
+
+**Princípio (aprovado pelo PO)**: o Adapter não deve ser modelado como "INSERT fornecedor", e sim como "garantir/atualizar Fornecedor no ERP da BU" — o estado real do ERP no momento da persistência prevalece sobre qualquer estado observado anteriormente pelo +Compras (consulta CNPJ, Review, cache de frontend). Existência prévia do CNPJ é um estado válido do processo, nunca uma exceção/erro.
+
+- **Reconsulta obrigatória**: imediatamente antes da decisão de persistência, o Adapter deve reconsultar o ERP pelo CNPJ (no backend, nunca confiando em estado anterior do frontend) para reduzir a janela TOCTOU e decidir o caminho real: inexistente → criar; `CADASTRO_CLI_FOR` sem `FORNECEDORES` → adicionar papel; `FORNECEDORES` existente → atualizar/complementar.
+- **Convergência automática** (substitui qualquer erro de "já existe" baseado apenas na intenção original de criação):
+  - **Cenário 1** — `CADASTRO_CLI_FOR` não existe → criação normal (`CADASTRO_CLI_FOR`+`FORNECEDORES`).
+  - **Cenário 2** — `CADASTRO_CLI_FOR` existe, `FORNECEDORES` não → reutilizar cadastro-base, preservar papéis, `INDICA_FORNECEDOR=1` + `INSERT FORNECEDORES` — nunca tratar como duplicidade.
+  - **Cenário 3** — ambos já existem → converge para atualização/complementação com os dados confirmados pelo usuário, sem sobrescrever campos fora do escopo da operação, preservando papéis/dados não relacionados à alteração.
+- **Concorrência CREATE/CREATE**: duas solicitações que consultam "não existe" quase simultaneamente não devem produzir dois fornecedores — a segunda, ao chegar à persistência após a primeira já ter criado, deve reconsultar e convergir para atualização do registro já criado. A proteção mínima necessária para a janela residual entre reconsulta final e `INSERT` deve ser desenhada na implementação (sem locks pesados/transações longas por padrão); se uma constraint/regra do Linx sinalizar a corrida durante o `INSERT`, o Adapter pode reconhecer essa condição especificamente e convergir para atualização — nunca mascarando erros SQL de natureza diferente como duplicidade.
+- **Resultado orientado ao usuário**: se o usuário confirmou "cadastrar/salvar" e o estado real já existe no momento da escrita, o resultado esperado é atualizar/complementar corretamente — nunca forçar o usuário a receber erro, voltar à tela ou reiniciar o cadastro só porque o estado do ERP mudou entre consulta e persistência. Erro só deve ser retornado por falha real que impeça atingir o estado desejado.
+
+**Impacto sobre o contrato do Adapter**: este princípio se soma (não substitui) às regras já registradas nas seções 6-A/6-B — a operação de persistência já é atômica por natureza do framework Linx (`l_salva`); o que esta decisão adiciona é a fronteira de **decisão** (create vs. update) ser resolvida no momento da escrita, não no momento da consulta original. Nenhuma implementação foi feita nesta sessão — este é um requisito de contrato a ser respeitado quando a B2.9 for implementada.
+
+---
+
 ### Histórico — veredito anterior (LIBERADO COM RESTRIÇÕES, preservado para rastreabilidade, superado pelo veredito acima)
 
 **Justificativa por evidência**: o discovery acumulado (múltiplas rodadas reais de acesso READ-ONLY ao SOMA_DESENV) produziu uma base de conhecimento excepcionalmente detalhada e bem classificada por proveniência (Fato/Padrão/Interpretação/Desconhecido) sobre a estrutura física de `CADASTRO_CLI_FOR`/`FORNECEDORES`, as 11 triggers ativas, o mecanismo de `LX_SEQUENCIAL`, e o padrão recorrente (Nível 1, 4-5 de 5 amostras) de escrita usado por integrações automatizadas reais. Essa base é suficiente para **iniciar o planejamento arquitetural detalhado do Adapter** (desenho de contrato, DTOs físicos, mapeamento de campos, esqueleto de taxonomia de erros) com alta confiança.
