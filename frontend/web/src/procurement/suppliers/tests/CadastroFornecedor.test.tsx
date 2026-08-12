@@ -91,6 +91,17 @@ describe("CadastroFornecedor", () => {
     expect(screen.getByLabelText("Selecionar NomeFantasia")).toBeDisabled();
   });
 
+  it("exibe situacao cadastral Desconhecida sem crash quando o backend retorna esse estado", async () => {
+    mockFetch({ ...consulta, situacaoCadastral: "Desconhecida" });
+    render(<CadastroFornecedor />);
+
+    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
+
+    expect(await screen.findByRole("heading", { name: "Divergencias encontradas" })).toBeInTheDocument();
+    expect(screen.getAllByText("Desconhecida").length).toBeGreaterThan(0);
+  });
+
   it("aprova somente campos selecionados e preserva NomeFantasia fora da decisao", async () => {
     const fetchMock = mockFetch();
     render(<CadastroFornecedor />);
@@ -130,11 +141,11 @@ describe("CadastroFornecedor", () => {
   });
 });
 
-function mockFetch() {
+function mockFetch(consultaOverride: typeof consulta = consulta) {
   const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
     if (url.startsWith("/fornecedores?q=")) return json([supplier]);
-    if (url === "/fornecedores/consulta-cnpj") return json(consulta);
+    if (url === "/fornecedores/consulta-cnpj") return json(consultaOverride);
     if (url.endsWith("/enriquecimento-cnpj")) return json(analise);
     if (url.endsWith("/aprovar")) return json({
       ...analise,

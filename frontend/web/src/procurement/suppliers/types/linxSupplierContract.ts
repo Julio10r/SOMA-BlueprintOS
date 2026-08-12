@@ -38,7 +38,7 @@ export type Fornecedor = {
   telefone?: string | null;
 };
 
-export type SituacaoCadastralCnpj = "Ativa" | "Baixada" | "Suspensa" | "Inapta" | "NaoEncontrada" | string;
+export type SituacaoCadastralCnpj = "Ativa" | "Baixada" | "Suspensa" | "Inapta" | "Nula" | "Desconhecida";
 export type StatusConsultaCnpj = "Sucesso" | "Falha" | string;
 export type FornecedorCampoDecisao = "Pendente" | "Aceito" | "Rejeitado" | string;
 export type TipoErroConsultaCnpj =
@@ -50,7 +50,7 @@ export type ConsultaCnpjResultado = {
   razaoSocial?: string | null;
   nomeFantasia?: string | null;
   tipoPessoa?: TipoPessoa | null;
-  situacaoCadastral: SituacaoCadastralCnpj;
+  situacaoCadastral?: SituacaoCadastralCnpj | null;
   dataSituacaoCadastral?: string | null;
   dataAbertura?: string | null;
   cep?: string | null;

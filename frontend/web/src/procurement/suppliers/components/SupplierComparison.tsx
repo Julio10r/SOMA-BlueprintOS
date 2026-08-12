@@ -1,4 +1,5 @@
 import { StatusBadge } from "../../../shared/components/StatusBadge";
+import { SituacaoCadastralBadge } from "./SituacaoCadastralBadge";
 import type { ConsultaCnpjResultado, FornecedorCampoDivergencia } from "../types/linxSupplierContract";
 
 /**
@@ -29,7 +30,7 @@ export function SupplierComparison({
             <div className="section-title">Consulta realizada</div>
             <h2>Dados retornados</h2>
           </div>
-          <StatusBadge value={consulta.situacaoCadastral} tone="situacao" />
+          <SituacaoCadastralBadge value={consulta.situacaoCadastral} />
         </div>
         <DataGrid title="Identificacao" items={[
           ["Cnpj_Cpf", consulta.cnpj_Cpf],

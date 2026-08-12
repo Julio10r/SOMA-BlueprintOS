@@ -139,7 +139,8 @@ input:focus { border-color: var(--border-strong); outline: 2px solid var(--novo-
   padding: var(--space-1) var(--space-3);
 }
 .status-ativa { background: var(--aprovado-bg); color: var(--aprovado); }
-.status-baixada, .status-suspensa, .status-inapta { background: var(--rejeitado-bg); color: var(--rejeitado); }
+.status-baixada, .status-suspensa, .status-inapta, .status-nula { background: var(--rejeitado-bg); color: var(--rejeitado); }
+.status-desconhecida { background: var(--bg); color: var(--text-secondary); }
 .status-ativo { background: var(--aprovado-bg); color: var(--aprovado); }
 .status-inativo { background: var(--rejeitado-bg); color: var(--rejeitado); }
 .badge, .lock-note { background: var(--bg); color: var(--text-secondary); }
