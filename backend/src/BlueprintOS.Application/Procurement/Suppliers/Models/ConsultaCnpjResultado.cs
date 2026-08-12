@@ -50,7 +50,11 @@ public sealed record ConsultaCnpjResultado(
 
     public static ConsultaCnpjResultado CriarFalha(string cnpjCpf, string fonteConsulta, DateTimeOffset dataConsulta, string mensagemErro)
     {
-        var documento = DocumentoFiscal.Create(cnpjCpf).Value;
+        // Documento não é validado aqui de propósito: CriarFalha também representa o caso CnpjInvalido
+        // (seção K do relatório de arquitetura, ADR-0023) — exigir um documento válido para registrar
+        // a própria falha de invalidez recriaria o BUG-3 (documento inválido nunca deve lançar exceção
+        // antes de produzir uma resposta de erro classificada).
+        var documento = new string((cnpjCpf ?? string.Empty).Where(char.IsDigit).ToArray());
         if (string.IsNullOrWhiteSpace(fonteConsulta)) throw new ArgumentException("FonteConsulta is required.", nameof(fonteConsulta));
         if (string.IsNullOrWhiteSpace(mensagemErro)) throw new ArgumentException("MensagemErro is required.", nameof(mensagemErro));
         return new(documento, null, null, null, SituacaoCadastralCnpj.NaoEncontrada, null, null, null, null, null,
