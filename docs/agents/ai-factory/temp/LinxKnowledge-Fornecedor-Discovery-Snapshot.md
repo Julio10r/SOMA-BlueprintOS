@@ -414,6 +414,33 @@ DEB-18 é sobre evolução de busca/RAG, não sobre a ausência de infraestrutur
 
 ---
 
+## 13-B. Mecanismo genérico de persistência do framework Linx (`lx_class.vcx::l_salva`)
+
+- **Título**: Rotina central `l_salva` da classe base — mecanismo real de transação/persistência de toda tela Visual Linx
+- **Categoria**: `FluxoErp`
+- **Escopo**: GLOBAL
+- **Domínio**: GLOBAL LINX
+- **Conteúdo**: localizado em `Classes/Linx_SQL_Fonte/Desenv/Lib/lx_class.vcx` (fonte local `docs/linxERP/linx_fonte.zip`, nunca versionada) o método genérico `l_salva`, herdado por todas as telas Visual Linx (incluindo a de Fornecedor, `001016G1`) — esta é a rotina central que investigações anteriores buscavam sem sucesso nas 5 procedures de integração. Estrutura real: hooks pré-salvamento (`l_desenhista_antes_salva`, `USR_SAVE_BEFORE`) → transação em duas camadas (`Begin Transaction` de buffer VFP + `data.connection.BeginTrans()` real no SQL Server, com isolamento ajustável para `READ COMMITTED` durante a escrita) → hooks de trigger antes → auditoria (`l_auditoria`) → gravação real via `objCursor.AcceptChanges(...)` (método nativo do `CursorAdapter` do VFP, um por cursor principal, todos dentro da mesma transação) → hooks de trigger depois → `CommitTrans()`/`End Transaction` em sucesso, ou `RollbackTrans()`+`RollBack` completo em qualquer falha em qualquer etapa → hooks pós-salvamento (`l_desenhista_apos_salva`, `USR_SAVE_AFTER`). Para a tela de Fornecedor, cujo `CursorAdapter` tem `Tables=CADASTRO_CLI_FOR,FORNECEDORES`, isso confirma por evidência direta (não mais inferência) que as duas tabelas são gravadas dentro da mesma transação de banco, com rollback total garantido pelo próprio framework em qualquer falha.
+- **Limitações**: `f_sequenciais` (chamado pela tela de Fornecedor para obter `CLIFOR`) não está definido em `lx_class.vcx` — vive em biblioteca de funções globais não incluída nas fontes disponíveis; nenhuma referência a `LX_SEQUENCIAL` ou `SEQUENCIA_FORNECEDOR` foi encontrada nesta classe. Decisão do PO: irrelevante para o Adapter, que usa o mecanismo de banco diretamente, nunca a função VFP.
+- **Confiança**: ALTA (leitura direta e literal do código-fonte real da classe base do produto)
+- **Evidência**: `lx_class.vcx`/`.VCT`, fonte local `docs/linxERP/linx_fonte.zip`, lido nesta sessão de Gate (rodada de discovery final pré-B2.9)
+- **Dependências**: complementa 13-A (metodologia) e 13-A.1 (achados da tela `001016G1`)
+- **Ator sugerido**: `LinxErpSpecialist`
+
+## 13-C. Decisões de produto aprovadas pelo Product Owner — domínio Fornecedor/BU/ERP
+
+- **Título**: Regras de fronteira BU↔ERP, identidade de fornecedor e modelo multiuso aprovadas pelo PO
+- **Categoria**: `HistoricoDecisao`
+- **Escopo**: GLOBAL (itens 1–3, 6, 8, 10) e DOMÍNIO FORNECEDOR (itens 4–5, 7, 9)
+- **Domínio**: ARQUITETURA DE FRONTEIRA / DOMÍNIO FORNECEDOR
+- **Conteúdo**: decisões formalmente aprovadas pelo Product Owner nesta sessão, proveniência `APROVADO` (não inferidas, não derivadas de código): (1) BU é a fronteira de integração com ERP/banco — dentro de uma BU, cadastros são compartilhados entre marcas, marca não segrega fornecedor; (2) identidade do fornecedor = BU + CNPJ, nunca duplicado dentro da mesma BU; (3) `EMPRESA`/grupo econômico do Linx não pertence ao domínio +Compras — para a BU SOMA, tratado internamente como valor técnico fixo (`EMPRESA=1`) apenas se a persistência exigir, nunca exposto na UI nem replicado para Adapters futuros; (4) adicionar o papel Fornecedor a um `CADASTRO_CLI_FOR` existente nunca cria nova entidade-base — sempre `INDICA_FORNECEDOR=1` + `INSERT FORNECEDORES` se ainda não existir, preservando todos os papéis existentes; (5) o Adapter de Fornecedor nunca cria `FILIAIS` nem `CLIENTES_ATACADO`, mesmo quando o cadastro-base já possui esses papéis (apenas preserva); (6) transação essencial deve ser atômica com rollback total em falha, transações curtas, locks mínimos, nenhuma chamada externa dentro da transação; (7) `SEQUENCIA_FORNECEDOR` não é reconhecida como regra pelo PO e, sem evidência concreta adicional, é classificada como sem relevância para o contrato mínimo da B2.9; (8) ETL/WETL não pertencem ao contrato funcional da B2.9 — efeito colateral existente do ambiente, não implementado/replicado pelo Adapter; (9) e-mail comercial×fiscal é pendência de produto não bloqueante; (10) princípio de suficiência — dúvida só bloqueia se houver risco concreto de corrupção/duplicidade/perda de dados/inconsistência de papéis/transação; caso contrário, classificar como "validar em desenvolvimento/homologação".
+- **Limitações**: nenhuma — são decisões de produto, não achados técnicos; prevalecem sobre qualquer inferência arquitetural anterior deste snapshot que as contradiga.
+- **Confiança**: ALTA (decisão direta do Product Owner, registrada nesta sessão)
+- **Evidência**: sessão de Gate Pré-B2.9, rodada final de discovery (adendo `linx_fonte.zip` + decisões do PO), `docs/architecture/Gate-PreB29-AdapterLinxFornecedor.md` seção 6-B
+- **Ator sugerido**: `LinxErpSpecialist`
+
+---
+
 ## 13. Nota sobre numeração de ADR
 
 O documento `docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md` menciona **"ADR-0020"** como o próximo número disponível em `.ai/DECISIONS.md`, com base no maior ADR existente identificado no momento daquela rodada (**ADR-0019**). **Essa numeração é provisória** — outras decisões podem ter sido registradas em `.ai/DECISIONS.md` entre aquela rodada e o momento em que a arquitetura de Fornecedor/CNPJ for formalmente aprovada. **Quem for formalizar essa decisão como ADR deve reabrir `.ai/DECISIONS.md`, confirmar o maior número real naquele momento, e usar o próximo disponível — nunca assumir "0020" sem reconfirmar.** Este snapshot não abre nem edita `.ai/DECISIONS.md`.
