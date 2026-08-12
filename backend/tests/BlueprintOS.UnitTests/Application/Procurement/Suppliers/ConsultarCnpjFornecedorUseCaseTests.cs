@@ -49,6 +49,24 @@ public sealed class ConsultarCnpjFornecedorUseCaseTests
     }
 
     [Fact]
+    public async Task Execute_Should_Never_Persist_A_Fornecedor_As_Side_Effect_Of_A_Query()
+    {
+        // Regressao B2.6 / BUG-1: CONSULTAR nunca pode significar CADASTRAR.
+        // ConsultarCnpjFornecedorUseCase deve permanecer estritamente somente
+        // leitura em relacao a tabela Fornecedores: a unica escrita permitida
+        // e o historico de auditoria da consulta (FornecedoresCnpjConsultas).
+        await using var context = NewContext();
+        var result = ConsultaCnpjResultado.CriarSucesso("12345678000195", "ConsultaTeste", SituacaoCadastralCnpj.Ativa,
+            DateTimeOffset.UtcNow, razaoSocial: "Fornecedor Teste", cidade: "São Paulo", estado: "SP");
+
+        var response = await Create(context, new FakeProvider(result)).ExecuteAsync(new("12345678000195", "BU-A", "SOMA_DESENV", "corr-cnpj-bug1"));
+
+        Assert.True(response.Sucesso);
+        Assert.Empty(context.Fornecedores);
+        Assert.Single(context.FornecedoresCnpjConsultas);
+    }
+
+    [Fact]
     public async Task Execute_Should_Respect_CancellationToken()
     {
         await using var context = NewContext();
