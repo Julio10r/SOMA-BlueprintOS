@@ -386,6 +386,34 @@ DEB-18 é sobre evolução de busca/RAG, não sobre a ausência de infraestrutur
 
 ---
 
+## 13-A. Metodologia reutilizável — descoberta via código-fonte real da tela (TRANSACOES → SCX/SCT/PRG)
+
+- **Título**: Playbook de descoberta de comportamento real de tela Visual Linx a partir de fontes locais
+- **Categoria**: `FluxoErp`
+- **Escopo**: GLOBAL
+- **Domínio**: GLOBAL LINX
+- **Conteúdo**: quando os fontes do Visual Linx estiverem disponíveis localmente (ex.: `docs/linxERP/Exclusivos.zip`, ignorado pelo git), a hierarquia de evidência preferencial passa a ser: (1) código real da tela padrão → (2) OBJ/customização associado → (3) schema/triggers/procedures do banco → (4) padrões recorrentes de integrações existentes → (5) validação com especialista humano → (6) inferência arquitetural. Fluxo de localização: identificar tabela/domínio → `SELECT * FROM TRANSACOES WHERE TABELA_PAI = '<TABELA>'` → obter `CONTROL_SISTEMA` → localizar `LX[CONTROL_SISTEMA].SCX`/`.SCT` (tela) e `obj_[CONTROL_SISTEMA].PRG`/`.FXP` (objeto de entrada/customização) no pacote de fontes → ler `.PRG` como fonte preferencial (texto plano); ler `.SCT` via extração de texto (é o memo da tela, contém SQL de views/cursors e métodos como texto) — nunca decompilar/modificar `.FXP`/`.SCX` binários. Sempre classificar cada achado como PADRÃO LINX vs. CUSTOMIZAÇÃO SOMA/AZZAS vs. BANCO/TRIGGER vs. INTEGRAÇÃO EXTERNA — nunca promover comportamento de um OBJ específico a regra universal do produto sem evidência adicional. Uma tela pode ter mais de uma transação relacionada à mesma tabela-pai; não escolher a primeira arbitrariamente — mapear finalidade de cada uma antes de decidir qual é a relevante.
+- **Limitações**: o pacote de fontes disponibilizado localmente pode conter apenas customizações (OBJs de entrada) e não o framework/classe base do produto Linx — chamadas a métodos herdados (ex.: `l_desenhista_*`) revelam **quando e com quais parâmetros** algo é chamado, mas não necessariamente a implementação interna, que pode estar em um `.VCX`/`.PRG` do framework base não incluído no pacote. Registrar essa lacuna explicitamente como DESCONHECIDO em vez de inferir o comportamento interno.
+- **Confiança**: ALTA (validado nesta sessão contra a tela real de Fornecedor, `CONTROL_SISTEMA=001016G1`, confirmado pelo Product Owner)
+- **Evidência**: sessão de Gate Pré-B2.9, adendo de código-fonte real, `docs/architecture/Gate-PreB29-AdapterLinxFornecedor.md` seção 6-A
+- **Tags**: `metodologia`, `discovery`, `visual-foxpro`, `transacoes`, `playbook`
+- **Ator sugerido**: `LinxErpSpecialist`
+
+### 13-A.1 — Achados de domínio Fornecedor confirmados via código real da tela (`001016G1`)
+
+- **Título**: Regras de identidade e duplicidade de Fornecedor confirmadas por leitura direta da tela padrão
+- **Categoria**: `RegraFuncional`
+- **Escopo**: DOMÍNIO FORNECEDOR
+- **Domínio**: DOMÍNIO FORNECEDOR
+- **Conteúdo**: (a) `CLIFOR` de um fornecedor novo é gerado por `f_sequenciais('FORNECEDORES.CLIFOR', .t.)`, chamado apenas em modo Inclusão e apenas se ainda não gerado na sessão da tela — confirma `FORNECEDORES.CLIFOR` como sequencial oficial (a anomalia `CLIENTES_ATACADO.CLIFOR` de uma integração isolada não é um padrão alternativo válido); (b) `COD_CLIFOR` e `COD_FORNECEDOR` recebem exatamente o mesmo valor de `CLIFOR`, sem padding/transformação; (c) `NOME_CLIFOR` é o próprio valor do campo "Fornecedor" digitado pelo usuário (não deriva de razão social nem de sequencial), com sanitização de customização SOMA/AZZAS (maiúsculas, sem espaço inicial, sem caracteres especiais de uma lista fixa) — sem tratamento explícito de colisão de nome além da PK física; (d) critério de duplicidade primário e oficial da tela é `CGC_CPF` em `FORNECEDORES`, escopado por `EMPRESA`/grupo econômico via `CADASTRO_CLI_FOR_EMPRESA` — mesmo CNPJ na mesma empresa bloqueia, em outra empresa do grupo oferece reuso (vincular grupo econômico ao cadastro existente, sem criar novo `CADASTRO_CLI_FOR`); (e) a persistência real não passa por nenhuma das 5 procedures de integração conhecidas, nem por `TableUpdate()` automático de view (`SendUpdates=.F.` no cursor principal) — passa por uma classe base compartilhada (`l_desenhista_*`) cuja implementação interna está fora do pacote de fontes disponível; (f) evidência simétrica (pelo caminho de exclusão de papel) de que o modelo multiuso é ativamente gerenciado: remover o papel Fornecedor de um cadastro que também é Cliente/Filial/Representante só reseta a flag e remove de `FORNECEDORES`, preservando `CADASTRO_CLI_FOR` e os demais papéis.
+- **Limitações**: não há evidência, no material disponível, de transação explícita (`BEGIN TRAN`) nem do caminho simétrico de *adicionar* um papel a um cadastro existente (só o de removê-lo foi encontrado); consumidores de filas ETL/WETL, comportamento sob concorrência de `LX_SEQUENCIAL` e estratégia de rollback cross-sistema permanecem desconhecidos — são comportamento de trigger/servidor, não alcançável por código de tela cliente VFP.
+- **Confiança**: ALTA para (a)-(d) e (f) — leitura direta e literal do código real da tela padrão de Fornecedor; MÉDIA para (e), já que a implementação interna da classe base não foi lida.
+- **Evidência**: `lx001016G1.SCX/SCT` + `obj_001016G1.PRG/FXP` (fonte local `docs/linxERP/Exclusivos.zip`, nunca versionada), lidos nesta sessão de Gate
+- **Dependências**: depende da metodologia registrada em 13-A
+- **Ator sugerido**: `LinxErpSpecialist`
+
+---
+
 ## 13. Nota sobre numeração de ADR
 
 O documento `docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md` menciona **"ADR-0020"** como o próximo número disponível em `.ai/DECISIONS.md`, com base no maior ADR existente identificado no momento daquela rodada (**ADR-0019**). **Essa numeração é provisória** — outras decisões podem ter sido registradas em `.ai/DECISIONS.md` entre aquela rodada e o momento em que a arquitetura de Fornecedor/CNPJ for formalmente aprovada. **Quem for formalizar essa decisão como ADR deve reabrir `.ai/DECISIONS.md`, confirmar o maior número real naquele momento, e usar o próximo disponível — nunca assumir "0020" sem reconfirmar.** Este snapshot não abre nem edita `.ai/DECISIONS.md`.
