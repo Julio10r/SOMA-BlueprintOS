@@ -139,12 +139,75 @@ describe("CadastroFornecedor", () => {
       })
     ));
   });
+
+  it("BUG-1: consultar CNPJ sem fornecedor existente NUNCA cria o fornecedor automaticamente (Review sem escrita)", async () => {
+    const fetchMock = mockFetch(consulta, []);
+    render(<CadastroFornecedor />);
+
+    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
+
+    expect(await screen.findByRole("heading", { name: /nenhum fornecedor cadastrado/i })).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([input, init]) => String(input) === "/fornecedores" && (init as RequestInit)?.method === "POST")).toBe(false);
+    expect(screen.getByRole("button", { name: /cadastrar fornecedor/i })).toBeInTheDocument();
+  });
+
+  it("so persiste o novo fornecedor apos confirmacao explicita no botao Cadastrar fornecedor", async () => {
+    const fetchMock = mockFetch(consulta, []);
+    render(<CadastroFornecedor />);
+
+    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
+    await screen.findByRole("button", { name: /cadastrar fornecedor/i });
+
+    expect(fetchMock.mock.calls.some(([input, init]) => String(input) === "/fornecedores" && (init as RequestInit)?.method === "POST")).toBe(false);
+
+    await userEvent.click(screen.getByRole("button", { name: /cadastrar fornecedor/i }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      "/fornecedores",
+      expect.objectContaining({ method: "POST" })
+    ));
+  });
+
+  it("bloqueia o cadastro de novo fornecedor com situacao Suspensa sem a confirmacao explicita (consistente com Baixada/Inapta)", async () => {
+    mockFetch({ ...consulta, situacaoCadastral: "Suspensa" }, []);
+    render(<CadastroFornecedor />);
+
+    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
+    await screen.findByRole("button", { name: /cadastrar fornecedor/i });
+
+    expect(screen.getByRole("button", { name: /cadastrar fornecedor/i })).toBeDisabled();
+
+    await userEvent.click(screen.getByRole("checkbox", { name: /confirmar continuidade/i }));
+    expect(screen.getByRole("button", { name: /cadastrar fornecedor/i })).not.toBeDisabled();
+  });
+
+  it("protege contra submissao duplicada: dois cliques rapidos em Cadastrar fornecedor geram apenas um POST", async () => {
+    const fetchMock = mockFetch(consulta, []);
+    render(<CadastroFornecedor />);
+
+    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
+    const cadastrarButton = await screen.findByRole("button", { name: /cadastrar fornecedor/i });
+
+    await userEvent.click(cadastrarButton);
+    await userEvent.click(cadastrarButton);
+
+    await waitFor(() => expect(screen.getByText(/fornecedor cadastrado no \+compras/i)).toBeInTheDocument());
+    const createCalls = fetchMock.mock.calls.filter(([input, init]) => String(input) === "/fornecedores" && (init as RequestInit)?.method === "POST");
+    expect(createCalls.length).toBe(1);
+  });
 });
 
-function mockFetch(consultaOverride: typeof consulta = consulta) {
-  const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+function mockFetch(consultaOverride: typeof consulta = consulta, suppliersOverride: typeof supplier[] = [supplier]) {
+  const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
-    if (url.startsWith("/fornecedores?q=")) return json([supplier]);
+    if (url.startsWith("/fornecedores?q=")) return json(suppliersOverride);
+    if (url === "/fornecedores" && init?.method === "POST") {
+      return json({ id: "novo-fornecedor-id", cnpj_Cpf: consultaOverride.cnpj_Cpf, razaoSocial: consultaOverride.razaoSocial ?? "" });
+    }
     if (url === "/fornecedores/consulta-cnpj") return json(consultaOverride);
     if (url.endsWith("/enriquecimento-cnpj")) return json(analise);
     if (url.endsWith("/aprovar")) return json({
