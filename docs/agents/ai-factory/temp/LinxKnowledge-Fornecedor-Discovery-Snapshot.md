@@ -439,6 +439,19 @@ DEB-18 é sobre evolução de busca/RAG, não sobre a ausência de infraestrutur
 - **Evidência**: sessão de Gate Pré-B2.9, rodada final de discovery (adendo `linx_fonte.zip` + decisões do PO), `docs/architecture/Gate-PreB29-AdapterLinxFornecedor.md` seção 6-B
 - **Ator sugerido**: `LinxErpSpecialist`
 
+## 13-D. Convergência CREATE→UPDATE e reconsulta obrigatória (decisão aprovada do PO)
+
+- **Título**: Idempotência de escrita de Fornecedor — reconsulta obrigatória e convergência automática CREATE→UPDATE
+- **Categoria**: `HistoricoDecisao`
+- **Escopo**: DOMÍNIO FORNECEDOR (princípio de idempotência de escrita generalizável a GLOBAL LINX para outros domínios com cadastro-base multiuso)
+- **Domínio**: DOMÍNIO FORNECEDOR
+- **Conteúdo**: decisão aprovada pelo PO — operações de escrita de Fornecedor devem ser idempotentes e orientadas a estado, não a intenção original. A existência do CNPJ no momento da escrita não é erro. O Adapter deve reconsultar o ERP da BU pelo CNPJ imediatamente antes da decisão final de persistência (nunca confiar em estado observado anteriormente pelo +Compras — consulta CNPJ, Review, cache de frontend), e convergir automaticamente: inexistente → criar `CADASTRO_CLI_FOR`+`FORNECEDORES`; `CADASTRO_CLI_FOR` existente sem `FORNECEDORES` → reutilizar cadastro-base, preservar papéis, adicionar papel Fornecedor; ambos existentes → atualizar/complementar com os dados confirmados pelo usuário, sem sobrescrever campos fora do escopo. Concorrência CREATE/CREATE deve convergir para um único fornecedor sempre que tecnicamente possível — a segunda solicitação, ao encontrar o registro já criado pela primeira, converge para atualização em vez de tentar criar ou falhar. Erros de duplicidade concorrente só podem ser tratados como tal quando identificados com segurança (ex.: violação de constraint específica), nunca mascarando erros SQL de natureza diferente.
+- **Limitações**: a proteção mínima para a janela residual entre a reconsulta final e o `INSERT` (concorrência real) é uma decisão de implementação, não resolvida neste snapshot — a orientação do PO é explícita em não introduzir locks pesados/transações longas por padrão.
+- **Confiança**: ALTA (decisão direta do Product Owner)
+- **Evidência**: sessão de Gate Pré-B2.9, adendo 29-A a 29-E, `docs/architecture/Gate-PreB29-AdapterLinxFornecedor.md` seção 7-A
+- **Dependências**: complementa 13-C (decisões de fronteira BU/identidade/multiuso) e o mecanismo transacional real descrito em 13-B (`l_salva`)
+- **Ator sugerido**: `LinxErpSpecialist`
+
 ---
 
 ## 13. Nota sobre numeração de ADR
