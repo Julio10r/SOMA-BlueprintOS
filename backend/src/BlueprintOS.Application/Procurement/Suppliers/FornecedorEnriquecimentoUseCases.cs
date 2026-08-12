@@ -113,9 +113,9 @@ internal static class FornecedorEnriquecimentoComparer
 
         var alertas = new List<string>();
         if (!DocumentoIgual(fornecedor.Cnpj_Cpf, consulta.Cnpj_Cpf)) alertas.Add("Cnpj_Cpf retornado pela consulta externa diverge do fornecedor.");
-        if (consulta.SituacaoCadastral != SituacaoCadastralCnpj.Ativa && consulta.SituacaoCadastral != SituacaoCadastralCnpj.NaoEncontrada)
+        if (consulta.SituacaoCadastral is { } situacao && situacao != SituacaoCadastralCnpj.Ativa)
         {
-            alertas.Add($"Fornecedor possui situação cadastral {consulta.SituacaoCadastral.ToString().ToLowerInvariant()}.");
+            alertas.Add($"Fornecedor possui situação cadastral {situacao.ToString().ToLowerInvariant()}.");
         }
 
         return new(fornecedor.Id, fornecedor.Cnpj_Cpf, consultaId, consulta.FonteConsulta, correlationId, divergencias, alertas);

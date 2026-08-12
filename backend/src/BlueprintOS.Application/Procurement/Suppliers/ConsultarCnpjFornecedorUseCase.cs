@@ -46,7 +46,10 @@ public sealed class ConsultarCnpjFornecedorUseCase(
             await historicoRepository.AdicionarAsync(
                 new FornecedorCnpjConsultaHistorico(Guid.NewGuid(), resultado.Cnpj_Cpf, resultado.FonteConsulta,
                     resultado.DataConsulta, userId, resultado.StatusConsulta.ToString(),
-                    resultado.SituacaoCadastral.ToString(), resultado.MensagemErro, correlationId, dto.BusinessUnit, dto.ErpSistema),
+                    // "Resultado" é um campo de auditoria em texto livre (nunca o contrato canônico exposto
+                    // ao frontend); SituacaoCadastral só existe em consultas bem-sucedidas — "N/A" documenta
+                    // a ausência sem reintroduzir um valor de enum sobrecarregado para representar falha.
+                    resultado.SituacaoCadastral?.ToString() ?? "N/A", resultado.MensagemErro, correlationId, dto.BusinessUnit, dto.ErpSistema),
                 cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

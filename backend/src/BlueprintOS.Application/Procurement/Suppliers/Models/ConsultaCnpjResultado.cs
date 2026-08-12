@@ -2,7 +2,13 @@ using BlueprintOS.Domain.Procurement.Suppliers;
 
 namespace BlueprintOS.Application.Procurement.Suppliers.Models;
 
-public enum SituacaoCadastralCnpj { Ativa, Baixada, Suspensa, Inapta, NaoEncontrada }
+/// <summary>Situação cadastral canônica do CNPJ no +Compras, desacoplada de qualquer
+/// provider externo. <see cref="Desconhecida"/> é o estado seguro para texto retornado
+/// pela fonte externa que não corresponda a nenhum valor conhecido — nunca lança exceção
+/// de apresentação. Não confundir com <c>Fornecedor.Status</c> (estado operacional do
+/// fornecedor no +Compras) nem com o indicador binário INATIVO do cadastro Linx: são
+/// conceitos diferentes (estado cadastral/fiscal da fonte de consulta).</summary>
+public enum SituacaoCadastralCnpj { Ativa, Baixada, Suspensa, Inapta, Nula, Desconhecida }
 public enum StatusConsultaCnpj { Sucesso, Falha }
 
 public enum TipoErroConsultaCnpj
@@ -51,7 +57,7 @@ public sealed record ConsultaCnpjResultado(
     string? RazaoSocial,
     string? NomeFantasia,
     string? TipoPessoa,
-    SituacaoCadastralCnpj SituacaoCadastral,
+    SituacaoCadastralCnpj? SituacaoCadastral,
     DateOnly? DataSituacaoCadastral,
     DateOnly? DataAbertura,
     string? Cep,
@@ -102,7 +108,9 @@ public sealed record ConsultaCnpjResultado(
         var documento = new string((cnpjCpf ?? string.Empty).Where(char.IsDigit).ToArray());
         if (string.IsNullOrWhiteSpace(fonteConsulta)) throw new ArgumentException("FonteConsulta is required.", nameof(fonteConsulta));
         var mensagem = string.IsNullOrWhiteSpace(mensagemErro) ? MensagemPadrao(tipoErro) : mensagemErro.Trim();
-        return new(documento, null, null, null, SituacaoCadastralCnpj.NaoEncontrada, null, null, null, null, null,
+        // SituacaoCadastral so e preenchida em consultas bem-sucedidas (nunca em falha) —
+        // separa semanticamente "consulta falhou" de "situacao cadastral desconhecida/nao encontrada".
+        return new(documento, null, null, null, null, null, null, null, null, null,
             null, null, null, null, null, null, null, null, null, fonteConsulta.Trim(), dataConsulta,
             StatusConsultaCnpj.Falha, mensagem, tipoErro);
     }

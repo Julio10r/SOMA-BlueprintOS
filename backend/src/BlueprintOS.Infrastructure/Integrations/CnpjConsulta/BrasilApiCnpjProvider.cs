@@ -111,13 +111,21 @@ public sealed class BrasilApiCnpjProvider(HttpClient httpClient, IOptions<CnpjCo
     private static string? FirstNotBlank(params string?[] values) =>
         values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value))?.Trim();
 
+    /// <summary>Traduz a descrição textual da situação cadastral retornada pela BrasilAPI
+    /// (<c>descricao_situacao_cadastral</c>) para o enum canônico do +Compras. O código numérico
+    /// bruto (<c>situacao_cadastral</c>) nunca é lido nem atravessa esta fronteira — a descrição
+    /// textual é o campo estável documentado pela BrasilAPI/Receita, enquanto o código numérico é
+    /// um detalhe de implementação da fonte. Qualquer texto não reconhecido (fonte alterou o
+    /// vocabulário, campo ausente, etc.) cai em <see cref="SituacaoCadastralCnpj.Desconhecida"/> —
+    /// nunca lança exceção nem interrompe a consulta.</summary>
     private static SituacaoCadastralCnpj MapSituacao(string? value) => value?.Trim().ToUpperInvariant() switch
     {
         "ATIVA" => SituacaoCadastralCnpj.Ativa,
         "BAIXADA" => SituacaoCadastralCnpj.Baixada,
         "SUSPENSA" => SituacaoCadastralCnpj.Suspensa,
         "INAPTA" => SituacaoCadastralCnpj.Inapta,
-        _ => SituacaoCadastralCnpj.NaoEncontrada
+        "NULA" => SituacaoCadastralCnpj.Nula,
+        _ => SituacaoCadastralCnpj.Desconhecida
     };
 
     private sealed record BrasilApiCnpjResponse(

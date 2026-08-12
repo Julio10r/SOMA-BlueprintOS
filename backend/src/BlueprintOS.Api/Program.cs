@@ -67,6 +67,14 @@ var corsAllowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins")
 builder.Services.AddOpenApi();
 builder.Services.AddHttpContextAccessor();
 
+// Enums sao serializados como string (nome do valor), nunca como o inteiro
+// subjacente — contrato HTTP explicito e deterministico para o frontend
+// (ex.: SituacaoCadastralCnpj, TipoErroConsultaCnpj, StatusConsultaCnpj).
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+});
+
 // Seleção do adaptador de identidade exclusivamente por IHostEnvironment — nunca por
 // appsettings/feature flag (security-design-auth-o1.4.md, §17.4). DevelopmentRequestIdentity
 // (ADR-0011) permanece disponível apenas em Development; fora dele, a sessão de cookie real.

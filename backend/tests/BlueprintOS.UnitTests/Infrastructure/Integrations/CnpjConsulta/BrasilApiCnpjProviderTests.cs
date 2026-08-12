@@ -194,6 +194,76 @@ public sealed class BrasilApiCnpjProviderTests
         Assert.Null(result.TipoErro);
     }
 
+    [Theory]
+    [InlineData("SUSPENSA", SituacaoCadastralCnpj.Suspensa)]
+    [InlineData("INAPTA", SituacaoCadastralCnpj.Inapta)]
+    [InlineData("NULA", SituacaoCadastralCnpj.Nula)]
+    [InlineData("suspensa", SituacaoCadastralCnpj.Suspensa)]
+    public async Task ConsultarAsync_Should_Map_Each_Known_Situacao_Cadastral(string descricao, SituacaoCadastralCnpj esperado)
+    {
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.OK, $$"""
+        {
+          "cnpj": "12345678000195",
+          "razao_social": "Fornecedor Situacao",
+          "descricao_situacao_cadastral": "{{descricao}}"
+        }
+        """));
+
+        var result = await provider.ConsultarAsync("12345678000195");
+
+        Assert.True(result.Sucesso);
+        Assert.Equal(esperado, result.SituacaoCadastral);
+        Assert.Null(result.TipoErro);
+    }
+
+    [Fact]
+    public async Task ConsultarAsync_Should_Map_Unrecognized_Situacao_Cadastral_To_Desconhecida()
+    {
+        // A fonte externa pode alterar seu vocabulario de situacao cadastral sem aviso;
+        // o +Compras nunca deve lancar excecao de apresentacao por isso.
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.OK, """
+        {
+          "cnpj": "12345678000195",
+          "razao_social": "Fornecedor Situacao Nova",
+          "descricao_situacao_cadastral": "SITUACAO_NOVA_DA_RECEITA"
+        }
+        """));
+
+        var result = await provider.ConsultarAsync("12345678000195");
+
+        Assert.True(result.Sucesso);
+        Assert.Equal(SituacaoCadastralCnpj.Desconhecida, result.SituacaoCadastral);
+    }
+
+    [Fact]
+    public async Task ConsultarAsync_Should_Map_Missing_Situacao_Cadastral_To_Desconhecida()
+    {
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.OK, """
+        {
+          "cnpj": "12345678000195",
+          "razao_social": "Fornecedor Sem Situacao"
+        }
+        """));
+
+        var result = await provider.ConsultarAsync("12345678000195");
+
+        Assert.True(result.Sucesso);
+        Assert.Equal(SituacaoCadastralCnpj.Desconhecida, result.SituacaoCadastral);
+    }
+
+    [Fact]
+    public async Task ConsultarAsync_Failure_Should_Never_Carry_A_Situacao_Cadastral()
+    {
+        // SituacaoCadastral so existe em consultas bem-sucedidas — falha (qualquer TipoErro)
+        // nunca deve carregar um valor de situacao cadastral (nem um "placeholder" sobrecarregado).
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.NotFound, "{}"));
+
+        var result = await provider.ConsultarAsync("12345678000195");
+
+        Assert.False(result.Sucesso);
+        Assert.Null(result.SituacaoCadastral);
+    }
+
     private static BrasilApiCnpjProvider CreateProvider(HttpMessageHandler handler, int timeoutSeconds = 10)
     {
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://example.test/api/cnpj/v1/") };
