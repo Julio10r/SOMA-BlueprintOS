@@ -1630,3 +1630,18 @@ Dívidas técnicas remanescentes preservadas (não quitadas por este fechamento 
 **Próxima etapa (documentada como handoff, NÃO iniciada nesta rodada): Design Review Consolidado Pós-Onda 1.** Escopo já decidido pelo Product Owner: auditoria visual do aplicativo SOMA real via Chrome (após login manual do PO — sem captura/persistência de token/cookie/credencial), comparando padrão GDT/AZZAS × SOMA real × +Compras atual; revisão de arquitetura de informação/navegação (sidebar por contexto, submenus expansíveis, sidebar recolhível, ícones monocromáticos, cor só para estado ativo); engrenagem de configurações respeitando `EscopoAdministrativo`; componente único de identidade no header (avatar, nome, e-mail, Perfis, BU atual, escopo, troca de BU quando autorizada, Sair); navegação principal lateral preservada; separação Compras × Administração; revisão de agrupamentos conceituais (Compras, Cadastros, Organização, Acessos, Monitoramento, Configurações); preservação do Design System AZZAS/SOMA. Nada disso foi implementado ou iniciado nesta rodada.
 
 Nenhuma sprint O1.15 foi aberta — não há sprint funcional ativa. `.ai/dashboard/DASHBOARD_STATE.md` **não** foi editado; `[atualizar dashboard]` **não** foi executado; workflow n8n **não** foi tocado. **Design Review NÃO iniciado. Auditoria visual do SOMA NÃO iniciada. Onda 2 NÃO iniciada.**
+
+---
+
+## Onda 2 — Abertura da Frente Fornecedor/CNPJ e ADR-0023 (12/08/2026, mesma data)
+
+A Onda 1 permanece formalmente concluída (41/41) e **não foi reaberta** por esta sessão. O Product Owner formalizou as decisões pendentes da modelagem arquitetural de `docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md` (derivada de `docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md`): não persistir QSA; modelo híbrido de proveniência com snapshot bruto e retenção de 180 dias; sequência de Work Orders da frente Fornecedor/CNPJ; e planejamento do Adapter Linx autorizado com escrita real bloqueada até sessão de validação com especialista Visual Linx.
+
+A decisão foi formalizada como **ADR-0023** em `.ai/DECISIONS.md` (o relatório de arquitetura citava provisoriamente "ADR-0020", numeração obsoleta — o próximo ADR real disponível após ADR-0022 é o ADR-0023). A inconsistência documental da Work Order `B2.2` (status interno "Draft" divergente de `PROJECT_STATE.md`/`BACKLOG.md`, que já a tratavam como Concluída com evidência real) foi corrigida apenas no campo de status — sem reexecução nem alteração de escopo/histórico.
+
+Criadas as Work Orders **B2.3** a **B2.9** (nomenclatura sequencial complementar, seguindo a convenção real de `B2.1`/`B2.1.1`/`B2.1.2`/`B2.2`), catalogadas em `.ai/BACKLOG.md`:
+
+- **B2.3** — DocumentoFiscal: Normalização e Dígito Verificador — **aprovada e movida para `active/`**.
+- **B2.4** a **B2.9** — permanecem `Draft`/Planejadas em `.ai/work-orders/backlog/fase-b/`, dependendo de nova aprovação explícita do Product Owner.
+
+Apenas **B2.3** foi iniciada nesta sessão. **B2.4 e as demais NÃO foram iniciadas.**

@@ -13,7 +13,7 @@
 | [`completed/`](completed/) | Concluído | Evidência de build, testes, commit e push já registrada |
 | [`superseded/`](superseded/) | Superada por decisão arquitetural posterior | O escopo original nunca foi concluído nos termos em que foi aberto, e uma decisão posterior (ADR) tornou esse escopo obsoleto. Criado pela ADR-0021 (10/08/2026) — ver `.ai/DECISIONS.md`. |
 
-Atualmente `active/` está **vazio** (somente `.gitkeep`) — **nenhuma Work Order aprovada ou em execução**. A **O1.5 — RBAC Real** foi formalmente concluída em 11/08/2026, após o aceite formal das ressalvas da Security Validation independente pelo Product Owner, e está em [`completed/O1.5-RbacReal.md`](completed/O1.5-RbacReal.md) — mesmo procedimento adotado na O1.4.3. A próxima frente candidata do caminho crítico é a **O1.6 — Usuários (Backend Real)**, que permanece em [`backlog/`](backlog/) com status Draft/Planejada; sua ativação depende de autorização explícita do Product Owner.
+A Onda 1 está formalmente concluída (41/41, ver `.ai/PROJECT_STATE.md`). A Onda 2 abriu a frente Fornecedor/CNPJ (ADR-0023, `.ai/DECISIONS.md`): **`active/`** contém **[B2.3](active/B2.3-DocumentoFiscalNormalizacaoEDigitoVerificador.md)** — DocumentoFiscal: Normalização e Dígito Verificador — aprovada e em execução. As demais Work Orders dessa frente (B2.4 a B2.9) permanecem `Draft`/Planejadas em [`backlog/fase-b/`](backlog/fase-b/), dependendo de nova autorização explícita do Product Owner. A **O1.6 — Usuários (Backend Real)** também permanece em [`backlog/`](backlog/) como próxima frente candidata do caminho crítico da Onda 1/administração.
 
 ## Regra de unicidade
 

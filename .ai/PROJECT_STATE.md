@@ -266,6 +266,12 @@ Build da solution: `dotnet build backend/BlueprintOS.sln` executado em 03/08/202
 - **O1.6 NÃO iniciada** — permanece em `.ai/work-orders/backlog/O1.6-GestaoDeUsuariosBackendReal.md`, Draft/Planejada; não movida, não aberta, não implementada. É apenas a próxima candidata do caminho crítico.
 - **Nenhuma Work Order ativa** ao final deste fechamento: `.ai/work-orders/active/` está vazio (somente `.gitkeep`). A próxima frente depende de decisão e autorização explícitas do Product Owner.
 
+## Onda 2 — Frente Fornecedor/CNPJ (ADR-0023, 12/08/2026)
+
+Com a Onda 1 formalmente concluída (41/41, sem reabertura), o Product Owner formalizou a arquitetura de correção do fluxo de consulta/cadastro de Fornecedor por CNPJ (B2.2, já concluída) em **ADR-0023** (`.ai/DECISIONS.md`), a partir de `docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md` e `docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md`. Decisões formalizadas: não persistir QSA; modelo híbrido de proveniência com snapshot bruto e retenção de 180 dias; sequência de Work Orders **B2.3** a **B2.9** (`.ai/BACKLOG.md`); Adapter Linx com planejamento autorizado e escrita real bloqueada até sessão de validação com especialista Visual Linx. A inconsistência documental de status interno da Work Order `B2.2` (arquivo dizia "Draft", governança já a tratava como Concluída) foi corrigida apenas no campo de status, sem reexecução.
+
+**B2.3 — DocumentoFiscal: Normalização e Dígito Verificador** foi aprovada e movida para `.ai/work-orders/active/` — primeira e única Work Order iniciada desta frente. **B2.4 a B2.9 permanecem `Draft`/Planejadas**, dependendo de nova autorização explícita do Product Owner. Nenhum código foi alterado pela formalização desta ADR; a implementação de B2.3 é registrada separadamente nesta mesma seção quando concluída.
+
 ## Auditoria de repositório
 
 - **Etapa 1 — Higiene e artefatos gerados (30/07/2026):** remoção exclusiva de resíduos locais comprovados (`.DS_Store`, `bin/`, `obj/` e `dist/`) e reforço do `.gitignore`. Não houve alteração de progresso funcional. Restore serial, build e 231 testes foram concluídos; o único aviso `NU1900` decorre da indisponibilidade de consulta de vulnerabilidades ao nuget.org, sem impedir a validação. Ver [relatório da auditoria](../docs/audits/repository-cleanup-step-01.md).
