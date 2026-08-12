@@ -98,7 +98,11 @@ public static class IdentityServiceCollectionExtensions
 
         // O1.11 — Seleção/Cadastro de Unidades de Negócio e Configuração Técnica por Unidade de Negócio.
         // IUnidadeNegocioRepository já é registrado por AddBootstrapCore — reaproveitado aqui.
-        services.AddScoped<ISegredoProtector, DataProtectionSegredoProtector>();
+        // DEB-16 (Gate Final pós-O1.14) — dois protetores distintos, cada um com seu próprio propósito de
+        // DataProtection (ver DataProtectionSegredoProtector): nunca o mesmo ISegredoProtector genérico
+        // compartilhado entre os domínios de IdentityProvider e ConfiguracaoErp.
+        services.AddScoped<IIdentityProviderSegredoProtector, IdentityProviderSegredoProtector>();
+        services.AddScoped<IConfiguracaoErpSegredoProtector, ConfiguracaoErpSegredoProtector>();
 
         services.AddScoped<IListarMinhasUnidadesNegocioUseCase, ListarMinhasUnidadesNegocioUseCase>();
         services.AddScoped<IListarUnidadesNegocioUseCase, ListarUnidadesNegocioUseCase>();

@@ -14,7 +14,11 @@ public sealed class ConfiguracaoTecnicaUseCasesTests
 {
     private static readonly Guid Bu = Guid.NewGuid();
 
-    private sealed class FakeSegredoProtector : ISegredoProtector
+    /// <summary>Implementa ambas as especializações por domínio (DEB-16) apenas por conveniência de teste —
+    /// nada impede reaproveitar o mesmo fake em memória para os dois cenários, já que a garantia real de
+    /// propósitos distintos é responsabilidade da implementação de infraestrutura
+    /// (<c>DataProtectionSegredoProtector</c>), coberta por teste próprio.</summary>
+    private sealed class FakeSegredoProtector : IIdentityProviderSegredoProtector, IConfiguracaoErpSegredoProtector
     {
         public List<string> ValoresProtegidos { get; } = [];
 

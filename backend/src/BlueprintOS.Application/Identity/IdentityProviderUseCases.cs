@@ -37,7 +37,7 @@ public sealed class ListarIdentityProvidersUseCase(
 }
 
 public sealed class CriarIdentityProviderUseCase(
-    IUnidadeNegocioRepository unidadesNegocio, IIdentityProviderRepository providers, ISegredoProtector protector,
+    IUnidadeNegocioRepository unidadesNegocio, IIdentityProviderRepository providers, IIdentityProviderSegredoProtector protector,
     TimeProvider clock, ILogger<CriarIdentityProviderUseCase> logger) : ICriarIdentityProviderUseCase
 {
     public async Task<RbacResultado<IdentityProviderDto>> ExecuteAsync(Guid unidadeNegocioId, IdentityProviderInput input, CancellationToken ct)
@@ -69,7 +69,7 @@ public sealed class CriarIdentityProviderUseCase(
 }
 
 public sealed class AtualizarIdentityProviderUseCase(
-    IUnidadeNegocioRepository unidadesNegocio, IIdentityProviderRepository providers, ISegredoProtector protector,
+    IUnidadeNegocioRepository unidadesNegocio, IIdentityProviderRepository providers, IIdentityProviderSegredoProtector protector,
     TimeProvider clock, ILogger<AtualizarIdentityProviderUseCase> logger) : IAtualizarIdentityProviderUseCase
 {
     public async Task<RbacResultado<IdentityProviderDto>> ExecuteAsync(Guid unidadeNegocioId, Guid id, IdentityProviderInput input, CancellationToken ct)

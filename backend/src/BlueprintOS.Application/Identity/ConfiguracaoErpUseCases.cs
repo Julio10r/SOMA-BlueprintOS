@@ -39,7 +39,7 @@ public sealed class ObterConfiguracaoErpUseCase(
 /// endpoint de criação separado do de edição, evitando um estado inconsistente de "duas configurações"
 /// para a mesma UN).</summary>
 public sealed class SalvarConfiguracaoErpUseCase(
-    IUnidadeNegocioRepository unidadesNegocio, IConfiguracaoErpRepository configuracoes, ISegredoProtector protector,
+    IUnidadeNegocioRepository unidadesNegocio, IConfiguracaoErpRepository configuracoes, IConfiguracaoErpSegredoProtector protector,
     TimeProvider clock, ILogger<SalvarConfiguracaoErpUseCase> logger) : ISalvarConfiguracaoErpUseCase
 {
     public async Task<RbacResultado<ConfiguracaoErpDto>> ExecuteAsync(Guid unidadeNegocioId, ConfiguracaoErpInput input, CancellationToken ct)
