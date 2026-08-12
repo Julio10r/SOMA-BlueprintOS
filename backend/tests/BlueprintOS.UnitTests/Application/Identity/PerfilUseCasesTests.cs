@@ -99,6 +99,56 @@ public sealed class PerfilUseCasesTests
         Assert.Single(c.Perfis.All);
     }
 
+    /// <summary>Gate Final da Onda 1 (ADR-0022) — "Administrador Sênior" é nome reservado ao Bootstrap.
+    /// Sem esta barreira, um Administrador de BU com `Perfil.Gerenciar` poderia criar um Perfil com esse
+    /// nome na própria BU e, ao se vincular a ele, ganhar `EscopoAdministrativo.Produto` (cross-BU) sem
+    /// nunca ter recebido essa concessão — escalonamento de ESCOPO administrativo, distinto (e não coberto
+    /// por) a checagem já existente de não-escalonamento de PERMISSÃO.</summary>
+    [Fact]
+    public async Task Criar_Should_Reject_Nome_Reservado_Administrador_Senior()
+    {
+        var c = Arrange();
+
+        var resultado = await Criar(c).ExecuteAsync(
+            new PerfilInput(Perfil.AdministradorSenior, "Tentativa de autopromoção.", []), Bu, AtorOnipotente, CancellationToken.None);
+
+        Assert.False(resultado.Sucesso);
+        Assert.Equal(RbacFalha.NomeReservado, resultado.Falha);
+        Assert.Empty(c.Perfis.All);
+    }
+
+    [Fact]
+    public async Task Atualizar_Should_Reject_Renaming_Outro_Perfil_Para_Administrador_Senior()
+    {
+        var c = Arrange();
+        var criado = await Criar(c).ExecuteAsync(new PerfilInput("Comprador", "x", []), Bu, AtorOnipotente, CancellationToken.None);
+
+        var resultado = await Atualizar(c).ExecuteAsync(
+            criado.Valor!.Id, new PerfilInput(Perfil.AdministradorSenior, "x", []), Bu, AtorOnipotente, CancellationToken.None);
+
+        Assert.False(resultado.Sucesso);
+        Assert.Equal(RbacFalha.NomeReservado, resultado.Falha);
+        Assert.Equal("Comprador", c.Perfis.All.Single(p => p.Id == criado.Valor.Id).Nome);
+    }
+
+    /// <summary>Um no-op sobre o próprio Administrador Sênior real (nome inalterado, ex.: só editando a
+    /// descrição) continua permitido — a barreira é só contra GANHAR o nome, nunca contra mantê-lo.</summary>
+    [Fact]
+    public async Task Atualizar_Should_Allow_Administrador_Senior_Editar_Propria_Descricao()
+    {
+        var c = Arrange();
+        var administradorSenior = new Perfil(Perfil.AdministradorSenior, "Descrição antiga.", Bu, DateTimeOffset.UtcNow);
+        c.Perfis.All.Add(administradorSenior);
+        c.Perfis.Vinculos.Add(new PerfilPermissao(administradorSenior.Id, c.Permissoes.IdDe(PermissaoCatalogo.PerfilGerenciar)));
+        c.Perfis.UsuariosPerfis.Add(new UsuarioPerfil(Guid.NewGuid(), administradorSenior.Id));
+
+        var resultado = await Atualizar(c).ExecuteAsync(
+            administradorSenior.Id, new PerfilInput(Perfil.AdministradorSenior, "Descrição nova.", [PermissaoCatalogo.PerfilGerenciar]), Bu, AtorOnipotente, CancellationToken.None);
+
+        Assert.True(resultado.Sucesso);
+        Assert.Equal("Descrição nova.", resultado.Valor!.Descricao);
+    }
+
     /// <summary>O índice único é por (UnidadeNegocioId, Nome): o mesmo nome em outra Unidade de Negócio é
     /// legítimo e não deve ser bloqueado.</summary>
     [Fact]

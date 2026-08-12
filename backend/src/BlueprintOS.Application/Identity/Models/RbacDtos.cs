@@ -57,6 +57,15 @@ public enum RbacFalha
     PerfilNaoEncontrado,
     UltimoPerfilAdministrativo,
     EscalonamentoDePrivilegio,
+
+    /// <summary>Gate Final da Onda 1 (ADR-0022) — "Administrador Sênior" é nome reservado: nenhum Perfil
+    /// criado ou renomeado pela Gestão de Perfis comum pode assumir esse nome. Sem esta barreira, um
+    /// Administrador de BU com <c>Perfil.Gerenciar</c> poderia criar/renomear um Perfil para esse nome na
+    /// própria BU e, ao se vincular a ele, ganhar <c>EscopoAdministrativo.Produto</c> (cross-BU) sem nunca
+    /// ter recebido essa concessão — escalonamento de ESCOPO, não de permissão (a checagem existente de
+    /// não-escalonamento de permissão não cobre este caminho). O Perfil "Administrador Sênior" real só é
+    /// criado pelo Bootstrap (<c>ConcluirBootstrapUseCase</c>), que nunca passa por este caso de uso.</summary>
+    NomeReservado,
     EmailObrigatorio,
     EmailInvalido,
     EmailDuplicado,

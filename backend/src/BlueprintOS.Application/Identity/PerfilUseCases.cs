@@ -186,6 +186,13 @@ public sealed class CriarPerfilUseCase(
             return RbacResultado<PerfilDto>.Erro(RbacFalha.NomeObrigatorio, "Nome do Perfil é obrigatório.");
         }
 
+        // Gate Final da Onda 1 (ADR-0022) — "Administrador Sênior" é nome reservado ao Bootstrap; nunca
+        // criável pela Gestão de Perfis comum (ver RbacFalha.NomeReservado).
+        if (nome == Perfil.AdministradorSenior)
+        {
+            return RbacResultado<PerfilDto>.Erro(RbacFalha.NomeReservado, "'Administrador Sênior' é um nome reservado.");
+        }
+
         // Pré-checagem amigável; a garantia real é o índice único (UnidadeNegocioId, Nome) no SQL Server.
         var existente = await perfis.ObterPorNomeEUnidadeNegocioAsync(nome, unidadeNegocioId, ct);
         if (existente is not null)
@@ -235,6 +242,14 @@ public sealed class AtualizarPerfilUseCase(
         if (string.IsNullOrWhiteSpace(nome))
         {
             return RbacResultado<PerfilDto>.Erro(RbacFalha.NomeObrigatorio, "Nome do Perfil é obrigatório.");
+        }
+
+        // Gate Final da Onda 1 (ADR-0022) — bloqueia renomear qualquer OUTRO Perfil para "Administrador
+        // Sênior" (ganharia EscopoAdministrativo.Produto sem nunca ter sido concedido). Um no-op sobre o
+        // próprio Administrador Sênior real (nome inalterado) continua permitido.
+        if (nome == Perfil.AdministradorSenior && perfil.Nome != Perfil.AdministradorSenior)
+        {
+            return RbacResultado<PerfilDto>.Erro(RbacFalha.NomeReservado, "'Administrador Sênior' é um nome reservado.");
         }
 
         var homonimo = await perfis.ObterPorNomeEUnidadeNegocioAsync(nome, unidadeNegocioId, ct);
