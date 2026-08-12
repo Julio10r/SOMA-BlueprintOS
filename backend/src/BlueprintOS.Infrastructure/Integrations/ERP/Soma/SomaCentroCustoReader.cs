@@ -98,8 +98,12 @@ public sealed class SomaCentroCustoReader(IConfiguration configuration, ILogger<
     private sealed class TableShape(string schema, string table, IReadOnlyList<string> columns)
     {
         public string Table { get; } = $"[{schema.Replace("]", "]]", StringComparison.Ordinal)}].[{table.Replace("]", "]]", StringComparison.Ordinal)}]";
-        public string? CodigoColumn => Find(columns, "cod_centro_custo", "codigo_centro_custo", "cod_ccusto", "codigo_ccusto", "codigo");
-        public string? DescricaoColumn => Find(columns, "descricao_centro_custo", "descricao_ccusto", "descricao", "nome");
+        // "centro_custo"/"desc_centro_custo" são os nomes reais confirmados na tabela física
+        // `CENTROS_CUSTO` do SOMA_DESENV (validação funcional do #41, Gate Final da Onda 1, continuação
+        // 12/08/2026) — os demais candidatos são mantidos por tolerância a variações de ambiente,
+        // conforme já documentado na classe.
+        public string? CodigoColumn => Find(columns, "centro_custo", "cod_centro_custo", "codigo_centro_custo", "cod_ccusto", "codigo_ccusto", "codigo");
+        public string? DescricaoColumn => Find(columns, "desc_centro_custo", "descricao_centro_custo", "descricao_ccusto", "descricao", "nome");
         public string? UltimaAlteracaoColumn => Find(columns, "data_para_transferencia", "ultima_alteracao", "updated_at", "data_alteracao", "ultima_alteracao_em");
         public string CodigoColumnQ => Q(CodigoColumn!);
         public string SelectList => string.Join(", ", new[]

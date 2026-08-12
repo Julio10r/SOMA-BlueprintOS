@@ -22,6 +22,12 @@ export default defineConfig({
         target: backend,
         changeOrigin: true
       },
+      // O1.11 — Seleção de Unidade de Negócio (GET /me/unidades-negocio) e identidade auxiliar.
+      // "/me" não é rota da SPA (sem colisão, ao contrário de "/bootstrap"/"/administracao").
+      "/me": {
+        target: backend,
+        changeOrigin: true
+      },
       "/dev": {
         target: backend,
         changeOrigin: true
