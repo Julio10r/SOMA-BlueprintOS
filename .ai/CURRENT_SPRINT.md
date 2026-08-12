@@ -1598,3 +1598,17 @@ só então decisão sobre a conclusão a 100% da Onda 1 — seguida de revisão 
 ## Gate Final da Onda 1 e continuação — hardening administrativo Produto × BU e catálogo de Perfis (12/08/2026)
 
 O Gate Final da Onda 1 foi executado (auditoria exaustiva dos 41 entregáveis, resultado 39/41, 95,12%) e permaneceu ABERTO — detalhe completo em `.ai/PROJECT_STATE.md` e `docs/audits/O1.14-InventarioDividasEGaps.md`. Nesta continuação, resolvidos os dois pontos que impediam avançar sem o Product Owner: (1) formalização do escopo administrativo Produto × BU (ADR-0022, ver `.ai/DECISIONS.md`) e (2) catálogo inicial de Perfis de negócio (entregável #9). Nenhuma reabertura do Gate desde o zero — continuidade direta do estado consolidado. Resultado desta etapa: **40/41 (97,5610% exato, exibido 98%)**; backend 707 testes + 7 integração (0 falhas); frontend 116/116; builds limpos; **Design Review e Onda 2 permanecem NÃO iniciados**. Detalhe completo em `.ai/PROJECT_STATE.md`.
+
+---
+
+## Validação Funcional do entregável #41 (12/08/2026, mesma data)
+
+Product Owner disponibilizou VPN corporativa e confirmou `MaisComprasConnection`/`SOMA_DESENV` online — primeira sessão desta sequência de Gates com conectividade real. Conexão validada (TCP + login real). Backend e frontend reais executados; validação funcional completa via Chrome DevTools MCP contra a aplicação real (não simulada): autenticação OTP real, sessão, escopo administrativo, Administrador Sênior, um Administrador de BU real recém-criado (cross-BU negativo), Perfis/RBAC, Usuários, Filiais, Centros de Custo (dados reais do ERP), Unidades de Alocação, as 6 configurações Multi-BU, Workflow/Alçadas/Orçamento (incluindo escrita cross-BU real), Fornecedores, Monitoramento, Agentes IA.
+
+**4 bugs reais encontrados e corrigidos, todos invisíveis sem conexão real** — nenhum detectável por leitura de código, testes com mocks, ou nos Gates anteriores (sem VPN): backfill de permissões do Administrador Sênior incompleto; proxy Vite sem `/me`; DEB-13 reaberta (a conclusão anterior "não reproduz" do Gate Final original estava errada — reproduziu exatamente); DEB-19 nova (tabela de Centro de Custo configurada incorretamente). Detalhe completo, causa raiz e correção de cada um em `docs/audits/O1.14-InventarioDividasEGaps.md` (seção "Achados da Validação Funcional #41").
+
+Testes reexecutados com as conexões reais habilitadas: backend 713 unitários + 7 integração (0 falhas — as 7 de integração agora exercitam conexão real pela primeira vez); frontend 116/116; builds limpos; `dotnet ef migrations has-pending-model-changes` sem pendências.
+
+**#41 NÃO foi marcado Concluído.** Sua definição formal (`docs/audits/Onda1-Reconciliacao-e-Plano-Execucao.md`; `.ai/dashboard/DASHBOARD_STATE.md`) é "validação funcional **com os envolvidos**" e exige "aprovação formal da Onda 1 pelo Product Owner" — uma sessão com stakeholders humanos, não apenas execução técnica pelo agente. A validação técnica está aprovada e apresentada; o aceite formal do Product Owner é o próximo passo, não autoassinado nesta sessão.
+
+**Resultado: Onda 1 permanece em 40/41 (97,5610% exato, exibido 98%). GATE PERMANECE ABERTO.** `DASHBOARD_STATE.md` não foi editado. **Design Review NÃO foi executado. Onda 2 NÃO foi iniciada.**
