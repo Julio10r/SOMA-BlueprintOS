@@ -29,7 +29,7 @@ public sealed class FornecedorRepositoryIntegrationTests
         await using var context = new BlueprintOSDbContext(options);
         var syncedAt = DateTimeOffset.UtcNow;
         var domain = new FornecedorDominioErp(Guid.NewGuid(), "TipoFornecedor", "IND", "Industrial", "BU-A", "SOMA_DESENV", "Ativo", syncedAt);
-        var supplier = new Fornecedor(Guid.NewGuid(), "Alpha Suprimentos", DocumentoFiscal.Create("12345678901"), "PF", null, null, null, null, null, "SP", "BR", "Ativo", null, Guid.NewGuid(), syncedAt);
+        var supplier = new Fornecedor(Guid.NewGuid(), "Alpha Suprimentos", DocumentoFiscal.Create("12345678909"), "PF", null, null, null, null, null, "SP", "BR", "Ativo", null, Guid.NewGuid(), syncedAt);
         supplier.VincularDominios(null, domain.Id, null, syncedAt);
 
         await context.FornecedoresDominiosErp.AddAsync(domain);

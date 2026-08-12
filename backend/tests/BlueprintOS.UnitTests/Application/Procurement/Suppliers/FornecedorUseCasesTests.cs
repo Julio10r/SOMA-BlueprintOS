@@ -26,15 +26,17 @@ public sealed class FornecedorUseCasesTests
     }
 
     [Theory]
-    [InlineData("12345678901", "PF")]
+    [InlineData("12345678909", "PF")]
+    [InlineData("123.456.789-09", "PF")]
     [InlineData("12345678000195", "PJ")]
-    [InlineData("AB12345678901", "PF")]
-    public async Task Cadastrar_Should_Accept_Documento_Fiscal_Up_To_14_Characters(string documento, string tipoPessoa)
+    [InlineData("12.345.678/0001-95", "PJ")]
+    public async Task Cadastrar_Should_Accept_Valid_Cpf_Or_Cnpj_Masked_Or_Unmasked(string documento, string tipoPessoa)
     {
         var result = await new CadastrarFornecedorUseCase(new FakeRepository(), new FakeIdentity())
             .ExecuteAsync(CreateDto() with { Cnpj_Cpf = documento, TipoPessoa = tipoPessoa });
 
-        Assert.Equal(documento, result.Cnpj_Cpf);
+        var esperado = new string(documento.Where(char.IsDigit).ToArray());
+        Assert.Equal(esperado, result.Cnpj_Cpf);
         Assert.Equal(tipoPessoa, result.TipoPessoa);
     }
 
@@ -43,6 +45,23 @@ public sealed class FornecedorUseCasesTests
     {
         await Assert.ThrowsAsync<ArgumentException>(() => new CadastrarFornecedorUseCase(new FakeRepository(), new FakeIdentity())
             .ExecuteAsync(CreateDto() with { Cnpj_Cpf = "123456789012345" }));
+    }
+
+    [Fact]
+    public async Task Cadastrar_Should_Reject_Alphanumeric_Documento_Fiscal()
+    {
+        // BUG-4 (ADR-0023): documento alfanumérico não é mais aceito pelo domínio +Compras — só CPF/CNPJ
+        // com dígito verificador válido. Compatibilidade com códigos legados alfanuméricos do Linx
+        // pertence exclusivamente a um futuro Adapter Linx (B2.9), nunca ao Value Object canônico.
+        await Assert.ThrowsAsync<ArgumentException>(() => new CadastrarFornecedorUseCase(new FakeRepository(), new FakeIdentity())
+            .ExecuteAsync(CreateDto() with { Cnpj_Cpf = "AB12345678901", TipoPessoa = "PF" }));
+    }
+
+    [Fact]
+    public async Task Cadastrar_Should_Reject_Cnpj_With_Invalid_Check_Digit()
+    {
+        await Assert.ThrowsAsync<ArgumentException>(() => new CadastrarFornecedorUseCase(new FakeRepository(), new FakeIdentity())
+            .ExecuteAsync(CreateDto() with { Cnpj_Cpf = "12345678000190" }));
     }
 
     [Fact]

@@ -32,7 +32,7 @@ public sealed class SincronizarFornecedorUseCaseTests
     public async Task Export_Should_Create_Then_Update_Using_External_Key()
     {
         await using var context = NewContext(); var user = new FakeIdentity(); var adapter = new FakeAdapter();
-        var local = new Fornecedor(Guid.NewGuid(), "Teste B21", Cnpj.Create("98765432000110"), "Própria", "teste@example.invalid", null, null, "São Paulo", "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow);
+        var local = new Fornecedor(Guid.NewGuid(), "Teste B21", Cnpj.Create("98765432000198"), "Própria", "teste@example.invalid", null, null, "São Paulo", "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow);
         await new FornecedorRepository(context).AdicionarAsync(local);
         var useCase = Create(context, user, adapter);
 
@@ -103,28 +103,45 @@ public sealed class SincronizarFornecedorUseCaseTests
     }
 
     [Fact]
-    public async Task Import_Should_Allow_Cpf_And_Alphanumeric_Document()
+    public async Task Import_Should_Allow_Valid_Cpf_Document()
     {
         await using var context = NewContext(); var user = new FakeIdentity();
-        var canonical = new FornecedorCanonico("Pessoa Física", "PF ERP", "AB12345678901", "PF", "BR", null, null, null, null, null, null, null, null, "SP", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, false, false, false, false, false, true, DateTimeOffset.UtcNow, "hash-pf");
+        var canonical = new FornecedorCanonico("Pessoa Física", "PF ERP", "12345678909", "PF", "BR", null, null, null, null, null, null, null, null, "SP", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, false, false, false, false, false, true, DateTimeOffset.UtcNow, "hash-pf");
         var adapter = new FakeAdapter { Current = new("ERP-PF", canonical.RazaoSocial, canonical.DocumentoFiscal, null, "SP", "BR", true, canonical.DataUltimaAlteracao, canonical.HashDadosSincronizaveis, canonical) };
 
         await Create(context, user, adapter).ExecuteAsync(new("BU-A", "SOMA_DESENV", "ERP-PF", null, DirecaoSincronizacao.ErpParaMaisCompras, "pf"));
 
         var stored = await context.Fornecedores.SingleAsync();
-        Assert.Equal("AB12345678901", stored.Cnpj_Cpf);
+        Assert.Equal("12345678909", stored.Cnpj_Cpf);
         Assert.Equal("PF", stored.TipoPessoa);
+    }
+
+    [Fact]
+    public async Task Import_Should_Fail_Gracefully_For_Alphanumeric_Legacy_Document()
+    {
+        // BUG-4 (ADR-0023): código legado alfanumérico do Linx (CGC_CPF) não é mais aceito pelo
+        // domínio +Compras — tratamento desse caso é escopo do futuro Adapter Linx (B2.9), não desta
+        // Work Order. A sincronização deve falhar de forma controlada (Status "Falhou"), sem criar
+        // o Fornecedor e sem propagar exceção não tratada.
+        await using var context = NewContext(); var user = new FakeIdentity();
+        var canonical = new FornecedorCanonico("Pessoa Física", "PF ERP", "AB12345678901", "PF", "BR", null, null, null, null, null, null, null, null, "SP", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, false, false, false, false, false, true, DateTimeOffset.UtcNow, "hash-pf");
+        var adapter = new FakeAdapter { Current = new("ERP-PF", canonical.RazaoSocial, canonical.DocumentoFiscal, null, "SP", "BR", true, canonical.DataUltimaAlteracao, canonical.HashDadosSincronizaveis, canonical) };
+
+        var result = await Create(context, user, adapter).ExecuteAsync(new("BU-A", "SOMA_DESENV", "ERP-PF", null, DirecaoSincronizacao.ErpParaMaisCompras, "pf-invalido"));
+
+        Assert.Equal("Falhou", result.Status);
+        Assert.Empty(await context.Fornecedores.ToListAsync());
     }
 
     [Fact]
     public async Task Manual_Update_Should_Not_Change_NomeFantasia()
     {
         await using var context = NewContext(); var user = new FakeIdentity();
-        var supplier = new Fornecedor(Guid.NewGuid(), "Razão", DocumentoFiscal.Create("12345678901"), "PF", null, null, null, null, null, "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow);
-        supplier.AplicarContratoCanonico(new("Razão", "Fantasia ERP", "12345678901", "PF", "BR", null, null, null, null, null, null, null, null, "SP", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, false, false, false, false, false, true, DateTimeOffset.UtcNow, "hash"), "ERP", DateTimeOffset.UtcNow);
+        var supplier = new Fornecedor(Guid.NewGuid(), "Razão", DocumentoFiscal.Create("12345678909"), "PF", null, null, null, null, null, "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow);
+        supplier.AplicarContratoCanonico(new("Razão", "Fantasia ERP", "12345678909", "PF", "BR", null, null, null, null, null, null, null, null, "SP", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, false, false, false, false, false, true, DateTimeOffset.UtcNow, "hash"), "ERP", DateTimeOffset.UtcNow);
         await new FornecedorRepository(context).AdicionarAsync(supplier);
 
-        supplier.AplicarContratoCanonico(new("Razão Manual", "Fantasia Manual", "12345678901", "PF", "BR", null, null, null, null, null, null, null, null, "SP", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, false, false, false, false, false, true, DateTimeOffset.UtcNow, "hash2"), "MaisCompras", DateTimeOffset.UtcNow);
+        supplier.AplicarContratoCanonico(new("Razão Manual", "Fantasia Manual", "12345678909", "PF", "BR", null, null, null, null, null, null, null, null, "SP", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, false, false, false, false, false, true, DateTimeOffset.UtcNow, "hash2"), "MaisCompras", DateTimeOffset.UtcNow);
 
         Assert.Equal("Fantasia ERP", supplier.NomeFantasia);
         Assert.Equal("Razão Manual", supplier.RazaoSocial);
@@ -153,7 +170,7 @@ public sealed class SincronizarFornecedorUseCaseTests
     public async Task Concurrent_Exports_Should_Return_Different_External_Ids()
     {
         var database = Guid.NewGuid().ToString(); var adapter = new ConcurrentFakeAdapter();
-        var user = new FakeIdentity(); var first = NewSupplier(user, "Concorrente A", "52345678000195"); var second = NewSupplier(user, "Concorrente B", "62345678000195");
+        var user = new FakeIdentity(); var first = NewSupplier(user, "Concorrente A", "52345678000100"); var second = NewSupplier(user, "Concorrente B", "62345678000163");
         await using (var seed = NewContext(database)) { await new FornecedorRepository(seed).AdicionarAsync(first); await new FornecedorRepository(seed).AdicionarAsync(second); }
 
         var firstTask = ExecuteConcurrentAsync(database, user, adapter, first.Id, "concurrent-a");

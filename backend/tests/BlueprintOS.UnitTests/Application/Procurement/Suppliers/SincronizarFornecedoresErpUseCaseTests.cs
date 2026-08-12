@@ -111,7 +111,7 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         var reader = new FakeReader(
             new("ERP-1", "SOMA_DESENV", unchanged, DateTimeOffset.UtcNow),
             new("ERP-2", "SOMA_DESENV", changed with { HashDadosSincronizaveis = "new" }, DateTimeOffset.UtcNow),
-            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor Novo", "Fantasia Nova", "99888777000166", "hash-3"), DateTimeOffset.UtcNow));
+            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor Novo", "Fantasia Nova", "99888777000100", "hash-3"), DateTimeOffset.UtcNow));
 
         var result = await Create(context, identity, reader).ExecuteAsync(new("BU-A", 10, null));
 
@@ -131,9 +131,9 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         var reader = new FakeReader(
             new("ERP-1", "SOMA_DESENV", Canonical("Fornecedor 1", "Fantasia 1", "12345678000195", "hash-1"), DateTimeOffset.UtcNow),
             new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor 2", "Fantasia 2", "11222333000181", "hash-2"), DateTimeOffset.UtcNow),
-            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor 3", "Fantasia 3", "99888777000166", "hash-3"), DateTimeOffset.UtcNow),
-            new("ERP-4", "SOMA_DESENV", Canonical("Fornecedor 4", "Fantasia 4", "22333444000172", "hash-4"), DateTimeOffset.UtcNow),
-            new("ERP-5", "SOMA_DESENV", Canonical("Fornecedor 5", "Fantasia 5", "33444555000163", "hash-5"), DateTimeOffset.UtcNow));
+            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor 3", "Fantasia 3", "99888777000100", "hash-3"), DateTimeOffset.UtcNow),
+            new("ERP-4", "SOMA_DESENV", Canonical("Fornecedor 4", "Fantasia 4", "22333444000181", "hash-4"), DateTimeOffset.UtcNow),
+            new("ERP-5", "SOMA_DESENV", Canonical("Fornecedor 5", "Fantasia 5", "33444555000181", "hash-5"), DateTimeOffset.UtcNow));
 
         var result = await Create(context, identity, reader).ExecuteAsync(new("BU-A", 3, null));
 
@@ -150,7 +150,7 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         var reader = new FakeReader(
             new("ERP-1", "SOMA_DESENV", Canonical("Fornecedor OK", "Fantasia OK", "12345678000195", "hash-1"), DateTimeOffset.UtcNow),
             new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor Erro", "Fantasia Erro", "documento-invalido", "hash-2"), DateTimeOffset.UtcNow),
-            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor OK 2", "Fantasia OK 2", "99888777000166", "hash-3"), DateTimeOffset.UtcNow));
+            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor OK 2", "Fantasia OK 2", "99888777000100", "hash-3"), DateTimeOffset.UtcNow));
 
         var result = await Create(context, new FakeIdentity(), reader).ExecuteAsync(new("BU-A", 10, null));
 
@@ -177,7 +177,7 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
 
         var reader = new FakeReader(
             new("ERP-1", "SOMA_DESENV", Canonical("Fornecedor Falho", "Fantasia Falha", "12345678000195", "hash-falha"), DateTimeOffset.UtcNow),
-            new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor OK", "Fantasia OK", "99888777000166", "hash-ok"), DateTimeOffset.UtcNow));
+            new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor OK", "Fantasia OK", "99888777000100", "hash-ok"), DateTimeOffset.UtcNow));
 
         var result = await Create(context, identity, reader, repository).ExecuteAsync(new("BU-A", 10, null));
 
