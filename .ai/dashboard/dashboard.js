@@ -1061,23 +1061,36 @@
     document.getElementById("panel-documentacao").innerHTML = html;
   }
 
+  /* A seção "## Métricas" usa um cabeçalho de 3 colunas ("Métrica | Valor |
+     Origem"), então parseTableBlock não a expõe como table.kv (que exige
+     exatamente "Campo"/"Valor") — só como table.rows. Esta função lê essa
+     tabela por nome de métrica, mesmo padrão já usado por roadmapField(). */
+  function metricaRow(state, nome) {
+    var r = rows(state, "Métricas").find(function (row) { return row["Métrica"] === nome; });
+    return r ? r["Valor"] : null;
+  }
+
   function renderMetricas(state) {
-    var telas = firstNumber(kv(state, "Frontend", "Telas previstas"));
-    var woTotalKey = Object.keys((sec(state, "Backlog") || {}).table && sec(state, "Backlog").table.kv || {}).find(function (k) { return k.indexOf("Total") === 0; });
-    var woTotal = woTotalKey ? firstNumber(sec(state, "Backlog").table.kv[woTotalKey]) : null;
-    var integracoesCount = rows(state, "Integrações").length;
-    var testes = kv(state, "Qualidade", "Testes");
+    var telas = metricaRow(state, "Telas");
+    var apis = metricaRow(state, "APIs");
+    var entidades = metricaRow(state, "Entidades");
+    var integracoes = metricaRow(state, "Integrações");
+    var agentes = metricaRow(state, "Agentes");
+    var woTotal = metricaRow(state, "Total de Work Orders (catálogo)");
+    var woConcluidas = metricaRow(state, "Work Orders concluídas");
+    var documentos = metricaRow(state, "Documentos oficiais");
+    var testes = metricaRow(state, "Testes");
     var testesNum = firstNumber(testes);
 
     var html = "";
     html += '<div class="grid grid-4">';
-    html += statTile(telas, "Telas (previstas)", "blue");
-    html += statTile(null, "APIs", "grey", { small: true, caption: NA_TEXT });
-    html += statTile(null, "Entidades", "grey", { small: true, caption: NA_TEXT });
-    html += statTile(integracoesCount || null, "Integrações mapeadas", "blue");
-    html += statTile(null, "Agentes", "grey", { small: true, caption: kv(state, "IA", "Agentes") });
-    html += statTile(woTotal, "Work Orders (catálogo)", "blue");
-    html += statTile(null, "Documentos", "grey", { small: true, caption: kv(state, "Documentação", "Saúde") });
+    html += statTile(null, "Telas (previstas)", telas ? "blue" : "grey", { small: true, caption: telas || NA_TEXT });
+    html += statTile(null, "APIs", apis ? "blue" : "grey", { small: true, caption: apis || NA_TEXT });
+    html += statTile(null, "Entidades", entidades ? "blue" : "grey", { small: true, caption: entidades || NA_TEXT });
+    html += statTile(null, "Integrações mapeadas", integracoes ? "blue" : "grey", { small: true, caption: integracoes || NA_TEXT });
+    html += statTile(null, "Agentes", agentes ? "blue" : "grey", { small: true, caption: agentes || NA_TEXT });
+    html += statTile(firstNumber(woTotal), "Work Orders (catálogo)", "blue", { caption: woConcluidas ? (woConcluidas + " concluídas") : null });
+    html += statTile(null, "Documentos", documentos ? "blue" : "grey", { small: true, caption: documentos || NA_TEXT });
     html += statTile(testesNum, "Testes (unitários)", "green", { caption: testes });
     html += "</div>";
     document.getElementById("panel-metricas").innerHTML = html;

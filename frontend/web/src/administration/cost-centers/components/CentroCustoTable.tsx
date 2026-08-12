@@ -7,7 +7,7 @@ import { statusCentroCusto, type CentroCusto } from "../types/centroCustoTypes";
  * substituindo a descricao oficial do ERP (ADR-0020, item 2). Nao existe
  * acao de criacao nem de exclusao: apenas Visualizar, Editar (metadados
  * locais) e Ativar/Inativar no +Compras. A coluna de Unidade de Alocacao
- * padrao representa, com dados mockados, o relacionamento ainda nao
+ * padrao representa, o vínculo real de Unidade de Alocação padrão (ADR-0020, item 5): o campo vem da API real e aparece vazio até que o vínculo seja cadastrado, o relacionamento ainda nao
  * implementado com o modulo Unidades de Alocacao (ADR-0020, item 5).
  */
 export function CentroCustoTable({ centrosCusto, onVisualizar, onEditar, onToggleAtivo }: {
