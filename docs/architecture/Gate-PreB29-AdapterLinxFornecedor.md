@@ -244,9 +244,50 @@ Nenhum destes é resolvido por suposição neste gate — todos permanecem expli
 
 ---
 
+## 6-A. Investigação do fluxo real da tela Visual Linx (Adendo — código-fonte real como nova fonte primária)
+
+**Contexto do adendo**: o Product Owner disponibilizou localmente `docs/linxERP/Exclusivos.zip` (~200 MB, ignorado pelo git — `.gitignore:174` — nunca versionado), contendo telas (`LX[código].SCX/SCT`) e objetos de entrada/customização (`obj_[código].PRG/FXP`) reais do Visual Linx, compiláveis em Visual FoxPro 9. O PO ensinou o método de localização: `SELECT * FROM TRANSACOES WHERE TABELA_PAI = 'FORNECEDORES'` → campo `CONTROL_SISTEMA` = código da tela. PO informou `CONTROL_SISTEMA = 001016G1`.
+
+**Artefatos localizados e lidos integralmente** (leitura local, nada extraído permanece fora do scratchpad temporário da sessão): `lx001016G1.SCX`/`.SCT` (tela padrão) e `obj_001016G1.PRG`/`.FXP` (objeto de entrada/customização SOMA/AZZAS). Método: `.SCT` é o memo-texto da tela (extraído via `strings`, sem decompilar/modificar nada); `.PRG` é texto plano (Visual FoxPro), lido diretamente.
+
+**Achados por tema (nova hierarquia de evidência: tela padrão → OBJ/customização → banco → integrações → especialista):**
+
+| Tema | Achado | Origem | Proveniência |
+|---|---|---|---|
+| Rotina de persistência | Não há `INSERT`/`TableUpdate` explícito visível na tela nem no OBJ — a gravação passa por métodos de classe herdada (`l_desenhista_altera_antes`, `l_desenhista_apos_salva`, `l_desenhista_cancela`, também usados por `page7.lx_contato_cadastro1`) e pela `View`/`CursorAdapter` (`Tables=CADASTRO_CLI_FOR,FORNECEDORES`, mas `SendUpdates=.F.` no cursor principal — o `TableUpdate()` automático do VFP está desativado, reforçando que a persistência real passa pela classe base, não pelo mecanismo padrão de view). A implementação interna dessa classe base está fora de `Exclusivos.zip` (que contém só customizações) — **confirmado com o PO que ele também não tem visibilidade sobre essa implementação interna a partir do material disponível.** | Tela padrão (SCX/SCT) | DESCOBERTO (chamada observada) / DESCONHECIDO (implementação interna da classe base) |
+| Nenhuma das 5 procedures de parceiro é usada pela tela | Confirmado — nenhuma referência a `LX_AZZ_GERAR_FORNECEDOR_LINX` etc. em SCX/SCT/PRG da tela `001016G1` | Tela padrão | DESCOBERTO |
+| Sequencial (`CLIFOR`) | `f_sequenciais('FORNECEDORES.CLIFOR', .t.)` é chamado apenas quando `p_tool_status='I'` (inclusão) e `px_sequencial` vazio; resultado grava direto em `v_fornecedores_01.clifor`; guarda é resetada após salvar (`l_desenhista_apos_salva`) | Tela padrão | DESCOBERTO — confirma `FORNECEDORES.CLIFOR` como sequencial oficial; isola a anomalia `CLIENTES_ATACADO.CLIFOR` (`p_RSV_...`) como divergência de integração, não padrão alternativo válido |
+| `COD_CLIFOR`/`COD_FORNECEDOR` | `Replace Cod_CliFor With CliFor` / `Replace cod_fornecedor with clifor` — mesmo valor do `CLIFOR`, sem padding/transformação adicional | Tela padrão | DESCOBERTO |
+| `NOME_CLIFOR` | `Replace nome_clifor With fornecedor` — a chave é o próprio campo "Fornecedor" digitado pelo usuário (não é derivado de razão social nem de sequencial); sanitização real observada no OBJ de customização: `LTRIM(UPPER(...))`, remoção de espaço inicial e de um conjunto fixo de caracteres especiais (`!@#$%&*'{}[]/~^+=;.,\`?\|` etc.) | Tela padrão (fonte do valor) + OBJ (sanitização) | DESCOBERTO — sanitização específica é customização SOMA/AZZAS (`obj_001016G1.prg`), não confirmada como padrão universal Linx; sem tratamento explícito de colisão de nome além da própria PK `NOME_CLIFOR` (varchar 25, sem IDENTITY) |
+| Duplicidade | Ao digitar `CGC_CPF`: `SELECT ... FROM FORNECEDORES WHERE CGC_CPF = <input>`. Se existir: verifica `CADASTRO_CLI_FOR_EMPRESA` para a mesma `EMPRESA` (grupo econômico) → **BLOQUEIA** se já cadastrado na mesma empresa; se cadastrado em outra empresa do grupo, **perguntaao usuário** se quer vincular ("Deseja incluir seu grupo econômico neste cadastro?") → se sim, **REUTILIZA** (INSERT em `CADASTRO_CLI_FOR_EMPRESA`, sem criar novo `CADASTRO_CLI_FOR`/`FORNECEDORES`); se não, bloqueia. Customização SOMA/AZZAS no OBJ reforça bloqueio adicional por CNPJ ignorando prefixo `AZCB%`. | Tela padrão (regra primária) + OBJ (reforço) | DESCOBERTO — resolve a Pergunta 5 do Gate original: critério primário e oficial é `CGC_CPF` em `FORNECEDORES`, escopado por empresa/grupo econômico (não nome sanitizado) |
+| Flag de papel (`INDICA_FORNECEDOR`) | Setada explicitamente pela tela ao validar/alterar `CGC_CPF` (`replace ... indica_fornecedor with .t.`) | Tela padrão | DESCOBERTO |
+| Multiuso (preservação de papéis) | Evidência simétrica pelo caminho de **exclusão**: ao excluir o papel Fornecedor (`p_tool_status='E'`), a tela consulta `INDICA_CLIENTE/INDICA_FILIAL/IND_REPRESENTANTE/INDICA_FORNECEDOR` em `CADASTRO_CLI_FOR`; se **nenhum outro papel** existir, exclui de `CADASTRO_CLI_FOR` e `FORNECEDORES` juntos; se **existir outro papel**, faz apenas `UPDATE CADASTRO_CLI_FOR SET INDICA_FORNECEDOR=0` e exclui somente de `FORNECEDORES`, preservando o cadastro-mãe e os demais papéis | Tela padrão | DESCOBERTO (caminho de exclusão) / INFERIDO por simetria (caminho de inclusão de papel em cadastro existente — não há trecho simétrico explícito de "adicionar papel" na tela lida; o comportamento observado na exclusão é o suporte mais forte disponível para a hipótese arquitetural já registrada no Gate) |
+| CNAE | Encontrada integração com webservice externo de consulta CNPJ (`_cnae = Strextract(_retorno,'"cnae_fiscal":',...)`) na tela, mas **sem evidência de `REPLACE`/gravação desse valor em `CADASTRO_CLI_FOR.CNAE`** no trecho lido | Tela padrão | DESCOBERTO parcial — consistente com o achado anterior do Gate (nenhuma das 5 integrações grava CNAE); não eleva CNAE a obrigatório |
+| Transação/buffering | Nenhum `BEGIN TRANSACTION`/`TableUpdate()` explícito encontrado no texto da tela/OBJ — consistente com a hipótese de que o controle transacional (se existir) está encapsulado na classe base fora deste pacote | Tela padrão + OBJ | DESCONHECIDO (não elevável a Fato sem ver a classe base) |
+| Filas ETL/WETL, consumidores, concorrência em `LX_SEQUENCIAL`, rollback cross-sistema | **Não tocados pelo código da tela cliente (VFP)** — são comportamento de trigger/banco (lado SQL Server), fora do alcance de um artefato de tela desktop | — | Continuam DESCONHECIDOS, sem alteração pelo adendo |
+
+**Reclassificação das 10 perguntas originais do Gate (seção 5):**
+
+| # | Pergunta original | Novo status |
+|---|---|---|
+| 1 | Rotina oficial de cadastro manual | PARCIALMENTE RESOLVIDA POR EVIDÊNCIA — não é nenhuma das 5 procedures; é uma classe base compartilhada (`l_desenhista_*`) fora do pacote disponível. Implementação interna permanece desconhecida (confirmado com o PO que também não há visibilidade sobre ela a partir do material local) |
+| 2 | Consumidores de `LJ_ETL_REPOSITORIO`/`GS_WETL_REPOSITORIO` | AINDA NECESSÁRIA (fora do alcance do código de tela) |
+| 3 | Anomalia `CLIENTES_ATACADO.CLIFOR` | REDUZIDA — tela padrão confirma `FORNECEDORES.CLIFOR` como oficial; a pergunta ao especialista pode ser só de confirmação, não de descoberta |
+| 4 | Dois sequenciais concorrentes (`FORNECEDORES.CLIFOR` vs `SEQUENCIA_FORNECEDOR`) | AINDA NECESSÁRIA (tela só usa o primeiro; segundo não apareceu) |
+| 5 | Critério de duplicidade | RESOLVIDA POR EVIDÊNCIA — `CGC_CPF` em `FORNECEDORES`, escopado por empresa/grupo econômico, com fluxo de reuso entre empresas do grupo |
+| 6 | Dígito de conta bancária | AINDA NECESSÁRIA (não investigado neste adendo — fora do contrato mínimo do MVP) |
+| 7 | Concorrência em `LX_SEQUENCIAL` | AINDA NECESSÁRIA (tela não revela nada sobre lock/concorrência) |
+| 8 | Cliente→Fornecedor (UPDATE de flag vs. novo registro) | PARCIALMENTE RESOLVIDA — evidência simétrica forte pelo caminho de exclusão; caminho de inclusão de papel não visto explicitamente. SUBSTITUÍDA por pergunta de validação: "o caminho de adicionar o papel Fornecedor a um `CADASTRO_CLI_FOR` existente (Cliente) segue a mesma simetria observada na exclusão — preserva o cadastro-mãe e só ajusta flag + insere em `FORNECEDORES`?" |
+| 9 | Estratégia de rollback/compensação | AINDA NECESSÁRIA |
+| 10 | Ambiente de teste isolado | AINDA NECESSÁRIA (decisão de infraestrutura, não de código) |
+
+**Impacto sobre a decisão do Gate**: a nova evidência **reduz materialmente** a incerteza sobre sequencial, `CLIFOR`/`COD_CLIFOR`, `NOME_CLIFOR` e duplicidade — quatro dos itens antes classificados como "Desconhecido, marcado explicitamente como DEPENDENTE DE REGRA AINDA NÃO CONHECIDA" agora têm base DESCOBERTO direta do código real da tela padrão. Porém os desconhecidos de **maior risco operacional** (identidade dos consumidores das filas ETL/WETL, comportamento sob concorrência real de `LX_SEQUENCIAL`, estratégia de rollback cross-sistema) são de natureza server-side/trigger e **não são alcançáveis pelo código de tela VFP** — permanecem tão desconhecidos quanto antes. Por isso a decisão do gate permanece **LIBERADO COM RESTRIÇÕES**, mas as restrições ficam mais precisas e o desenho do contrato do Adapter pode avançar com confiança sensivelmente maior nos campos-chave de identidade (sequencial, chaves, nome, duplicidade).
+
+---
+
 ## 7. Decisão final do gate
 
-### **LIBERADO COM RESTRIÇÕES**
+### **LIBERADO COM RESTRIÇÕES** (reafirmado após o adendo de código-fonte real)
 
 **Justificativa por evidência**: o discovery acumulado (múltiplas rodadas reais de acesso READ-ONLY ao SOMA_DESENV) produziu uma base de conhecimento excepcionalmente detalhada e bem classificada por proveniência (Fato/Padrão/Interpretação/Desconhecido) sobre a estrutura física de `CADASTRO_CLI_FOR`/`FORNECEDORES`, as 11 triggers ativas, o mecanismo de `LX_SEQUENCIAL`, e o padrão recorrente (Nível 1, 4-5 de 5 amostras) de escrita usado por integrações automatizadas reais. Essa base é suficiente para **iniciar o planejamento arquitetural detalhado do Adapter** (desenho de contrato, DTOs físicos, mapeamento de campos, esqueleto de taxonomia de erros) com alta confiança.
 
