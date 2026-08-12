@@ -4,10 +4,10 @@ namespace BlueprintOS.Application.Procurement.Suppliers.Contracts;
 
 public interface IListarSincronizacoesFornecedoresUseCase
 {
-    Task<ListarSincronizacoesFornecedoresResultado> ExecuteAsync(ListarSincronizacoesFornecedoresFiltro filtro, CancellationToken ct);
+    Task<ListarSincronizacoesFornecedoresResultado> ExecuteAsync(Guid unidadeNegocioId, ListarSincronizacoesFornecedoresFiltro filtro, CancellationToken ct);
 }
 
 public interface IObterSincronizacaoFornecedorUseCase
 {
-    Task<SincronizacaoFornecedorDetalheDto?> ExecuteAsync(Guid id, CancellationToken ct);
+    Task<SincronizacaoFornecedorDetalheDto?> ExecuteAsync(Guid unidadeNegocioId, Guid id, CancellationToken ct);
 }

@@ -15,8 +15,10 @@ public sealed class SincronizacaoFornecedorConfiguration : IEntityTypeConfigurat
         builder.Property(x => x.DataInicio).IsRequired();
         builder.Property(x => x.Status).HasMaxLength(20).IsRequired();
         builder.Property(x => x.TempoExecucaoMs).IsRequired();
+        builder.Property(x => x.UnidadeNegocioId).IsRequired();
         builder.HasMany(x => x.Erros).WithOne().HasForeignKey(x => x.SincronizacaoFornecedorId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(x => new { x.BusinessUnit, x.SistemaOrigem, x.DataInicio });
         builder.HasIndex(x => x.Status);
+        builder.HasIndex(x => x.UnidadeNegocioId);
     }
 }

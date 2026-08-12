@@ -233,7 +233,8 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
     private sealed class FakeIdentity : ICurrentIdentity
     {
         public Guid UserId { get; } = Guid.NewGuid();
-        public RequestIdentity GetRequired() => new(UserId, "Buyer");
+        public Guid UnidadeNegocioId { get; } = Guid.NewGuid();
+        public RequestIdentity GetRequired() => new(UserId, "Buyer", UnidadeNegocioId);
     }
 
     private sealed class FakeReader(params FornecedorErpIntegracaoDto[] fornecedores) : IFornecedorErpReader

@@ -26,13 +26,13 @@ public sealed class ListarSincronizacoesFornecedoresUseCase(ISincronizacaoFornec
     : IListarSincronizacoesFornecedoresUseCase
 {
     public async Task<ListarSincronizacoesFornecedoresResultado> ExecuteAsync(
-        ListarSincronizacoesFornecedoresFiltro filtro, CancellationToken ct)
+        Guid unidadeNegocioId, ListarSincronizacoesFornecedoresFiltro filtro, CancellationToken ct)
     {
         var pagina = filtro.Pagina <= 0 ? 1 : filtro.Pagina;
         var tamanhoPagina = filtro.TamanhoPagina <= 0 ? 20 : Math.Min(filtro.TamanhoPagina, 200);
         var filtroNormalizado = filtro with { Pagina = pagina, TamanhoPagina = tamanhoPagina };
 
-        var (itens, total) = await repositorio.ListarAsync(filtroNormalizado, ct);
+        var (itens, total) = await repositorio.ListarAsync(unidadeNegocioId, filtroNormalizado, ct);
         return new ListarSincronizacoesFornecedoresResultado(
             itens.Select(SincronizacaoFornecedorProjection.ProjetarResumo).ToArray(), total, pagina, tamanhoPagina);
     }
@@ -41,9 +41,9 @@ public sealed class ListarSincronizacoesFornecedoresUseCase(ISincronizacaoFornec
 public sealed class ObterSincronizacaoFornecedorUseCase(ISincronizacaoFornecedorMonitorRepository repositorio)
     : IObterSincronizacaoFornecedorUseCase
 {
-    public async Task<SincronizacaoFornecedorDetalheDto?> ExecuteAsync(Guid id, CancellationToken ct)
+    public async Task<SincronizacaoFornecedorDetalheDto?> ExecuteAsync(Guid unidadeNegocioId, Guid id, CancellationToken ct)
     {
-        var execucao = await repositorio.ObterPorIdComErrosAsync(id, ct);
+        var execucao = await repositorio.ObterPorIdComErrosAsync(unidadeNegocioId, id, ct);
         return execucao is null ? null : SincronizacaoFornecedorProjection.ProjetarDetalhe(execucao);
     }
 }

@@ -4,6 +4,7 @@ using BlueprintOS.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlueprintOS.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BlueprintOSDbContext))]
-    partial class BlueprintOSDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260812000126_AddUnidadeNegocioIdToSincronizacaoFornecedorDEB03")]
+    partial class AddUnidadeNegocioIdToSincronizacaoFornecedorDEB03
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

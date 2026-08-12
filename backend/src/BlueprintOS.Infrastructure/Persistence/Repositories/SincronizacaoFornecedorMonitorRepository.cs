@@ -11,9 +11,9 @@ namespace BlueprintOS.Infrastructure.Persistence.Repositories;
 public sealed class SincronizacaoFornecedorMonitorRepository(BlueprintOSDbContext db) : ISincronizacaoFornecedorMonitorRepository
 {
     public async Task<(IReadOnlyList<SincronizacaoFornecedor> Itens, int TotalRegistros)> ListarAsync(
-        ListarSincronizacoesFornecedoresFiltro filtro, CancellationToken ct)
+        Guid unidadeNegocioId, ListarSincronizacoesFornecedoresFiltro filtro, CancellationToken ct)
     {
-        var query = db.SincronizacoesFornecedores.AsQueryable();
+        var query = db.SincronizacoesFornecedores.Where(x => x.UnidadeNegocioId == unidadeNegocioId);
 
         if (!string.IsNullOrWhiteSpace(filtro.Status))
         {
@@ -35,6 +35,7 @@ public sealed class SincronizacaoFornecedorMonitorRepository(BlueprintOSDbContex
         return (itens, total);
     }
 
-    public Task<SincronizacaoFornecedor?> ObterPorIdComErrosAsync(Guid id, CancellationToken ct) =>
-        db.SincronizacoesFornecedores.Include(x => x.Erros).SingleOrDefaultAsync(x => x.Id == id, ct);
+    public Task<SincronizacaoFornecedor?> ObterPorIdComErrosAsync(Guid unidadeNegocioId, Guid id, CancellationToken ct) =>
+        db.SincronizacoesFornecedores.Include(x => x.Erros)
+            .SingleOrDefaultAsync(x => x.Id == id && x.UnidadeNegocioId == unidadeNegocioId, ct);
 }

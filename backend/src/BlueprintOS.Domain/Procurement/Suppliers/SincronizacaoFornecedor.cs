@@ -6,18 +6,25 @@ public sealed class SincronizacaoFornecedor
 
     private SincronizacaoFornecedor() { }
 
-    public SincronizacaoFornecedor(Guid id, string sistemaOrigem, string businessUnit, DateTimeOffset dataInicio)
+    public SincronizacaoFornecedor(Guid id, string sistemaOrigem, string businessUnit, DateTimeOffset dataInicio, Guid unidadeNegocioId)
     {
         Id = id == Guid.Empty ? Guid.NewGuid() : id;
         SistemaOrigem = sistemaOrigem.Trim();
         BusinessUnit = businessUnit.Trim();
         DataInicio = dataInicio;
         Status = "Erro";
+        UnidadeNegocioId = unidadeNegocioId;
     }
 
     public Guid Id { get; private set; }
     public string SistemaOrigem { get; private set; } = null!;
     public string BusinessUnit { get; private set; } = null!;
+
+    /// <summary>DEB-03 (Gate Final da Onda 1) — Unidade de Negócio da identidade que disparou a
+    /// execução, resolvida pelo backend (nunca pelo <see cref="BusinessUnit"/> de texto livre informado
+    /// pelo chamador). Único campo confiável para escopar leitura por BU; ver
+    /// <c>MonitoramentoOperacionalController</c>.</summary>
+    public Guid UnidadeNegocioId { get; private set; }
     public DateTimeOffset DataInicio { get; private set; }
     public DateTimeOffset? DataFim { get; private set; }
     public string Status { get; private set; } = null!;

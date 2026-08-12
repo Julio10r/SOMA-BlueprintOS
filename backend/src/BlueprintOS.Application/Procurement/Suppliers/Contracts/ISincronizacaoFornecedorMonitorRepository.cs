@@ -8,7 +8,7 @@ namespace BlueprintOS.Application.Procurement.Suppliers.Contracts;
 public interface ISincronizacaoFornecedorMonitorRepository
 {
     Task<(IReadOnlyList<SincronizacaoFornecedor> Itens, int TotalRegistros)> ListarAsync(
-        ListarSincronizacoesFornecedoresFiltro filtro, CancellationToken ct);
+        Guid unidadeNegocioId, ListarSincronizacoesFornecedoresFiltro filtro, CancellationToken ct);
 
-    Task<SincronizacaoFornecedor?> ObterPorIdComErrosAsync(Guid id, CancellationToken ct);
+    Task<SincronizacaoFornecedor?> ObterPorIdComErrosAsync(Guid unidadeNegocioId, Guid id, CancellationToken ct);
 }

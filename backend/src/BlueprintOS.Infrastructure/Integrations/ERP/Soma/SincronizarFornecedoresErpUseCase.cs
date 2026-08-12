@@ -20,13 +20,22 @@ public sealed class SincronizarFornecedoresErpUseCase(
 
     public async Task<SincronizacaoFornecedoresErpResumo> ExecuteAsync(SincronizarFornecedoresErpDto dto, CancellationToken cancellationToken = default)
     {
-        var userId = identity.GetRequired().UserId;
+        var identidadeAtual = identity.GetRequired();
+        var userId = identidadeAtual.UserId;
+        // DEB-03 (Gate Final da Onda 1) — a Unidade de Negocio da execucao e sempre a da sessao que a
+        // disparou, nunca inferida do BusinessUnit de texto livre informado no corpo da requisicao;
+        // falha fechado se a sessao nao tiver Unidade de Negocio resolvida (RequestIdentity.cs).
+        if (identidadeAtual.UnidadeNegocioId is null || identidadeAtual.UnidadeNegocioId == Guid.Empty)
+        {
+            throw new InvalidOperationException("A sessão atual não possui Unidade de Negócio resolvida; sincronização ERP não pode ser iniciada.");
+        }
+        var unidadeNegocioId = identidadeAtual.UnidadeNegocioId.Value;
         var correlationId = string.IsNullOrWhiteSpace(dto.CorrelationId) ? Guid.NewGuid().ToString("N") : dto.CorrelationId.Trim()[..Math.Min(dto.CorrelationId.Trim().Length, 100)];
         var businessUnit = string.IsNullOrWhiteSpace(dto.BusinessUnit) ? "DEFAULT" : dto.BusinessUnit.Trim();
         // Limite representa o teto TOTAL de fornecedores processados nesta execucao, nao o tamanho de pagina.
         var limiteTotal = Math.Clamp(dto.Limite <= 0 ? 500 : dto.Limite, 1, 5000);
         var inicio = DateTimeOffset.UtcNow;
-        var execucao = new SincronizacaoFornecedor(Guid.NewGuid(), ErpSistema, businessUnit, inicio);
+        var execucao = new SincronizacaoFornecedor(Guid.NewGuid(), ErpSistema, businessUnit, inicio, unidadeNegocioId);
 
         logger.LogInformation("Sincronizacao de fornecedores ERP iniciada. ExecucaoId {ExecucaoId}. BusinessUnit {BusinessUnit}. LimiteTotal {LimiteTotal}. CorrelationId {CorrelationId}",
             execucao.Id, businessUnit, limiteTotal, correlationId);
