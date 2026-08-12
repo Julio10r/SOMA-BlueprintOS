@@ -1592,3 +1592,9 @@ objetiva para cada "Concluído", revisão de todos os "Em desenvolvimento"/"Plan
 GAPs reais, implementação do que faltar, quitação das dívidas do inventário desta sprint razoavelmente
 solucionáveis antes da Onda 2, hardening, validação integrada, reconciliação de documentação/métricas, e
 só então decisão sobre a conclusão a 100% da Onda 1 — seguida de revisão consolidada de Design e Onda 2.
+
+---
+
+## Gate Final da Onda 1 e continuação — hardening administrativo Produto × BU e catálogo de Perfis (12/08/2026)
+
+O Gate Final da Onda 1 foi executado (auditoria exaustiva dos 41 entregáveis, resultado 39/41, 95,12%) e permaneceu ABERTO — detalhe completo em `.ai/PROJECT_STATE.md` e `docs/audits/O1.14-InventarioDividasEGaps.md`. Nesta continuação, resolvidos os dois pontos que impediam avançar sem o Product Owner: (1) formalização do escopo administrativo Produto × BU (ADR-0022, ver `.ai/DECISIONS.md`) e (2) catálogo inicial de Perfis de negócio (entregável #9). Nenhuma reabertura do Gate desde o zero — continuidade direta do estado consolidado. Resultado desta etapa: **40/41 (97,5610% exato, exibido 98%)**; backend 707 testes + 7 integração (0 falhas); frontend 116/116; builds limpos; **Design Review e Onda 2 permanecem NÃO iniciados**. Detalhe completo em `.ai/PROJECT_STATE.md`.
