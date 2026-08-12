@@ -22,7 +22,8 @@ public static class RegrasWorkflowController
         var group = endpoints.MapGroup(PerfisController.BaseRoute)
             .WithTags("Administração — Regras de Workflow")
             .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.WorkflowGerenciar))
-            .AddEndpointFilter<CsrfHeaderFilter>();
+            .AddEndpointFilter<CsrfHeaderFilter>()
+            .AddEndpointFilter<EscopoUnidadeNegocioPathFilter>();
 
         group.MapGet("/unidades-negocio/{unidadeNegocioId:guid}/regras-workflow", Listar);
         group.MapPost("/unidades-negocio/{unidadeNegocioId:guid}/regras-workflow", Criar);

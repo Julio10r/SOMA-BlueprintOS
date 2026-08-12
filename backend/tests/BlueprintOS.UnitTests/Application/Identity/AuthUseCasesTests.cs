@@ -227,8 +227,12 @@ internal sealed class FakeUsuarioRepository : IUsuarioRepository
         throw new NotSupportedException();
     public Task<Usuario?> ObterPorEmailEUnidadeNegocioAsync(string email, Guid unidadeNegocioId, CancellationToken ct) =>
         throw new NotSupportedException();
+    // O1.4.x (autenticação/OTP) não modela Perfis vinculados — sem Administrador Sênior nestes testes,
+    // então ObterIdentidadeAtualUseCase resolve sempre EscopoAdministrativo.Negocio (fail-closed).
     public Task<IReadOnlyDictionary<Guid, IReadOnlyList<BlueprintOS.Application.Identity.Models.UsuarioPerfilResumoDto>>> ObterPerfisPorUsuarioAsync(
-        IReadOnlyCollection<Guid> usuarioIds, CancellationToken ct) => throw new NotSupportedException();
+        IReadOnlyCollection<Guid> usuarioIds, CancellationToken ct) =>
+        Task.FromResult<IReadOnlyDictionary<Guid, IReadOnlyList<BlueprintOS.Application.Identity.Models.UsuarioPerfilResumoDto>>>(
+            new Dictionary<Guid, IReadOnlyList<BlueprintOS.Application.Identity.Models.UsuarioPerfilResumoDto>>());
     public Task<IReadOnlyDictionary<Guid, IReadOnlyList<string>>> ObterCentrosCustoPorUsuarioAsync(
         IReadOnlyCollection<Guid> usuarioIds, CancellationToken ct) => throw new NotSupportedException();
     public Task SubstituirPerfisAsync(Guid usuarioId, IReadOnlyCollection<Guid> perfilIds, CancellationToken ct) =>

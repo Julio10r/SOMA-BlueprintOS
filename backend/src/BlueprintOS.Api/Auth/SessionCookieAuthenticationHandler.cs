@@ -50,6 +50,7 @@ public sealed class SessionCookieAuthenticationHandler(
             new(ClaimTypes.Name, identidade.Nome),
             new("unidade_negocio_id", identidade.UnidadeNegocioId.ToString()),
             new(ClaimTypes.Role, "Buyer"),
+            new(Authorization.RbacClaims.EscopoAdministrativo, identidade.EscopoAdministrativo.ToString()),
         };
         claims.AddRange(Authorization.RbacPolicies.ToClaims(identidade.Permissoes));
         var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, Scheme.Name));

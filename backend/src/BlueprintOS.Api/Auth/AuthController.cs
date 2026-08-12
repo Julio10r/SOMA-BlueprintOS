@@ -123,9 +123,15 @@ public static class AuthController
         // cliente faça com esta lista.
         var permissoes = user.FindAll(Authorization.RbacClaims.Permissao).Select(x => x.Value).ToArray();
 
+        // Gate Final da Onda 1 — exclusivamente informativo para o frontend refletir a UI (ex.: seletor
+        // de Unidade de Negócio para o Administrador Sênior). O backend nunca confia neste valor de
+        // volta: cada endpoint administrativo revalida o escopo a partir da própria sessão.
+        var escopoAdministrativo = user.FindFirst(Authorization.RbacClaims.EscopoAdministrativo)?.Value
+            ?? Domain.Identity.EscopoAdministrativo.Negocio.ToString();
+
         return Results.Ok(new
         {
-            usuario = new { id = usuarioId, email, nome, unidadeNegocioId, permissoes },
+            usuario = new { id = usuarioId, email, nome, unidadeNegocioId, permissoes, escopoAdministrativo },
         });
     }
 }

@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using BlueprintOS.Application.Identity.Contracts;
 using BlueprintOS.Application.Identity.Models;
+using BlueprintOS.Domain.Identity;
 
 namespace BlueprintOS.Api.Identity;
 
@@ -31,6 +32,13 @@ public sealed class SessionCurrentIdentity(IHttpContextAccessor httpContextAcces
         Guid? unidadeNegocioId = Guid.TryParse(user.FindFirst("unidade_negocio_id")?.Value, out var bu) ? bu : null;
         var permissoes = user.FindAll(Authorization.RbacClaims.Permissao).Select(x => x.Value).ToArray();
 
-        return new RequestIdentity(userId, role, unidadeNegocioId, permissoes);
+        // Fail-closed: qualquer valor ausente/inesperado na claim (esquemas que não a emitem, como
+        // Development) resolve para EscopoAdministrativo.Negocio — nunca assume Produto por omissão.
+        var escopoAdministrativo = Enum.TryParse<EscopoAdministrativo>(
+            user.FindFirst(Authorization.RbacClaims.EscopoAdministrativo)?.Value, out var escopo)
+            ? escopo
+            : EscopoAdministrativo.Negocio;
+
+        return new RequestIdentity(userId, role, unidadeNegocioId, permissoes, escopoAdministrativo);
     }
 }

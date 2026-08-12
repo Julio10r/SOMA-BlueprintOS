@@ -13,7 +13,19 @@ export type UsuarioAutenticado = {
    * nenhum acesso.
    */
   permissoes: string[];
+  /**
+   * Escopo administrativo (Gate Final da Onda 1) — "Produto" (Administrador Sênior, cross-BU)
+   * ou "Negocio" (administra somente a própria Unidade de Negócio). Exclusivamente informativo
+   * para a interface refletir o acesso (ex.: exibir seletor de Unidade de Negócio); o backend
+   * nunca confia neste valor de volta — cada endpoint administrativo revalida o escopo a partir
+   * da própria sessão.
+   */
+  escopoAdministrativo: "Produto" | "Negocio";
 };
+
+export function ehAdministradorSenior(usuario: Pick<UsuarioAutenticado, "escopoAdministrativo">): boolean {
+  return usuario.escopoAdministrativo === "Produto";
+}
 
 /** Codigos de permissao usados pela interface. Espelham PermissaoCatalogo no backend. */
 export const PERMISSOES = {

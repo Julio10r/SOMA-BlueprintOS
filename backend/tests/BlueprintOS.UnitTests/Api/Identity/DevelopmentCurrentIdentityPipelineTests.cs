@@ -2,6 +2,7 @@ using BlueprintOS.Api.Auth;
 using BlueprintOS.Api.Identity;
 using BlueprintOS.Application.Identity.Contracts;
 using BlueprintOS.Application.Identity.Models;
+using BlueprintOS.Domain.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -162,7 +163,7 @@ public sealed class DevelopmentCurrentIdentityPipelineTests : IAsyncDisposable
         public Task<IdentidadeAtualDto?> ExecuteAsync(string sessionRawToken, CancellationToken ct)
         {
             IdentidadeAtualDto? resultado = sessionRawToken == ValidToken
-                ? new IdentidadeAtualDto(SessionUserId, "julio.cesar@somagrupo.com.br", "Julio Cesar", Guid.NewGuid(), [])
+                ? new IdentidadeAtualDto(SessionUserId, "julio.cesar@somagrupo.com.br", "Julio Cesar", Guid.NewGuid(), [], EscopoAdministrativo.Negocio)
                 : null;
             return Task.FromResult(resultado);
         }

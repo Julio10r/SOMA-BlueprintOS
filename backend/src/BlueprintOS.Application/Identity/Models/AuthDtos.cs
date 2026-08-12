@@ -1,3 +1,5 @@
+using BlueprintOS.Domain.Identity;
+
 namespace BlueprintOS.Application.Identity.Models;
 
 /// <summary>Resposta deliberadamente idêntica para e-mail existente/inexistente/inativo — anti-enumeração
@@ -22,4 +24,5 @@ public sealed record IdentidadeAtualDto(
     string Email,
     string Nome,
     Guid UnidadeNegocioId,
-    IReadOnlyList<string> Permissoes);
+    IReadOnlyList<string> Permissoes,
+    EscopoAdministrativo EscopoAdministrativo);

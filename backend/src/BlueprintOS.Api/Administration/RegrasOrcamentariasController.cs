@@ -22,7 +22,8 @@ public static class RegrasOrcamentariasController
         var group = endpoints.MapGroup(PerfisController.BaseRoute)
             .WithTags("Administração — Regras Orçamentárias")
             .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.OrcamentoGerenciar))
-            .AddEndpointFilter<CsrfHeaderFilter>();
+            .AddEndpointFilter<CsrfHeaderFilter>()
+            .AddEndpointFilter<EscopoUnidadeNegocioPathFilter>();
 
         group.MapGet("/unidades-negocio/{unidadeNegocioId:guid}/regras-orcamentarias", Listar);
         group.MapPost("/unidades-negocio/{unidadeNegocioId:guid}/regras-orcamentarias", Criar);

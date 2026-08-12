@@ -11,6 +11,13 @@ namespace BlueprintOS.Api.Authorization;
 public static class RbacClaims
 {
     public const string Permissao = "maiscompras_permissao";
+
+    /// <summary>Transporta o <see cref="EscopoAdministrativo"/> do ator (Gate Final da Onda 1) — separado
+    /// deliberadamente de <see cref="Permissao"/>: RBAC responde "o quê", esta claim responde "em qual
+    /// Unidade de Negócio". Emitida exclusivamente pelos authentication handlers, a partir do Perfil
+    /// "Administrador Sênior" ativo resolvido no banco — nunca lida de cabeçalho, corpo ou cookie
+    /// controlado pelo cliente.</summary>
+    public const string EscopoAdministrativo = "maiscompras_escopo_administrativo";
 }
 
 /// <summary>Exige uma permissão específica do catálogo (O1.5 — RBAC Real).</summary>

@@ -3,6 +3,7 @@ using BlueprintOS.Api.Auth;
 using BlueprintOS.Api.Identity;
 using BlueprintOS.Application.Identity.Contracts;
 using BlueprintOS.Application.Identity.Models;
+using BlueprintOS.Domain.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -40,7 +41,7 @@ public sealed class SessionCookieAuthenticationHandlerTests
     [Fact]
     public async Task Should_Succeed_And_Set_Claims_When_Session_Valid()
     {
-        var identidade = new IdentidadeAtualDto(Guid.NewGuid(), "ana@somagrupo.com.br", "Ana", Guid.NewGuid(), []);
+        var identidade = new IdentidadeAtualDto(Guid.NewGuid(), "ana@somagrupo.com.br", "Ana", Guid.NewGuid(), [], EscopoAdministrativo.Negocio);
         var handler = await CreateHandlerAsync(new FakeObterIdentidadeAtualUseCase(identidade), cookieValue: "token-valido");
 
         var result = await handler.AuthenticateAsync();

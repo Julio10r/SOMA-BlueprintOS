@@ -22,7 +22,8 @@ public static class ConfiguracaoNotificacaoController
         var group = endpoints.MapGroup(PerfisController.BaseRoute)
             .WithTags("Administração — Configuração de Notificações")
             .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.SistemaGerenciar))
-            .AddEndpointFilter<CsrfHeaderFilter>();
+            .AddEndpointFilter<CsrfHeaderFilter>()
+            .AddEndpointFilter<EscopoUnidadeNegocioPathFilter>();
 
         group.MapGet("/unidades-negocio/{unidadeNegocioId:guid}/configuracao-notificacao", Obter);
         group.MapPut("/unidades-negocio/{unidadeNegocioId:guid}/configuracao-notificacao", Salvar);

@@ -20,7 +20,8 @@ public sealed record UsuarioStatusRequest(bool Ativo);
 /// de escopo por Unidade de Negócio de <see cref="PerfisController"/> (O1.5):
 /// - requisição sem sessão → <c>401</c> (FallbackPolicy global);
 /// - sessão válida sem <c>Usuario.Gerenciar</c> → <c>403</c> (policy);
-/// - Unidade de Negócio sempre da identidade autenticada, nunca do payload;
+/// - Unidade de Negócio, por padrão, da identidade autenticada; a query <c>unidadeNegocioId</c> só é
+///   honrada quando o ator é Administrador Sênior (Gate Final da Onda 1 — <see cref="EscopoAdministrativoUnidadeNegocio"/>);
 /// - sem exclusão física — apenas Criar, Editar e Ativar/Inativar (Work Order O1.6, "Fora de escopo").</summary>
 public static class UsuariosController
 {
@@ -41,48 +42,48 @@ public static class UsuariosController
     }
 
     private static async Task<IResult> ListarUsuarios(
-        ICurrentIdentity identity, IListarUsuariosUseCase useCase, CancellationToken ct)
+        Guid? unidadeNegocioId, ICurrentIdentity identity, IListarUsuariosUseCase useCase, CancellationToken ct)
     {
-        if (!TryResolverUnidadeNegocio(identity, out var unidadeNegocioId, out var falha)) return falha!;
-        return Results.Ok(await useCase.ExecuteAsync(unidadeNegocioId, ct));
+        if (!EscopoAdministrativoUnidadeNegocio.TryResolverUnidadeNegocio(identity, unidadeNegocioId, out var resolvido, out var falha)) return falha!;
+        return Results.Ok(await useCase.ExecuteAsync(resolvido, ct));
     }
 
     private static async Task<IResult> ObterUsuario(
-        Guid id, ICurrentIdentity identity, IObterUsuarioUseCase useCase, CancellationToken ct)
+        Guid id, Guid? unidadeNegocioId, ICurrentIdentity identity, IObterUsuarioUseCase useCase, CancellationToken ct)
     {
-        if (!TryResolverUnidadeNegocio(identity, out var unidadeNegocioId, out var falha)) return falha!;
+        if (!EscopoAdministrativoUnidadeNegocio.TryResolverUnidadeNegocio(identity, unidadeNegocioId, out var resolvido, out var falha)) return falha!;
 
-        var usuario = await useCase.ExecuteAsync(id, unidadeNegocioId, ct);
+        var usuario = await useCase.ExecuteAsync(id, resolvido, ct);
         return usuario is null
             ? Results.NotFound(new { code = "usuario_nao_encontrado", message = "Usuário não encontrado." })
             : Results.Ok(usuario);
     }
 
     private static async Task<IResult> CriarUsuario(
-        UsuarioUpsertRequest? request, ICurrentIdentity identity, ICriarUsuarioUseCase useCase, CancellationToken ct)
+        UsuarioUpsertRequest? request, Guid? unidadeNegocioId, ICurrentIdentity identity, ICriarUsuarioUseCase useCase, CancellationToken ct)
     {
-        if (!TryResolverUnidadeNegocio(identity, out var unidadeNegocioId, out var falha)) return falha!;
+        if (!EscopoAdministrativoUnidadeNegocio.TryResolverUnidadeNegocio(identity, unidadeNegocioId, out var resolvido, out var falha)) return falha!;
 
-        var resultado = await useCase.ExecuteAsync(ParaInput(request), unidadeNegocioId, PermissoesDoAtor(identity), ct);
+        var resultado = await useCase.ExecuteAsync(ParaInput(request), resolvido, PermissoesDoAtor(identity), ct);
         return resultado.Sucesso ? Results.Created($"{PerfisController.BaseRoute}/usuarios/{resultado.Valor!.Id}", resultado.Valor) : Traduzir(resultado);
     }
 
     private static async Task<IResult> AtualizarUsuario(
-        Guid id, UsuarioUpsertRequest? request, ICurrentIdentity identity, IAtualizarUsuarioUseCase useCase, CancellationToken ct)
+        Guid id, UsuarioUpsertRequest? request, Guid? unidadeNegocioId, ICurrentIdentity identity, IAtualizarUsuarioUseCase useCase, CancellationToken ct)
     {
-        if (!TryResolverUnidadeNegocio(identity, out var unidadeNegocioId, out var falha)) return falha!;
+        if (!EscopoAdministrativoUnidadeNegocio.TryResolverUnidadeNegocio(identity, unidadeNegocioId, out var resolvido, out var falha)) return falha!;
 
-        var resultado = await useCase.ExecuteAsync(id, ParaInput(request), unidadeNegocioId, PermissoesDoAtor(identity), ct);
+        var resultado = await useCase.ExecuteAsync(id, ParaInput(request), resolvido, PermissoesDoAtor(identity), ct);
         return resultado.Sucesso ? Results.Ok(resultado.Valor) : Traduzir(resultado);
     }
 
     private static async Task<IResult> AlterarStatus(
-        Guid id, UsuarioStatusRequest? request, ICurrentIdentity identity, IAlterarStatusUsuarioUseCase useCase, CancellationToken ct)
+        Guid id, UsuarioStatusRequest? request, Guid? unidadeNegocioId, ICurrentIdentity identity, IAlterarStatusUsuarioUseCase useCase, CancellationToken ct)
     {
-        if (!TryResolverUnidadeNegocio(identity, out var unidadeNegocioId, out var falha)) return falha!;
+        if (!EscopoAdministrativoUnidadeNegocio.TryResolverUnidadeNegocio(identity, unidadeNegocioId, out var resolvido, out var falha)) return falha!;
         if (request is null) return Results.BadRequest(new { code = "invalid_request", message = "Informe o status desejado." });
 
-        var resultado = await useCase.ExecuteAsync(id, request.Ativo, unidadeNegocioId, ct);
+        var resultado = await useCase.ExecuteAsync(id, request.Ativo, resolvido, ct);
         return resultado.Sucesso ? Results.Ok(resultado.Valor) : Traduzir(resultado);
     }
 
@@ -95,25 +96,6 @@ public static class UsuariosController
         request?.Perfis ?? [],
         request?.CentrosCusto ?? [],
         request?.TodosCentrosCusto ?? false);
-
-    /// <summary>Mesmo cuidado de <see cref="PerfisController"/>: sessão sem Unidade de Negócio resolvida
-    /// nunca é tratada como "sem restrição" — é <c>403</c> explícito, fail-closed.</summary>
-    private static bool TryResolverUnidadeNegocio(ICurrentIdentity identity, out Guid unidadeNegocioId, out IResult? falha)
-    {
-        var atual = identity.GetRequired();
-        if (atual.UnidadeNegocioId is null || atual.UnidadeNegocioId == Guid.Empty)
-        {
-            unidadeNegocioId = Guid.Empty;
-            falha = Results.Json(
-                new { code = "unidade_negocio_ausente", message = "A sessão atual não possui Unidade de Negócio resolvida." },
-                statusCode: StatusCodes.Status403Forbidden);
-            return false;
-        }
-
-        unidadeNegocioId = atual.UnidadeNegocioId.Value;
-        falha = null;
-        return true;
-    }
 
     private static IResult Traduzir<T>(RbacResultado<T> resultado) => resultado.Falha switch
     {

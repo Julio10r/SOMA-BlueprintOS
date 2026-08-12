@@ -23,7 +23,8 @@ public static class IdentityProvidersController
         var group = endpoints.MapGroup(PerfisController.BaseRoute)
             .WithTags("Administração — Identity Providers")
             .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.SistemaGerenciar))
-            .AddEndpointFilter<CsrfHeaderFilter>();
+            .AddEndpointFilter<CsrfHeaderFilter>()
+            .AddEndpointFilter<EscopoUnidadeNegocioPathFilter>();
 
         group.MapGet("/unidades-negocio/{unidadeNegocioId:guid}/identity-providers", Listar);
         group.MapPost("/unidades-negocio/{unidadeNegocioId:guid}/identity-providers", Criar);

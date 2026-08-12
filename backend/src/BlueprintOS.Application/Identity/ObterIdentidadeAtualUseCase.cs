@@ -1,6 +1,7 @@
 using BlueprintOS.Application.Identity.Contracts;
 using BlueprintOS.Application.Identity.Models;
 using BlueprintOS.Application.Identity.Security;
+using BlueprintOS.Domain.Identity;
 using Microsoft.Extensions.Options;
 
 namespace BlueprintOS.Application.Identity;
@@ -38,6 +39,15 @@ public sealed class ObterIdentidadeAtualUseCase(
         // mesmo princípio de "nunca confiar em estado congelado no login" vale para a autorização.
         var permissoes = await permissoesEfetivas.ResolverAsync(usuario.Id, sessao.UnidadeNegocioId, ct);
 
-        return new IdentidadeAtualDto(usuario.Id, usuario.Email, usuario.Nome, sessao.UnidadeNegocioId, permissoes);
+        // Gate Final da Onda 1 — escopo administrativo (Produto x Negócio) é recalculado junto com as
+        // permissões, pelo mesmo motivo: nunca confiar em estado congelado. Reconhecido exclusivamente
+        // pelo Perfil "Administrador Sênior" ativo — nunca por nome de Role, claim solta ou heurística
+        // textual espalhada por controllers.
+        var perfisPorUsuario = await usuarios.ObterPerfisPorUsuarioAsync([usuario.Id], ct);
+        var ehAdministradorSenior = perfisPorUsuario.TryGetValue(usuario.Id, out var perfis)
+            && perfis.Any(p => p.Ativo && p.Nome == Perfil.AdministradorSenior);
+        var escopoAdministrativo = ehAdministradorSenior ? EscopoAdministrativo.Produto : EscopoAdministrativo.Negocio;
+
+        return new IdentidadeAtualDto(usuario.Id, usuario.Email, usuario.Nome, sessao.UnidadeNegocioId, permissoes, escopoAdministrativo);
     }
 }

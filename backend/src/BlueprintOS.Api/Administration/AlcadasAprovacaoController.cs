@@ -29,7 +29,8 @@ public static class AlcadasAprovacaoController
         var group = endpoints.MapGroup(PerfisController.BaseRoute)
             .WithTags("Administração — Alçadas de Aprovação")
             .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.AlcadaGerenciar))
-            .AddEndpointFilter<CsrfHeaderFilter>();
+            .AddEndpointFilter<CsrfHeaderFilter>()
+            .AddEndpointFilter<EscopoUnidadeNegocioPathFilter>();
 
         group.MapGet("/unidades-negocio/{unidadeNegocioId:guid}/alcadas-aprovacao", Listar);
         group.MapPost("/unidades-negocio/{unidadeNegocioId:guid}/alcadas-aprovacao", Criar);

@@ -305,7 +305,7 @@ public sealed class RbacEnforcementPipelineTests : IAsyncDisposable
         public Task<IdentidadeAtualDto?> ExecuteAsync(string sessionRawToken, CancellationToken ct) =>
             sessionRawToken == TokenSessao
                 ? Task.FromResult<IdentidadeAtualDto?>(new IdentidadeAtualDto(
-                    Guid.NewGuid(), "ana@example.invalid", "Ana", Guid.NewGuid(), Permissoes))
+                    Guid.NewGuid(), "ana@example.invalid", "Ana", Guid.NewGuid(), Permissoes, EscopoAdministrativo.Negocio))
                 : Task.FromResult<IdentidadeAtualDto?>(null);
     }
 }
