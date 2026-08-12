@@ -41,6 +41,9 @@ export type Fornecedor = {
 export type SituacaoCadastralCnpj = "Ativa" | "Baixada" | "Suspensa" | "Inapta" | "NaoEncontrada" | string;
 export type StatusConsultaCnpj = "Sucesso" | "Falha" | string;
 export type FornecedorCampoDecisao = "Pendente" | "Aceito" | "Rejeitado" | string;
+export type TipoErroConsultaCnpj =
+  | "CnpjInvalido" | "NaoEncontrado" | "FonteIndisponivel" | "Timeout"
+  | "LimiteDeConsultas" | "ErroDeAutenticacaoDoProvider" | "RespostaInvalida" | "ErroInterno";
 
 export type ConsultaCnpjResultado = {
   cnpj_Cpf: string;
@@ -67,6 +70,9 @@ export type ConsultaCnpjResultado = {
   statusConsulta: StatusConsultaCnpj;
   mensagemErro?: string | null;
   sucesso: boolean;
+  tipoErro?: TipoErroConsultaCnpj | null;
+  permiteRetry: boolean;
+  httpStatusSugerido?: number | null;
 };
 
 export type FornecedorCampoDivergencia = {
