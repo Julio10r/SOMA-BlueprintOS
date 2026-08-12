@@ -90,6 +90,12 @@ public sealed class FakeUsuarioRepositoryCompleto : IUsuarioRepository
     public List<UsuarioCentroCusto> CentrosCusto { get; } = [];
     public int Salvamentos { get; private set; }
 
+    /// <summary>DEB-15/M2 — simula, na chamada final de <c>SalvarAlteracoesAsync</c> do caso de uso (que
+    /// agora também persiste a eventual ancoragem "sob demanda" de CentroCustoMetadado), uma falha real de
+    /// persistência (ex.: corrida no índice único de e-mail). Permite testar que o caso de uso chamador
+    /// trata a falha de forma controlada (retorna <c>Erro</c>), em vez de deixar a exceção subir crua.</summary>
+    public Func<Exception>? FalharAoSalvar { get; set; }
+
     public Task<Usuario?> ObterPorEmailAsync(string email, CancellationToken ct) =>
         Task.FromResult(All.SingleOrDefault(x => x.Email == email));
 
@@ -174,7 +180,12 @@ public sealed class FakeUsuarioRepositoryCompleto : IUsuarioRepository
         return Task.FromResult(candidatos.Count(u => idsComPerfilAdmin.Contains(u.Id)));
     }
 
-    public Task SalvarAlteracoesAsync(CancellationToken ct) { Salvamentos++; return Task.CompletedTask; }
+    public Task SalvarAlteracoesAsync(CancellationToken ct)
+    {
+        if (FalharAoSalvar is { } fabricarErro) throw fabricarErro();
+        Salvamentos++;
+        return Task.CompletedTask;
+    }
 }
 
 /// <summary>Catálogo persistido simulado. Por padrão contém exatamente o catálogo de

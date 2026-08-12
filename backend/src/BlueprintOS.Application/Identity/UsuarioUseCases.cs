@@ -175,7 +175,21 @@ public sealed class CriarUsuarioUseCase(
         await usuarios.AdicionarAsync(usuario, ct);
         await usuarios.SubstituirPerfisAsync(usuario.Id, perfisResolvidos.Valor!.Select(x => x.Id).ToArray(), ct);
         await usuarios.SubstituirCentrosCustoAsync(usuario.Id, centrosCustoResolvidos.Valor!, ct);
-        await usuarios.SalvarAlteracoesAsync(ct);
+
+        try
+        {
+            // DEB-15/M2 — única chamada a SaveChangesAsync para Usuario, Perfis, vínculo Usuário×Centro de
+            // Custo E a eventual ancoragem "sob demanda" de CentroCustoMetadado feita acima por
+            // ValidarEAncorarAsync (mesmo DbContext compartilhado). Se qualquer parte falhar, nada é
+            // persistido — nem sequer a ancoragem do metadado.
+            await usuarios.SalvarAlteracoesAsync(ct);
+        }
+        catch (DuplicateRecordException)
+        {
+            return RbacResultado<UsuarioDto>.Erro(
+                RbacFalha.CentroCustoInvalido,
+                "Não foi possível concluir a criação do usuário — um ou mais dados informados (e-mail ou Centro de Custo) foram alterados por outra requisição concorrente. Tente novamente.");
+        }
 
         return RbacResultado<UsuarioDto>.Ok(await UsuarioProjection.ProjetarUmAsync(usuarios, usuario, ct));
     }
@@ -235,7 +249,19 @@ public sealed class AtualizarUsuarioUseCase(
         usuario.Atualizar(nome, input.TodosCentrosCusto, agora);
         await usuarios.SubstituirPerfisAsync(usuario.Id, perfisResolvidos.Valor!.Select(x => x.Id).ToArray(), ct);
         await usuarios.SubstituirCentrosCustoAsync(usuario.Id, centrosCustoResolvidos.Valor!, ct);
-        await usuarios.SalvarAlteracoesAsync(ct);
+
+        try
+        {
+            // DEB-15/M2 — mesma correção de CriarUsuarioUseCase: única chamada a SaveChangesAsync cobrindo
+            // também a eventual ancoragem "sob demanda" de CentroCustoMetadado feita acima.
+            await usuarios.SalvarAlteracoesAsync(ct);
+        }
+        catch (DuplicateRecordException)
+        {
+            return RbacResultado<UsuarioDto>.Erro(
+                RbacFalha.CentroCustoInvalido,
+                "Não foi possível concluir a atualização do usuário — um ou mais Centros de Custo informados foram ancorados por outra requisição concorrente. Tente novamente.");
+        }
 
         return RbacResultado<UsuarioDto>.Ok(await UsuarioProjection.ProjetarUmAsync(usuarios, usuario, ct));
     }

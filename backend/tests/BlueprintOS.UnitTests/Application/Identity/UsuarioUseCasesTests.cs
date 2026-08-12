@@ -119,6 +119,50 @@ public sealed class UsuarioUseCasesTests
         Assert.False(resultado.Valor.TodosCentrosCusto);
     }
 
+    /// <summary>DEB-15/M2 (Gate Final pós-O1.14) — se a chamada final e única de <c>SalvarAlteracoesAsync</c>
+    /// (que agora persiste, na mesma transação, tanto o Usuário/Perfis/vínculo Usuário×Centro de Custo
+    /// quanto a eventual ancoragem "sob demanda" de <see cref="CentroCustoMetadado"/> feita por
+    /// <c>ValidarEAncorarAsync</c>) falhar por uma corrida real de persistência, o caso de uso deve tratar a
+    /// falha de forma controlada — retornando <c>Erro</c> — em vez de deixar a exceção subir crua para o
+    /// controller. Antes da correção, esse cenário nem chegava a esta chamada: a ancoragem do metadado já
+    /// teria sido commitada em uma <c>SaveChangesAsync</c> anterior, separada, dentro do próprio validador.</summary>
+    [Fact]
+    public async Task Criar_Should_Return_Erro_When_Final_SalvarAlteracoes_Fails_Instead_Of_Throwing()
+    {
+        var c = Arrange();
+        var perfil = CriarPerfil(c, Bu, "Analista", PermissaoCatalogo.PedidoCriar);
+        c.Usuarios.FalharAoSalvar = () => new DuplicateRecordException("Simulação de corrida de persistência (DEB-15/M2).");
+
+        var resultado = await Criar(c).ExecuteAsync(
+            new UsuarioInput("Carla Nogueira", "carla.nogueira@somagrupo.com.br", [perfil.Id], ["cc-001"], false),
+            Bu, AtorOnipotente, CancellationToken.None);
+
+        Assert.False(resultado.Sucesso);
+        Assert.Equal(RbacFalha.CentroCustoInvalido, resultado.Falha);
+        Assert.Equal(0, c.Usuarios.Salvamentos);
+    }
+
+    /// <summary>Mesmo cenário de falha controlada de DEB-15/M2, na atualização.</summary>
+    [Fact]
+    public async Task Atualizar_Should_Return_Erro_When_Final_SalvarAlteracoes_Fails_Instead_Of_Throwing()
+    {
+        var c = Arrange();
+        var perfil = CriarPerfil(c, Bu, "Analista", PermissaoCatalogo.PedidoCriar);
+        var usuario = new Usuario("daniel.rocha@somagrupo.com.br", "Daniel Rocha", Bu);
+        c.Usuarios.All.Add(usuario);
+
+        c.Usuarios.FalharAoSalvar = () => new DuplicateRecordException("Simulação de corrida de persistência (DEB-15/M2).");
+
+        var resultado = await Atualizar(c).ExecuteAsync(
+            usuario.Id,
+            new UsuarioInput("Daniel Rocha", "daniel.rocha@somagrupo.com.br", [perfil.Id], ["cc-002"], false),
+            Bu, AtorOnipotente, CancellationToken.None);
+
+        Assert.False(resultado.Sucesso);
+        Assert.Equal(RbacFalha.CentroCustoInvalido, resultado.Falha);
+        Assert.Equal(0, c.Usuarios.Salvamentos);
+    }
+
     [Fact]
     public async Task Criar_Should_Allow_TodosCentrosCusto_Without_Explicit_Links()
     {

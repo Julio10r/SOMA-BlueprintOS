@@ -23,7 +23,19 @@ namespace BlueprintOS.Infrastructure.Administration;
 /// FK física em `UsuariosCentrosCusto` — a FK física exigiria que o metadado já existisse ANTES do primeiro
 /// vínculo, o que não é garantido (a tela de Centros de Custo só cria metadado na primeira edição/ativação
 /// manual). Criar o metadado "sob demanda" aqui, no momento do vínculo, é a forma mais simples de garantir a
-/// integridade sem introduzir uma ordem de operações artificial para o usuário final.</summary>
+/// integridade sem introduzir uma ordem de operações artificial para o usuário final.
+///
+/// DEB-15/M2 (Gate Final pós-O1.14): este método NUNCA chama <c>SalvarAlteracoesAsync</c> — apenas rastreia
+/// o novo <see cref="CentroCustoMetadado"/> via <c>AdicionarAsync</c> no mesmo <c>DbContext</c> compartilhado
+/// pelo repositório de Usuário injetado no caso de uso chamador (<c>CriarUsuarioUseCase</c>/
+/// <c>AtualizarUsuarioUseCase</c>). Antes desta correção, a ancoragem do metadado era persistida aqui, em uma
+/// chamada a <c>SaveChangesAsync</c> separada da que grava o Usuário e o vínculo Usuário×Centro de Custo: se
+/// a segunda chamada falhasse (ex.: corrida no índice único de e-mail, violação de concorrência nos Perfis),
+/// o metadado já estaria commitado no banco — ancorando permanentemente aquele código ERP a esta Unidade de
+/// Negócio (índice único global de <c>CodigoErp</c>) sem que o vínculo Usuário×Centro de Custo que motivou a
+/// ancoragem jamais tivesse sido criado. Persistir tudo em uma única chamada (mesmo padrão de
+/// <c>ConcluirBootstrapUseCase</c>) garante que, se qualquer etapa falhar, nenhuma escrita — incluindo a
+/// ancoragem do metadado — é persistida.</summary>
 public sealed class CentroCustoVinculoValidator(
     ICentroCustoErpReader reader,
     ICentroCustoMetadadoRepository metadados,
@@ -44,7 +56,6 @@ public sealed class CentroCustoVinculoValidator(
         }
 
         var agora = clock.GetUtcNow();
-        var criouAlgum = false;
 
         foreach (var codigo in normalizados)
         {
@@ -69,25 +80,9 @@ public sealed class CentroCustoVinculoValidator(
                     $"O Centro de Custo '{codigo}' não existe no ERP.");
             }
 
+            // Apenas rastreado no DbContext compartilhado — persistido junto com Usuario/vínculos pelo
+            // SalvarAlteracoesAsync único do caso de uso chamador (ver nota de classe acima, DEB-15/M2).
             await metadados.AdicionarAsync(new CentroCustoMetadado(codigo, unidadeNegocioId, agora), ct);
-            criouAlgum = true;
-        }
-
-        if (criouAlgum)
-        {
-            try
-            {
-                await metadados.SalvarAlteracoesAsync(ct);
-            }
-            catch (DuplicateRecordException)
-            {
-                // Corrida entre requisições concorrentes ancorando o mesmo código ERP pela primeira vez
-                // (índice único global de CentrosCustoMetadados.CodigoErp). O código perdeu a corrida —
-                // trata-se como o mesmo cenário de "já ancorado por outra Unidade de Negócio".
-                return RbacResultado<IReadOnlyList<string>>.Erro(
-                    RbacFalha.CentroCustoInvalido,
-                    "Um ou mais Centros de Custo informados foram vinculados por outra requisição concorrente. Tente novamente.");
-            }
         }
 
         return RbacResultado<IReadOnlyList<string>>.Ok(normalizados);

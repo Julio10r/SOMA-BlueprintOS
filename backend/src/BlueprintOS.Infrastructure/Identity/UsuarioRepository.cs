@@ -119,5 +119,27 @@ public sealed class UsuarioRepository(BlueprintOSDbContext db) : IUsuarioReposit
         return await query.CountAsync(ct);
     }
 
-    public Task SalvarAlteracoesAsync(CancellationToken ct) => db.SaveChangesAsync(ct);
+    public async Task SalvarAlteracoesAsync(CancellationToken ct)
+    {
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            // DEB-15/M2 (Gate Final pós-O1.14): esta chamada única persiste, no mesmo DbContext, tanto o
+            // Usuário/vínculos quanto a eventual ancoragem "sob demanda" de CentroCustoMetadado feita por
+            // CentroCustoVinculoValidator.ValidarEAncorarAsync — nenhuma SalvarAlteracoesAsync intermediária
+            // existe mais. Uma violação de índice único aqui tanto pode ser a corrida clássica de e-mail
+            // duplicado quanto a corrida de ancoragem concorrente do mesmo código ERP por outra Unidade de
+            // Negócio (índice único global de CentrosCustoMetadados.CodigoErp) — ambas tratadas pelo
+            // chamador como "tente novamente", sem revelar qual índice colidiu.
+            throw new DuplicateRecordException(
+                "Um ou mais dados informados foram alterados por outra requisição concorrente (possível corrida entre requisições).");
+        }
+    }
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException ex) =>
+        ex.InnerException?.Message.Contains("duplicate", StringComparison.OrdinalIgnoreCase) == true
+        || ex.InnerException?.Message.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase) == true;
 }
