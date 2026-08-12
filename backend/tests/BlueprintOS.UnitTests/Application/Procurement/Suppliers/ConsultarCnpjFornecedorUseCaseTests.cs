@@ -35,7 +35,8 @@ public sealed class ConsultarCnpjFornecedorUseCaseTests
     public async Task Execute_Should_Return_Error_And_Persist_Failure_History()
     {
         await using var context = NewContext();
-        var result = ConsultaCnpjResultado.CriarFalha("12345678000195", "ConsultaTeste", DateTimeOffset.UtcNow, "Documento não encontrado.");
+        var result = ConsultaCnpjResultado.CriarFalha("12345678000195", "ConsultaTeste", DateTimeOffset.UtcNow,
+            TipoErroConsultaCnpj.NaoEncontrado, "Documento não encontrado.");
 
         var response = await Create(context, new FakeProvider(result)).ExecuteAsync(new("12345678000195", "BU-A", null, "corr-cnpj-erro"));
 
@@ -60,11 +61,22 @@ public sealed class ConsultarCnpjFornecedorUseCaseTests
     }
 
     [Fact]
-    public void Result_Should_Require_Document_Source_And_Error_Message()
+    public void Result_Should_Require_Document_And_Source()
     {
         Assert.Throws<ArgumentException>(() => ConsultaCnpjResultado.CriarSucesso("", "ConsultaTeste", SituacaoCadastralCnpj.Ativa, DateTimeOffset.UtcNow));
         Assert.Throws<ArgumentException>(() => ConsultaCnpjResultado.CriarSucesso("12345678000195", "", SituacaoCadastralCnpj.Baixada, DateTimeOffset.UtcNow));
-        Assert.Throws<ArgumentException>(() => ConsultaCnpjResultado.CriarFalha("12345678000195", "ConsultaTeste", DateTimeOffset.UtcNow, ""));
+        Assert.Throws<ArgumentException>(() => ConsultaCnpjResultado.CriarFalha("12345678000195", "", DateTimeOffset.UtcNow, TipoErroConsultaCnpj.NaoEncontrado));
+    }
+
+    [Fact]
+    public async Task Execute_Should_Classify_Unexpected_Provider_Exception_As_ErroInterno()
+    {
+        await using var context = NewContext();
+
+        var response = await Create(context, new ThrowingProvider()).ExecuteAsync(new("12345678000195", "BU-A", null, "corr-cnpj-throw"));
+
+        Assert.False(response.Sucesso);
+        Assert.Equal(TipoErroConsultaCnpj.ErroInterno, response.TipoErro);
     }
 
     [Fact]
@@ -92,7 +104,8 @@ public sealed class ConsultarCnpjFornecedorUseCaseTests
         // Regressao: falha ao obter a identidade atual (ex: header de
         // desenvolvimento ausente) ao registrar o historico tambem nao pode
         // derrubar a resposta da consulta.
-        var result = ConsultaCnpjResultado.CriarFalha("12345678000195", "ConsultaTeste", DateTimeOffset.UtcNow, "CNPJ não encontrado.");
+        var result = ConsultaCnpjResultado.CriarFalha("12345678000195", "ConsultaTeste", DateTimeOffset.UtcNow,
+            TipoErroConsultaCnpj.NaoEncontrado, "CNPJ não encontrado.");
 
         var useCase = new ConsultarCnpjFornecedorUseCase(new FakeProvider(result), new ThrowingHistoricoRepository(),
             new ThrowingIdentity(), NullLogger<ConsultarCnpjFornecedorUseCase>.Instance);
@@ -133,6 +146,13 @@ public sealed class ConsultarCnpjFornecedorUseCaseTests
             cancellationToken.ThrowIfCancellationRequested();
             throw new InvalidOperationException("CancellationToken was not propagated.");
         }
+    }
+
+    private sealed class ThrowingProvider : ICnpjConsultaProvider
+    {
+        public string FonteConsulta => "ConsultaTeste";
+        public Task<ConsultaCnpjResultado> ConsultarAsync(string _, CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException("Simulated unexpected provider failure.");
     }
 
     private sealed class ThrowingHistoricoRepository : IFornecedorCnpjConsultaHistoricoRepository

@@ -50,6 +50,8 @@ public sealed class BrasilApiCnpjProviderTests
         Assert.Equal("contato@example.com", result.Email);
         Assert.Equal("1133334444", result.Telefone);
         Assert.Equal("BrasilAPI", result.FonteConsulta);
+        Assert.Null(result.TipoErro);
+        Assert.False(result.PermiteRetry);
     }
 
     [Fact]
@@ -61,7 +63,8 @@ public sealed class BrasilApiCnpjProviderTests
 
         Assert.False(result.Sucesso);
         Assert.Equal(StatusConsultaCnpj.Falha, result.StatusConsulta);
-        Assert.Equal("Timeout ao consultar a fonte externa.", result.MensagemErro);
+        Assert.Equal(TipoErroConsultaCnpj.Timeout, result.TipoErro);
+        Assert.True(result.PermiteRetry);
     }
 
     [Fact]
@@ -72,7 +75,7 @@ public sealed class BrasilApiCnpjProviderTests
         var result = await provider.ConsultarAsync("12345678000195");
 
         Assert.False(result.Sucesso);
-        Assert.Equal("Fonte externa indisponível.", result.MensagemErro);
+        Assert.Equal(TipoErroConsultaCnpj.FonteIndisponivel, result.TipoErro);
     }
 
     [Fact]
@@ -83,18 +86,83 @@ public sealed class BrasilApiCnpjProviderTests
         var result = await provider.ConsultarAsync("12345678000195");
 
         Assert.False(result.Sucesso);
-        Assert.Equal("CNPJ não encontrado.", result.MensagemErro);
+        Assert.Equal(TipoErroConsultaCnpj.NaoEncontrado, result.TipoErro);
+        Assert.False(result.PermiteRetry);
+    }
+
+    [Fact]
+    public async Task ConsultarAsync_Should_Return_TooManyRequests_Failure()
+    {
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.TooManyRequests, "{}"));
+
+        var result = await provider.ConsultarAsync("12345678000195");
+
+        Assert.False(result.Sucesso);
+        Assert.Equal(TipoErroConsultaCnpj.LimiteDeConsultas, result.TipoErro);
+        Assert.True(result.PermiteRetry);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    public async Task ConsultarAsync_Should_Return_AuthError_Failure(HttpStatusCode statusCode)
+    {
+        var provider = CreateProvider(new JsonHandler(statusCode, "{}"));
+
+        var result = await provider.ConsultarAsync("12345678000195");
+
+        Assert.False(result.Sucesso);
+        Assert.Equal(TipoErroConsultaCnpj.ErroDeAutenticacaoDoProvider, result.TipoErro);
+        Assert.False(result.PermiteRetry);
+    }
+
+    [Fact]
+    public async Task ConsultarAsync_Should_Return_RespostaInvalida_When_Payload_Is_Malformed()
+    {
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.OK, "not-json"));
+
+        var result = await provider.ConsultarAsync("12345678000195");
+
+        Assert.False(result.Sucesso);
+        Assert.Equal(TipoErroConsultaCnpj.RespostaInvalida, result.TipoErro);
+        Assert.True(result.PermiteRetry);
+    }
+
+    [Fact]
+    public async Task ConsultarAsync_Should_Return_RespostaInvalida_When_Cnpj_Field_Is_Blank()
+    {
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.OK, "{}"));
+
+        var result = await provider.ConsultarAsync("12345678000195");
+
+        Assert.False(result.Sucesso);
+        Assert.Equal(TipoErroConsultaCnpj.RespostaInvalida, result.TipoErro);
     }
 
     [Fact]
     public async Task ConsultarAsync_Should_Return_Invalid_Format_Failure_Without_Calling_Provider()
     {
-        var provider = CreateProvider(new JsonHandler(HttpStatusCode.OK, "{}"));
+        var provider = CreateProvider(new ThrowingHandler());
 
         var result = await provider.ConsultarAsync("123");
 
         Assert.False(result.Sucesso);
-        Assert.Equal("CNPJ inválido para consulta.", result.MensagemErro);
+        Assert.Equal(TipoErroConsultaCnpj.CnpjInvalido, result.TipoErro);
+        Assert.False(result.PermiteRetry);
+    }
+
+    [Fact]
+    public async Task ConsultarAsync_Should_Reject_Checksum_Invalid_Cnpj_Without_Calling_Provider()
+    {
+        // Regressao do BUG-3: um CNPJ com 14 digitos mas digito verificador incorreto
+        // nao pode chegar a chamar o provider externo.
+        var provider = CreateProvider(new ThrowingHandler());
+
+        var result = await provider.ConsultarAsync("12345678000100");
+
+        Assert.False(result.Sucesso);
+        Assert.Equal(TipoErroConsultaCnpj.CnpjInvalido, result.TipoErro);
+        Assert.False(result.PermiteRetry);
     }
 
     [Fact]
@@ -123,6 +191,7 @@ public sealed class BrasilApiCnpjProviderTests
         Assert.True(result.Sucesso);
         Assert.Equal(SituacaoCadastralCnpj.Baixada, result.SituacaoCadastral);
         Assert.Null(result.MensagemErro);
+        Assert.Null(result.TipoErro);
     }
 
     private static BrasilApiCnpjProvider CreateProvider(HttpMessageHandler handler, int timeoutSeconds = 10)
@@ -145,6 +214,12 @@ public sealed class BrasilApiCnpjProviderTests
             };
             return Task.FromResult(response);
         }
+    }
+
+    private sealed class ThrowingHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("HTTP call should not have been made for a locally-invalid CNPJ.");
     }
 
     private sealed class DelayedHandler(TimeSpan delay) : HttpMessageHandler

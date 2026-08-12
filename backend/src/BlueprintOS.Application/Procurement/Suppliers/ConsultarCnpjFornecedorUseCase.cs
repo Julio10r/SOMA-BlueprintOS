@@ -24,10 +24,10 @@ public sealed class ConsultarCnpjFornecedorUseCase(
         {
             throw;
         }
-        catch
+        catch (Exception)
         {
             resultado = ConsultaCnpjResultado.CriarFalha(dto.Cnpj_Cpf, provider.FonteConsulta, DateTimeOffset.UtcNow,
-                "Falha ao consultar a fonte externa.");
+                TipoErroConsultaCnpj.ErroInterno);
         }
 
         // O registro de historico e uma acao auxiliar de auditoria: uma falha ao

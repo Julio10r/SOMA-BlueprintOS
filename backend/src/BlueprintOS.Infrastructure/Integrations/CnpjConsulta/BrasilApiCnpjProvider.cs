@@ -1,8 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Application.Procurement.Suppliers.Models;
+using BlueprintOS.Domain.Procurement.Suppliers;
 using Microsoft.Extensions.Options;
 
 namespace BlueprintOS.Infrastructure.Integrations.CnpjConsulta;
@@ -14,10 +16,14 @@ public sealed class BrasilApiCnpjProvider(HttpClient httpClient, IOptions<CnpjCo
     public async Task<ConsultaCnpjResultado> ConsultarAsync(string cnpjCpf, CancellationToken cancellationToken = default)
     {
         var dataConsulta = DateTimeOffset.UtcNow;
-        var documento = OnlyDigits(cnpjCpf);
-        if (documento.Length != 14)
+        string documento;
+        try
         {
-            return ConsultaCnpjResultado.CriarFalha(cnpjCpf, FonteConsulta, dataConsulta, "CNPJ inválido para consulta.");
+            documento = DocumentoFiscal.Create(cnpjCpf).Value;
+        }
+        catch (ArgumentException)
+        {
+            return ConsultaCnpjResultado.CriarFalha(cnpjCpf, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.CnpjInvalido);
         }
 
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Max(1, options.Value.TimeoutSeconds)));
@@ -28,18 +34,28 @@ public sealed class BrasilApiCnpjProvider(HttpClient httpClient, IOptions<CnpjCo
             using var response = await httpClient.GetAsync(documento, linkedToken.Token);
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, "CNPJ não encontrado.");
+                return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.NaoEncontrado);
+            }
+
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            {
+                return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.LimiteDeConsultas);
+            }
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.ErroDeAutenticacaoDoProvider);
             }
 
             if (!response.IsSuccessStatusCode)
             {
-                return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, "Fonte externa indisponível.");
+                return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.FonteIndisponivel);
             }
 
             var payload = await response.Content.ReadFromJsonAsync<BrasilApiCnpjResponse>(cancellationToken: linkedToken.Token);
             if (payload is null || string.IsNullOrWhiteSpace(payload.Cnpj))
             {
-                return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, "Resposta inválida da fonte externa.");
+                return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.RespostaInvalida);
             }
 
             return ConsultaCnpjResultado.CriarSucesso(
@@ -71,15 +87,19 @@ public sealed class BrasilApiCnpjProvider(HttpClient httpClient, IOptions<CnpjCo
         }
         catch (OperationCanceledException)
         {
-            return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, "Timeout ao consultar a fonte externa.");
+            return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.Timeout);
         }
         catch (HttpRequestException)
         {
-            return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, "Erro de comunicação com a fonte externa.");
+            return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.FonteIndisponivel);
         }
-        catch
+        catch (JsonException)
         {
-            return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, "Resposta inválida da fonte externa.");
+            return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.RespostaInvalida);
+        }
+        catch (Exception)
+        {
+            return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.ErroInterno);
         }
     }
 
