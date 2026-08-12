@@ -234,7 +234,9 @@ A auditoria desta sprint encontrou um candidato a exposição cross-BU: `ObterSi
 | Monitoramento de sincronização | `SincronizacaoFornecedor` | `SincronizacoesFornecedores` | (B2.1.3, pré-existente) | `MonitoramentoOperacionalController` | `administration` (O1.13, Monitor/Auditoria) |
 | Conhecimento Linx | `LinxKnowledgeEntry` | `LinxConhecimentoEntradas` | `AddLinxKnowledgeO1135` | `LinxKnowledgeController` | Não exigido (sem frontend administrativo dedicado nesta fundação) |
 
-> Matriz Tela × Campo × Entidade detalhada por módulo (nível de campo de formulário) permanece nas Work Orders de domínio (O1.5–O1.13.5) e nos arquivos `types/*.ts` de cada Vertical Slice do frontend — não duplicada aqui para evitar documentação desconectada (D7); esta tabela consolida o nível Domínio → Tabela → API → Frontend exigido pela O1.14.
+> Nível de campo de formulário agora consolidado na seção "Matriz tela × campo × entidade (entregável #37)"
+> abaixo — mantida sincronizada com os arquivos `types/*.ts` de cada Vertical Slice (fonte primária); esta
+> tabela consolida o nível Domínio → Tabela → API → Frontend exigido pela O1.14.
 
 ## Validação funcional executada (O1.14)
 
@@ -242,3 +244,301 @@ A auditoria desta sprint encontrou um candidato a exposição cross-BU: `ObterSi
 - `dotnet test BlueprintOS.sln`: aprovado, 689/689 (682 unitários + 7 integração) — sem regressão em relação à baseline da O1.13.5.
 - `dotnet ef migrations list` / `dotnet ef migrations has-pending-model-changes`: executados e reconciliados nesta seção — nenhuma migration pendente, nenhum drift entre modelo EF e histórico aplicado.
 - Frontend: nenhum arquivo alterado nesta sprint (documentação/banco); suíte de 116 testes (Vitest) não reexecutada por ausência de mudança — baseline válida desde O1.13.5.
+
+## Mapeamento de APIs (entregável #39)
+
+> Levantamento exaustivo de todos os endpoints HTTP reais mapeados via Minimal APIs em
+> `backend/src/BlueprintOS.Api/**/*.cs` (`MapGet`/`MapPost`/`MapPut`/`MapPatch`/`MapDelete`), incluindo
+> `Program.cs`. Política global: `AuthorizationOptions.FallbackPolicy` exige usuário autenticado em
+> **todo** endpoint por padrão (`Program.cs`) — anônimo só existe onde `.AllowAnonymous()` aparece
+> explicitamente no código. "Autenticado apenas" na coluna de permissão significa que o endpoint depende
+> só dessa policy global (sessão válida), sem `RbacPolicies.For(...)` adicional.
+
+### Administração (base `/api/administracao`, `PerfisController.BaseRoute`)
+
+| Método | Rota completa | Controller | Permissão RBAC | Descrição breve |
+|---|---|---|---|---|
+| GET | `/api/administracao/permissoes` | `PerfisController` | `Perfil.Gerenciar` | Lista o catálogo global de permissões (19 permissões seedadas) |
+| GET | `/api/administracao/perfis` | `PerfisController` | `Perfil.Gerenciar` | Lista Perfis da Unidade de Negócio da sessão |
+| GET | `/api/administracao/perfis/{id:guid}` | `PerfisController` | `Perfil.Gerenciar` | Obtém um Perfil por Id |
+| POST | `/api/administracao/perfis` | `PerfisController` | `Perfil.Gerenciar` | Cria Perfil |
+| PUT | `/api/administracao/perfis/{id:guid}` | `PerfisController` | `Perfil.Gerenciar` | Atualiza Nome/Descrição/Permissões do Perfil |
+| PATCH | `/api/administracao/perfis/{id:guid}/status` | `PerfisController` | `Perfil.Gerenciar` | Ativa/inativa Perfil (sem exclusão física) |
+| GET | `/api/administracao/usuarios` | `UsuariosController` | `Usuario.Gerenciar` | Lista Usuários da BU da sessão |
+| GET | `/api/administracao/usuarios/{id:guid}` | `UsuariosController` | `Usuario.Gerenciar` | Obtém Usuário por Id |
+| POST | `/api/administracao/usuarios` | `UsuariosController` | `Usuario.Gerenciar` | Cria Usuário |
+| PUT | `/api/administracao/usuarios/{id:guid}` | `UsuariosController` | `Usuario.Gerenciar` | Atualiza Usuário (Perfis, Centros de Custo, etc.) |
+| PATCH | `/api/administracao/usuarios/{id:guid}/status` | `UsuariosController` | `Usuario.Gerenciar` | Ativa/inativa Usuário |
+| GET | `/api/administracao/filiais` | `FiliaisController` | `Filial.Gerenciar` | Lista Filiais (dado mestre ERP + metadado local) |
+| PUT | `/api/administracao/filiais/{codigoCliFor}` | `FiliaisController` | `Filial.Gerenciar` | Atualiza metadado local (`DescricaoMaisCompras`/`AtivoNoMaisCompras`) |
+| GET | `/api/administracao/centros-custo` | `CentrosCustoController` | `CentroCusto.Gerenciar` | Lista Centros de Custo (dado mestre ERP + metadado local) |
+| PUT | `/api/administracao/centros-custo/{codigoErp}` | `CentrosCustoController` | `CentroCusto.Gerenciar` | Atualiza metadado local do Centro de Custo |
+| GET | `/api/administracao/centros-custo/{codigoErp}/unidades-alocacao` | `CentrosCustoController` | `CentroCusto.Gerenciar` | Lista vínculos N:N com Unidade de Alocação |
+| PUT | `/api/administracao/centros-custo/{codigoErp}/unidades-alocacao` | `CentrosCustoController` | `CentroCusto.Gerenciar` | Substitui o conjunto de vínculos com Unidade de Alocação |
+| GET | `/api/administracao/unidades-alocacao` | `UnidadesAlocacaoController` | `UnidadeAlocacao.Gerenciar` | Lista Unidades de Alocação |
+| GET | `/api/administracao/unidades-alocacao/{id:guid}` | `UnidadesAlocacaoController` | `UnidadeAlocacao.Gerenciar` | Obtém Unidade de Alocação por Id |
+| POST | `/api/administracao/unidades-alocacao` | `UnidadesAlocacaoController` | `UnidadeAlocacao.Gerenciar` | Cria Unidade de Alocação |
+| PUT | `/api/administracao/unidades-alocacao/{id:guid}` | `UnidadesAlocacaoController` | `UnidadeAlocacao.Gerenciar` | Atualiza Nome/Descrição |
+| PATCH | `/api/administracao/unidades-alocacao/{id:guid}/status` | `UnidadesAlocacaoController` | `UnidadeAlocacao.Gerenciar` | Ativa/inativa |
+| GET | `/api/administracao/unidades-negocio` | `UnidadesNegocioController` | `UnidadeNegocio.Gerenciar` | Lista Unidades de Negócio |
+| POST | `/api/administracao/unidades-negocio` | `UnidadesNegocioController` | `UnidadeNegocio.Gerenciar` | Cria Unidade de Negócio |
+| PUT | `/api/administracao/unidades-negocio/{id:guid}` | `UnidadesNegocioController` | `UnidadeNegocio.Gerenciar` | Renomeia Unidade de Negócio |
+| PATCH | `/api/administracao/unidades-negocio/{id:guid}/status` | `UnidadesNegocioController` | `UnidadeNegocio.Gerenciar` | Ativa/inativa |
+| GET | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/identity-providers` | `IdentityProvidersController` | `Sistema.Gerenciar` | Lista Identity Providers configurados na BU |
+| POST | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/identity-providers` | `IdentityProvidersController` | `Sistema.Gerenciar` | Cria Identity Provider |
+| PUT | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/identity-providers/{id:guid}` | `IdentityProvidersController` | `Sistema.Gerenciar` | Atualiza Identity Provider (tipo/domínios/parâmetros) |
+| PATCH | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/identity-providers/{id:guid}/status` | `IdentityProvidersController` | `Sistema.Gerenciar` | Ativa/inativa |
+| GET | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/configuracao-erp` | `ConfiguracaoErpController` | `ConfiguracaoErp.Gerenciar` | Obtém configuração de ERP da BU |
+| PUT | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/configuracao-erp` | `ConfiguracaoErpController` | `ConfiguracaoErp.Gerenciar` | Salva configuração de ERP (sistema/parâmetros de conexão) |
+| PATCH | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/configuracao-erp/status` | `ConfiguracaoErpController` | `ConfiguracaoErp.Gerenciar` | Ativa/inativa |
+| GET | `/api/administracao/parametros` | `ParametrosController` | `Sistema.Gerenciar` | Lista Parâmetros (globais e por BU) |
+| POST | `/api/administracao/parametros` | `ParametrosController` | `Sistema.Gerenciar` | Cria Parâmetro |
+| PUT | `/api/administracao/parametros/{id:guid}` | `ParametrosController` | `Sistema.Gerenciar` | Atualiza Valor/Descrição |
+| DELETE | `/api/administracao/parametros/{id:guid}` | `ParametrosController` | `Sistema.Gerenciar` | Exclui Parâmetro (única exclusão física do catálogo administrativo) |
+| GET | `/api/administracao/feature-flags` | `FeatureFlagsController` | `Sistema.Gerenciar` | Lista Feature Flags e status por Unidade de Negócio |
+| POST | `/api/administracao/feature-flags` | `FeatureFlagsController` | `Sistema.Gerenciar` | Cria Feature Flag |
+| PATCH | `/api/administracao/feature-flags/{id:guid}/unidades-negocio/{unidadeNegocioId:guid}` | `FeatureFlagsController` | `Sistema.Gerenciar` | Ativa/inativa a flag para uma BU específica |
+| GET | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/configuracao-notificacao` | `ConfiguracaoNotificacaoController` | `Sistema.Gerenciar` | Obtém configuração de notificação (canal e-mail) da BU |
+| PUT | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/configuracao-notificacao` | `ConfiguracaoNotificacaoController` | `Sistema.Gerenciar` | Salva configuração de notificação |
+| GET | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/alcadas-aprovacao` | `AlcadasAprovacaoController` | `Alcada.Gerenciar` | Lista Alçadas de Aprovação da BU |
+| POST | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/alcadas-aprovacao` | `AlcadasAprovacaoController` | `Alcada.Gerenciar` | Cria Alçada de Aprovação |
+| PUT | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/alcadas-aprovacao/{id:guid}` | `AlcadasAprovacaoController` | `Alcada.Gerenciar` | Atualiza Alçada de Aprovação |
+| PATCH | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/alcadas-aprovacao/{id:guid}/status` | `AlcadasAprovacaoController` | `Alcada.Gerenciar` | Ativa/inativa |
+| GET | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/regras-orcamentarias` | `RegrasOrcamentariasController` | `Orcamento.Gerenciar` | Lista Regras Orçamentárias da BU |
+| POST | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/regras-orcamentarias` | `RegrasOrcamentariasController` | `Orcamento.Gerenciar` | Cria Regra Orçamentária |
+| PUT | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/regras-orcamentarias/{id:guid}` | `RegrasOrcamentariasController` | `Orcamento.Gerenciar` | Atualiza Regra Orçamentária |
+| PATCH | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/regras-orcamentarias/{id:guid}/status` | `RegrasOrcamentariasController` | `Orcamento.Gerenciar` | Ativa/inativa |
+| GET | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/regras-workflow` | `RegrasWorkflowController` | `Workflow.Gerenciar` | Lista Regras de Workflow da BU |
+| POST | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/regras-workflow` | `RegrasWorkflowController` | `Workflow.Gerenciar` | Cria Regra de Workflow |
+| PUT | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/regras-workflow/{id:guid}` | `RegrasWorkflowController` | `Workflow.Gerenciar` | Atualiza Regra de Workflow |
+| PATCH | `/api/administracao/unidades-negocio/{unidadeNegocioId:guid}/regras-workflow/{id:guid}/status` | `RegrasWorkflowController` | `Workflow.Gerenciar` | Ativa/inativa |
+| GET | `/api/administracao/monitoramento/sincronizacoes-fornecedores` | `MonitoramentoOperacionalController` | `Sistema.Gerenciar` | Lista execuções de sincronização de fornecedores (paginado, filtros status/BU) |
+| GET | `/api/administracao/monitoramento/sincronizacoes-fornecedores/{id:guid}` | `MonitoramentoOperacionalController` | `Sistema.Gerenciar` | Detalhe de uma execução, incluindo erros. **GAP conhecido:** busca só por `Id`, sem filtro de `BusinessUnit` (ver seção "Isolamento Multi-BU — achado de auditoria") |
+| GET | `/api/administracao/conhecimento-linx/` | `LinxKnowledgeController` | Autenticado apenas | Busca entradas de Conhecimento Linx (por especialista/categoria/BU/proveniência) |
+| GET | `/api/administracao/conhecimento-linx/{versaoRaizId:guid}/historico` | `LinxKnowledgeController` | Autenticado apenas | Histórico de versões de uma entrada |
+| POST | `/api/administracao/conhecimento-linx/` | `LinxKnowledgeController` | `ConhecimentoLinx.Gerenciar` | Registra nova entrada/versão de conhecimento |
+| POST | `/api/administracao/conhecimento-linx/{id:guid}/validar` | `LinxKnowledgeController` | `ConhecimentoLinx.Gerenciar` | Avança proveniência para Validado |
+| POST | `/api/administracao/conhecimento-linx/{id:guid}/aprovar` | `LinxKnowledgeController` | `ConhecimentoLinx.Aprovar` | Avança proveniência para Aprovado |
+
+### Identity / Bootstrap / Autenticação
+
+| Método | Rota completa | Controller | Permissão RBAC | Descrição breve |
+|---|---|---|---|---|
+| POST | `/auth/otp/request` | `AuthController` | Anônimo (`.AllowAnonymous()`) | Solicita OTP de login por e-mail (rate limited) |
+| POST | `/auth/otp/verify` | `AuthController` | Anônimo (`.AllowAnonymous()`) | Valida OTP e cria sessão (rate limited) |
+| POST | `/auth/logout` | `AuthController` | Anônimo (`.AllowAnonymous()`) | Encerra a sessão atual (idempotente mesmo sem sessão) |
+| GET | `/auth/me` | `AuthController` | Autenticado apenas | Dados do usuário autenticado (produz 401 via `FallbackPolicy` se sem sessão) |
+| GET | `/me/unidades-negocio` | `MeController` | Autenticado apenas | Lista Unidades de Negócio às quais o usuário autenticado tem acesso |
+| GET | `/bootstrap/estado` | `BootstrapController` | Anônimo (`.AllowAnonymous()`) | Consulta se o Bootstrap Mode já foi concluído |
+| POST | `/bootstrap/iniciar` | `BootstrapController` | Anônimo (`.AllowAnonymous()`) | Inicia Bootstrap (secret + e-mail pré-autorizado; rate limited) |
+| POST | `/bootstrap/otp/verificar` | `BootstrapController` | Anônimo (`.AllowAnonymous()`) | Valida OTP do Bootstrap e cria Sessão de Bootstrap (rate limited) |
+| POST | `/bootstrap/concluir` | `BootstrapController` | `BootstrapAuthorizationPolicies.BootstrapAuthenticated` (exige Sessão de Bootstrap válida, não a policy RBAC comum) | Conclui o Bootstrap: cria Unidade de Negócio, Usuário e vínculo de Administrador Sênior |
+| GET | `/dev/otp` | `DevelopmentOtpDiagnosticsController` | Anônimo, mas restrito a `IHostEnvironment.IsDevelopment()` + loopback TCP real | Diagnóstico: recupera o último OTP gerado para um e-mail (Development apenas, nunca em Staging/Production) |
+| GET | `/health` | `Program.cs` | Anônimo (`.AllowAnonymous()`) | Health check de orquestração/monitoramento |
+
+### Fornecedores (Procurement)
+
+| Método | Rota completa | Controller | Permissão RBAC | Descrição breve |
+|---|---|---|---|---|
+| POST | `/api/fornecedores/descobrir` | `FornecedorDiscoveryController` | Autenticado apenas | Dispara descoberta inteligente de fornecedores no ERP a partir de item/categoria |
+| GET | `/api/fornecedores/descobertas` | `FornecedorDiscoveryController` | Autenticado apenas | Lista descobertas já executadas |
+| GET | `/api/fornecedores/descobertas/{id:guid}` | `FornecedorDiscoveryController` | Autenticado apenas | Obtém detalhe de uma descoberta |
+| POST | `/api/fornecedores/sincronizar` | `FornecedorSyncController` | `Sistema.Gerenciar` | Sincroniza um fornecedor pontual com o ERP |
+| POST | `/api/fornecedores/sincronizar/lote` | `FornecedorSyncController` | `Sistema.Gerenciar` | Sincroniza fornecedores em lote |
+| GET | `/api/fornecedores/sincronizar-erp` | `FornecedorSyncController` | `Sistema.Gerenciar` | Dispara sincronização completa fornecedores × ERP |
+| GET | `/api/fornecedores/{fornecedorId:guid}/sincronizacoes` | `FornecedorSyncController` | `Sistema.Gerenciar` | Histórico/auditoria de sincronizações de um fornecedor |
+| POST | `/fornecedores` | `FornecedoresController` | `Fornecedor.Criar` | Cria Fornecedor |
+| GET | `/fornecedores` | `FornecedoresController` | Autenticado apenas | Busca/lista Fornecedores |
+| POST | `/fornecedores/consulta-cnpj` | `FornecedoresController` | `Fornecedor.Criar` | Consulta CNPJ em provedor externo (BrasilAPI) |
+| GET | `/fornecedores/{id:guid}` | `FornecedoresController` | Autenticado apenas | Obtém Fornecedor por Id |
+| PUT | `/fornecedores/{id:guid}` | `FornecedoresController` | `Fornecedor.Editar` | Atualiza Fornecedor |
+| DELETE | `/fornecedores/{id:guid}` | `FornecedoresController` | `Fornecedor.Editar` | Exclui Fornecedor |
+| POST | `/fornecedores/{id:guid}/enriquecimento-cnpj` | `FornecedoresController` | `Fornecedor.Editar` | Analisa divergência ERP × CNPJ para enriquecimento |
+| POST | `/fornecedores/{id:guid}/enriquecimento-cnpj/aprovar` | `FornecedoresController` | `Fornecedor.Aprovar` | Aprova enriquecimento de campo divergente |
+| POST | `/fornecedores/{id:guid}/enriquecimento-cnpj/rejeitar` | `FornecedoresController` | `Fornecedor.Aprovar` | Rejeita enriquecimento de campo divergente |
+
+> **Nota de padronização (GAP registrado):** `FornecedorDiscoveryController`/`FornecedorSyncController` usam prefixo `/api/fornecedores`, enquanto `FornecedoresController` usa `/fornecedores` sem `/api` — inconsistência de convenção de rotas dentro do mesmo domínio, sem impacto funcional (roteamento resolve normalmente), mas digna de padronização futura.
+
+### Negociação (AI / Core)
+
+| Método | Rota completa | Controller | Permissão RBAC | Descrição breve |
+|---|---|---|---|---|
+| POST | `/api/v1/negotiations/history` | `NegotiationEndpoints` | Autenticado apenas | Registra histórico de negociação na memória do agente |
+| GET | `/api/v1/negotiations/suppliers/{supplierId:guid}` | `NegotiationEndpoints` | Autenticado apenas | Consulta histórico de negociação por fornecedor |
+| POST | `/api/v1/negotiations/recommendations` | `NegotiationEndpoints` | Autenticado apenas | Gera recomendação de negociação |
+| POST | `/api/v1/negociacoes/recomendacoes` | `NegotiationRecommendationController` | Autenticado apenas | Endpoint equivalente em português (mapeado direto em `endpoints`, fora de `MapGroup`) |
+
+**Total catalogado: 92 endpoints** distribuídos em 20 arquivos de controller/endpoint estático + `Program.cs` (health check).
+
+## Matriz tela × campo × entidade (entregável #37)
+
+> Um módulo por Vertical Slice de `frontend/web/src/administration/*`. Coluna "Entidade/Tabela" cruzada
+> com as tabelas já documentadas nas seções de Blueprint administrativo acima. Campos derivados dos
+> arquivos `types/*.ts` de cada slice (fonte real dos contratos DTO consumidos pela tela — não há
+> duplicação de schema em outro lugar do frontend). "Editável" refere-se aos formulários de
+> criação/edição (`*Input`/`*CriarInput`/`*UpdateInput`/`*AtualizarInput`); campos presentes apenas no
+> tipo de leitura (`*Dto`/tipo principal) e ausentes do `*Input` correspondente são somente leitura na tela.
+
+### Perfis (`administration/profiles`)
+
+| Campo | Propriedade/Tipo (TS) | Entidade/Tabela | Editável |
+|---|---|---|---|
+| Nome | `nome: string` | `Perfis.Nome` | Sim |
+| Descrição | `descricao: string` | `Perfis.Descricao` | Sim |
+| Permissões | `permissoes: string[]` (códigos) | `PerfisPermissoes` (via `Permissoes.Codigo`) | Sim |
+| Status | `ativo: boolean` | `Perfis.Ativo` | Sim (ação separada de ativar/inativar) |
+| Unidade de Negócio | `unidadeNegocioId: string` | `Perfis.UnidadeNegocioId` | Não (resolvida pela sessão, nunca enviada pelo cliente) |
+| Usuários vinculados | `usuariosVinculados: number` | Derivado de `UsuariosPerfis` (contagem) | Não |
+| Criado em / Atualizado em | `criadoEm`/`atualizadoEm: string` | `Perfis.CriadoEm`/`AtualizadoEm` | Não |
+
+### Usuários (`administration/users`)
+
+| Campo | Propriedade/Tipo (TS) | Entidade/Tabela | Editável |
+|---|---|---|---|
+| Nome | `nome: string` | `Usuarios.Nome` | Sim |
+| E-mail | `email: string` | `Usuarios.Email` | Sim |
+| Perfis | `perfis: string[]` (Ids no input) / `UsuarioPerfilResumo[]` (leitura) | `UsuariosPerfis` | Sim |
+| Centros de Custo | `centrosCusto: string[]` | `UsuariosCentrosCusto.CentroCustoCodigoErp` | Sim |
+| Todos os Centros de Custo | `todosCentrosCusto: boolean` | `UsuariosCentrosCusto` (flag de escopo total) | Sim |
+| Status | `ativo: boolean` | `Usuarios.Status` | Sim (ação separada) |
+| Unidade de Negócio | `unidadeNegocioId: string` | `Usuarios.UnidadeNegocioId` | Não (sessão) |
+| Criado em / Atualizado em | `criadoEm`/`atualizadoEm: string` | — | Não |
+
+### Filiais (`administration/branches`)
+
+| Campo | Propriedade/Tipo (TS) | Entidade/Tabela | Editável |
+|---|---|---|---|
+| Código CliFor | `codigoCliFor: string` | Correlação `FiliaisMetadados.CodigoErp` ↔ `CADASTRO_CLI_FOR` (ERP) | Não (somente leitura, origem ERP) |
+| Nome CliFor | `nomeCliFor: string` | ERP (`CADASTRO_CLI_FOR`), nunca persistido localmente | Não |
+| Descrição +Compras | `descricaoMaisCompras?: string` | `FiliaisMetadados.DescricaoMaisCompras` | Sim |
+| Ativo no +Compras | `ativoNoMaisCompras: boolean` | `FiliaisMetadados.AtivoNoMaisCompras` | Sim |
+| Tem metadado local | `temMetadadoLocal: boolean` | Derivado (existência de linha em `FiliaisMetadados`) | Não |
+| Unidade de Negócio | `unidadeNegocioId: string` | `FiliaisMetadados.UnidadeNegocioId` | Não |
+
+### Centros de Custo (`administration/cost-centers`)
+
+| Campo | Propriedade/Tipo (TS) | Entidade/Tabela | Editável |
+|---|---|---|---|
+| Código ERP | `codigoErp: string` | Correlação `CentrosCustoMetadados.CodigoErp` ↔ `CENTRO_CUSTO` (ERP) | Não |
+| Descrição ERP | `descricaoErp: string` | ERP (`CENTRO_CUSTO`) | Não |
+| Descrição +Compras | `descricaoMaisCompras?: string` | `CentrosCustoMetadados.DescricaoMaisCompras` | Sim |
+| Ativo no +Compras | `ativoNoMaisCompras: boolean` | `CentrosCustoMetadados.AtivoNoMaisCompras` | Sim |
+| Unidade de Alocação padrão (nome) | `unidadeAlocacaoPadraoNome?: string` | `CentrosCustoUnidadesAlocacao` (linha com `Padrao=1`) via `UnidadesAlocacao.Nome` | Sim (por tela dedicada de vínculo) |
+| Qtd. Unidades de Alocação vinculadas | `quantidadeUnidadesAlocacaoVinculadas: number` | Derivado de `CentrosCustoUnidadesAlocacao` | Não |
+| Vínculos (tela de vínculo) | `UnidadeAlocacaoVinculoResumo[]` (`id`,`nome`,`ativo`,`padrao`) | `CentrosCustoUnidadesAlocacao` ⋈ `UnidadesAlocacao` | Sim |
+| Unidade de Negócio | `unidadeNegocioId: string` | `CentrosCustoMetadados.UnidadeNegocioId` | Não |
+
+### Unidades de Alocação (`administration/allocation-units`)
+
+| Campo | Propriedade/Tipo (TS) | Entidade/Tabela | Editável |
+|---|---|---|---|
+| Nome | `nome: string` | `UnidadesAlocacao.Nome` | Sim |
+| Descrição | `descricao: string` | `UnidadesAlocacao.Descricao` | Sim |
+| Status | `status: "Ativo"\|"Inativo"` | `UnidadesAlocacao.Status` | Sim (ação separada) |
+| Unidade de Negócio | `unidadeNegocioId: string` | `UnidadesAlocacao.UnidadeNegocioId` | Não (sessão) |
+
+### Unidades de Negócio (`administration/business-units`)
+
+| Campo | Propriedade/Tipo (TS) | Entidade/Tabela | Editável |
+|---|---|---|---|
+| Nome | `nome: string` | `UnidadesNegocio.Nome` | Sim |
+| Slug | `slug: string` | `UnidadesNegocio.Slug` | Sim (só na criação — `UnidadeNegocioEditarInput` não tem `slug`) |
+| Status | `status: "Ativo"\|"Inativo"` | `UnidadesNegocio.Status` | Sim (ação separada) |
+
+### Identity Providers (`administration/identity-providers`)
+
+| Campo | Propriedade/Tipo (TS) | Entidade/Tabela | Editável |
+|---|---|---|---|
+| Tipo | `tipo: string` | `IdentityProviders.Tipo` | Sim |
+| Domínios autorizados | `dominiosAutorizados: string[]` | `IdentityProviders` (coluna de domínios) | Sim |
+| Parâmetros configurados | `parametrosConfigurados: boolean` (leitura) / `parametros?: string` (input, segredo) | `IdentityProviders` (parâmetros de conexão) | Sim (segredo nunca retorna ao cliente; vazio preserva valor salvo) |
+| Status | `status: "Ativo"\|"Inativo"` | `IdentityProviders.Status` | Sim (ação separada) |
+| Unidade de Negócio | `unidadeNegocioId: string` | `IdentityProviders.UnidadeNegocioId` (sem FK física) | Não |
+
+### Configuração de ERP (`administration/erp-configuration`)
+
+| Campo | Propriedade/Tipo (TS) | Entidade/Tabela | Editável |
+|---|---|---|---|
+| Sistema ERP | `sistemaErp: string` | `ConfiguracoesErp` (coluna de sistema/adaptador) | Sim |
+| Parâmetros configurados | `parametrosConfigurados: boolean` (leitura) / `parametrosConexao?: string` (input, segredo) | `ConfiguracoesErp` (parâmetros de conexão) | Sim (segredo nunca retorna ao cliente) |
+| Status | `status: "Ativo"\|"Inativo"` | `ConfiguracoesErp.Status` | Sim (ação separada) |
+| Unidade de Negócio | `unidadeNegocioId: string` | `ConfiguracoesErp.UnidadeNegocioId` (sem FK física; único por BU) | Não |
+
+### Configuração de Notificações (`administration/notification-configuration`)
+
+| Campo | Propriedade/Tipo (TS) | Entidade/Tabela | Editável |
+|---|---|---|---|
+| E-mail ativado | `emailAtivado: boolean` | `ConfiguracoesNotificacao.EmailAtivado` | Sim |
+| E-mail remetente | `emailRemetente: string \| null` | `ConfiguracoesNotificacao.EmailRemetente` | Sim |
+| Nome do remetente | `nomeRemetente: string \| null` | `ConfiguracoesNotificacao.NomeRemetente` | Sim |
+| Unidade de Negócio | `unidadeNegocioId: string` | `ConfiguracoesNotificacao.UnidadeNegocioId` (sem FK física; único por BU) | Não |
+
+> Escopo mínimo de fundação (decisão formal do Product Owner, O1.11 #24): apenas canal e-mail; sem catálogo de eventos configuráveis nesta sprint.
+
+### Feature Flags (`administration/feature-flags`)
+
+| Campo | Propriedade/Tipo (TS) | Entidade/Tabela | Editável |
+|---|---|---|---|
+| Nome | `nome: string` | `FeatureFlags.Nome` | Sim (só na criação) |
+| Descrição | `descricao: string` | `FeatureFlags` (coluna de descrição) | Sim (só na criação) |
+| Status por Unidade de Negócio | `status: FeatureFlagStatusUnidade[]` (`unidadeNegocioId`, `unidadeNegocioNome`, `ativa`) | `FeatureFlagsUnidadesNegocio` ⋈ `UnidadesNegocio` (sem FK física) | Sim (toggle por BU via `PATCH .../unidades-negocio/{id}`) |
+
+### Parâmetros (`administration/parameters`)
+
+| Campo | Propriedade/Tipo (TS) | Entidade/Tabela | Editável |
+|---|---|---|---|
+| Chave | `chave: string` | `Parametros` (coluna de chave) | Sim (só na criação — `ParametroAtualizarInput` não tem `chave`) |
+| Valor | `valor: string` | `Parametros` (coluna de valor) | Sim |
+| Descrição | `descricao: string` | `Parametros` (coluna de descrição) | Sim |
+| Unidade de Negócio | `unidadeNegocioId: string \| null` | `Parametros.UnidadeNegocioId` (`null` = parâmetro global) | Sim (só na criação) |
+
+### Alçadas de Aprovação (`administration/alcadas`)
+
+| Campo | Propriedade/Tipo (TS) | Entidade/Tabela | Editável |
+|---|---|---|---|
+| Nome | `nome: string` | `AlcadasAprovacao` (coluna de nome) | Sim |
+| Critério | `criterio: CriterioAlcada` (enum 0/1/2 — Valor/Categoria/CentroCusto) | `AlcadasAprovacao.CriterioAlcada` (int) | Sim |
+| Valor mínimo / máximo | `valorMinimo`/`valorMaximo: number \| null` | `AlcadasAprovacao` (colunas decimais) | Sim |
+| Centro de Custo (metadado) | `centroCustoMetadadoId: string \| null` | Referência fraca a `CentrosCustoMetadados.Id` (sem FK física) | Sim |
+| Nível | `nivel: number` | `AlcadasAprovacao.Nivel` | Sim |
+| Aprovador Usuário / Perfil | `aprovadorUsuarioId`/`aprovadorPerfilId: string \| null` | Referência fraca a `Usuarios.Id`/`Perfis.Id` (sem FK física — exatamente um dos dois) | Sim |
+| Status | `status: "Ativo"\|"Inativo"` | `AlcadasAprovacao.Status` | Sim (ação separada) |
+| Unidade de Negócio | `unidadeNegocioId: string` | `AlcadasAprovacao.UnidadeNegocioId` (sem FK física) | Não (path explícito, não claim de sessão) |
+
+### Regras Orçamentárias (`administration/orcamento`)
+
+| Campo | Propriedade/Tipo (TS) | Entidade/Tabela | Editável |
+|---|---|---|---|
+| Nome | `nome: string` | `RegrasOrcamentarias` (coluna de nome) | Sim |
+| Centro de Custo (metadado) | `centroCustoMetadadoId: string` | `RegrasOrcamentarias.CentroCustoMetadadoId` (índice composto, sem FK física) | Sim |
+| Valor limite | `valorLimite: number` | `RegrasOrcamentarias` (coluna decimal) | Sim |
+| Período | `periodo: PeriodoOrcamentario` (enum 0/1/2 — Mensal/Trimestral/Anual) | `RegrasOrcamentarias.Periodo` (int) | Sim |
+| Status | `status: "Ativo"\|"Inativo"` | `RegrasOrcamentarias.Status` | Sim (ação separada) |
+| Unidade de Negócio | `unidadeNegocioId: string` | `RegrasOrcamentarias.UnidadeNegocioId` | Não |
+
+### Regras de Workflow (`administration/workflow`)
+
+| Campo | Propriedade/Tipo (TS) | Entidade/Tabela | Editável |
+|---|---|---|---|
+| Nome | `nome: string` | `RegrasWorkflow` (coluna de nome) | Sim |
+| Tipo de processo | `tipoProcesso: string` | `RegrasWorkflow` (coluna de tipo de processo) | Sim |
+| Ordem | `ordem: number` | `RegrasWorkflow.Ordem` | Sim |
+| Status | `status: "Ativo"\|"Inativo"` | `RegrasWorkflow.Status` | Sim (ação separada) |
+| Unidade de Negócio | `unidadeNegocioId: string` | `RegrasWorkflow.UnidadeNegocioId` (sem FK física) | Não |
+
+### Monitoramento Operacional (`administration/operational-monitoring`)
+
+> Tela de auditoria/consulta — nenhum campo é editável (sem formulário de criação/edição; apenas listagem e detalhe).
+
+| Campo | Propriedade/Tipo (TS) | Entidade/Tabela | Editável |
+|---|---|---|---|
+| Sistema origem | `sistemaOrigem: string` | `SincronizacoesFornecedores` (coluna de sistema ERP) | Não |
+| Unidade de Negócio (Business Unit) | `businessUnit: string` | `SincronizacoesFornecedores.BusinessUnit` (texto livre, não `UnidadeNegocioId`) | Não |
+| Data início / fim | `dataInicio: string` / `dataFim: string \| null` | `SincronizacoesFornecedores` | Não |
+| Status | `status: "Sucesso"\|"Parcial"\|"Erro"` | `SincronizacoesFornecedores.Status` | Não |
+| Totais (consultado/incluído/atualizado/sem alteração/erro) | `totalConsultado`/`totalIncluido`/`totalAtualizado`/`totalSemAlteracao`/`totalErro: number` | `SincronizacoesFornecedores` | Não |
+| Tempo de execução | `tempoExecucaoMs: number` | `SincronizacoesFornecedores` | Não |
+| Erros (detalhe) | `erros: ErroSincronizacaoFornecedor[]` (`fornecedorIdentificacao`, `mensagem`, `dataHora`) | `ErrosSincronizacoesFornecedores` (FK Cascade → `SincronizacoesFornecedores`) | Não |
+| Histórico por fornecedor (auditoria #32) | `FornecedorSincronizacaoHistorico` (`erpFornecedorId`, `direcao`, `status`, `decisao`, `camposAlterados`, `tentativa`, `duracaoMs`, ...) | `FornecedoresSincronizacoes` | Não |
+
+**Cobertura:** 15 dos 16 diretórios de `administration/*` documentados acima (14 telas administrativas + Monitoramento Operacional). Não incluído: nenhum tipo TS dedicado foi encontrado para um módulo próprio de "Conhecimento Linx" no frontend — o backend (`LinxKnowledgeController`) não possui, até esta sprint, uma Vertical Slice de tela correspondente em `administration/*` (consistente com a nota já registrada na fatia O1.13.5: "sem frontend administrativo dedicado nesta fundação").

@@ -529,3 +529,25 @@ NÃO foi iniciado.** **A Onda 2 NÃO foi iniciada.** Próxima etapa (apenas regi
 auditoria individual dos 41 entregáveis com evidência objetiva, revisão de status, implementação de GAPs,
 quitação de dívidas razoáveis (inventário desta sprint), hardening, validação integrada, reconciliação de
 documentação/métricas, e só então decisão sobre a conclusão a 100% da Onda 1.
+
+## Gate Final da Onda 1 — EXECUTADO, GATE ABERTO (12/08/2026)
+
+Auditoria individual dos 41 entregáveis com evidência objetiva de código/documentação (nenhuma reclassificação por estimativa). **11 reclassificados para Concluído**: #4, #5, #6, #7, #8, #11 (observações do dashboard desatualizadas desde antes de O1.6–O1.10, revalidadas tecnicamente satisfeitas); #36–#40 (blueprint por tela, matrizes tela×campo×entidade e +Compras×ERP, mapeamento de 92 endpoints reais, mapeamento de integrações — produzidos nesta etapa em `docs/database/Database.md` e `docs/backend/integration/Integration.md`).
+
+**DEB-03 corrigida** (obrigatória por instrução do Gate): `SincronizacaoFornecedor` ganhou `UnidadeNegocioId` real (migration `AddUnidadeNegocioIdToSincronizacaoFornecedorDEB03`), capturado da sessão (nunca do cliente); listagem/detalhe agora filtram por essa coluna; 2 testes de regressão cross-BU.
+
+**Dívidas quitadas nesta etapa:** DEB-15/M2 (transação atômica real no vínculo Usuário×Centro de Custo, `CentroCustoVinculoValidator` deixou de commitar isoladamente); DEB-16, parte técnica (propósitos `DataProtection` de `IdentityProvider` e `ConfiguracaoErp` separados, antes compartilhados). **DEB-13 reclassificada SUPERADA** (investigada: modelo EF 100% sincronizado, mapeamento `HasColumnName` intencional, não reproduz). As demais 13 dívidas foram avaliadas individualmente e **mantidas** por decisão objetiva de custo/risco/escopo — ver `docs/audits/O1.14-InventarioDividasEGaps.md` para o detalhamento completo, coluna `[GATE]`.
+
+**Mocks remanescentes:** varredura sistemática confirmou nenhum GAP grave em `administration/` — os únicos mocks ativos estão confinados a Pedidos/Negociações/Indicadores(exceto Fornecedores)/Agentes IA, módulos já reconhecidos como demonstrativos honestos, fora do escopo funcional da Onda 1 (Onda 3).
+
+**Achado registrado para decisão de produto** (não bloqueante, sem exploração identificada): `AlcadasAprovacaoController`, `RegrasWorkflowController`, `RegrasOrcamentariasController`, `IdentityProvidersController` e `ConfiguracaoNotificacaoController` recebem `unidadeNegocioId` explicitamente do path da URL (design documentado de "administração corporativa", não necessariamente a BU da sessão de quem administra) — mesma tensão arquitetural já levantada por DEB-03 sobre `Sistema.Gerenciar` ser intencionalmente global. Decisão de produto pendente: manter como administração corporativa cross-BU deliberada, ou restringir à BU da sessão como os demais 12 controllers administrativos.
+
+**Auditoria do Dashboard (local e publicado, via Chrome/MCP):** percorridas todas as 12 seções do Dashboard Oficial (publicado em `https://n8n.somalabs.com.br/webhook/backlog-compras-dashboard` e localmente via `index.html`). GAPs documentais reais encontrados e corrigidos: seções `## Qualidade`, `## Banco`, `## Integrações`, `## IA` e `## Documentação` nunca existiram estruturadas em `DASHBOARD_STATE.md` — criadas com dados reais e verificáveis (build/testes executados nesta sessão, migrations/entidades reais, integrações reais). Corrigido também um bug real em `dashboard.js` (`renderMetricas` nunca lia a seção "## Métricas" por incompatibilidade de formato de tabela — 3 colunas em vez do padrão Campo/Valor de 2 colunas). GAP documental remanescente, registrado sem correção por estimativa: inventário objetivo de telas (`Frontend` → "Telas previstas/concluídas/em andamento") depende de um critério de "tela concluída" ainda não definido formalmente pelo produto.
+
+**Testes finais:** backend 693 unitários + 7 integração (700/700 aprovados); frontend 116/116 aprovados; `dotnet build` e `npm run build` limpos, 0 avisos.
+
+**Resultado: 39/41 (95,1220% exato, exibido 95%). GATE PERMANECE ABERTO.** Restam exatamente 2 itens, ambos fora do alcance técnico desta sessão:
+- **#9** — decisão indispensável do Product Owner sobre o catálogo/nomenclatura de Perfis de negócio (backend/RBAC 100% reais, sem lacuna técnica).
+- **#41** — validação funcional com os envolvidos; impedimento externo real (ambiente de execução sem VPN/acesso ao banco corporativo `MaisComprasConnection` para uma sessão de validação completa).
+
+**Design Review NÃO foi executado. Onda 2 NÃO foi iniciada.** Commits granulares realizados; push autorizado para o trabalho tecnicamente concluído e seguro (ver relatório final do Gate).
