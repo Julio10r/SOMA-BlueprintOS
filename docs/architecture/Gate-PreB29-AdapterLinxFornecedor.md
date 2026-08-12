@@ -285,9 +285,67 @@ Nenhum destes é resolvido por suposição neste gate — todos permanecem expli
 
 ---
 
+## 6-B. Discovery final do framework (`lx_class.vcx`) e decisões aprovadas do Product Owner
+
+**Contexto**: nova fonte local disponibilizada pelo PO, `docs/linxERP/linx_fonte.zip` (ignorado pelo git, nunca versionado), contendo a classe base real do Visual Linx (`Classes/Linx_SQL_Fonte/Desenv/Lib/lx_class.vcx`/`.VCT`). Investigação partiu da tela `001016G1` já mapeada, seguindo apenas as referências relevantes à persistência (`l_desenhista_altera_antes`/`l_desenhista_apos_salva`/`l_desenhista_cancela`), sem varredura indiscriminada do framework.
+
+**Achado central — mecanismo real de persistência (DESCOBERTO, leitura direta de `lx_class.vcx`)**: localizado o método genérico `PROCEDURE l_salva` da classe base — **a rotina central compartilhada por todas as telas Visual Linx** que a Pergunta 1 original buscava (não é nenhuma das 5 procedures de integração; é este método de framework). Estrutura real:
+
+1. Hooks pré-salvamento: `l_desenhista_antes_salva()` → `CallActiveObject("BeforeSave")` → `obj_entrada.metodo_usuario("USR_SAVE_BEFORE", ...)`.
+2. **Transação dupla camada**: `Begin Transaction` (buffer de cursores VFP) + `data.connection.BeginTrans()` (transação real no SQL Server via ADO). Isolamento ajustável: `SET TRANSACTION ISOLATION LEVEL READ COMMITTED` durante a escrita (revertido para `READ UNCOMMITTED` depois, conforme flag `wUseReadUnCommitted`).
+3. Hooks de trigger: `l_trigger_antes()` → `obj_entrada.metodo_usuario("USR_TRIGGER_BEFORE", ...)`.
+4. **Gravação real**: para cada cursor principal (`MainCursors` — no caso da tela de Fornecedor, a `View`/`CursorAdapter` com `Tables=CADASTRO_CLI_FOR,FORNECEDORES`), chama `objCursor.AcceptChanges(...)` — método **nativo do VFP `CursorAdapter`**, que gera o `INSERT`/`UPDATE` real a partir do `UpdateNameList`/`Tables` definidos na tela. **Confirma que `CADASTRO_CLI_FOR` e `FORNECEDORES` são gravados dentro da mesma transação de banco**, um `AcceptChanges` por cursor, mas sob o mesmo `BeginTrans()`/`CommitTrans()`.
+5. Hooks de auditoria (`l_auditoria`) executados antes do `AcceptChanges`, dentro da mesma transação.
+6. Hooks pós-trigger: `l_trigger_apos()` → `obj_entrada.metodo_usuario("USR_TRIGGER_AFTER", ...)`.
+7. **Em qualquer falha** (validação, trigger antes, auditoria, `AcceptChanges`, trigger depois): `data.connection.RollbackTrans()` + `RollBack` (buffer) — **rollback total e imediato, sem commit parcial**, erro reportado via `ReportError`/`AERROR`/`f_erro_dado()`.
+8. Sucesso: `data.connection.CommitTrans()` + `End Transaction`, depois `l_desenhista_apos_salva()` → `CallActiveObject("AfterSave")` → `obj_entrada.metodo_usuario("USR_SAVE_AFTER", ...)`.
+
+**Implicações diretas para a B2.9**: a hipótese arquitetural de transação atômica (`CADASTRO_CLI_FOR` + `FORNECEDORES` em uma única transação, rollback total em falha) deixa de ser inferência — é o comportamento real e comprovado do próprio produto Linx para toda tela padrão, incluindo a de Fornecedor. Isso é a base mais forte possível para a estratégia transacional do Adapter (seção 21 do relatório final).
+
+**Não encontrado em `lx_class.vcx`** (registrado como limite de evidência, não como bloqueio): nenhuma referência a `LX_SEQUENCIAL` nem a `SEQUENCIA_FORNECEDOR` nesta classe — `f_sequenciais` (chamado pela tela) não está definido aqui, permanece em biblioteca de funções globais não incluída nas fontes disponíveis. Consistente com a decisão do PO (seção 22 do adendo): irrelevante para o Adapter, que usará o mecanismo de banco (`LX_SEQUENCIAL`/`SEQUENCIAIS`) diretamente, nunca a função VFP.
+
+### Decisões aprovadas do Product Owner nesta sessão (proveniência `APROVADO`, prevalecem sobre qualquer inferência técnica anterior)
+
+1. **BU é a fronteira de integração com ERP/banco** — dentro de uma BU, cadastros (fornecedores inclusive) são compartilhados entre marcas; marca não é fronteira de fornecedor.
+2. **Identidade do fornecedor = BU + CNPJ** — um mesmo fornecedor não é cadastrado duas vezes dentro da mesma BU, independente de marca.
+3. **`EMPRESA`/grupo econômico do Linx não pertence ao domínio +Compras** — para a BU SOMA, `EMPRESA=1` fixo, tratado internamente pelo Adapter apenas se tecnicamente exigido pela persistência; nunca exposto na UI, nunca parte da identidade do fornecedor, nunca replicado para Adapters futuros (ex.: SAP).
+4. **Modelo multiuso**: adicionar o papel Fornecedor a um `CADASTRO_CLI_FOR` existente nunca cria uma nova entidade-base; sempre `INDICA_FORNECEDOR=1` + `INSERT FORNECEDORES` (se ainda não existir), preservando todos os papéis/tabelas satélite existentes (Cliente, Filial, ou ambos).
+5. **Adapter de Fornecedor nunca cria `FILIAIS` nem `CLIENTES_ATACADO`** — mesmo quando o `CADASTRO_CLI_FOR` já possui esses papéis, eles são apenas preservados, nunca recriados/alterados pelo fluxo de Fornecedor.
+6. **Transação essencial deve ser atômica com rollback total em falha**; transações curtas, locks mínimos, nenhuma chamada externa dentro da transação — agora com suporte direto do comportamento real descoberto em `lx_class.vcx`.
+7. **`SEQUENCIA_FORNECEDOR` não é reconhecida como regra pelo PO** e, sem evidência concreta adicional (FK/constraint/trigger/procedure real), é classificada como **SEM EVIDÊNCIA DE RELEVÂNCIA PARA O CONTRATO MÍNIMO DA B2.9** — investigação encerrada neste item.
+8. **ETL/WETL (`LJ_ETL_REPOSITORIO`/`GS_WETL_REPOSITORIO`) não pertencem ao contrato funcional da B2.9** — são efeito colateral existente do ambiente, observável em homologação, nunca implementado/replicado pelo Adapter.
+9. **E-mail comercial × fiscal**: pendência de produto não bloqueante — mapping deve ficar claro para decisão posterior do PO, sem duplicação automática.
+10. **Princípio de suficiência**: dúvidas sem risco concreto de corrupção/duplicidade/perda de dados/inconsistência de papéis/transação são classificadas como `VALIDAR EM DESENVOLVIMENTO/HOMOLOGAÇÃO`, não como bloqueio automático.
+
+---
+
 ## 7. Decisão final do gate
 
-### **LIBERADO COM RESTRIÇÕES** (reafirmado após o adendo de código-fonte real)
+### Histórico de veredito (preservado cronologicamente)
+
+1. Gate inicial (discovery de procedures de integração) → **LIBERADO COM RESTRIÇÕES**.
+2. Adendo — investigação da tela real `001016G1` (SCX/SCT/PRG) → **LIBERADO COM RESTRIÇÕES** (restrições reduzidas e mais precisas — seção 6-A).
+3. Adendo final — discovery do framework (`lx_class.vcx`) + decisões aprovadas do PO (seção 6-B) → **novo veredito abaixo**.
+
+### **DESBLOQUEAR B2.9** (novo veredito desta sessão)
+
+**Justificativa por evidência**: os quatro pilares que sustentavam as restrições anteriores foram resolvidos:
+- **Mecanismo de persistência e transação**: DESCOBERTO diretamente em `lx_class.vcx` (`l_salva`) — transação dupla camada, rollback total em falha, `CADASTRO_CLI_FOR`+`FORNECEDORES` na mesma transação de banco. Deixa de ser inferência.
+- **Sequencial, `CLIFOR`/`COD_CLIFOR`/`NOME_CLIFOR`, duplicidade**: DESCOBERTOS diretamente na tela real `001016G1` (adendo anterior, seção 6-A).
+- **Modelo multiuso, fronteira BU/ERP, identidade por CNPJ, tratamento de `EMPRESA`**: decisões formalmente **APROVADAS** pelo Product Owner nesta sessão (seção 6-B), eliminando a ambiguidade que restava sobre política de produto.
+- **ETL/WETL, consumidores de filas, `SEQUENCIA_FORNECEDOR`**: reclassificados pelo PO como não pertencentes ao contrato funcional da B2.9 — não são mais bloqueadores por definição de escopo, não por terem sido tecnicamente resolvidos.
+
+Os desconhecidos residuais (implementação interna de `f_sequenciais`/relação exata com `LX_SEQUENCIAL`; comportamento de `LX_SEQUENCIAL` sob concorrência real de produção; diferenças finas INSERT×UPDATE para fornecedor já existente; dígito de conta bancária) são de **baixo risco estrutural** — não ameaçam corrupção de dados, duplicidade, perda de cadastro ou quebra de papéis — e se encaixam no princípio de suficiência aprovado pelo PO (seção 6-B, item 10): classificados como **VALIDAR EM DESENVOLVIMENTO/HOMOLOGAÇÃO**, não como bloqueio.
+
+**Isto NÃO autoriza produção.** DESBLOQUEAR B2.9 significa: a Work Order pode transicionar de Draft/Bloqueada para o estado documental equivalente a "planejada/pronta para iniciar implementação" — permanecendo fora de `active/` até novo comando explícito do Product Owner. Um **Gate posterior obrigatório** (implementação B2.9 ≠ aprovação para produção) deve validar, em ambiente de desenvolvimento/homologação Visual Linx real, antes de qualquer promoção a produção, no mínimo os 20 cenários já listados no relatório desta sessão (novo fornecedor, fornecedor existente, Cliente→Fornecedor, Filial→Fornecedor, Cliente+Filial→Fornecedor, preservação de papéis, rollback, ausência de duplicidade, leitura posterior pela tela Linx, entre outros).
+
+### Restrições anteriores — situação final
+
+1–6 da seção anterior: **superadas** pelas descobertas de código real e pelas decisões aprovadas do PO, com exceção da natureza "documental apenas" da B2.9 (que permanece — B2.9 não é movida para `active/` nesta sessão) e da proibição de escrita real fora de ambiente de desenvolvimento/homologação controlado (que se transforma no novo Gate de implementação, não é eliminada).
+
+---
+
+### Histórico — veredito anterior (LIBERADO COM RESTRIÇÕES, preservado para rastreabilidade, superado pelo veredito acima)
 
 **Justificativa por evidência**: o discovery acumulado (múltiplas rodadas reais de acesso READ-ONLY ao SOMA_DESENV) produziu uma base de conhecimento excepcionalmente detalhada e bem classificada por proveniência (Fato/Padrão/Interpretação/Desconhecido) sobre a estrutura física de `CADASTRO_CLI_FOR`/`FORNECEDORES`, as 11 triggers ativas, o mecanismo de `LX_SEQUENCIAL`, e o padrão recorrente (Nível 1, 4-5 de 5 amostras) de escrita usado por integrações automatizadas reais. Essa base é suficiente para **iniciar o planejamento arquitetural detalhado do Adapter** (desenho de contrato, DTOs físicos, mapeamento de campos, esqueleto de taxonomia de erros) com alta confiança.
 
@@ -308,10 +366,16 @@ Se a evidência tivesse mostrado uma procedure clara e não-ambígua de cadastro
 
 ## 8. Confirmações obrigatórias
 
-- **Zero alteração de código de produção**: nenhum arquivo em `backend/src/`, `frontend/web/src/`, ou equivalente foi criado, editado ou removido nesta sessão. Apenas leitura (Read/grep/find) e a criação deste próprio documento de gate.
-- **Zero escrita no SOMA_DESENV**: nenhuma ferramenta de acesso a banco de dados foi encontrada disponível nesta sessão (`ToolSearch` consultado e sem resultado relevante) — portanto nenhuma tentativa de conexão, leitura ou escrita foi feita nesta sessão. Toda a evidência de SOMA_DESENV citada neste gate vem de rodadas anteriores e distintas, já documentadas nos artefatos de discovery lidos.
-- **Nenhuma credencial, connection string ou dado real de fornecedor/CNPJ** foi incluído neste documento.
-- A Work Order `.ai/work-orders/backlog/fase-b/B2.9-AdapterLinxFornecedorCnpj.md` **não foi movida** para `active/` e seu status ("Draft — Bloqueada") **não foi alterado**.
+- **Zero alteração de código de produção** em todas as rodadas (gate inicial, adendo `Exclusivos.zip`, adendo `linx_fonte.zip`): nenhum arquivo em `backend/src/`, `frontend/web/src/`, ou equivalente foi criado/editado/removido. Apenas leitura e documentação (Gate, snapshot).
+- **Zero migration criada** em nenhuma rodada.
+- **Zero escrita no SOMA_DESENV** em nenhuma rodada — nesta última rodada, nenhuma ferramenta de banco foi usada; todo o discovery desta sessão veio de leitura local dos fontes Visual Linx (`Exclusivos.zip`/`linx_fonte.zip`), nunca de conexão ao banco.
+- **Nenhum fonte Linx versionado**: `docs/linxERP/` permanece integralmente coberto pelo `.gitignore` (linha 174); confirmado via `git ls-files | grep -i linxERP` sem resultado antes de cada commit desta frente.
+- **Nenhuma credencial, connection string ou dado real de fornecedor/CNPJ** foi incluído neste documento em qualquer rodada.
+- A Work Order `.ai/work-orders/backlog/fase-b/B2.9-AdapterLinxFornecedorCnpj.md` **não foi movida** para `active/` nesta sessão. Seu status documental passa de "Draft — Bloqueada" para **"Planejada — Pronta para Implementação (pendente comando explícito do PO para iniciar)"**, refletindo o novo veredito da seção 7 — sem que isso constitua início de execução.
+
+### Gate posterior obrigatório — Implementação B2.9 ≠ Aprovação para produção
+
+Antes de qualquer promoção a produção, a implementação da B2.9 deve ser validada em ambiente de desenvolvimento/homologação Visual Linx real (o Product Owner tem acesso full a esse ambiente), cobrindo no mínimo os 20 cenários da seção 32 do relatório desta sessão (novo fornecedor; fornecedor existente; Cliente→Fornecedor; Filial→Fornecedor; Cliente+Filial→Fornecedor; preservação de papéis; endereço; contato; CNPJ; CLIFOR/COD_CLIFOR/COD_FORNECEDOR; NOME_CLIFOR; flags; FORNECEDORES; EMPRESA=1 só se tecnicamente exigida; efeitos de triggers; comportamento em falha; rollback total; ausência de duplicidade; ausência de locks prolongados; leitura correta posterior pela tela Visual Linx). Este Gate não foi executado nesta sessão — é um passo futuro, condicionado à implementação real do Adapter.
 
 ---
 
