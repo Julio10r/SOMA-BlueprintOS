@@ -134,6 +134,125 @@ public sealed class ConsultarCnpjFornecedorUseCaseTests
         Assert.Equal("CNPJ não encontrado.", response.MensagemErro);
     }
 
+    [Fact]
+    public async Task Execute_Should_Persist_Sanitized_Snapshot_When_Provider_Supports_It()
+    {
+        await using var context = NewContext();
+        var result = ConsultaCnpjResultado.CriarSucesso("12345678000195", "ConsultaComSnapshot", SituacaoCadastralCnpj.Ativa,
+            DateTimeOffset.UtcNow, razaoSocial: "Fornecedor Teste");
+        var provider = new FakeProviderComSnapshot(result, snapshot: "{\"razao_social\":\"Fornecedor Teste\"}", descartadoPorTamanho: false);
+
+        await Create(context, provider).ExecuteAsync(new("12345678000195", "BU-A", null, "corr-snapshot-1"));
+
+        var history = await context.FornecedoresCnpjConsultas.SingleAsync();
+        Assert.Equal("{\"razao_social\":\"Fornecedor Teste\"}", history.PayloadBrutoJson);
+        Assert.False(history.PayloadBrutoDescartadoPorTamanho);
+    }
+
+    [Fact]
+    public async Task Execute_Should_Never_Contain_Qsa_Fixture_Text_In_Persisted_Snapshot()
+    {
+        // Fixture sintetica: mesmo que um Provider hipotetico tentasse repassar um snapshot ja
+        // sanitizado que ainda contivesse QSA por erro de implementacao, o teste documenta a
+        // expectativa de que o historico persistido nunca deve carregar esse conteudo — a
+        // responsabilidade de remover QSA e do sanitizador do Provider (verificado em
+        // BrasilApiSnapshotSanitizerTests), este teste apenas garante que o use case repassa o
+        // snapshot do Provider sem reintroduzir QSA por conta propria.
+        await using var context = NewContext();
+        var result = ConsultaCnpjResultado.CriarSucesso("12345678000195", "ConsultaComSnapshot", SituacaoCadastralCnpj.Ativa,
+            DateTimeOffset.UtcNow, razaoSocial: "Fornecedor Teste");
+        var provider = new FakeProviderComSnapshot(result, snapshot: "{\"razao_social\":\"Fornecedor Teste\"}", descartadoPorTamanho: false);
+
+        await Create(context, provider).ExecuteAsync(new("12345678000195", "BU-A", null, "corr-snapshot-qsa"));
+
+        var history = await context.FornecedoresCnpjConsultas.SingleAsync();
+        Assert.DoesNotContain("qsa", history.PayloadBrutoJson ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Execute_Should_Persist_Null_Snapshot_When_Provider_Does_Not_Support_It()
+    {
+        // Provider futuro/legado que so implementa ICnpjConsultaProvider (sem snapshot) continua
+        // funcionando sem qualquer alteracao de dominio — apenas nao contribui com PayloadBrutoJson.
+        await using var context = NewContext();
+        var result = ConsultaCnpjResultado.CriarSucesso("12345678000195", "ConsultaTeste", SituacaoCadastralCnpj.Ativa,
+            DateTimeOffset.UtcNow, razaoSocial: "Fornecedor Teste");
+
+        await Create(context, new FakeProvider(result)).ExecuteAsync(new("12345678000195", "BU-A", null, "corr-sem-snapshot"));
+
+        var history = await context.FornecedoresCnpjConsultas.SingleAsync();
+        Assert.Null(history.PayloadBrutoJson);
+        Assert.False(history.PayloadBrutoDescartadoPorTamanho);
+    }
+
+    [Fact]
+    public async Task Execute_Should_Persist_Null_Snapshot_On_Timeout_Even_With_Snapshot_Capable_Provider()
+    {
+        await using var context = NewContext();
+        var falha = ConsultaCnpjResultado.CriarFalha("12345678000195", "ConsultaComSnapshot", DateTimeOffset.UtcNow,
+            TipoErroConsultaCnpj.Timeout);
+        var provider = new FakeProviderComSnapshot(falha, snapshot: null, descartadoPorTamanho: false);
+
+        await Create(context, provider).ExecuteAsync(new("12345678000195", "BU-A", null, "corr-timeout"));
+
+        var history = await context.FornecedoresCnpjConsultas.SingleAsync();
+        Assert.Null(history.PayloadBrutoJson);
+        Assert.Equal(TipoErroConsultaCnpjHistorico.Timeout, history.TipoErro);
+    }
+
+    [Fact]
+    public async Task Execute_Should_Persist_TipoErro_On_Typed_Failure()
+    {
+        await using var context = NewContext();
+        var result = ConsultaCnpjResultado.CriarFalha("12345678000195", "ConsultaTeste", DateTimeOffset.UtcNow,
+            TipoErroConsultaCnpj.LimiteDeConsultas);
+
+        await Create(context, new FakeProvider(result)).ExecuteAsync(new("12345678000195", "BU-A", null, "corr-tipo-erro"));
+
+        var history = await context.FornecedoresCnpjConsultas.SingleAsync();
+        Assert.Equal(TipoErroConsultaCnpjHistorico.LimiteDeConsultas, history.TipoErro);
+    }
+
+    [Fact]
+    public async Task Execute_Should_Persist_Null_TipoErro_On_Success()
+    {
+        await using var context = NewContext();
+        var result = ConsultaCnpjResultado.CriarSucesso("12345678000195", "ConsultaTeste", SituacaoCadastralCnpj.Ativa,
+            DateTimeOffset.UtcNow);
+
+        await Create(context, new FakeProvider(result)).ExecuteAsync(new("12345678000195", "BU-A", null, "corr-sem-erro"));
+
+        var history = await context.FornecedoresCnpjConsultas.SingleAsync();
+        Assert.Null(history.TipoErro);
+    }
+
+    [Fact]
+    public async Task Execute_Should_Persist_Truncation_Flag_When_Provider_Reports_Oversized_Snapshot()
+    {
+        await using var context = NewContext();
+        var result = ConsultaCnpjResultado.CriarSucesso("12345678000195", "ConsultaComSnapshot", SituacaoCadastralCnpj.Ativa,
+            DateTimeOffset.UtcNow, razaoSocial: "Fornecedor Teste");
+        var provider = new FakeProviderComSnapshot(result, snapshot: null, descartadoPorTamanho: true);
+
+        await Create(context, provider).ExecuteAsync(new("12345678000195", "BU-A", null, "corr-tamanho"));
+
+        var history = await context.FornecedoresCnpjConsultas.SingleAsync();
+        Assert.Null(history.PayloadBrutoJson);
+        Assert.True(history.PayloadBrutoDescartadoPorTamanho);
+    }
+
+    private sealed class FakeProviderComSnapshot(ConsultaCnpjResultado resultado, string? snapshot, bool descartadoPorTamanho)
+        : ICnpjConsultaProviderComSnapshot
+    {
+        public string FonteConsulta => resultado.FonteConsulta;
+
+        public Task<ConsultaCnpjResultado> ConsultarAsync(string _, CancellationToken cancellationToken = default) =>
+            Task.FromResult(resultado);
+
+        public Task<CnpjConsultaProviderResposta> ConsultarComSnapshotAsync(string _, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new CnpjConsultaProviderResposta(resultado, snapshot, descartadoPorTamanho));
+    }
+
     private static ConsultarCnpjFornecedorUseCase Create(BlueprintOSDbContext context, ICnpjConsultaProvider provider) =>
         new(provider, new FornecedorCnpjConsultaHistoricoRepository(context), new FakeIdentity(),
             NullLogger<ConsultarCnpjFornecedorUseCase>.Instance);
@@ -177,6 +296,9 @@ public sealed class ConsultarCnpjFornecedorUseCaseTests
     {
         public Task AdicionarAsync(FornecedorCnpjConsultaHistorico consulta, CancellationToken cancellationToken = default) =>
             throw new InvalidOperationException("Simulated database connectivity failure while persisting audit history.");
+
+        public Task<int> ExpurgarPayloadBrutoExpiradoAsync(DateTimeOffset referenciaUtc, CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException("Simulated database connectivity failure while purging retention.");
     }
 
     private sealed class ThrowingIdentity : ICurrentIdentity

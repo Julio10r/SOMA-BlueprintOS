@@ -264,6 +264,128 @@ public sealed class BrasilApiCnpjProviderTests
         Assert.Null(result.SituacaoCadastral);
     }
 
+    [Fact]
+    public async Task ConsultarComSnapshotAsync_Should_Return_Sanitized_Snapshot_Without_Qsa_On_Success()
+    {
+        // Fixture sintetica com QSA falso — nunca dados reais de fornecedor (regra de testes B2.7).
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.OK, """
+        {
+          "cnpj": "12345678000195",
+          "razao_social": "Fornecedor Brasil API Ltda",
+          "descricao_situacao_cadastral": "ATIVA",
+          "qsa": [
+            { "nome_socio": "Socio Fake Um", "cpf_cnpj_socio": "***111111**", "qualificacao_socio": "Socio-Administrador" },
+            { "nome_socio": "Socio Fake Dois", "cpf_cnpj_socio": "***222222**", "qualificacao_socio": "Socio" }
+          ]
+        }
+        """));
+
+        var resposta = await provider.ConsultarComSnapshotAsync("12345678000195");
+
+        Assert.True(resposta.Resultado.Sucesso);
+        Assert.NotNull(resposta.SnapshotBrutoSanitizado);
+        Assert.DoesNotContain("qsa", resposta.SnapshotBrutoSanitizado, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Socio Fake Um", resposta.SnapshotBrutoSanitizado);
+        Assert.DoesNotContain("Socio Fake Dois", resposta.SnapshotBrutoSanitizado);
+        Assert.Contains("Fornecedor Brasil API Ltda", resposta.SnapshotBrutoSanitizado);
+        Assert.False(resposta.SnapshotDescartadoPorTamanho);
+    }
+
+    [Fact]
+    public async Task ConsultarComSnapshotAsync_Should_Return_Null_Snapshot_On_Timeout()
+    {
+        var provider = CreateProvider(new DelayedHandler(TimeSpan.FromSeconds(5)), timeoutSeconds: 1);
+
+        var resposta = await provider.ConsultarComSnapshotAsync("12345678000195");
+
+        Assert.False(resposta.Resultado.Sucesso);
+        Assert.Equal(TipoErroConsultaCnpj.Timeout, resposta.Resultado.TipoErro);
+        Assert.Null(resposta.SnapshotBrutoSanitizado);
+        Assert.False(resposta.SnapshotDescartadoPorTamanho);
+    }
+
+    [Fact]
+    public async Task ConsultarComSnapshotAsync_Should_Return_Null_Snapshot_For_CnpjInvalido_Without_Calling_Provider()
+    {
+        var provider = CreateProvider(new ThrowingHandler());
+
+        var resposta = await provider.ConsultarComSnapshotAsync("123");
+
+        Assert.Equal(TipoErroConsultaCnpj.CnpjInvalido, resposta.Resultado.TipoErro);
+        Assert.Null(resposta.SnapshotBrutoSanitizado);
+    }
+
+    [Fact]
+    public async Task ConsultarComSnapshotAsync_Should_Sanitize_Snapshot_On_NotFound_With_Useful_Body()
+    {
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.NotFound, """{"message":"CNPJ nao encontrado na base."}"""));
+
+        var resposta = await provider.ConsultarComSnapshotAsync("12345678000195");
+
+        Assert.Equal(TipoErroConsultaCnpj.NaoEncontrado, resposta.Resultado.TipoErro);
+        Assert.NotNull(resposta.SnapshotBrutoSanitizado);
+        Assert.Contains("CNPJ nao encontrado", resposta.SnapshotBrutoSanitizado);
+    }
+
+    [Fact]
+    public async Task ConsultarComSnapshotAsync_Should_Return_Null_Snapshot_For_Malformed_Non_Json_Body()
+    {
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.OK, "not-json"));
+
+        var resposta = await provider.ConsultarComSnapshotAsync("12345678000195");
+
+        Assert.Equal(TipoErroConsultaCnpj.RespostaInvalida, resposta.Resultado.TipoErro);
+        Assert.Null(resposta.SnapshotBrutoSanitizado);
+    }
+
+    [Fact]
+    public async Task ConsultarComSnapshotAsync_Should_Discard_Oversized_Snapshot_With_Flag()
+    {
+        var razaoSocialEnorme = new string('X', 40_000);
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.OK,
+            $$"""{"cnpj":"12345678000195","razao_social":"{{razaoSocialEnorme}}","descricao_situacao_cadastral":"ATIVA"}"""));
+
+        var resposta = await provider.ConsultarComSnapshotAsync("12345678000195");
+
+        Assert.True(resposta.Resultado.Sucesso);
+        Assert.Null(resposta.SnapshotBrutoSanitizado);
+        Assert.True(resposta.SnapshotDescartadoPorTamanho);
+    }
+
+    [Fact]
+    public async Task ConsultarComSnapshotAsync_Should_Return_Null_Snapshot_On_Provider_AuthError()
+    {
+        // Corpo de 401/403 e diagnostico de infraestrutura da propria integracao, nao de negocio —
+        // nunca retido como snapshot de proveniencia.
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.Unauthorized, """{"error":"invalid api key"}"""));
+
+        var resposta = await provider.ConsultarComSnapshotAsync("12345678000195");
+
+        Assert.Equal(TipoErroConsultaCnpj.ErroDeAutenticacaoDoProvider, resposta.Resultado.TipoErro);
+        Assert.Null(resposta.SnapshotBrutoSanitizado);
+    }
+
+    [Fact]
+    public async Task ConsultarAsync_Should_Return_Same_Canonical_Result_As_ConsultarComSnapshotAsync()
+    {
+        // O contrato canonico (ConsultaCnpjResultado) nunca deve variar dependendo de qual dos dois
+        // metodos foi chamado — o snapshot e estritamente aditivo, nunca uma segunda fonte de verdade.
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.OK, """
+        {"cnpj":"12345678000195","razao_social":"Fornecedor Brasil API Ltda","descricao_situacao_cadastral":"ATIVA"}
+        """));
+
+        var direto = await provider.ConsultarAsync("12345678000195");
+        var comSnapshot = await provider.ConsultarComSnapshotAsync("12345678000195");
+
+        // DataConsulta naturalmente varia entre as duas chamadas (UtcNow independente) — comparamos
+        // o conteudo canonico, nao o timestamp de cada chamada isolada.
+        Assert.Equal(direto.Cnpj_Cpf, comSnapshot.Resultado.Cnpj_Cpf);
+        Assert.Equal(direto.RazaoSocial, comSnapshot.Resultado.RazaoSocial);
+        Assert.Equal(direto.SituacaoCadastral, comSnapshot.Resultado.SituacaoCadastral);
+        Assert.Equal(direto.Sucesso, comSnapshot.Resultado.Sucesso);
+        Assert.Equal(direto.FonteConsulta, comSnapshot.Resultado.FonteConsulta);
+    }
+
     private static BrasilApiCnpjProvider CreateProvider(HttpMessageHandler handler, int timeoutSeconds = 10)
     {
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://example.test/api/cnpj/v1/") };

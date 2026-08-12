@@ -9,11 +9,21 @@ using Microsoft.Extensions.Options;
 
 namespace BlueprintOS.Infrastructure.Integrations.CnpjConsulta;
 
-public sealed class BrasilApiCnpjProvider(HttpClient httpClient, IOptions<CnpjConsultaOptions> options) : ICnpjConsultaProvider
+public sealed class BrasilApiCnpjProvider(HttpClient httpClient, IOptions<CnpjConsultaOptions> options) : ICnpjConsultaProviderComSnapshot
 {
     public string FonteConsulta => "BrasilAPI";
 
-    public async Task<ConsultaCnpjResultado> ConsultarAsync(string cnpjCpf, CancellationToken cancellationToken = default)
+    public async Task<ConsultaCnpjResultado> ConsultarAsync(string cnpjCpf, CancellationToken cancellationToken = default) =>
+        (await ConsultarInternoAsync(cnpjCpf, cancellationToken)).Resultado;
+
+    /// <summary>Mesma consulta de <see cref="ConsultarAsync"/>, também expondo o snapshot bruto já
+    /// sanitizado (QSA e segredos removidos por <see cref="BrasilApiSnapshotSanitizer"/>) para registro
+    /// de proveniência em <c>FornecedorCnpjConsultaHistorico</c> (B2.7/ADR-0023). O contrato canônico
+    /// (<see cref="ConsultaCnpjResultado"/>) nunca depende deste snapshot.</summary>
+    public Task<CnpjConsultaProviderResposta> ConsultarComSnapshotAsync(string cnpjCpf, CancellationToken cancellationToken = default) =>
+        ConsultarInternoAsync(cnpjCpf, cancellationToken);
+
+    private async Task<CnpjConsultaProviderResposta> ConsultarInternoAsync(string cnpjCpf, CancellationToken cancellationToken)
     {
         var dataConsulta = DateTimeOffset.UtcNow;
         string documento;
@@ -23,7 +33,9 @@ public sealed class BrasilApiCnpjProvider(HttpClient httpClient, IOptions<CnpjCo
         }
         catch (ArgumentException)
         {
-            return ConsultaCnpjResultado.CriarFalha(cnpjCpf, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.CnpjInvalido);
+            // CnpjInvalido é rejeitado antes de qualquer chamada externa: nunca há corpo de resposta,
+            // logo nunca há snapshot bruto a capturar.
+            return SemSnapshot(ConsultaCnpjResultado.CriarFalha(cnpjCpf, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.CnpjInvalido));
         }
 
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Max(1, options.Value.TimeoutSeconds)));
@@ -32,33 +44,50 @@ public sealed class BrasilApiCnpjProvider(HttpClient httpClient, IOptions<CnpjCo
         try
         {
             using var response = await httpClient.GetAsync(documento, linkedToken.Token);
+            var corpoBruto = await LerCorpoComSegurancaAsync(response, linkedToken.Token);
+
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.NaoEncontrado);
+                // 404 com corpo útil: a BrasilAPI retorna um corpo JSON de erro (ex.: {"message": "..."}),
+                // que pode ter valor diagnóstico e não contém QSA — sanitizado e retido como qualquer outro.
+                return ComSnapshot(ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.NaoEncontrado), corpoBruto);
             }
 
             if (response.StatusCode == HttpStatusCode.TooManyRequests)
             {
-                return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.LimiteDeConsultas);
+                return ComSnapshot(ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.LimiteDeConsultas), corpoBruto);
             }
 
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
-                return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.ErroDeAutenticacaoDoProvider);
+                // Falha de autenticação do PROVIDER (nossa própria credencial/config) nunca deve reter
+                // snapshot — o corpo de um 401/403 tende a ser diagnóstico de infraestrutura, não de negócio.
+                return SemSnapshot(ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.ErroDeAutenticacaoDoProvider));
             }
 
             if (!response.IsSuccessStatusCode)
             {
-                return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.FonteIndisponivel);
+                return SemSnapshot(ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.FonteIndisponivel));
             }
 
-            var payload = await response.Content.ReadFromJsonAsync<BrasilApiCnpjResponse>(cancellationToken: linkedToken.Token);
+            BrasilApiCnpjResponse? payload;
+            try
+            {
+                payload = JsonSerializer.Deserialize<BrasilApiCnpjResponse>(corpoBruto ?? string.Empty);
+            }
+            catch (JsonException)
+            {
+                // Resposta 2xx mas corpo malformado: ainda assim tentamos reter um snapshot sanitizado
+                // para diagnóstico (útil para entender o que a fonte realmente devolveu).
+                return ComSnapshot(ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.RespostaInvalida), corpoBruto);
+            }
+
             if (payload is null || string.IsNullOrWhiteSpace(payload.Cnpj))
             {
-                return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.RespostaInvalida);
+                return ComSnapshot(ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.RespostaInvalida), corpoBruto);
             }
 
-            return ConsultaCnpjResultado.CriarSucesso(
+            var resultadoSucesso = ConsultaCnpjResultado.CriarSucesso(
                 payload.Cnpj,
                 FonteConsulta,
                 MapSituacao(payload.DescricaoSituacaoCadastral),
@@ -80,6 +109,7 @@ public sealed class BrasilApiCnpjProvider(HttpClient httpClient, IOptions<CnpjCo
                 telefone: FirstNotBlank(payload.DddTelefone1, payload.DddTelefone2),
                 naturezaJuridica: payload.NaturezaJuridica,
                 porteEmpresa: payload.Porte);
+            return ComSnapshot(resultadoSucesso, corpoBruto);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -87,20 +117,42 @@ public sealed class BrasilApiCnpjProvider(HttpClient httpClient, IOptions<CnpjCo
         }
         catch (OperationCanceledException)
         {
-            return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.Timeout);
+            // Timeout: nunca há corpo de resposta utilizável — snapshot sempre nulo.
+            return SemSnapshot(ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.Timeout));
         }
         catch (HttpRequestException)
         {
-            return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.FonteIndisponivel);
-        }
-        catch (JsonException)
-        {
-            return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.RespostaInvalida);
+            // Falha de conexão: idem, nunca há corpo de resposta.
+            return SemSnapshot(ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.FonteIndisponivel));
         }
         catch (Exception)
         {
-            return ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.ErroInterno);
+            return SemSnapshot(ConsultaCnpjResultado.CriarFalha(documento, FonteConsulta, dataConsulta, TipoErroConsultaCnpj.ErroInterno));
         }
+    }
+
+    /// <summary>Lê o corpo da resposta como texto bruto, sem nunca lançar: um corpo ilegível para
+    /// fins de snapshot nunca pode derrubar a classificação do resultado, que já foi decidida pelo
+    /// status HTTP.</summary>
+    private static async Task<string?> LerCorpoComSegurancaAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await response.Content.ReadAsStringAsync(cancellationToken);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    private static CnpjConsultaProviderResposta SemSnapshot(ConsultaCnpjResultado resultado) =>
+        new(resultado, null, false);
+
+    private static CnpjConsultaProviderResposta ComSnapshot(ConsultaCnpjResultado resultado, string? corpoBruto)
+    {
+        var (snapshot, descartadoPorTamanho) = BrasilApiSnapshotSanitizer.Sanitizar(corpoBruto);
+        return new(resultado, snapshot, descartadoPorTamanho);
     }
 
     private static string OnlyDigits(string value) => new(value.Where(char.IsDigit).ToArray());
