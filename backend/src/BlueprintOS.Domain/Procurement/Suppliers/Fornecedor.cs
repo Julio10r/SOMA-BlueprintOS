@@ -97,6 +97,12 @@ public sealed class Fornecedor
     public string? OrigemUltimaAlteracao { get; private set; }
     public int Versao { get; private set; } = 1;
 
+    /// <summary>Código do CNAE principal, dígitos puros (ex.: "6201501"). Complementar/opcional —
+    /// ausência não impede o cadastro do Fornecedor (B2.8, seção H de
+    /// docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md). CNAEs secundários não são persistidos.</summary>
+    public string? CnaePrincipalCodigo { get; private set; }
+    public string? CnaePrincipalDescricao { get; private set; }
+
     public void Atualizar(string nome, string? categoria, string? email, string? telefone, string? website,
         string? cidade, string? estado, string? pais, string status, decimal? scoreIA, DateTimeOffset updatedAt)
     {
@@ -161,10 +167,34 @@ public sealed class Fornecedor
                 case nameof(Estado): Estado = valor; break;
                 case nameof(Email): Email = valor; break;
                 case nameof(Telefone): Telefone = valor; break;
+                case nameof(CnaePrincipalCodigo): CnaePrincipalCodigo = NormalizarCnaeCodigo(valor); break;
+                case nameof(CnaePrincipalDescricao): CnaePrincipalDescricao = string.IsNullOrWhiteSpace(valor) ? null : valor; break;
             }
         }
 
         UpdatedAt = alteradoEm; OrigemUltimaAlteracao = "ConsultaCnpj"; Versao++;
+    }
+
+    /// <summary>Persiste o CNAE principal (código + descrição) — só chamado a partir da operação
+    /// explícita de cadastro/atualização de Fornecedor (B2.8, ADR-0023). Nunca invocado a partir de
+    /// uma consulta isolada: consultar CNPJ não altera Fornecedor. Complementar/opcional — ambos os
+    /// parâmetros podem ser nulos sem impedir a persistência do Fornecedor.</summary>
+    public void DefinirCnaePrincipal(string? codigo, string? descricao, DateTimeOffset alteradoEm)
+    {
+        CnaePrincipalCodigo = NormalizarCnaeCodigo(codigo);
+        CnaePrincipalDescricao = string.IsNullOrWhiteSpace(descricao) ? null : descricao.Trim();
+        UpdatedAt = alteradoEm; Versao++;
+    }
+
+    /// <summary>Normaliza o código do CNAE para dígitos puros (ex.: "62.01-5/01" -> "6201501").
+    /// A máscara é responsabilidade exclusiva de apresentação — a persistência privilegia a
+    /// representação canônica estável. Centralizado aqui para não espalhar `Replace`/regex pelo
+    /// código (Provider, Application e Domain reutilizam este método).</summary>
+    public static string? NormalizarCnaeCodigo(string? codigo)
+    {
+        if (string.IsNullOrWhiteSpace(codigo)) return null;
+        var digitos = new string(codigo.Where(char.IsDigit).ToArray());
+        return digitos.Length == 0 ? null : digitos;
     }
 
     public void VincularDominios(Guid? condicaoPagamentoId, Guid? tipoFornecedorId, Guid? subtipoFornecedorId, DateTimeOffset alteradoEm)

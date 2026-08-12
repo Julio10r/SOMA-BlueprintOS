@@ -42,6 +42,10 @@ public sealed class FornecedorConfiguration : IEntityTypeConfiguration<Fornecedo
         builder.Property(x => x.Pais).HasMaxLength(100);
         builder.Property(x => x.Status).HasMaxLength(40).IsRequired();
         builder.Property(x => x.ScoreIA).HasPrecision(5, 2);
+        // CNAE principal (B2.8) — complementar/opcional, sem coluna equivalente prévia na tabela
+        // física. Código em dígitos puros (máscara é apresentação); descrição livre da fonte externa.
+        builder.Property(x => x.CnaePrincipalCodigo).HasMaxLength(7);
+        builder.Property(x => x.CnaePrincipalDescricao).HasMaxLength(300);
         builder.Property(x => x.TemporaryUserId).IsRequired();
         builder.Property(x => x.CreatedAt).IsRequired();
         builder.Property(x => x.UpdatedAt).IsRequired();
