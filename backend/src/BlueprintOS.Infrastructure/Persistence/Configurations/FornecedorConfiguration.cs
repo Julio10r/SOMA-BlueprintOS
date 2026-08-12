@@ -12,13 +12,24 @@ public sealed class FornecedorConfiguration : IEntityTypeConfiguration<Fornecedo
 
         builder.HasKey(x => x.Id);
 
+        // Achado da validação funcional do entregável #41 (Gate Final da Onda 1, continuação
+        // 12/08/2026) — DEB-13 reaberta: a migration `B212FornecedorLinxCanonicalModel` (02/08/2026) já
+        // renomeou fisicamente as colunas legadas `Nome`→`RazaoSocial` e `Cnpj`→`Cnpj_Cpf`, mas esta
+        // configuração nunca foi atualizada para acompanhar — continuava instruindo o EF a gerar SQL
+        // contra os nomes físicos ANTIGOS. Sem reproduzir em `dotnet test` (SQLite/InMemory nos testes
+        // não validam nomes de coluna reais) nem em `dotnet ef migrations has-pending-model-changes`
+        // (compara o modelo atual contra o snapshot, ambos gerados a partir deste mesmo código — logo
+        // sempre concordam entre si, mesmo quando ambos divergem do banco real). Só reproduziu ao
+        // conectar no banco de desenvolvimento real (SELECT gerado citava `[Nome]`/`[Cnpj]`, que não
+        // existem mais na tabela física) — a mesma conclusão anterior de "não reproduz" (auditoria
+        // O1.14) estava desatualizada porque, à época, o ambiente sem VPN impedia a verificação contra o
+        // schema físico real. Removidos os `HasColumnName` — a convenção (nome da propriedade = nome da
+        // coluna) já é exatamente o que a tabela física tem hoje.
         builder.Property(x => x.RazaoSocial)
-            .HasColumnName("Nome")
             .HasMaxLength(200)
             .IsRequired();
 
         builder.Property(x => x.Cnpj_Cpf)
-            .HasColumnName("Cnpj")
             .HasMaxLength(14)
             .IsRequired();
 
