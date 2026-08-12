@@ -19,6 +19,28 @@ public sealed class FornecedorUseCasesTests
     }
 
     [Fact]
+    public async Task Cadastrar_Should_Persist_Cnae_Principal_When_Informed()
+    {
+        // B2.8: CNAE principal so e persistido na operacao explicita de cadastro (nunca por
+        // consulta isolada). Codigo normalizado para digitos puros mesmo se vier mascarado.
+        var result = await new CadastrarFornecedorUseCase(new FakeRepository(), new FakeIdentity())
+            .ExecuteAsync(CreateDto() with { CnaePrincipalCodigo = "62.01-5/01", CnaePrincipalDescricao = "Desenvolvimento de programas de computador sob encomenda" });
+
+        Assert.Equal("6201501", result.CnaePrincipalCodigo);
+        Assert.Equal("Desenvolvimento de programas de computador sob encomenda", result.CnaePrincipalDescricao);
+    }
+
+    [Fact]
+    public async Task Cadastrar_Should_Succeed_Without_Cnae_Principal()
+    {
+        // Cadastro manual apos falha do Provider (B2.6): CNAE ausente nunca impede o cadastro.
+        var result = await new CadastrarFornecedorUseCase(new FakeRepository(), new FakeIdentity()).ExecuteAsync(CreateDto());
+
+        Assert.Null(result.CnaePrincipalCodigo);
+        Assert.Null(result.CnaePrincipalDescricao);
+    }
+
+    [Fact]
     public async Task Cadastrar_Should_Reject_Duplicate_Cnpj()
     {
         var repository = new FakeRepository { ExistingCnpj = "12345678000195" };

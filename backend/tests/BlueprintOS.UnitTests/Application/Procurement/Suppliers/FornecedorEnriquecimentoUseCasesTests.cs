@@ -45,6 +45,42 @@ public sealed class FornecedorEnriquecimentoUseCasesTests
     }
 
     [Fact]
+    public async Task Analyze_Should_Create_Cnae_Divergence_But_Never_Update_Fornecedor_Automatically()
+    {
+        // Principio absoluto (B2.8/B2.6): CONSULTA NAO ALTERA FORNECEDOR EXISTENTE AUTOMATICAMENTE.
+        // A analise so calcula a divergencia; o CNAE persistido no fornecedor permanece intocado.
+        await using var context = NewContext();
+        var fornecedor = Supplier();
+        await context.Fornecedores.AddAsync(fornecedor);
+        await context.SaveChangesAsync();
+
+        var result = await new AnalisarEnriquecimentoFornecedorUseCase(new FornecedorRepository(context), new FakeIdentity(_userId))
+            .ExecuteAsync(fornecedor.Id, new(Query(cnaePrincipalCodigo: "6201501", cnaePrincipalDescricao: "Desenvolvimento de programas de computador sob encomenda"), null, "BU-A", null, "corr-cnae"));
+
+        Assert.Contains(result!.Divergencias, x => x.Campo == nameof(Fornecedor.CnaePrincipalCodigo) && x.ValorSugerido == "6201501");
+        var stored = await context.Fornecedores.SingleAsync();
+        Assert.Null(stored.CnaePrincipalCodigo);
+    }
+
+    [Fact]
+    public async Task Approve_Should_Persist_Cnae_Principal_Only_After_Explicit_Approval()
+    {
+        await using var context = NewContext();
+        var fornecedor = Supplier();
+        await context.Fornecedores.AddAsync(fornecedor);
+        await context.SaveChangesAsync();
+
+        var useCase = new AprovarEnriquecimentoFornecedorUseCase(new FornecedorRepository(context),
+            new FornecedorEnriquecimentoAnaliseRepository(context), new FakeIdentity(_userId));
+        await useCase.ExecuteAsync(fornecedor.Id, new(Query(cnaePrincipalCodigo: "62.01-5/01", cnaePrincipalDescricao: "Desenvolvimento de programas de computador sob encomenda"),
+            null, [nameof(Fornecedor.CnaePrincipalCodigo), nameof(Fornecedor.CnaePrincipalDescricao)], "BU-A", null, "corr-aprova-cnae"));
+
+        var stored = await context.Fornecedores.SingleAsync();
+        Assert.Equal("6201501", stored.CnaePrincipalCodigo);
+        Assert.Equal("Desenvolvimento de programas de computador sob encomenda", stored.CnaePrincipalDescricao);
+    }
+
+    [Fact]
     public async Task Approve_Should_Update_Only_Approved_Fields_And_Register_Audit()
     {
         await using var context = NewContext();
@@ -90,9 +126,11 @@ public sealed class FornecedorEnriquecimentoUseCasesTests
     private Fornecedor Supplier() => new(Guid.NewGuid(), "Fornecedor Atual", Cnpj.Create("12345678000195"), null,
         null, null, null, "São Paulo", "SP", "BR", "Ativo", null, _userId, DateTimeOffset.UtcNow, "BU-A", "SOMA_DESENV", "F-1");
 
-    private static ConsultaCnpjResultado Query(string? razaoSocial = null, string? email = null, string? nomeFantasia = null) =>
+    private static ConsultaCnpjResultado Query(string? razaoSocial = null, string? email = null, string? nomeFantasia = null,
+        string? cnaePrincipalCodigo = null, string? cnaePrincipalDescricao = null) =>
         ConsultaCnpjResultado.CriarSucesso("12345678000195", "ConsultaTeste", SituacaoCadastralCnpj.Ativa,
-            DateTimeOffset.UtcNow, razaoSocial: razaoSocial, nomeFantasia: nomeFantasia, email: email);
+            DateTimeOffset.UtcNow, razaoSocial: razaoSocial, nomeFantasia: nomeFantasia, email: email,
+            cnaePrincipalCodigo: cnaePrincipalCodigo, cnaePrincipalDescricao: cnaePrincipalDescricao);
 
     private static BlueprintOSDbContext NewContext() => new(new DbContextOptionsBuilder<BlueprintOSDbContext>()
         .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);

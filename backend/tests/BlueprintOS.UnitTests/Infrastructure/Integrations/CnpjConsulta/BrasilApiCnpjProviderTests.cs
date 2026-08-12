@@ -55,6 +55,77 @@ public sealed class BrasilApiCnpjProviderTests
     }
 
     [Fact]
+    public async Task ConsultarAsync_Should_Map_Cnae_Principal_Codigo_E_Descricao()
+    {
+        // B2.8: cnae_fiscal (numerico) e cnae_fiscal_descricao mapeiam para o CNAE principal do
+        // contrato canonico. Codigo persistido em digitos puros (o valor numerico ja garante isso).
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.OK, """
+        {
+          "cnpj": "12345678000195",
+          "razao_social": "Fornecedor Brasil API Ltda",
+          "descricao_situacao_cadastral": "ATIVA",
+          "cnae_fiscal": 6201501,
+          "cnae_fiscal_descricao": "Desenvolvimento de programas de computador sob encomenda"
+        }
+        """));
+
+        var result = await provider.ConsultarAsync("12345678000195");
+
+        Assert.True(result.Sucesso);
+        Assert.Equal("6201501", result.CnaePrincipalCodigo);
+        Assert.Equal("Desenvolvimento de programas de computador sob encomenda", result.CnaePrincipalDescricao);
+    }
+
+    [Fact]
+    public async Task ConsultarAsync_Should_Succeed_Without_Cnae_When_Provider_Omits_It()
+    {
+        // CNAE principal e complementar/opcional (B2.8) — ausencia na fonte externa nunca impede
+        // uma consulta bem-sucedida nem exige um valor inventado.
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.OK, """
+        {
+          "cnpj": "12345678000195",
+          "razao_social": "Fornecedor Sem Cnae",
+          "descricao_situacao_cadastral": "ATIVA"
+        }
+        """));
+
+        var result = await provider.ConsultarAsync("12345678000195");
+
+        Assert.True(result.Sucesso);
+        Assert.Null(result.CnaePrincipalCodigo);
+        Assert.Null(result.CnaePrincipalDescricao);
+    }
+
+    [Fact]
+    public async Task ConsultarAsync_Should_Discard_Cnaes_Secundarios_At_The_Adapter_Boundary()
+    {
+        // B2.8, secao 22: CNAEs secundarios podem chegar ao Provider mas nunca atravessam para o
+        // contrato canonico — o teste prova que o payload com secundarios ainda mapeia corretamente
+        // apenas o principal, sem nenhum vestigio dos secundarios no resultado.
+        var provider = CreateProvider(new JsonHandler(HttpStatusCode.OK, """
+        {
+          "cnpj": "12345678000195",
+          "razao_social": "Fornecedor Com Secundarios",
+          "descricao_situacao_cadastral": "ATIVA",
+          "cnae_fiscal": 6201501,
+          "cnae_fiscal_descricao": "Desenvolvimento de programas de computador sob encomenda",
+          "cnaes_secundarios": [
+            { "codigo": 6202300, "descricao": "Desenvolvimento e licenciamento de programas de computador customizaveis" },
+            { "codigo": 6203100, "descricao": "Desenvolvimento e licenciamento de programas de computador nao customizaveis" }
+          ]
+        }
+        """));
+
+        var result = await provider.ConsultarAsync("12345678000195");
+
+        Assert.True(result.Sucesso);
+        Assert.Equal("6201501", result.CnaePrincipalCodigo);
+        var propriedades = typeof(ConsultaCnpjResultado).GetProperties().Select(p => p.Name);
+        Assert.DoesNotContain("CnaesSecundarios", propriedades);
+        Assert.DoesNotContain("CnaeSecundario", propriedades);
+    }
+
+    [Fact]
     public async Task ConsultarAsync_Should_Return_Timeout_Failure()
     {
         var provider = CreateProvider(new DelayedHandler(TimeSpan.FromSeconds(5)), timeoutSeconds: 1);
