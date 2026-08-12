@@ -1612,3 +1612,21 @@ Testes reexecutados com as conexões reais habilitadas: backend 713 unitários +
 **#41 NÃO foi marcado Concluído.** Sua definição formal (`docs/audits/Onda1-Reconciliacao-e-Plano-Execucao.md`; `.ai/dashboard/DASHBOARD_STATE.md`) é "validação funcional **com os envolvidos**" e exige "aprovação formal da Onda 1 pelo Product Owner" — uma sessão com stakeholders humanos, não apenas execução técnica pelo agente. A validação técnica está aprovada e apresentada; o aceite formal do Product Owner é o próximo passo, não autoassinado nesta sessão.
 
 **Resultado: Onda 1 permanece em 40/41 (97,5610% exato, exibido 98%). GATE PERMANECE ABERTO.** `DASHBOARD_STATE.md` não foi editado. **Design Review NÃO foi executado. Onda 2 NÃO foi iniciada.**
+
+---
+
+## Fechamento Formal da Onda 1 — Aceite do Product Owner (12/08/2026, mesma data)
+
+O Product Owner registrou aceite formal explícito sobre o Relatório Final da Validação Funcional do Entregável #41: aprova a validação funcional da Onda 1 e autoriza marcar #41 como Concluído, reconciliar a matriz para 41/41, registrar o progresso técnico como 100%, encerrar o Gate Final e declarar a Onda 1 formalmente Concluída — sem exigir ambiente de Homologação. A evidência aceita é a própria validação real já produzida na sessão imediatamente anterior (ambiente DEV real, bancos reais, login OTP real, Chrome DevTools MCP); os 4 bugs encontrados foram corrigidos e retestados antes deste aceite.
+
+Nenhuma alteração de código foi feita nesta rodada de fechamento (tarefa exclusivamente documental/governança) — os números de teste (backend 713 + 7 integração; frontend 116) são os já produzidos na sessão anterior, não reexecutados.
+
+**Entregável #41: CONCLUÍDO.** **Matriz final: 41 entregáveis / 41 Concluídos / 0 Em desenvolvimento / 0 Planejado.** **Progresso Técnico da Onda 1: 100% exato.** Contribuição da Onda 1 ao MVP: 20,0 pontos (20% × 100%). **Percentual Global do MVP 1.0: 46,5122% → 47,0% exato**, exibição **47%** (mesma fórmula oficial: Foundation 20,0 + Onda 1 20,0 + Onda 2 7,0).
+
+**Gate Final da Onda 1: CONCLUÍDO. ONDA 1: FORMALMENTE CONCLUÍDA.**
+
+Dívidas técnicas remanescentes preservadas (não quitadas por este fechamento — ver `docs/audits/O1.14-InventarioDividasEGaps.md`): DEB-02, DEB-04 a DEB-12, DEB-14, DEB-17, DEB-18, GAP-01 a GAP-04, mantidas por decisão objetiva de custo/risco/escopo ou pertencentes a Ondas/etapas futuras (Onda 3/4, Design Review, Homologação). Os 4 bugs encontrados na validação funcional do #41 permanecem registrados no histórico do inventário como evidência da efetividade do Gate.
+
+**Próxima etapa (documentada como handoff, NÃO iniciada nesta rodada): Design Review Consolidado Pós-Onda 1.** Escopo já decidido pelo Product Owner: auditoria visual do aplicativo SOMA real via Chrome (após login manual do PO — sem captura/persistência de token/cookie/credencial), comparando padrão GDT/AZZAS × SOMA real × +Compras atual; revisão de arquitetura de informação/navegação (sidebar por contexto, submenus expansíveis, sidebar recolhível, ícones monocromáticos, cor só para estado ativo); engrenagem de configurações respeitando `EscopoAdministrativo`; componente único de identidade no header (avatar, nome, e-mail, Perfis, BU atual, escopo, troca de BU quando autorizada, Sair); navegação principal lateral preservada; separação Compras × Administração; revisão de agrupamentos conceituais (Compras, Cadastros, Organização, Acessos, Monitoramento, Configurações); preservação do Design System AZZAS/SOMA. Nada disso foi implementado ou iniciado nesta rodada.
+
+Nenhuma sprint O1.15 foi aberta — não há sprint funcional ativa. `.ai/dashboard/DASHBOARD_STATE.md` **não** foi editado; `[atualizar dashboard]` **não** foi executado; workflow n8n **não** foi tocado. **Design Review NÃO iniciado. Auditoria visual do SOMA NÃO iniciada. Onda 2 NÃO iniciada.**
