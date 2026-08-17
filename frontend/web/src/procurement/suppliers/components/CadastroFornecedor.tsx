@@ -15,7 +15,7 @@ import type {
   SituacaoCadastralCnpj
 } from "../types/linxSupplierContract";
 import { CnpjSearch } from "./CnpjSearch";
-import { ExistingSupplierSnapshot, SupplierComparison } from "./SupplierComparison";
+import { ExistingSupplierSnapshot, InfoCard, SupplierComparison } from "./SupplierComparison";
 import { ApprovalPanel } from "./ApprovalPanel";
 import { NovoFornecedorPanel, type NovoFornecedorDraft } from "./NovoFornecedorPanel";
 
@@ -260,19 +260,15 @@ export function CadastroFornecedor() {
 
   return (
     <main className="supplier-page">
-      <section className="workspace">
-        <aside className="summary-panel">
-          <div className="section-title">B2.6</div>
+      <div className="page-stack">
+        <div className="page-header">
           <h1>Cadastro com enriquecimento CNPJ</h1>
-          <p>{status}</p>
-          <dl>
-            <div><dt>Estado</dt><dd className="mono">{flowStateLabels[flowState]}</dd></div>
-            <div><dt>Fonte</dt><dd>{consulta?.fonteConsulta ?? "Aguardando consulta"}</dd></div>
-            <div><dt>Data/hora</dt><dd>{formatDateTime(consulta?.dataConsulta)}</dd></div>
-            <div><dt>Usuario</dt><dd>{usuario?.nome ?? "Nao identificado"}</dd></div>
-            <div><dt>CorrelationId</dt><dd className="mono">{correlationId}</dd></div>
-          </dl>
-        </aside>
+        </div>
+
+        <div className="status-line">
+          <span className="dot" aria-hidden="true" />
+          {status}
+        </div>
 
         <div className="content">
           <CnpjSearch value={documento} onChange={setDocumento} onSubmit={handleConsult} loading={loading} error={error} />
@@ -316,8 +312,27 @@ export function CadastroFornecedor() {
               onCadastrar={handleCadastrarNovoFornecedor}
             />
           )}
+
+          {/*
+            DR (Fase 2): metadados tecnicos (B2.6, estado interno da state
+            machine, CorrelationId) reprovados como protagonistas de um card
+            lateral. Rebaixados para um info-card discreto, fechado por
+            padrao, ao final da pagina — raramente necessario para o fluxo
+            do usuario, mas disponivel para suporte/depuracao.
+          */}
+          <InfoCard title="Detalhes tecnicos (B2.6)">
+            <div className="tech-details">
+              <div className="info-grid">
+                <div className="info-row"><span className="l">Estado</span><span className="v mono">{flowStateLabels[flowState]}</span></div>
+                <div className="info-row"><span className="l">Fonte</span><span className="v">{consulta?.fonteConsulta ?? "Aguardando consulta"}</span></div>
+                <div className="info-row"><span className="l">Data/hora</span><span className="v">{formatDateTime(consulta?.dataConsulta)}</span></div>
+                <div className="info-row"><span className="l">Usuario</span><span className="v">{usuario?.nome ?? "Nao identificado"}</span></div>
+                <div className="info-row"><span className="l">CorrelationId</span><span className="v mono">{correlationId}</span></div>
+              </div>
+            </div>
+          </InfoCard>
         </div>
-      </section>
+      </div>
     </main>
   );
 }

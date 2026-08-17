@@ -1,9 +1,12 @@
 import type { FormEvent } from "react";
 
 /**
- * Input + botao de consulta de CNPJ/CPF. Puramente controlado pelo pai:
- * nao possui estado proprio nem chama a API diretamente (ver
- * procurement/suppliers/supplierEnrichmentApi.ts para as chamadas reais).
+ * Card compacto de consulta de CNPJ/CPF (padrao "lookup card" do design
+ * system, ver resources/design-system/preview/component-lookup-tabs.html).
+ * Substitui o antigo `.form-card` full-width: a consulta e uma interacao
+ * simples e deve ocupar o espaco equivalente a ela, nao uma secao inteira da
+ * tela. Puramente controlado pelo pai: nao possui estado proprio nem chama a
+ * API diretamente (ver procurement/suppliers/supplierEnrichmentApi.ts).
  */
 export function CnpjSearch({ value, onChange, onSubmit, loading, error }: {
   value: string;
@@ -13,9 +16,14 @@ export function CnpjSearch({ value, onChange, onSubmit, loading, error }: {
   error?: string | null;
 }) {
   return (
-    <form className="card form-card" onSubmit={onSubmit}>
-      <label htmlFor="cnpjCpf">CNPJ/CPF</label>
-      <div className="input-row">
+    <form className="lookup-card" onSubmit={onSubmit}>
+      <div className="icon-h">
+        <SearchIcon />
+      </div>
+      <h2>Consultar fornecedor</h2>
+      <p className="sub">Localize um fornecedor pelo CNPJ, CPF ou documento alfanumerico do ERP.</p>
+      <div className="lookup-field">
+        <label htmlFor="cnpjCpf">CNPJ/CPF</label>
         <input
           id="cnpjCpf"
           value={value}
@@ -23,10 +31,11 @@ export function CnpjSearch({ value, onChange, onSubmit, loading, error }: {
           placeholder="12345678000195"
           maxLength={18}
         />
-        <button className="btn btn-primary" disabled={loading} type="submit">
-          <SearchIcon /> Consultar CNPJ
-        </button>
+        <span className="hint">Consulta e somente leitura — nenhum fornecedor e criado nesta etapa.</span>
       </div>
+      <button className="btn btn-primary lookup-submit" disabled={loading} type="submit">
+        <SearchIcon /> Consultar CNPJ
+      </button>
       {error && <div className="notice notice-crit">{error}</div>}
     </form>
   );

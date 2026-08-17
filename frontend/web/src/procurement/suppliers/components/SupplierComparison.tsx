@@ -1,3 +1,4 @@
+import { useState, type ReactNode } from "react";
 import { StatusBadge } from "../../../shared/components/StatusBadge";
 import { SituacaoCadastralBadge } from "./SituacaoCadastralBadge";
 import type { ConsultaCnpjResultado, Fornecedor, FornecedorCampoDivergencia } from "../types/linxSupplierContract";
@@ -32,33 +33,45 @@ export function SupplierComparison({
           </div>
           <SituacaoCadastralBadge value={consulta.situacaoCadastral} />
         </div>
-        <DataGrid title="Identificacao" items={[
-          ["CNPJ/CPF", consulta.cnpj_Cpf],
-          ["Razão Social", consulta.razaoSocial],
-          ["Nome Fantasia", consulta.nomeFantasia],
-          ["Tipo de Pessoa", consulta.tipoPessoa]
-        ]} />
-        <DataGrid title="CNAE principal" items={[
-          ["Código", formatCnaeCodigo(consulta.cnaePrincipalCodigo)],
-          ["Descrição", consulta.cnaePrincipalDescricao]
-        ]} />
-        <DataGrid title="Situacao" items={[
-          ["Situação Cadastral", consulta.situacaoCadastral],
-          ["Data da Situação Cadastral", formatDate(consulta.dataSituacaoCadastral)]
-        ]} />
-        <DataGrid title="Endereco" items={[
-          ["CEP", consulta.cep],
-          ["Logradouro", consulta.logradouro],
-          ["Número", consulta.numero],
-          ["Complemento", consulta.complemento],
-          ["Bairro", consulta.bairro],
-          ["Cidade", consulta.cidade],
-          ["Estado", consulta.estado]
-        ]} />
-        <DataGrid title="Contato" items={[
-          ["E-mail", consulta.email],
-          ["Telefone", consulta.telefone]
-        ]} />
+        <div className="info-stack">
+          <InfoCard title="Identificacao" defaultOpen>
+            <InfoGrid items={[
+              ["CNPJ/CPF", consulta.cnpj_Cpf],
+              ["Razão Social", consulta.razaoSocial],
+              ["Nome Fantasia", consulta.nomeFantasia],
+              ["Tipo de Pessoa", consulta.tipoPessoa]
+            ]} />
+          </InfoCard>
+          <InfoCard title="Situacao cadastral" defaultOpen>
+            <InfoGrid items={[
+              ["Situação Cadastral", consulta.situacaoCadastral],
+              ["Data da Situação Cadastral", formatDate(consulta.dataSituacaoCadastral)]
+            ]} />
+          </InfoCard>
+          <InfoCard title="CNAE principal">
+            <InfoGrid items={[
+              ["Código", formatCnaeCodigo(consulta.cnaePrincipalCodigo)],
+              ["Descrição", consulta.cnaePrincipalDescricao]
+            ]} />
+          </InfoCard>
+          <InfoCard title="Endereco">
+            <InfoGrid items={[
+              ["CEP", consulta.cep],
+              ["Logradouro", consulta.logradouro],
+              ["Número", consulta.numero],
+              ["Complemento", consulta.complemento],
+              ["Bairro", consulta.bairro],
+              ["Cidade", consulta.cidade],
+              ["Estado", consulta.estado]
+            ]} />
+          </InfoCard>
+          <InfoCard title="Contato">
+            <InfoGrid items={[
+              ["E-mail", consulta.email],
+              ["Telefone", consulta.telefone]
+            ]} />
+          </InfoCard>
+        </div>
       </section>
 
       {divergencias && (
@@ -108,45 +121,88 @@ export function ExistingSupplierSnapshot({ supplier }: { supplier: Fornecedor })
         por isso os botoes Aceitar/Rejeitar permanecem desabilitados ate uma nova consulta bem-sucedida. Os
         dados abaixo sao os ja cadastrados no +Compras.
       </p>
-      <DataGrid title="Identificacao" items={[
-        ["CNPJ/CPF", supplier.cnpj_Cpf],
-        ["Razão Social", supplier.razaoSocial],
-        ["Nome Fantasia", supplier.nomeFantasia],
-        ["Tipo de Pessoa", supplier.tipoPessoa]
-      ]} />
-      <DataGrid title="CNAE principal" items={[
-        ["Código", formatCnaeCodigo(supplier.cnaePrincipalCodigo)],
-        ["Descrição", supplier.cnaePrincipalDescricao]
-      ]} />
-      <DataGrid title="Endereco" items={[
-        ["CEP", supplier.cep],
-        ["Logradouro", supplier.logradouro],
-        ["Número", supplier.numero],
-        ["Complemento", supplier.complemento],
-        ["Bairro", supplier.bairro],
-        ["Cidade", supplier.cidade],
-        ["Estado", supplier.estado]
-      ]} />
-      <DataGrid title="Contato" items={[
-        ["E-mail", supplier.email],
-        ["Telefone", supplier.telefone]
-      ]} />
+      <div className="info-stack">
+        <InfoCard title="Identificacao" defaultOpen>
+          <InfoGrid items={[
+            ["CNPJ/CPF", supplier.cnpj_Cpf],
+            ["Razão Social", supplier.razaoSocial],
+            ["Nome Fantasia", supplier.nomeFantasia],
+            ["Tipo de Pessoa", supplier.tipoPessoa]
+          ]} />
+        </InfoCard>
+        <InfoCard title="CNAE principal">
+          <InfoGrid items={[
+            ["Código", formatCnaeCodigo(supplier.cnaePrincipalCodigo)],
+            ["Descrição", supplier.cnaePrincipalDescricao]
+          ]} />
+        </InfoCard>
+        <InfoCard title="Endereco">
+          <InfoGrid items={[
+            ["CEP", supplier.cep],
+            ["Logradouro", supplier.logradouro],
+            ["Número", supplier.numero],
+            ["Complemento", supplier.complemento],
+            ["Bairro", supplier.bairro],
+            ["Cidade", supplier.cidade],
+            ["Estado", supplier.estado]
+          ]} />
+        </InfoCard>
+        <InfoCard title="Contato">
+          <InfoGrid items={[
+            ["E-mail", supplier.email],
+            ["Telefone", supplier.telefone]
+          ]} />
+        </InfoCard>
+      </div>
     </section>
   );
 }
 
-function DataGrid({ title, items }: { title: string; items: Array<[string, string | null | undefined]> }) {
+/**
+ * Card colapsavel com header mono-uppercase + chevron (padrao
+ * component-info-card.html). Identificacao e Situacao cadastral (os dados
+ * de decisao mais importantes) abrem por padrao via `defaultOpen`; blocos
+ * secundarios (CNAE, Endereco, Contato) comecam fechados para reduzir a
+ * sensacao de tela monumental que motivou a reprovacao do PO.
+ */
+export function InfoCard({ title, defaultOpen, badge, children }: {
+  title: string;
+  defaultOpen?: boolean;
+  badge?: ReactNode;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(!!defaultOpen);
   return (
-    <div className="data-block">
-      <div className="section-title">{title}</div>
-      <div className="data-grid">
-        {items.map(([label, value]) => (
-          <div className="field-readonly" key={label}>
-            <span>{label}</span>
-            <strong>{value || "Nao informado"}</strong>
-          </div>
-        ))}
-      </div>
+    <div className={`info-card${open ? " open" : ""}`}>
+      <button type="button" className="info-h" aria-expanded={open} onClick={() => setOpen((current) => !current)}>
+        <span className="info-t">{title}</span>
+        <span className="info-h-right">
+          {badge}
+          <ChevIcon />
+        </span>
+      </button>
+      <div className="info-b">{children}</div>
+    </div>
+  );
+}
+
+function ChevIcon() {
+  return (
+    <svg className="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+function InfoGrid({ items }: { items: Array<[string, string | null | undefined]> }) {
+  return (
+    <div className="info-grid">
+      {items.map(([label, value]) => (
+        <div className="info-row" key={label}>
+          <span className="l">{label}</span>
+          <span className="v">{value || "Nao informado"}</span>
+        </div>
+      ))}
     </div>
   );
 }

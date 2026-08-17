@@ -48,10 +48,10 @@ export function ApprovalPanel({
       {alertas.map((alerta) => <div className="notice notice-warn" key={alerta}>{alerta}</div>)}
 
       <div className="actions">
-        <button className="btn btn-secondary" disabled={loading || selectedFieldsCount === 0} onClick={onReject}>
+        <button className="btn btn-reject" disabled={loading || selectedFieldsCount === 0} onClick={onReject}>
           <XIcon /> Rejeitar
         </button>
-        <button className="btn btn-primary" disabled={loading || selectedFieldsCount === 0} onClick={onApprove}>
+        <button className="btn btn-approve" disabled={loading || selectedFieldsCount === 0} onClick={onApprove}>
           <CheckIcon /> Aceitar
         </button>
       </div>
