@@ -62,10 +62,10 @@ const flowStateLabels: Record<FlowState, string> = {
   Idle: "Aguardando",
   Validating: "Validando",
   Consulting: "Consultando fonte externa",
-  Review: "Em revisao",
+  Review: "Em revisão",
   Persisting: "Salvando...",
-  Success: "Concluido",
-  ErrorValidacao: "Documento invalido",
+  Success: "Concluído",
+  ErrorValidacao: "Documento inválido",
   ErrorConsulta: "Falha na consulta externa",
   ErrorPersistencia: "Falha ao salvar"
 };
@@ -85,7 +85,7 @@ export function CadastroFornecedor() {
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
   const [situacaoConfirmed, setSituacaoConfirmed] = useState(false);
   const [novoDraft, setNovoDraft] = useState<NovoFornecedorDraft>(draftInicial);
-  const [status, setStatus] = useState<string>("Informe um CNPJ, CPF ou documento alfanumerico.");
+  const [status, setStatus] = useState<string>("Informe um CNPJ, CPF ou documento alfanumérico.");
   const [error, setError] = useState<string | null>(null);
   const correlationId = useMemo(() => `b224-${crypto.randomUUID()}`, []);
   // Guarda contra submissao duplicada: complementa o disabled do botao,
@@ -110,13 +110,13 @@ export function CadastroFornecedor() {
 
     setFlowState("Validating");
     if (!/^[A-Za-z0-9]{1,14}$/.test(normalized)) {
-      setError("Informe CPF/CNPJ com ate 14 caracteres alfanumericos.");
+      setError("Informe CPF/CNPJ com até 14 caracteres alfanuméricos.");
       setFlowState("ErrorValidacao");
       return;
     }
 
     setFlowState("Consulting");
-    setStatus("Consultando fonte externa (somente leitura — nenhum Fornecedor e criado nesta etapa).");
+    setStatus("Consultando fonte externa (somente leitura — nenhum fornecedor é criado nesta etapa).");
     try {
       // Consulta e busca de fornecedor existente sao ambas operacoes de
       // leitura: nenhuma delas persiste um Fornecedor. A criacao so ocorre
@@ -140,7 +140,7 @@ export function CadastroFornecedor() {
           const enrichment = await analyzeEnrichment(existingSupplier.id, query, { businessUnit, erpSistema, correlationId });
           setAnalise(enrichment);
           setSelectedFields(enrichment.divergencias.map((item) => item.campo).filter((campo) => !protectedFields.has(campo)));
-          setStatus("Fornecedor localizado e divergencias calculadas. Revise antes de aprovar ou rejeitar.");
+          setStatus("Fornecedor localizado e divergências calculadas. Revise antes de aprovar ou rejeitar.");
         } else {
           // Fornecedor ja existe no +Compras, mas a reconsulta externa falhou (rate limit, fonte
           // indisponivel, timeout, etc.). Isso nunca deve ser tratado como "ja existe" nem como
@@ -153,10 +153,10 @@ export function CadastroFornecedor() {
             fonteConsulta: query.fonteConsulta,
             correlationId,
             divergencias: [],
-            alertas: ["Nao foi possivel reconsultar a fonte externa agora; exibindo dados ja cadastrados."]
+            alertas: ["Não foi possível reconsultar a fonte externa agora; exibindo dados já cadastrados."]
           });
           setSelectedFields([]);
-          setStatus("Fornecedor ja cadastrado. Reconsulta externa indisponivel no momento — revise os dados atuais.");
+          setStatus("Fornecedor já cadastrado. Reconsulta externa indisponível no momento — revise os dados atuais.");
         }
         setFlowState("Review");
         return;
@@ -195,7 +195,7 @@ export function CadastroFornecedor() {
   async function handleDecision(decision: "aprovar" | "rejeitar") {
     if (!supplier || !consulta || !analise) return;
     if (requiresSituacaoConfirmation && !situacaoConfirmed) {
-      setError(`Confirme a situacao cadastral ${consulta.situacaoCadastral} antes de continuar.`);
+      setError(`Confirme a situação cadastral ${consulta.situacaoCadastral} antes de continuar.`);
       return;
     }
     if (persistindoRef.current) return;
@@ -209,10 +209,10 @@ export function CadastroFornecedor() {
         : selectedFields;
       const updated = await decideEnrichment(supplier.id, decision, consulta, fields, { businessUnit, erpSistema, correlationId });
       setAnalise(updated);
-      setStatus(decision === "aprovar" ? "Campos aprovados e persistidos no +Compras." : "Divergencias rejeitadas e auditadas.");
+      setStatus(decision === "aprovar" ? "Campos aprovados e persistidos no +Compras." : "Divergências rejeitadas e auditadas.");
       setFlowState("Success");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao registrar decisao.");
+      setError(err instanceof Error ? err.message : "Falha ao registrar decisão.");
       setFlowState("ErrorPersistencia");
     } finally {
       persistindoRef.current = false;
@@ -222,7 +222,7 @@ export function CadastroFornecedor() {
   async function handleCadastrarNovoFornecedor() {
     if (!consulta) return;
     if (requiresSituacaoConfirmation && !situacaoConfirmed) {
-      setError(`Confirme a situacao cadastral ${consulta.situacaoCadastral} antes de continuar.`);
+      setError(`Confirme a situação cadastral ${consulta.situacaoCadastral} antes de continuar.`);
       return;
     }
     // Guarda contra submissao duplicada: bloqueia reentrada enquanto uma
@@ -262,7 +262,7 @@ export function CadastroFornecedor() {
     <main className="supplier-page">
       <div className="page-stack">
         <div className="page-header">
-          <h1>Cadastro com enriquecimento CNPJ</h1>
+          <h1>Fornecedores</h1>
         </div>
 
         <div className="status-line">
@@ -320,13 +320,13 @@ export function CadastroFornecedor() {
             padrao, ao final da pagina — raramente necessario para o fluxo
             do usuario, mas disponivel para suporte/depuracao.
           */}
-          <InfoCard title="Detalhes tecnicos (B2.6)">
+          <InfoCard title="Detalhes técnicos">
             <div className="tech-details">
               <div className="info-grid">
                 <div className="info-row"><span className="l">Estado</span><span className="v mono">{flowStateLabels[flowState]}</span></div>
                 <div className="info-row"><span className="l">Fonte</span><span className="v">{consulta?.fonteConsulta ?? "Aguardando consulta"}</span></div>
                 <div className="info-row"><span className="l">Data/hora</span><span className="v">{formatDateTime(consulta?.dataConsulta)}</span></div>
-                <div className="info-row"><span className="l">Usuario</span><span className="v">{usuario?.nome ?? "Nao identificado"}</span></div>
+                <div className="info-row"><span className="l">Usuário</span><span className="v">{usuario?.nome ?? "Não identificado"}</span></div>
                 <div className="info-row"><span className="l">CorrelationId</span><span className="v mono">{correlationId}</span></div>
               </div>
             </div>

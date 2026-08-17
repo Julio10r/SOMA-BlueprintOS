@@ -8,33 +8,33 @@ export function ParametrosPage() {
   const { parametros, loading, error, remover } = useParametros();
 
   async function handleExcluir(parametro: Parametro) {
-    if (!window.confirm(`Excluir o parametro "${parametro.chave}"?`)) return;
+    if (!window.confirm(`Excluir o parâmetro "${parametro.chave}"?`)) return;
     await remover(parametro.id);
   }
 
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>Parametros</h1>
-        <p>Parametros tecnicos globais ou por Unidade de Negocio. Catalogo nasce vazio.</p>
+        <div className="section-title">Administração</div>
+        <h1>Parâmetros</h1>
+        <p>Parâmetros técnicos globais ou por Unidade de Negócio. Catálogo nasce vazio.</p>
       </header>
 
       <section className="card">
         <div className="card-heading">
           <div>
-            <div className="section-title">Parametros</div>
-            <h2>Parametros cadastrados</h2>
+            <div className="section-title">Parâmetros</div>
+            <h2>Parâmetros cadastrados</h2>
           </div>
           <button type="button" className="btn btn-primary" onClick={() => navigate("novo")}>
-            Novo Parametro
+            Novo parâmetro
           </button>
         </div>
 
         {error && <div className="notice notice-crit">{error}</div>}
 
         {loading ? (
-          <div className="empty-state">Carregando Parametros...</div>
+          <div className="empty-state">Carregando Parâmetros...</div>
         ) : (
           <ParametroTable
             parametros={parametros}

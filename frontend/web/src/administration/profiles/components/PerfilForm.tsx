@@ -66,7 +66,7 @@ export function PerfilForm({ perfil, permissoes, error, loading, onSubmit, onCan
       <div className="data-block">
         <div className="section-title">Permissoes</div>
         {grupos.length === 0 ? (
-          <div className="empty-state">Nenhuma permissao disponivel no catalogo.</div>
+          <div className="empty-state">Nenhuma permissão disponível no catálogo.</div>
         ) : (
           grupos.map(([recurso, permissoesDoRecurso]) => (
             <div key={recurso} className="data-block">

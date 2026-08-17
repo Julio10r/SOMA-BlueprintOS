@@ -23,7 +23,7 @@ export class UnidadeNegocioApiError extends Error {
 }
 
 export class UnidadeNegocioAcessoNegadoError extends UnidadeNegocioApiError {
-  constructor(message = "Voce nao tem permissao para acessar o Cadastro de Unidades de Negocio.") {
+  constructor(message = "Você não tem permissão para acessar o Cadastro de Unidades de Negócio.") {
     super(message, "acesso_negado");
     this.name = "UnidadeNegocioAcessoNegadoError";
   }
@@ -57,7 +57,7 @@ function paraUnidadeNegocio(dto: UnidadeNegocioApiDto): UnidadeNegocio {
 
 export async function listUnidadesNegocio(): Promise<UnidadeNegocio[]> {
   const response = await fetch(BASE, { credentials: "include" });
-  if (!response.ok) await lerErro(response, "Falha ao carregar Unidades de Negocio.");
+  if (!response.ok) await lerErro(response, "Falha ao carregar Unidades de Negócio.");
   const data = (await response.json()) as UnidadeNegocioApiDto[];
   return data.map(paraUnidadeNegocio);
 }
@@ -69,7 +69,7 @@ export async function createUnidadeNegocio(input: UnidadeNegocioCriarInput): Pro
     headers: { "Content-Type": "application/json", [CSRF_HEADER]: "1" },
     body: JSON.stringify({ nome: input.nome, slug: input.slug })
   });
-  if (!response.ok) await lerErro(response, "Falha ao criar Unidade de Negocio.");
+  if (!response.ok) await lerErro(response, "Falha ao criar Unidade de Negócio.");
   return paraUnidadeNegocio((await response.json()) as UnidadeNegocioApiDto);
 }
 
@@ -80,7 +80,7 @@ export async function updateUnidadeNegocio(id: string, input: UnidadeNegocioEdit
     headers: { "Content-Type": "application/json", [CSRF_HEADER]: "1" },
     body: JSON.stringify({ nome: input.nome })
   });
-  if (!response.ok) await lerErro(response, "Falha ao salvar Unidade de Negocio.");
+  if (!response.ok) await lerErro(response, "Falha ao salvar Unidade de Negócio.");
   return paraUnidadeNegocio((await response.json()) as UnidadeNegocioApiDto);
 }
 
@@ -92,6 +92,6 @@ export async function toggleStatusUnidadeNegocio(unidadeNegocio: UnidadeNegocio)
     headers: { "Content-Type": "application/json", [CSRF_HEADER]: "1" },
     body: JSON.stringify({ ativa: proximoAtivo })
   });
-  if (!response.ok) await lerErro(response, "Falha ao alterar o status da Unidade de Negocio.");
+  if (!response.ok) await lerErro(response, "Falha ao alterar o status da Unidade de Negócio.");
   return paraUnidadeNegocio((await response.json()) as UnidadeNegocioApiDto);
 }

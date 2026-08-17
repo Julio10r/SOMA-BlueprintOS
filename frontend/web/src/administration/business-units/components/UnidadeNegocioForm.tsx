@@ -23,7 +23,7 @@ export function UnidadeNegocioForm({ unidadeNegocio, error, loading, onSubmit, o
   return (
     <form className="card form-card" onSubmit={handleSubmit}>
       <div className="card-heading">
-        <h2>{unidadeNegocio ? "Editar Unidade de Negocio" : "Nova Unidade de Negocio"}</h2>
+        <h2>{unidadeNegocio ? "Editar unidade de negócio" : "Nova unidade de negócio"}</h2>
       </div>
 
       {error && <div className="notice notice-crit">{error}</div>}

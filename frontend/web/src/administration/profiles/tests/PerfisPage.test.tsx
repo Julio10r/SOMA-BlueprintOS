@@ -103,7 +103,7 @@ describe("PerfisPage — integracao com a API real", () => {
 
     renderPerfis();
 
-    expect(await screen.findByText(/nao tem permissao para acessar a Gestao de Perfis/i)).toBeInTheDocument();
+    expect(await screen.findByText(/não tem permissão para acessar a Gestão de Perfis/i)).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Perfis cadastrados" })).not.toBeInTheDocument();
   });
 

@@ -76,7 +76,7 @@ export function usePermissionCatalog() {
       } catch (err) {
         if (!ativo) return;
         if (err instanceof PerfilAcessoNegadoError) setAcessoNegado(true);
-        else setError(mensagemDe(err, "Falha ao carregar o catalogo de permissoes."));
+        else setError(mensagemDe(err, "Falha ao carregar o catálogo de permissões."));
       } finally {
         if (ativo) setLoading(false);
       }

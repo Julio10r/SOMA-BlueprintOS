@@ -7,7 +7,7 @@ export function UsuarioTable({ usuarios, onVisualizar, onEditar, onToggleAtivo }
   onEditar: (usuario: Usuario) => void;
   onToggleAtivo: (usuario: Usuario) => void;
 }) {
-  if (usuarios.length === 0) return <div className="empty-state">Nenhum usuario cadastrado.</div>;
+  if (usuarios.length === 0) return <div className="empty-state">Nenhum usuário cadastrado.</div>;
   return (
     <div className="table-scroll">
     <table className="divergence-table">
@@ -18,7 +18,7 @@ export function UsuarioTable({ usuarios, onVisualizar, onEditar, onToggleAtivo }
           <th>Perfis</th>
           <th>Centros de Custo</th>
           <th>Status</th>
-          <th>Acoes</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>

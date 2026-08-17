@@ -13,8 +13,8 @@ import type { UsuarioAutenticado } from "../../auth/types/authTypes";
  */
 
 const ESCOPO_LABEL: Record<UsuarioAutenticado["escopoAdministrativo"], string> = {
-  Produto: "Administrador Senior (cross-BU)",
-  Negocio: "Administrador de Unidade de Negocio"
+  Produto: "Administrador Sênior (cross-BU)",
+  Negocio: "Administrador de Unidade de Negócio"
 };
 
 function iniciaisDoNome(nome: string): string {

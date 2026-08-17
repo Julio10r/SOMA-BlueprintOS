@@ -64,7 +64,7 @@ export function CentroCustoDetalhesPage() {
                 <strong>{centroCusto.descricaoErp}</strong>
               </div>
               <div className="field-readonly">
-                <span>Unidade de Negocio</span>
+                <span>Unidade de Negócio</span>
                 <strong>{centroCusto.unidadeNegocioId}</strong>
               </div>
             </div>

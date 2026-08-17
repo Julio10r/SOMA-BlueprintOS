@@ -52,30 +52,30 @@ export function NovoFornecedorPanel({
     <section className="card">
       <div className="card-heading">
         <div>
-          <div className="section-title">Revisao</div>
+          <div className="section-title">Revisão</div>
           <h2>Nenhum fornecedor cadastrado para este documento</h2>
         </div>
       </div>
       <p>
         Revise e complemente os dados retornados pela consulta antes de cadastrar. Nenhuma escrita foi
-        realizada no +Compras ate aqui — a consulta e apenas leitura.
+        realizada no +Compras até aqui — a consulta é apenas leitura.
       </p>
 
       <div className="data-grid">
         <label className="field-editable" htmlFor="novo-fornecedor-razao-social">
-          <span>RazaoSocial</span>
+          <span>Razão Social</span>
           <input id="novo-fornecedor-razao-social" name="razaoSocial" value={draft.razaoSocial} onChange={(event) => update("razaoSocial", event.target.value)} />
         </label>
         <label className="field-editable" htmlFor="novo-fornecedor-nome-fantasia">
-          <span>NomeFantasia</span>
+          <span>Nome Fantasia</span>
           <input id="novo-fornecedor-nome-fantasia" name="nomeFantasia" value={draft.nomeFantasia} onChange={(event) => update("nomeFantasia", event.target.value)} />
         </label>
         <label className="field-editable" htmlFor="novo-fornecedor-email">
-          <span>Email</span>
+          <span>E-mail</span>
           <input id="novo-fornecedor-email" name="email" type="email" value={draft.email} onChange={(event) => update("email", event.target.value)} />
         </label>
         <label className="field-editable" htmlFor="novo-fornecedor-telefone">
-          <span>Telefone (DDD+numero)</span>
+          <span>Telefone (DDD + número)</span>
           <input id="novo-fornecedor-telefone" name="telefone" value={draft.telefone} onChange={(event) => update("telefone", event.target.value)} />
         </label>
         <label className="field-editable" htmlFor="novo-fornecedor-cep">
@@ -87,7 +87,7 @@ export function NovoFornecedorPanel({
           <input id="novo-fornecedor-logradouro" name="logradouro" value={draft.logradouro} onChange={(event) => update("logradouro", event.target.value)} />
         </label>
         <label className="field-editable" htmlFor="novo-fornecedor-numero">
-          <span>Numero</span>
+          <span>Número</span>
           <input id="novo-fornecedor-numero" name="numero" value={draft.numero} onChange={(event) => update("numero", event.target.value)} />
         </label>
         <label className="field-editable" htmlFor="novo-fornecedor-complemento">
@@ -110,7 +110,7 @@ export function NovoFornecedorPanel({
 
       {confirmacaoNecessaria && (
         <div className="notice notice-warn">
-          <strong>Atencao:</strong> situacao cadastral {situacaoCadastral}.
+          <strong>Atenção:</strong> situação cadastral {situacaoCadastral}.
           Deseja continuar com o cadastro mesmo assim?
           <label className="check-line">
             <input

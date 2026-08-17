@@ -30,7 +30,7 @@ export function AlcadaAprovacaoForm({ unidadeNegocioId, alcada, error, loading, 
   const [valorMaximo, setValorMaximo] = useState<string>(alcada?.valorMaximo != null ? String(alcada.valorMaximo) : "");
   const [centroCustoMetadadoId, setCentroCustoMetadadoId] = useState<string>(alcada?.centroCustoMetadadoId ?? "");
   const [nivel, setNivel] = useState(alcada?.nivel ?? 1);
-  const [tipoAprovador, setTipoAprovador] = useState<TipoAprovador>(alcada?.aprovadorPerfilId ? "Perfil" : "Usuario");
+  const [tipoAprovador, setTipoAprovador] = useState<TipoAprovador>(alcada?.aprovadorPerfilId ? "Perfil" : "Usuário");
   const [aprovadorUsuarioId, setAprovadorUsuarioId] = useState(alcada?.aprovadorUsuarioId ?? "");
   const [aprovadorPerfilId, setAprovadorPerfilId] = useState(alcada?.aprovadorPerfilId ?? "");
 
@@ -47,7 +47,7 @@ export function AlcadaAprovacaoForm({ unidadeNegocioId, alcada, error, loading, 
       valorMaximo: criterioValor && valorMaximo !== "" ? Number(valorMaximo) : undefined,
       centroCustoMetadadoId: centroCustoMetadadoId || undefined,
       nivel: Number(nivel),
-      aprovadorUsuarioId: tipoAprovador === "Usuario" ? aprovadorUsuarioId || undefined : undefined,
+      aprovadorUsuarioId: tipoAprovador === "Usuário" ? aprovadorUsuarioId || undefined : undefined,
       aprovadorPerfilId: tipoAprovador === "Perfil" ? aprovadorPerfilId || undefined : undefined
     });
   }
@@ -143,12 +143,12 @@ export function AlcadaAprovacaoForm({ unidadeNegocioId, alcada, error, loading, 
           onChange={(event) => setTipoAprovador(event.target.value as TipoAprovador)}
           disabled={loading}
         >
-          <option value="Usuario">Usuário</option>
+          <option value="Usuário">Usuário</option>
           <option value="Perfil">Perfil</option>
         </select>
       </label>
 
-      {tipoAprovador === "Usuario" ? (
+      {tipoAprovador === "Usuário" ? (
         <label>
           Usuário aprovador
           <select value={aprovadorUsuarioId} onChange={(event) => setAprovadorUsuarioId(event.target.value)} disabled={loading} required>

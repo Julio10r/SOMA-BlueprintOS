@@ -18,10 +18,10 @@ export function AlcadaAprovacaoTable({ alcadas, onEditar, onToggleStatus }: {
         <tr>
           <th>Nome</th>
           <th>Criterio</th>
-          <th>Nivel</th>
+          <th>Nível</th>
           <th>Aprovador</th>
           <th>Status</th>
-          <th>Acoes</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>

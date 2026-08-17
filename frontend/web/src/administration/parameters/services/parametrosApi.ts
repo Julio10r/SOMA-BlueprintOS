@@ -22,7 +22,7 @@ export class ParametroApiError extends Error {
 }
 
 export class ParametroAcessoNegadoError extends ParametroApiError {
-  constructor(message = "Voce nao tem permissao para acessar os Parametros.") {
+  constructor(message = "Você não tem permissão para acessar os Parâmetros.") {
     super(message, "acesso_negado");
     this.name = "ParametroAcessoNegadoError";
   }
@@ -57,7 +57,7 @@ function paraParametro(dto: ParametroApiDto): Parametro {
 export async function listParametros(unidadeNegocioId?: string): Promise<Parametro[]> {
   const query = unidadeNegocioId ? `?unidadeNegocioId=${encodeURIComponent(unidadeNegocioId)}` : "";
   const response = await fetch(`${BASE}${query}`, { credentials: "include" });
-  if (!response.ok) await lerErro(response, "Falha ao carregar Parametros.");
+  if (!response.ok) await lerErro(response, "Falha ao carregar Parâmetros.");
   const data = (await response.json()) as ParametroApiDto[];
   return data.map(paraParametro);
 }
@@ -69,7 +69,7 @@ export async function createParametro(input: ParametroCriarInput): Promise<Param
     headers: { "Content-Type": "application/json", [CSRF_HEADER]: "1" },
     body: JSON.stringify(input)
   });
-  if (!response.ok) await lerErro(response, "Falha ao criar Parametro.");
+  if (!response.ok) await lerErro(response, "Falha ao criar Parâmetro.");
   return paraParametro((await response.json()) as ParametroApiDto);
 }
 
@@ -80,7 +80,7 @@ export async function updateParametro(id: string, input: ParametroAtualizarInput
     headers: { "Content-Type": "application/json", [CSRF_HEADER]: "1" },
     body: JSON.stringify(input)
   });
-  if (!response.ok) await lerErro(response, "Falha ao salvar Parametro.");
+  if (!response.ok) await lerErro(response, "Falha ao salvar Parâmetro.");
   return paraParametro((await response.json()) as ParametroApiDto);
 }
 
@@ -90,5 +90,5 @@ export async function deleteParametro(id: string): Promise<void> {
     credentials: "include",
     headers: { [CSRF_HEADER]: "1" }
   });
-  if (!response.ok && response.status !== 204) await lerErro(response, "Falha ao excluir Parametro.");
+  if (!response.ok && response.status !== 204) await lerErro(response, "Falha ao excluir Parâmetro.");
 }

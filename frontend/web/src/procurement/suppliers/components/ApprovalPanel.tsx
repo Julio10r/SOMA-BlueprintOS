@@ -33,7 +33,7 @@ export function ApprovalPanel({
     <>
       {requiresConfirmation && (
         <div className="notice notice-warn">
-          <strong>Atenção:</strong> Fornecedor possui situação cadastral {situacaoCadastral}. Deseja continuar?
+          <strong>Atenção:</strong> este fornecedor possui situação cadastral {situacaoCadastral}. Deseja continuar?
           <label className="check-line">
             <input
               type="checkbox"

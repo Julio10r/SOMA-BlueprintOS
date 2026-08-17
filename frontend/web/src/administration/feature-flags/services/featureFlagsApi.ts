@@ -19,7 +19,7 @@ export class FeatureFlagApiError extends Error {
 }
 
 export class FeatureFlagAcessoNegadoError extends FeatureFlagApiError {
-  constructor(message = "Voce nao tem permissao para acessar as Feature Flags.") {
+  constructor(message = "Você não tem permissão para acessar as Feature Flags.") {
     super(message, "acesso_negado");
     this.name = "FeatureFlagAcessoNegadoError";
   }

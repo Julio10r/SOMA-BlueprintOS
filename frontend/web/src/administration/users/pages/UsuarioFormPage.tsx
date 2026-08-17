@@ -27,7 +27,7 @@ export function UsuarioFormPage() {
     ])
       .then(([foundUsuario, perfis, centrosCusto]) => {
         if (id && !foundUsuario) {
-          setError("Usuario nao encontrado.");
+          setError("Usuário não encontrado.");
           return;
         }
         setUsuario(foundUsuario);
@@ -48,7 +48,7 @@ export function UsuarioFormPage() {
       }
       navigate("..", { relative: "path" });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao salvar usuario.");
+      setError(err instanceof Error ? err.message : "Falha ao salvar usuário.");
     } finally {
       setSaving(false);
     }
@@ -57,13 +57,13 @@ export function UsuarioFormPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>{id ? "Editar usuario" : "Novo usuario"}</h1>
-        <p>Vincule Perfis e Centros de Custo para definir o acesso efetivo do usuario ao +Compras.</p>
+        <div className="section-title">Administração</div>
+        <h1>{id ? "Editar usuário" : "Novo usuário"}</h1>
+        <p>Vincule Perfis e Centros de Custo para definir o acesso efetivo do usuário ao +Compras.</p>
       </header>
 
       {loadingUsuario ? (
-        <div className="empty-state">Carregando usuario...</div>
+        <div className="empty-state">Carregando usuário...</div>
       ) : (
         <UsuarioForm
           usuario={usuario ?? undefined}

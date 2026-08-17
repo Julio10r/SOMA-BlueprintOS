@@ -18,7 +18,7 @@ export function useAlcadasAprovacao(unidadeNegocioId: string | null) {
     try {
       setAlcadas(await listAlcadasAprovacao(unidadeNegocioId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao carregar Alcadas de Aprovacao.");
+      setError(err instanceof Error ? err.message : "Falha ao carregar Alçadas de Aprovação.");
     } finally {
       setLoading(false);
     }

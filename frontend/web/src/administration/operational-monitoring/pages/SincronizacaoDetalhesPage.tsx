@@ -58,7 +58,7 @@ export function SincronizacaoDetalhesPage() {
                 <strong>{detalhe.sistemaOrigem}</strong>
               </div>
               <div className="field-readonly">
-                <span>Unidade de Negocio</span>
+                <span>Unidade de Negócio</span>
                 <strong>{detalhe.businessUnit}</strong>
               </div>
               <div className="field-readonly">
@@ -70,7 +70,7 @@ export function SincronizacaoDetalhesPage() {
                 <strong>{detalhe.tempoExecucaoMs}</strong>
               </div>
               <div className="field-readonly">
-                <span>Inicio</span>
+                <span>Início</span>
                 <strong>{formatarData(detalhe.dataInicio)}</strong>
               </div>
               <div className="field-readonly">
@@ -94,7 +94,7 @@ export function SincronizacaoDetalhesPage() {
             </div>
 
             {detalhe.erros.length === 0 ? (
-              <div className="empty-state">Nenhum erro registrado nesta execucao.</div>
+              <div className="empty-state">Nenhum erro registrado nesta execução.</div>
             ) : (
               <div className="table-scroll">
               <table className="divergence-table">

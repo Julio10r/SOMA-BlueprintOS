@@ -28,10 +28,10 @@ export function ConfirmToggleAtivoUsuarioModal({ usuario, error, loading, onConf
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-toggle-usuario-title">
       <div className="card modal-card">
         <div className="card-heading">
-          <h2 id="confirm-toggle-usuario-title">{ativando ? "Ativar usuario" : "Inativar usuario"}</h2>
+          <h2 id="confirm-toggle-usuario-title">{ativando ? "Ativar usuário" : "Inativar usuário"}</h2>
         </div>
         <p>
-          Tem certeza que deseja {ativando ? "ativar" : "inativar"} o usuario <strong>{usuario.nome}</strong>?
+          Tem certeza que deseja {ativando ? "ativar" : "inativar"} o usuário <strong>{usuario.nome}</strong>?
         </p>
         {error && <div className="notice notice-crit">{error}</div>}
         <div className="actions">

@@ -21,7 +21,7 @@ export function CnpjSearch({ value, onChange, onSubmit, loading, error }: {
         <SearchIcon />
       </div>
       <h2>Consultar fornecedor</h2>
-      <p className="sub">Localize um fornecedor pelo CNPJ, CPF ou documento alfanumerico do ERP.</p>
+      <p className="sub">Localize um fornecedor pelo CNPJ, CPF ou documento alfanumérico do ERP.</p>
       <div className="lookup-field">
         <label htmlFor="cnpjCpf">CNPJ/CPF</label>
         <input
@@ -31,7 +31,7 @@ export function CnpjSearch({ value, onChange, onSubmit, loading, error }: {
           placeholder="12345678000195"
           maxLength={18}
         />
-        <span className="hint">Consulta e somente leitura — nenhum fornecedor e criado nesta etapa.</span>
+        <span className="hint">Consulta é somente leitura — nenhum fornecedor é criado nesta etapa.</span>
       </div>
       <button className="btn btn-primary lookup-submit" disabled={loading} type="submit">
         <SearchIcon /> Consultar CNPJ

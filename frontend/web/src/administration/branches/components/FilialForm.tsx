@@ -49,7 +49,7 @@ export function FilialForm({ filial, error, loading, onSubmit, onCancel }: {
             <strong>{filial.nomeCliFor}</strong>
           </div>
           <div className="field-readonly">
-            <span>Unidade de Negocio</span>
+            <span>Unidade de Negócio</span>
             <strong>{filial.unidadeNegocioId}</strong>
           </div>
         </div>

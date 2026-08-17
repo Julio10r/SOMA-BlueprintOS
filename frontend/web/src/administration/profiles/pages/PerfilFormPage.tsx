@@ -23,7 +23,7 @@ export function PerfilFormPage() {
       try {
         const encontrado = await getPerfil(id);
         if (!ativo) return;
-        if (!encontrado) setError("Perfil nao encontrado.");
+        if (!encontrado) setError("Perfil não encontrado.");
         else setPerfil(encontrado);
       } catch (err) {
         if (!ativo) return;
@@ -59,9 +59,9 @@ export function PerfilFormPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
+        <div className="section-title">Administração</div>
         <h1>{id ? "Editar perfil" : "Novo perfil"}</h1>
-        <p>Perfis definem, em conjunto, o acesso efetivo de um usuario ao +Compras.</p>
+        <p>Perfis definem, em conjunto, o acesso efetivo de um usuário ao +Compras.</p>
       </header>
 
       {negado ? (

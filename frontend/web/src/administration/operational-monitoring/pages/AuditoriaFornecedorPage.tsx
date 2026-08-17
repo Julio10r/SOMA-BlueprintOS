@@ -59,7 +59,7 @@ export function AuditoriaFornecedorPage() {
             />
           </label>
           <button type="button" className="btn btn-primary" disabled={loading} onClick={handleBuscar}>
-            {loading ? "Buscando..." : "Buscar historico"}
+            {loading ? "Buscando..." : "Buscar histórico"}
           </button>
         </div>
 

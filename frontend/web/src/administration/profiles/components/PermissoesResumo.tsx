@@ -12,12 +12,12 @@ import type { Permissao } from "../types/perfilTypes";
  */
 export function PermissoesResumo({ permissoes, catalogo }: { permissoes: string[]; catalogo: Permissao[] }) {
   if (permissoes.length === 0) {
-    return <div className="empty-state">Nenhuma permissao atribuida a este perfil.</div>;
+    return <div className="empty-state">Nenhuma permissão atribuída a este perfil.</div>;
   }
 
   const porCodigo = new Map(catalogo.map((permissao) => [permissao.codigo, permissao]));
   const atribuidas: Permissao[] = permissoes.map((codigo) =>
-    porCodigo.get(codigo) ?? { codigo, recurso: "Nao catalogada", acao: codigo, descricao: "Permissao fora do catalogo atual." }
+    porCodigo.get(codigo) ?? { codigo, recurso: "Não catalogada", acao: codigo, descricao: "Permissão fora do catálogo atual." }
   );
 
   const grupos = groupPermissionsByRecurso(atribuidas);

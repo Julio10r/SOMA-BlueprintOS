@@ -41,7 +41,7 @@ export function RegrasWorkflowPage() {
       <header className="page-header">
         <div className="section-title">Administração</div>
         <h1>Regras de Workflow</h1>
-        <p>Cadastro de Regras de Workflow por Unidade de Negocio. Nenhum motor de execucao e acionado nesta sprint.</p>
+        <p>Cadastro de Regras de Workflow por Unidade de Negócio. Nenhum motor de execução é acionado nesta sprint.</p>
       </header>
 
       <section className="card">

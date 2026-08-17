@@ -20,7 +20,7 @@ export function ParametroForm({ parametro, onSalvar, onCancelar }: {
     try {
       await onSalvar({ chave, valor, descricao, unidadeNegocioId: unidadeNegocioId || undefined });
     } catch (err) {
-      setErro(err instanceof Error ? err.message : "Falha ao salvar Parametro.");
+      setErro(err instanceof Error ? err.message : "Falha ao salvar parâmetro.");
     } finally {
       setSalvando(false);
     }

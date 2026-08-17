@@ -50,15 +50,15 @@ export function PerfisPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>Gestao de Perfis</h1>
-        <p>Perfis agrupam as permissoes do +Compras. Usuarios nunca recebem permissao individual.</p>
+        <div className="section-title">Administração</div>
+        <h1>Gestão de Perfis</h1>
+        <p>Perfis agrupam as permissões do +Compras. Usuários nunca recebem permissão individual.</p>
       </header>
 
       {acessoNegado ? (
         <section className="card">
           <div className="notice notice-warn">
-            Voce nao tem permissao para acessar a Gestao de Perfis. Solicite a um administrador o vinculo com um
+            Você não tem permissão para acessar a Gestão de Perfis. Solicite a um administrador o vinculo com um
             perfil que possua a permissao <strong>Perfil.Gerenciar</strong>.
           </div>
         </section>
@@ -81,7 +81,7 @@ export function PerfisPage() {
                 type="text"
                 value={busca}
                 onChange={(event) => setBusca(event.target.value)}
-                placeholder="Nome ou descricao"
+                placeholder="Nome ou descrição"
               />
             </label>
             <label>

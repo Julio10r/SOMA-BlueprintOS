@@ -6,7 +6,7 @@ export function UnidadeNegocioTable({ unidadesNegocio, onEditar, onToggleStatus 
   onEditar: (unidadeNegocio: UnidadeNegocio) => void;
   onToggleStatus: (unidadeNegocio: UnidadeNegocio) => void;
 }) {
-  if (unidadesNegocio.length === 0) return <div className="empty-state">Nenhuma Unidade de Negocio encontrada.</div>;
+  if (unidadesNegocio.length === 0) return <div className="empty-state">Nenhuma Unidade de Negócio encontrada.</div>;
   return (
     <div className="table-scroll">
     <table className="divergence-table">
@@ -15,7 +15,7 @@ export function UnidadeNegocioTable({ unidadesNegocio, onEditar, onToggleStatus 
           <th>Nome</th>
           <th>Slug</th>
           <th>Status</th>
-          <th>Acoes</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>

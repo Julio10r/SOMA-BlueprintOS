@@ -20,7 +20,7 @@ export function ErpConfiguracaoPage() {
       await salvarConfiguracaoErp(unidadeNegocioId, input);
       await reload();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Falha ao salvar Configuração de ERP.");
+      setFormError(err instanceof Error ? err.message : "Falha ao salvar Configuração do ERP.");
     } finally {
       setSaving(false);
     }
@@ -30,7 +30,7 @@ export function ErpConfiguracaoPage() {
     <div className="page-stack">
       <header className="page-header">
         <div className="section-title">Administração</div>
-        <h1>Configuração de ERP</h1>
+        <h1>Configuração do ERP</h1>
         <p>Registro de configuração de ERP por Unidade de Negócio. Segredos nunca são exibidos após salvos.</p>
       </header>
 
@@ -43,9 +43,9 @@ export function ErpConfiguracaoPage() {
           {error && <div className="notice notice-crit">{error}</div>}
 
           {loading ? (
-            <div className="empty-state">Carregando Configuração de ERP...</div>
+            <div className="empty-state">Carregando Configuração do ERP...</div>
           ) : !configuracao ? (
-            <div className="empty-state">Nenhuma Configuração de ERP cadastrada para esta Unidade de Negócio.</div>
+            <div className="empty-state">Nenhuma Configuração do ERP cadastrada para esta Unidade de Negócio.</div>
           ) : (
             <section className="card">
               <div className="card-heading">

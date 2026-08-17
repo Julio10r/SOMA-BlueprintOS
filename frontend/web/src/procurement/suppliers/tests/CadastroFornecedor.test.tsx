@@ -91,7 +91,7 @@ describe("CadastroFornecedor", () => {
 
   it("renderiza a tela inicial", () => {
     renderCadastroFornecedor();
-    expect(screen.getByRole("heading", { name: /cadastro com enriquecimento cnpj/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /fornecedores/i, level: 1 })).toBeInTheDocument();
     expect(screen.getByLabelText("CNPJ/CPF")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /consultar cnpj/i })).toBeInTheDocument();
   });
@@ -103,10 +103,10 @@ describe("CadastroFornecedor", () => {
     await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12.345.678/0001-95");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
 
-    expect(await screen.findByRole("heading", { name: "Divergencias encontradas" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Divergências encontradas" })).toBeInTheDocument();
     expect(screen.getAllByText("ABC Comercio LTDA").length).toBeGreaterThan(0);
     expect(screen.getByText("BrasilAPI")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Divergencias encontradas" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Divergências encontradas" })).toBeInTheDocument();
     expect(screen.getByText("antigo@example.invalid")).toBeInTheDocument();
     expect(screen.getAllByText("novo@example.invalid").length).toBeGreaterThan(0);
     expect(screen.getByText("ERP")).toBeInTheDocument();
@@ -132,7 +132,7 @@ describe("CadastroFornecedor", () => {
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
 
     await screen.findByText("CNAE principal");
-    expect(screen.getAllByText("Nao informado").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Não informado").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /cadastrar fornecedor/i })).toBeInTheDocument();
   });
 
@@ -164,7 +164,7 @@ describe("CadastroFornecedor", () => {
     await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
 
-    expect(await screen.findByRole("heading", { name: "Divergencias encontradas" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Divergências encontradas" })).toBeInTheDocument();
     expect(screen.getAllByText("Desconhecida").length).toBeGreaterThan(0);
   });
 
@@ -174,7 +174,7 @@ describe("CadastroFornecedor", () => {
 
     await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
-    await screen.findByRole("heading", { name: "Divergencias encontradas" });
+    await screen.findByRole("heading", { name: "Divergências encontradas" });
     await userEvent.click(screen.getByRole("button", { name: "Aceitar" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
@@ -192,7 +192,7 @@ describe("CadastroFornecedor", () => {
 
     await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
-    await screen.findByRole("heading", { name: "Divergencias encontradas" });
+    await screen.findByRole("heading", { name: "Divergências encontradas" });
     const row = screen.getAllByText("Email").find((node) => node.closest("tr"))!.closest("tr")!;
     await userEvent.click(within(row).getByLabelText("Selecionar Email"));
     await userEvent.click(screen.getByRole("button", { name: "Rejeitar" }));
@@ -268,7 +268,7 @@ describe("CadastroFornecedor", () => {
     // mesmo documento: reconsultar deve reconhecer o fornecedor existente e permitir revisao,
     // nunca falhar com "ja existe" nem com erro de consulta.
     await waitFor(() => expect(screen.queryByText(/consulta interrompida/i)).not.toBeInTheDocument());
-    expect(screen.getByText(/fornecedor ja cadastrado/i)).toBeInTheDocument();
+    expect(screen.getByText(/fornecedor já cadastrado/i)).toBeInTheDocument();
     expect(screen.queryByText("ErrorConsulta")).not.toBeInTheDocument();
   });
 
@@ -330,13 +330,13 @@ describe("CadastroFornecedor", () => {
       await userEvent.type(input, value);
     }
 
-    await replace("RazaoSocial", "Razao Social Revisada Ltda");
-    await replace("NomeFantasia", "Fantasia Revisada");
-    await replace("Email", "revisado@example.invalid");
-    await replace("Telefone (DDD+numero)", "11888887777");
+    await replace("Razão Social", "Razao Social Revisada Ltda");
+    await replace("Nome Fantasia", "Fantasia Revisada");
+    await replace("E-mail", "revisado@example.invalid");
+    await replace("Telefone (DDD + número)", "11888887777");
     await replace("CEP", "04567000");
     await replace("Logradouro", "Rua Revisada");
-    await replace("Numero", "999");
+    await replace("Número", "999");
     await replace("Complemento", "Bloco B");
     await replace("Bairro", "Bairro Revisado");
     await replace("Cidade", "Campinas");

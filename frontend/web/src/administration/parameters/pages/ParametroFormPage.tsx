@@ -8,13 +8,13 @@ export function ParametroFormPage() {
   const { parametros, loading, criar, atualizar } = useParametros();
   const parametro = id ? parametros.find((p) => p.id === id) : undefined;
 
-  if (id && loading) return <div className="empty-state">Carregando Parametro...</div>;
+  if (id && loading) return <div className="empty-state">Carregando parâmetro...</div>;
 
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>{parametro ? "Editar Parametro" : "Novo Parametro"}</h1>
+        <div className="section-title">Administração</div>
+        <h1>{parametro ? "Editar parâmetro" : "Novo parâmetro"}</h1>
       </header>
       <section className="card">
         <ParametroForm

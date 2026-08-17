@@ -2007,6 +2007,19 @@ Esta seção será desenvolvida com conteúdo real a partir da Work Order que ap
 | **Feature Flag** | Mecanismo de ativação/desativação de funcionalidade sem novo deploy. |
 | **Maverick Buying** | Termo de mercado (não específico do +Compras) para compras realizadas fora da política — citado apenas como referência em `fluxo_compras_indiretas_html.html`. |
 
+## Glossário de Terminologia de UI
+
+Termos oficiais em PT-BR para telas, rótulos e mensagens (não introduzir sinônimos em telas novas): **+Compras**, Fornecedor/Fornecedores, Pedido/Pedidos, Negociação/Negociações, Indicadores, Governança de Compras, Perfil/Perfis, Usuário/Usuários, Filial/Filiais, Centro de Custo/Centros de Custo, Unidade de Alocação/Unidades de Alocação, Unidade de Negócio/Unidades de Negócio, Configurações, Agentes IA.
+
+Termos em inglês mantidos deliberadamente (não traduzir na UI):
+
+| Termo | Justificativa |
+|---|---|
+| **Dashboard** | Consagrado no produto e no Design System GDT; tradução ("Painel") não é usada em nenhuma tela existente. |
+| **Login** | Uso corrente e já adotado nos rótulos de tela (`Login com código de verificação...`); "Autenticação" é usado apenas em texto de apoio/técnico, não como título de tela. |
+| **Feature Flags**, **Identity Providers** | Jargão técnico consagrado de administração de sistemas, sem equivalente natural em português corrente para o público administrador desta tela; usados como rótulo de menu/título de tela. |
+| **ADR**, **Vertical slice**, **Onda** | Jargão de processo/engenharia, não aparecem em texto voltado ao usuário final — apenas em documentação e comentários de código. |
+
 ---
 
 # Dúvidas de produto (para validação do Product Owner)

@@ -4,7 +4,7 @@ import type { Perfil } from "../types/perfilTypes";
 /**
  * Confirmacao de ativacao/inativacao de Perfil. Substitui o antigo
  * `ConfirmExclusaoModal` (removido na O1.5): o backend nao expoe exclusao de Perfil, e
- * `ComprasFuncional.md` ("Gestao de Perfis") lista Ativar/Inativar como a acao oficial.
+ * `ComprasFuncional.md` ("Gestão de Perfis") lista Ativar/Inativar como a acao oficial.
  *
  * Inativar nao e uma acao inofensiva: um Perfil inativo deixa de contribuir qualquer
  * permissao efetiva a TODOS os usuarios vinculados (a resolucao no backend ignora

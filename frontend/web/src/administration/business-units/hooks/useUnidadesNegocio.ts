@@ -13,7 +13,7 @@ export function useUnidadesNegocio() {
     try {
       setUnidadesNegocio(await listUnidadesNegocio());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao carregar Unidades de Negocio.");
+      setError(err instanceof Error ? err.message : "Falha ao carregar Unidades de Negócio.");
     } finally {
       setLoading(false);
     }

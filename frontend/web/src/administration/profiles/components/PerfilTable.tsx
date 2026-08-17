@@ -6,7 +6,7 @@ import { statusDoPerfil, type Perfil } from "../types/perfilTypes";
  * funcionalmente necessarias na O1.5: a coluna "Unidade de Negocio" deixa de existir
  * como texto livre (o backend escopa tudo a Unidade de Negocio da sessao, e o Id cru
  * nao e informacao util na tela), e a acao "Excluir" e substituida por
- * "Ativar"/"Inativar" — `ComprasFuncional.md` ("Gestao de Perfis") lista como acoes
+ * "Ativar"/"Inativar" — `ComprasFuncional.md` ("Gestão de Perfis") lista como acoes
  * oficiais apenas Criar, Editar e Ativar/Inativar, e o backend nao expoe exclusao.
  */
 export function PerfilTable({ perfis, onVisualizar, onEditar, onAlternarStatus }: {
@@ -22,11 +22,11 @@ export function PerfilTable({ perfis, onVisualizar, onEditar, onAlternarStatus }
       <thead>
         <tr>
           <th>Nome</th>
-          <th>Descricao</th>
-          <th>Permissoes</th>
-          <th>Usuarios vinculados</th>
+          <th>Descrição</th>
+          <th>Permissões</th>
+          <th>Usuários vinculados</th>
           <th>Status</th>
-          <th>Acoes</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>

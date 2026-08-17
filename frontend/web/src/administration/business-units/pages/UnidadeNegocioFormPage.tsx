@@ -19,7 +19,7 @@ export function UnidadeNegocioFormPage() {
       .then((todas) => {
         const encontrada = todas.find((u) => u.id === id);
         if (!encontrada) {
-          setError("Unidade de Negocio nao encontrada.");
+          setError("Unidade de Negócio não encontrada.");
           return;
         }
         setUnidadeNegocio(encontrada);
@@ -38,7 +38,7 @@ export function UnidadeNegocioFormPage() {
       }
       navigate("..", { relative: "path" });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao salvar Unidade de Negocio.");
+      setError(err instanceof Error ? err.message : "Falha ao salvar unidade de negócio.");
     } finally {
       setSaving(false);
     }
@@ -47,12 +47,12 @@ export function UnidadeNegocioFormPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>{id ? "Editar Unidade de Negocio" : "Nova Unidade de Negocio"}</h1>
+        <div className="section-title">Administração</div>
+        <h1>{id ? "Editar unidade de negócio" : "Nova unidade de negócio"}</h1>
       </header>
 
       {loadingUnidadeNegocio ? (
-        <div className="empty-state">Carregando Unidade de Negocio...</div>
+        <div className="empty-state">Carregando unidade de negócio...</div>
       ) : (
         <UnidadeNegocioForm
           unidadeNegocio={unidadeNegocio ?? undefined}

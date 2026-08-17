@@ -28,7 +28,7 @@ export class UsuarioApiError extends Error {
 
 /** 403 — sessao valida, porem sem a permissao `Usuario.Gerenciar`. */
 export class UsuarioAcessoNegadoError extends UsuarioApiError {
-  constructor(message = "Voce nao tem permissao para acessar a Gestao de Usuarios.") {
+  constructor(message = "Você não tem permissão para acessar a Gestão de Usuários.") {
     super(message, "acesso_negado");
     this.name = "UsuarioAcessoNegadoError";
   }
@@ -76,22 +76,22 @@ async function sendJson<T>(path: string, method: string, body: unknown, fallback
 }
 
 export function listUsuarios(): Promise<Usuario[]> {
-  return getJson<Usuario[]>(`${BASE}/usuarios`, "Falha ao carregar usuarios.");
+  return getJson<Usuario[]>(`${BASE}/usuarios`, "Falha ao carregar usuários.");
 }
 
 export async function getUsuario(id: string): Promise<Usuario | null> {
   const response = await fetch(`${BASE}/usuarios/${encodeURIComponent(id)}`, { credentials: "include" });
   if (response.status === 404) return null;
-  if (!response.ok) await lerErro(response, "Falha ao carregar usuario.");
+  if (!response.ok) await lerErro(response, "Falha ao carregar usuário.");
   return (await response.json()) as Usuario;
 }
 
 export function createUsuario(input: UsuarioInput): Promise<Usuario> {
-  return sendJson<Usuario>(`${BASE}/usuarios`, "POST", input, "Falha ao criar usuario.");
+  return sendJson<Usuario>(`${BASE}/usuarios`, "POST", input, "Falha ao criar usuário.");
 }
 
 export function updateUsuario(id: string, input: UsuarioInput): Promise<Usuario> {
-  return sendJson<Usuario>(`${BASE}/usuarios/${encodeURIComponent(id)}`, "PUT", input, "Falha ao salvar usuario.");
+  return sendJson<Usuario>(`${BASE}/usuarios/${encodeURIComponent(id)}`, "PUT", input, "Falha ao salvar usuário.");
 }
 
 /**
@@ -104,6 +104,6 @@ export function alterarStatusUsuario(id: string, ativo: boolean): Promise<Usuari
     `${BASE}/usuarios/${encodeURIComponent(id)}/status`,
     "PATCH",
     { ativo },
-    ativo ? "Falha ao ativar usuario." : "Falha ao inativar usuario."
+    ativo ? "Falha ao ativar usuário." : "Falha ao inativar usuário."
   );
 }

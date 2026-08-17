@@ -35,7 +35,7 @@ export function UnidadesAlocacaoPage() {
     try {
       await toggleStatus(unidadeAlocacao);
     } catch (err) {
-      setToggleErro(err instanceof Error ? err.message : "Falha ao alterar o status da unidade de alocacao.");
+      setToggleErro(err instanceof Error ? err.message : "Falha ao alterar o status da unidade de alocação.");
     }
   }
 

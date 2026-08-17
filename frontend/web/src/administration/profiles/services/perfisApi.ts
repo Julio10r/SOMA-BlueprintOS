@@ -34,7 +34,7 @@ export class PerfilApiError extends Error {
 
 /** 403 — sessao valida, porem sem a permissao `Perfil.Gerenciar`. */
 export class PerfilAcessoNegadoError extends PerfilApiError {
-  constructor(message = "Voce nao tem permissao para acessar a Gestao de Perfis.") {
+  constructor(message = "Você não tem permissão para acessar a Gestão de Perfis.") {
     super(message, "acesso_negado");
     this.name = "PerfilAcessoNegadoError";
   }
@@ -93,7 +93,7 @@ export async function getPerfil(id: string): Promise<Perfil | null> {
 }
 
 export function listPermissoes(): Promise<Permissao[]> {
-  return getJson<Permissao[]>(`${BASE}/permissoes`, "Falha ao carregar o catalogo de permissoes.");
+  return getJson<Permissao[]>(`${BASE}/permissoes`, "Falha ao carregar o catálogo de permissões.");
 }
 
 export function createPerfil(input: PerfilInput): Promise<Perfil> {
@@ -106,7 +106,7 @@ export function updatePerfil(id: string, input: PerfilInput): Promise<Perfil> {
 
 /**
  * Ativacao/inativacao logica. Nao existe exclusao de Perfil: `ComprasFuncional.md`
- * ("Gestao de Perfis") define como acoes oficiais apenas Criar, Editar e
+ * ("Gestão de Perfis") define como acoes oficiais apenas Criar, Editar e
  * Ativar/Inativar — mesmo padrao dos demais modulos administrativos.
  */
 export function alterarStatusPerfil(id: string, ativo: boolean): Promise<Perfil> {

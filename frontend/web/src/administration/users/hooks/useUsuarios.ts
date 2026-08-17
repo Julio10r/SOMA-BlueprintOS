@@ -29,7 +29,7 @@ export function useUsuarios() {
         setAcessoNegado(true);
         setUsuarios([]);
       } else {
-        setError(mensagemDe(err, "Falha ao carregar usuarios."));
+        setError(mensagemDe(err, "Falha ao carregar usuários."));
       }
     } finally {
       setLoading(false);

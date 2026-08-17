@@ -25,10 +25,10 @@ export function CentroCustoTable({ centrosCusto, onVisualizar, onEditar, onToggl
           <th>Código</th>
           <th>Descrição ERP</th>
           <th>Descrição +Compras</th>
-          <th>Unidade de Negocio</th>
+          <th>Unidade de Negócio</th>
           <th>Unidade de Alocação padrão</th>
           <th>Status</th>
-          <th>Acoes</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>

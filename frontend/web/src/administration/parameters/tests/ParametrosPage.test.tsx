@@ -60,7 +60,7 @@ describe("ParametrosPage", () => {
     renderParametros();
     await screen.findByText("TIMEOUT_ERP");
 
-    await userEvent.click(screen.getByRole("button", { name: /Novo Parametro/i }));
+    await userEvent.click(screen.getByRole("button", { name: /Novo parâmetro/i }));
     await userEvent.type(screen.getByLabelText(/Chave/i), "NOVA_CHAVE");
     await userEvent.type(screen.getByLabelText(/Valor/i), "valor-x");
     await userEvent.type(screen.getByLabelText(/Descricao/i), "descricao-x");
@@ -73,7 +73,7 @@ describe("ParametrosPage", () => {
     renderParametros();
     await screen.findByText("TIMEOUT_ERP");
 
-    await userEvent.click(screen.getByRole("button", { name: /Novo Parametro/i }));
+    await userEvent.click(screen.getByRole("button", { name: /Novo parâmetro/i }));
     await userEvent.type(screen.getByLabelText(/Chave/i), "TIMEOUT_ERP");
     await userEvent.type(screen.getByLabelText(/Valor/i), "60");
     await userEvent.type(screen.getByLabelText(/Descricao/i), "outra descricao");

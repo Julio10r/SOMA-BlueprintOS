@@ -14,8 +14,8 @@ export function SelecaoUnidadeNegocioPage({ unidades, onSelecionar }: {
     <div className="auth-page">
       <div className="page-stack">
         <header className="page-header">
-          <h1>Selecione a Unidade de Negocio</h1>
-          <p>Escolha a Unidade de Negocio com a qual deseja trabalhar nesta sessao.</p>
+          <h1>Selecione a Unidade de Negócio</h1>
+          <p>Escolha a Unidade de Negócio com a qual deseja trabalhar nesta sessão.</p>
         </header>
         <div className="unidade-negocio-card-grid">
           {unidades.map((unidadeNegocio) => (

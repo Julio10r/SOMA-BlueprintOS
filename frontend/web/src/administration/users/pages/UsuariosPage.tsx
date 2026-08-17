@@ -41,7 +41,7 @@ export function UsuariosPage() {
       await toggleAtivo(usuarioParaAlternar);
       setUsuarioParaAlternar(null);
     } catch (err) {
-      setErroToggle(err instanceof Error ? err.message : "Falha ao alterar o status do usuario.");
+      setErroToggle(err instanceof Error ? err.message : "Falha ao alterar o status do usuário.");
     } finally {
       setSalvando(false);
     }
@@ -50,24 +50,24 @@ export function UsuariosPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>Gestao de Usuarios</h1>
-        <p>Usuarios recebem acesso ao +Compras por meio de Perfis e Centros de Custo. Nunca ha permissao individual.</p>
+        <div className="section-title">Administração</div>
+        <h1>Gestão de Usuários</h1>
+        <p>Usuários recebem acesso ao +Compras por meio de Perfis e Centros de Custo. Nunca há permissão individual.</p>
       </header>
 
       {acessoNegado ? (
         <section className="card">
-          <div className="notice notice-crit">Voce nao tem permissao para acessar a Gestao de Usuarios.</div>
+          <div className="notice notice-crit">Você não tem permissão para acessar a Gestão de Usuários.</div>
         </section>
       ) : (
         <section className="card">
           <div className="card-heading">
             <div>
-              <div className="section-title">Usuarios</div>
-              <h2>Usuarios cadastrados</h2>
+              <div className="section-title">Usuários</div>
+              <h2>Usuários cadastrados</h2>
             </div>
             <button type="button" className="btn btn-primary" onClick={() => navigate("novo")}>
-              Novo usuario
+              Novo usuário
             </button>
           </div>
 
@@ -97,7 +97,7 @@ export function UsuariosPage() {
           {error ? (
             <div className="notice notice-crit">{error}</div>
           ) : loading ? (
-            <div className="empty-state">Carregando usuarios...</div>
+            <div className="empty-state">Carregando usuários...</div>
           ) : (
             <UsuarioTable
               usuarios={usuariosFiltrados}

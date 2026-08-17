@@ -77,7 +77,7 @@ describe("ErpConfiguracaoPage", () => {
   it("trata 404 (nao configurado) como estado vazio, nao como erro", async () => {
     renderErpConfiguracao();
     await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negócio"), UN_SEM_CONFIG_ID);
-    expect(await screen.findByText(/Nenhuma Configuração de ERP cadastrada/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Nenhuma Configuração do ERP cadastrada/i)).toBeInTheDocument();
     expect(screen.queryByText(/configuracao_erp_nao_encontrada/i)).not.toBeInTheDocument();
   });
 
@@ -86,7 +86,7 @@ describe("ErpConfiguracaoPage", () => {
     await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negócio"), UN_ID);
     await screen.findByRole("heading", { name: "SAP" });
 
-    const campoParametros = await screen.findByLabelText(/Parametros de conexao/i);
+    const campoParametros = await screen.findByLabelText(/Parâmetros de conexão/i);
     expect(campoParametros).toHaveValue("");
     expect(screen.getByText("Já configurado")).toBeInTheDocument();
   });

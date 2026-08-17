@@ -76,7 +76,7 @@ describe("UsuariosPage — integracao com a API real", () => {
 
     renderUsuarios();
 
-    expect(await screen.findByRole("heading", { name: "Usuarios cadastrados" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Usuários cadastrados" })).toBeInTheDocument();
     expect(await screen.findByText("Ana Souza")).toBeInTheDocument();
     expect(await screen.findByText("Bruno Lima")).toBeInTheDocument();
     expect(chamadas.some((c) => c.url === "/api/administracao/usuarios" && c.method === "GET")).toBe(true);
@@ -87,7 +87,7 @@ describe("UsuariosPage — integracao com a API real", () => {
 
     renderUsuarios();
 
-    expect(await screen.findByText("Nenhum usuario cadastrado.")).toBeInTheDocument();
+    expect(await screen.findByText("Nenhum usuário cadastrado.")).toBeInTheDocument();
   });
 
   /** 403 real do backend: sessao valida, sem a permissao Usuario.Gerenciar. */
@@ -96,8 +96,8 @@ describe("UsuariosPage — integracao com a API real", () => {
 
     renderUsuarios();
 
-    expect(await screen.findByText(/nao tem permissao para acessar a Gestao de Usuarios/i)).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Usuarios cadastrados" })).not.toBeInTheDocument();
+    expect(await screen.findByText(/não tem permissão para acessar a Gestão de Usuários/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Usuários cadastrados" })).not.toBeInTheDocument();
   });
 
   it("mostra erro quando a API falha por outro motivo", async () => {
@@ -113,10 +113,10 @@ describe("UsuariosPage — integracao com a API real", () => {
     rotas.set("POST /api/administracao/usuarios", { status: 201, body: usuario({ nome: "Elisa Prado" }) });
 
     renderUsuarios();
-    await screen.findByText("Nenhum usuario cadastrado.");
+    await screen.findByText("Nenhum usuário cadastrado.");
 
-    await userEvent.click(screen.getByRole("button", { name: "Novo usuario" }));
-    await waitFor(() => expect(screen.getAllByRole("heading", { name: "Novo usuario" })).toHaveLength(2));
+    await userEvent.click(screen.getByRole("button", { name: "Novo usuário" }));
+    await waitFor(() => expect(screen.getAllByRole("heading", { name: "Novo usuário" })).toHaveLength(2));
 
     await userEvent.type(screen.getByLabelText("Nome"), "Elisa Prado");
     await userEvent.type(screen.getByLabelText("E-mail"), "elisa.prado@somagrupo.com.br");
@@ -134,7 +134,7 @@ describe("UsuariosPage — integracao com a API real", () => {
       });
     });
 
-    await waitFor(() => expect(screen.getByRole("heading", { name: "Usuarios cadastrados" })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Usuários cadastrados" })).toBeInTheDocument());
   });
 
   /** Seguranca: a interface nunca envia unidadeNegocioId — o backend usa a da sessao. */
@@ -200,7 +200,7 @@ describe("UsuariosPage — integracao com a API real", () => {
 
     expect(await screen.findByRole("heading", { name: "Bruno Lima" })).toBeInTheDocument();
     expect(await screen.findByText("CC-001")).toBeInTheDocument();
-    expect(screen.getByText("Nenhum perfil vinculado a este usuario.")).toBeInTheDocument();
+    expect(screen.getByText("Nenhum perfil vinculado a este usuário.")).toBeInTheDocument();
   });
 
   it("inativa um usuario ativo em vez de excluir", async () => {

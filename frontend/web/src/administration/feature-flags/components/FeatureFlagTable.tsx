@@ -16,7 +16,7 @@ export function FeatureFlagTable({ flags, unidadesNegocio, onAlterarStatus }: {
       <thead>
         <tr>
           <th>Nome</th>
-          <th>Descricao</th>
+          <th>Descrição</th>
           {unidadesNegocio.map((un) => (
             <th key={un.id}>{un.nome}</th>
           ))}

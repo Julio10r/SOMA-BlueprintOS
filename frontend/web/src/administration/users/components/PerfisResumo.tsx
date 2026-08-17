@@ -14,7 +14,7 @@ import type { UsuarioPerfilResumo } from "../types/userTypes";
  */
 export function PerfisResumo({ perfis, catalogoPerfis = [] }: { perfis: UsuarioPerfilResumo[]; catalogoPerfis?: Perfil[] }) {
   if (perfis.length === 0) {
-    return <div className="empty-state">Nenhum perfil vinculado a este usuario.</div>;
+    return <div className="empty-state">Nenhum perfil vinculado a este usuário.</div>;
   }
 
   const catalogoPorId = new Map(catalogoPerfis.map((perfil) => [perfil.id, perfil]));

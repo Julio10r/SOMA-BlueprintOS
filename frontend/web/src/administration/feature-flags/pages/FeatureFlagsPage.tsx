@@ -12,9 +12,9 @@ export function FeatureFlagsPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
+        <div className="section-title">Administração</div>
         <h1>Feature Flags</h1>
-        <p>Habilite ou desabilite funcionalidades ja implementadas, por Unidade de Negocio, sem novo deploy.</p>
+        <p>Habilite ou desabilite funcionalidades já implementadas, por Unidade de Negócio, sem novo deploy.</p>
       </header>
 
       <section className="card">

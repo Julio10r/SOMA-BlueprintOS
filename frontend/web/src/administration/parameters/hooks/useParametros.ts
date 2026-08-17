@@ -13,7 +13,7 @@ export function useParametros(unidadeNegocioId?: string) {
     try {
       setParametros(await listParametros(unidadeNegocioId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao carregar Parametros.");
+      setError(err instanceof Error ? err.message : "Falha ao carregar Parâmetros.");
     } finally {
       setLoading(false);
     }

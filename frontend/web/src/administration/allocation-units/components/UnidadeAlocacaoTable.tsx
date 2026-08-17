@@ -21,7 +21,7 @@ export function UnidadeAlocacaoTable({ unidadesAlocacao, onVisualizar, onEditar,
           <th>Nome</th>
           <th>Descrição</th>
           <th>Status</th>
-          <th>Acoes</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>

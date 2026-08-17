@@ -7,7 +7,7 @@ export function RegraWorkflowTable({ regras, onEditar, onToggleStatus }: {
   onToggleStatus: (regra: RegraWorkflow) => void;
 }) {
   if (regras.length === 0) {
-    return <div className="empty-state">Nenhuma Regra de Workflow cadastrada para esta Unidade de Negocio.</div>;
+    return <div className="empty-state">Nenhuma Regra de Workflow cadastrada para esta Unidade de Negócio.</div>;
   }
 
   return (
@@ -19,7 +19,7 @@ export function RegraWorkflowTable({ regras, onEditar, onToggleStatus }: {
           <th>Tipo de Processo</th>
           <th>Ordem</th>
           <th>Status</th>
-          <th>Acoes</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>

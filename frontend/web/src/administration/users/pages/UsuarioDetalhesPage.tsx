@@ -24,7 +24,7 @@ export function UsuarioDetalhesPage() {
     Promise.all([getUsuario(id), listPerfis().catch(() => []), listCentrosCusto().catch(() => [])])
       .then(([found, todosPerfis, todosCentrosCusto]) => {
         if (!found) {
-          setError("Usuario nao encontrado.");
+          setError("Usuário não encontrado.");
           return;
         }
         setUsuario(found);
@@ -41,19 +41,19 @@ export function UsuarioDetalhesPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>Detalhes do usuario</h1>
-        <p>Visualizacao somente leitura do acesso deste usuario ao +Compras.</p>
+        <div className="section-title">Administração</div>
+        <h1>Detalhes do usuário</h1>
+        <p>Visualização somente leitura do acesso deste usuário ao +Compras.</p>
       </header>
 
       {error && <div className="notice notice-crit">{error}</div>}
-      {loading && <div className="empty-state">Carregando usuario...</div>}
+      {loading && <div className="empty-state">Carregando usuário...</div>}
 
       {usuario && (
         <section className="card">
           <div className="card-heading">
             <div>
-              <div className="section-title">Usuario</div>
+              <div className="section-title">Usuário</div>
               <h2>{usuario.nome}</h2>
             </div>
             <StatusBadge value={statusDoUsuario(usuario)} tone="situacao" />
@@ -76,7 +76,7 @@ export function UsuarioDetalhesPage() {
             {usuario.todosCentrosCusto ? (
               <div className="notice notice-warn">Acesso a todos os Centros de Custo.</div>
             ) : centrosCustoVinculados.length === 0 ? (
-              <div className="empty-state">Nenhum Centro de Custo vinculado a este usuario.</div>
+              <div className="empty-state">Nenhum Centro de Custo vinculado a este usuário.</div>
             ) : (
               <div className="data-grid">
                 {centrosCustoVinculados.map((centroCusto) => (

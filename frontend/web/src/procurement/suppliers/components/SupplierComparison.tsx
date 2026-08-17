@@ -34,7 +34,7 @@ export function SupplierComparison({
           <SituacaoCadastralBadge value={consulta.situacaoCadastral} />
         </div>
         <div className="info-stack">
-          <InfoCard title="Identificacao" defaultOpen>
+          <InfoCard title="Identificação" defaultOpen>
             <InfoGrid items={[
               ["CNPJ/CPF", consulta.cnpj_Cpf],
               ["Razão Social", consulta.razaoSocial],
@@ -42,7 +42,7 @@ export function SupplierComparison({
               ["Tipo de Pessoa", consulta.tipoPessoa]
             ]} />
           </InfoCard>
-          <InfoCard title="Situacao cadastral" defaultOpen>
+          <InfoCard title="Situação cadastral" defaultOpen>
             <InfoGrid items={[
               ["Situação Cadastral", consulta.situacaoCadastral],
               ["Data da Situação Cadastral", formatDate(consulta.dataSituacaoCadastral)]
@@ -54,7 +54,7 @@ export function SupplierComparison({
               ["Descrição", consulta.cnaePrincipalDescricao]
             ]} />
           </InfoCard>
-          <InfoCard title="Endereco">
+          <InfoCard title="Endereço">
             <InfoGrid items={[
               ["CEP", consulta.cep],
               ["Logradouro", consulta.logradouro],
@@ -78,8 +78,8 @@ export function SupplierComparison({
         <section className="card">
           <div className="card-heading">
             <div>
-              <div className="section-title">Comparacao</div>
-              <h2>Divergencias encontradas</h2>
+              <div className="section-title">Comparação</div>
+              <h2>Divergências encontradas</h2>
             </div>
             <span className="badge">{divergencias.length} campos</span>
           </div>
@@ -112,17 +112,17 @@ export function ExistingSupplierSnapshot({ supplier }: { supplier: Fornecedor })
     <section className="card">
       <div className="card-heading">
         <div>
-          <div className="section-title">Reconsulta indisponivel</div>
+          <div className="section-title">Reconsulta indisponível</div>
           <h2>Dados atuais no +Compras</h2>
         </div>
       </div>
       <p className="notice notice-warn">
-        Nao foi possivel obter dados atualizados da fonte externa agora. Nenhuma divergencia foi calculada,
-        por isso os botoes Aceitar/Rejeitar permanecem desabilitados ate uma nova consulta bem-sucedida. Os
-        dados abaixo sao os ja cadastrados no +Compras.
+        Não foi possível obter dados atualizados da fonte externa agora. Nenhuma divergência foi calculada,
+        por isso os botões Aceitar/Rejeitar permanecem desabilitados até uma nova consulta bem-sucedida. Os
+        dados abaixo são os já cadastrados no +Compras.
       </p>
       <div className="info-stack">
-        <InfoCard title="Identificacao" defaultOpen>
+        <InfoCard title="Identificação" defaultOpen>
           <InfoGrid items={[
             ["CNPJ/CPF", supplier.cnpj_Cpf],
             ["Razão Social", supplier.razaoSocial],
@@ -136,7 +136,7 @@ export function ExistingSupplierSnapshot({ supplier }: { supplier: Fornecedor })
             ["Descrição", supplier.cnaePrincipalDescricao]
           ]} />
         </InfoCard>
-        <InfoCard title="Endereco">
+        <InfoCard title="Endereço">
           <InfoGrid items={[
             ["CEP", supplier.cep],
             ["Logradouro", supplier.logradouro],
@@ -200,7 +200,7 @@ function InfoGrid({ items }: { items: Array<[string, string | null | undefined]>
       {items.map(([label, value]) => (
         <div className="info-row" key={label}>
           <span className="l">{label}</span>
-          <span className="v">{value || "Nao informado"}</span>
+          <span className="v">{value || "Não informado"}</span>
         </div>
       ))}
     </div>
@@ -213,12 +213,12 @@ function DivergenceTable({ divergencias, selectedFields, protectedFields, onTogg
   protectedFields: Set<string>;
   onToggle: (field: string) => void;
 }) {
-  if (divergencias.length === 0) return <div className="empty-state">Nenhuma divergencia encontrada.</div>;
+  if (divergencias.length === 0) return <div className="empty-state">Nenhuma divergência encontrada.</div>;
   return (
     <div className="table-scroll">
     <table className="divergence-table">
       <thead>
-        <tr><th>Usar</th><th>Campo</th><th>Atual</th><th>Sugestao</th><th>Decisao</th></tr>
+        <tr><th>Usar</th><th>Campo</th><th>Atual</th><th>Sugestão</th><th>Decisão</th></tr>
       </thead>
       <tbody>
         {divergencias.map((item) => {
@@ -235,8 +235,8 @@ function DivergenceTable({ divergencias, selectedFields, protectedFields, onTogg
                 />
               </td>
               <td>{item.campo}{isProtected && <span className="lock-note">ERP</span>}</td>
-              <td>{item.valorAtual || "Nao informado"}</td>
-              <td>{item.valorSugerido || "Nao informado"}</td>
+              <td>{item.valorAtual || "Não informado"}</td>
+              <td>{item.valorSugerido || "Não informado"}</td>
               <td><StatusBadge value={item.statusDecisao} tone="decisao" /></td>
             </tr>
           );
@@ -248,7 +248,7 @@ function DivergenceTable({ divergencias, selectedFields, protectedFields, onTogg
 }
 
 function formatDate(value?: string | null) {
-  if (!value) return "Nao informado";
+  if (!value) return "Não informado";
   return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
 }
 

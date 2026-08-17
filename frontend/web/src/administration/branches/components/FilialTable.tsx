@@ -24,8 +24,8 @@ export function FilialTable({ filiais, onVisualizar, onEditar, onToggleAtivo }: 
           <th>Nome CliFor / Descrição ERP</th>
           <th>Descrição +Compras</th>
           <th>Status no +Compras</th>
-          <th>Unidade de Negocio</th>
-          <th>Acoes</th>
+          <th>Unidade de Negócio</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>

@@ -10,7 +10,7 @@ export const CRITERIO_ALCADA_LABELS: Record<CriterioAlcada, string> = {
   2: "Centro de Custo"
 };
 
-export type TipoAprovador = "Usuario" | "Perfil";
+export type TipoAprovador = "Usuário" | "Perfil";
 
 /** Espelha AlcadaAprovacaoDto do backend (O1.12). Exatamente um entre aprovadorUsuarioId/aprovadorPerfilId. */
 export type AlcadaAprovacao = {

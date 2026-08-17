@@ -23,7 +23,7 @@ export function PerfilDetalhesPage() {
       try {
         const encontrado = await getPerfil(id);
         if (!ativo) return;
-        if (!encontrado) setError("Perfil nao encontrado.");
+        if (!encontrado) setError("Perfil não encontrado.");
         else setPerfil(encontrado);
       } catch (err) {
         if (!ativo) return;
@@ -41,14 +41,14 @@ export function PerfilDetalhesPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
+        <div className="section-title">Administração</div>
         <h1>Detalhes do perfil</h1>
-        <p>Visualizacao somente leitura das permissoes atribuidas a este perfil.</p>
+        <p>Visualização somente leitura das permissões atribuídas a este perfil.</p>
       </header>
 
       {(acessoNegado || catalogo.acessoNegado) && (
         <section className="card">
-          <div className="notice notice-warn">Voce nao tem permissao para visualizar perfis.</div>
+          <div className="notice notice-warn">Você não tem permissão para visualizar perfis.</div>
         </section>
       )}
       {error && <div className="notice notice-crit">{error}</div>}
@@ -66,7 +66,7 @@ export function PerfilDetalhesPage() {
           <p>{perfil.descricao}</p>
           <div className="data-grid">
             <div className="field-readonly">
-              <span>Usuarios vinculados</span>
+              <span>Usuários vinculados</span>
               <strong>{perfil.usuariosVinculados}</strong>
             </div>
             <div className="field-readonly">

@@ -34,7 +34,7 @@ type NavGroup = {
  */
 const navGroups: NavGroup[] = [
   {
-    titulo: "Inicio",
+    titulo: "Início",
     itens: [{ to: "/", label: "Dashboard", end: true, icon: "dashboard" }]
   },
   {
@@ -45,12 +45,12 @@ const navGroups: NavGroup[] = [
     titulo: "Compras",
     itens: [
       { to: "/pedidos", label: "Pedidos", icon: "cart" },
-      { to: "/negociacoes", label: "Negociacoes", icon: "chat" },
+      { to: "/negociacoes", label: "Negociações", icon: "chat" },
       { to: "/indicadores", label: "Indicadores", icon: "chart" }
     ]
   },
   {
-    titulo: "Governanca de Compras",
+    titulo: "Governança de Compras",
     itens: [
       {
         to: "/administracao/regras-workflow",
@@ -60,23 +60,23 @@ const navGroups: NavGroup[] = [
       },
       {
         to: "/administracao/alcadas-aprovacao",
-        label: "Alcadas de Aprovacao",
+        label: "Alçadas de Aprovação",
         icon: "shield",
         permissao: PERMISSOES.alcadaGerenciar
       },
       {
         to: "/administracao/regras-orcamentarias",
-        label: "Regras Orcamentarias",
+        label: "Regras Orçamentárias",
         icon: "wallet",
         permissao: PERMISSOES.orcamentoGerenciar
       }
     ]
   },
   {
-    titulo: "Administracao",
+    titulo: "Administração",
     itens: [
       { to: "/administracao/perfis", label: "Perfis", icon: "users", permissao: PERMISSOES.perfilGerenciar },
-      { to: "/administracao/usuarios", label: "Usuarios", icon: "user", permissao: PERMISSOES.usuarioGerenciar },
+      { to: "/administracao/usuarios", label: "Usuários", icon: "user", permissao: PERMISSOES.usuarioGerenciar },
       { to: "/administracao/filiais", label: "Filiais", icon: "mapPin", permissao: PERMISSOES.filialGerenciar },
       {
         to: "/administracao/centros-custo",
@@ -86,19 +86,19 @@ const navGroups: NavGroup[] = [
       },
       {
         to: "/administracao/unidades-alocacao",
-        label: "Unidades de Alocacao",
+        label: "Unidades de Alocação",
         icon: "layers",
         permissao: PERMISSOES.unidadeAlocacaoGerenciar
       },
       {
         to: "/administracao/unidades-negocio",
-        label: "Unidades de Negocio",
+        label: "Unidades de Negócio",
         icon: "briefcase",
         permissao: PERMISSOES.unidadeNegocioGerenciar
       },
       {
         to: "/administracao/configuracao-erp",
-        label: "Configuracao de ERP",
+        label: "Configuração do ERP",
         icon: "server",
         permissao: PERMISSOES.configuracaoErpGerenciar
       },
@@ -108,7 +108,7 @@ const navGroups: NavGroup[] = [
         icon: "key",
         permissao: PERMISSOES.sistemaGerenciar
       },
-      { to: "/administracao/parametros", label: "Parametros", icon: "sliders", permissao: PERMISSOES.sistemaGerenciar },
+      { to: "/administracao/parametros", label: "Parâmetros", icon: "sliders", permissao: PERMISSOES.sistemaGerenciar },
       {
         to: "/administracao/feature-flags",
         label: "Feature Flags",
@@ -117,7 +117,7 @@ const navGroups: NavGroup[] = [
       },
       {
         to: "/administracao/configuracao-notificacao",
-        label: "Configuracao de Notificacoes",
+        label: "Configuração de Notificações",
         icon: "bell",
         permissao: PERMISSOES.sistemaGerenciar
       },
@@ -136,7 +136,7 @@ const navGroups: NavGroup[] = [
 ];
 
 /** Item de rodape, tratado separadamente do restante da navegacao (ver AppShell). */
-const itemConfiguracoes: NavItem = { to: "/configuracoes", label: "Configuracoes", icon: "settings" };
+const itemConfiguracoes: NavItem = { to: "/configuracoes", label: "Configurações", icon: "settings" };
 
 /**
  * Shell visual do Portal +Compras: header com identidade AZZAS 2154 e
@@ -161,7 +161,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {usuario && <UserMenu usuario={usuario} onLogout={handleLogout} />}
       </header>
       <div className="app-body">
-        <nav className="app-sidebar" aria-label="Navegacao do portal +Compras">
+        <nav className="app-sidebar" aria-label="Navegação do portal +Compras">
           <div className="app-nav-scroll">
             {navGroups.map((grupo) => {
               const itensVisiveis = grupo.itens.filter(

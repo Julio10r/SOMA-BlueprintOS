@@ -78,7 +78,7 @@ function renderUnidadesNegocio(initialPath = "/") {
 describe("UnidadesNegocioPage", () => {
   it("lista as Unidades de Negocio vindas da API", async () => {
     renderUnidadesNegocio();
-    expect(await screen.findByRole("heading", { name: "Unidades de Negocio cadastradas" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Unidades de Negócio cadastradas" })).toBeInTheDocument();
     expect(await screen.findByText("SOMA")).toBeInTheDocument();
   });
 
@@ -87,7 +87,7 @@ describe("UnidadesNegocioPage", () => {
     renderUnidadesNegocio();
     await screen.findByText("SOMA");
 
-    await user.click(screen.getByRole("button", { name: /Nova Unidade de Negocio/i }));
+    await user.click(screen.getByRole("button", { name: /Nova unidade de negócio/i }));
     await user.type(screen.getByLabelText(/Nome/i), "Reserva");
     await user.type(screen.getByLabelText(/Slug/i), "reserva");
     await user.click(screen.getByRole("button", { name: /Salvar/i }));

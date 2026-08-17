@@ -21,7 +21,7 @@ export function BusinessUnitGate({ children }: { children: ReactNode }) {
   if (loading) {
     return (
       <div className="auth-loading" role="status" aria-live="polite">
-        Carregando Unidades de Negocio…
+        Carregando Unidades de Negócio…
       </div>
     );
   }

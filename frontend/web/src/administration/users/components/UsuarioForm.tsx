@@ -42,7 +42,7 @@ export function UsuarioForm({ usuario, perfisDisponiveis, centrosCustoDisponivei
   return (
     <form className="card form-card" onSubmit={handleSubmit}>
       <div className="card-heading">
-        <h2>{usuario ? "Editar usuario" : "Novo usuario"}</h2>
+        <h2>{usuario ? "Editar usuário" : "Novo usuário"}</h2>
       </div>
 
       <label>
@@ -93,7 +93,7 @@ export function UsuarioForm({ usuario, perfisDisponiveis, centrosCustoDisponivei
 
       <div className="data-block">
         <div className="section-title">Centros de Custo</div>
-        <p>Centro de Custo representa autorizacao operacional, independente dos Perfis vinculados.</p>
+        <p>Centro de Custo representa autorização operacional, independente dos Perfis vinculados.</p>
         <label className="field-readonly">
           <input
             type="checkbox"

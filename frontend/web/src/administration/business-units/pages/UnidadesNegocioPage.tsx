@@ -17,26 +17,26 @@ export function UnidadesNegocioPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>Gestao de Unidades de Negocio</h1>
-        <p>Unidades de Negocio corporativas do +Compras. Nao ha exclusao fisica — apenas Ativar/Inativar.</p>
+        <div className="section-title">Administração</div>
+        <h1>Gestão de Unidades de Negócio</h1>
+        <p>Unidades de Negócio corporativas do +Compras. Não há exclusão física — apenas Ativar/Inativar.</p>
       </header>
 
       <section className="card">
         <div className="card-heading">
           <div>
-            <div className="section-title">Unidades de Negocio</div>
-            <h2>Unidades de Negocio cadastradas</h2>
+            <div className="section-title">Unidades de Negócio</div>
+            <h2>Unidades de Negócio cadastradas</h2>
           </div>
           <button type="button" className="btn btn-primary" onClick={() => navigate("novo")}>
-            Nova Unidade de Negocio
+            Nova unidade de negócio
           </button>
         </div>
 
         {error && <div className="notice notice-crit">{error}</div>}
 
         {loading ? (
-          <div className="empty-state">Carregando Unidades de Negocio...</div>
+          <div className="empty-state">Carregando Unidades de Negócio...</div>
         ) : (
           <UnidadeNegocioTable
             unidadesNegocio={unidadesNegocio}

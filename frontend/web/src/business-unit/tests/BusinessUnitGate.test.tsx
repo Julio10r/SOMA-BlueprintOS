@@ -41,7 +41,7 @@ describe("BusinessUnitGate", () => {
       </BusinessUnitGate>
     );
 
-    expect(await screen.findByRole("heading", { name: "Selecione a Unidade de Negocio" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Selecione a Unidade de Negócio" })).toBeInTheDocument();
     expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: /AZZAS Corporativo/i }));

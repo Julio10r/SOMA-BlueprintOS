@@ -19,9 +19,9 @@ export function RegraOrcamentariaTable({ regras, onEditar, onToggleStatus }: {
           <th>Nome</th>
           <th>Centro de Custo</th>
           <th>Valor limite</th>
-          <th>Periodo</th>
+          <th>Período</th>
           <th>Status</th>
-          <th>Acoes</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>
