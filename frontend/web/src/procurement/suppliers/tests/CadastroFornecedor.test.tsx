@@ -2,6 +2,26 @@ import { cleanup, render, screen, waitFor, within } from "@testing-library/react
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CadastroFornecedor } from "../components/CadastroFornecedor";
+import { AuthContext } from "../../../auth/context/AuthContext";
+
+const usuarioTeste = {
+  id: "u1",
+  email: "ana@somagrupo.com.br",
+  nome: "Ana Souza",
+  unidadeNegocioId: "un1",
+  permissoes: [],
+  escopoAdministrativo: "Produto" as const
+};
+
+function renderCadastroFornecedor() {
+  return render(
+    <AuthContext.Provider
+      value={{ usuario: usuarioTeste, carregando: false, refresh: vi.fn(), setUsuario: vi.fn(), logout: vi.fn() }}
+    >
+      <CadastroFornecedor />
+    </AuthContext.Provider>
+  );
+}
 
 const consulta = {
   cnpj_Cpf: "12345678000195",
@@ -70,7 +90,7 @@ describe("CadastroFornecedor", () => {
   });
 
   it("renderiza a tela inicial", () => {
-    render(<CadastroFornecedor />);
+    renderCadastroFornecedor();
     expect(screen.getByRole("heading", { name: /cadastro com enriquecimento cnpj/i })).toBeInTheDocument();
     expect(screen.getByLabelText("Cnpj_Cpf")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /consultar cnpj/i })).toBeInTheDocument();
@@ -78,7 +98,7 @@ describe("CadastroFornecedor", () => {
 
   it("consulta CNPJ e exibe dados retornados e divergencias", async () => {
     mockFetch();
-    render(<CadastroFornecedor />);
+    renderCadastroFornecedor();
 
     await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12.345.678/0001-95");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
@@ -95,7 +115,7 @@ describe("CadastroFornecedor", () => {
 
   it("exibe o CNAE principal (codigo mascarado + descricao) retornado pela consulta", async () => {
     mockFetch();
-    render(<CadastroFornecedor />);
+    renderCadastroFornecedor();
 
     await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
@@ -106,7 +126,7 @@ describe("CadastroFornecedor", () => {
 
   it("ausencia de CNAE principal na consulta nao quebra a Review (exibe 'Nao informado')", async () => {
     mockFetch({ ...consulta, cnaePrincipalCodigo: null as unknown as string, cnaePrincipalDescricao: null as unknown as string }, []);
-    render(<CadastroFornecedor />);
+    renderCadastroFornecedor();
 
     await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
@@ -118,7 +138,7 @@ describe("CadastroFornecedor", () => {
 
   it("envia o CNAE principal no POST de cadastro apenas apos a confirmacao explicita (consultar != persistir)", async () => {
     const fetchMock = mockFetch(consulta, []);
-    render(<CadastroFornecedor />);
+    renderCadastroFornecedor();
 
     await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
@@ -139,7 +159,7 @@ describe("CadastroFornecedor", () => {
 
   it("exibe situacao cadastral Desconhecida sem crash quando o backend retorna esse estado", async () => {
     mockFetch({ ...consulta, situacaoCadastral: "Desconhecida" });
-    render(<CadastroFornecedor />);
+    renderCadastroFornecedor();
 
     await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
@@ -150,7 +170,7 @@ describe("CadastroFornecedor", () => {
 
   it("aprova somente campos selecionados e preserva NomeFantasia fora da decisao", async () => {
     const fetchMock = mockFetch();
-    render(<CadastroFornecedor />);
+    renderCadastroFornecedor();
 
     await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
@@ -168,7 +188,7 @@ describe("CadastroFornecedor", () => {
 
   it("rejeita divergencias selecionadas", async () => {
     const fetchMock = mockFetch();
-    render(<CadastroFornecedor />);
+    renderCadastroFornecedor();
 
     await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
@@ -188,7 +208,7 @@ describe("CadastroFornecedor", () => {
 
   it("BUG-1: consultar CNPJ sem fornecedor existente NUNCA cria o fornecedor automaticamente (Review sem escrita)", async () => {
     const fetchMock = mockFetch(consulta, []);
-    render(<CadastroFornecedor />);
+    renderCadastroFornecedor();
 
     await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
@@ -200,7 +220,7 @@ describe("CadastroFornecedor", () => {
 
   it("so persiste o novo fornecedor apos confirmacao explicita no botao Cadastrar fornecedor", async () => {
     const fetchMock = mockFetch(consulta, []);
-    render(<CadastroFornecedor />);
+    renderCadastroFornecedor();
 
     await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
@@ -218,7 +238,7 @@ describe("CadastroFornecedor", () => {
 
   it("bloqueia o cadastro de novo fornecedor com situacao Suspensa sem a confirmacao explicita (consistente com Baixada/Inapta)", async () => {
     mockFetch({ ...consulta, situacaoCadastral: "Suspensa" }, []);
-    render(<CadastroFornecedor />);
+    renderCadastroFornecedor();
 
     await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
@@ -239,7 +259,7 @@ describe("CadastroFornecedor", () => {
       mensagemErro: "Limite de consultas atingido na fonte externa."
     };
     mockFetch(consultaComFalha, [supplier]);
-    render(<CadastroFornecedor />);
+    renderCadastroFornecedor();
 
     await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
@@ -254,7 +274,7 @@ describe("CadastroFornecedor", () => {
 
   it("protege contra submissao duplicada: dois cliques rapidos em Cadastrar fornecedor geram apenas um POST", async () => {
     const fetchMock = mockFetch(consulta, []);
-    render(<CadastroFornecedor />);
+    renderCadastroFornecedor();
 
     await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
@@ -270,7 +290,7 @@ describe("CadastroFornecedor", () => {
 
   it("Review de fornecedor novo permite editar RazaoSocial, NomeFantasia, endereco, email e telefone, e persiste os valores revisados (nao os originais da consulta)", async () => {
     const fetchMock = mockFetch(consulta, []);
-    render(<CadastroFornecedor />);
+    renderCadastroFornecedor();
 
     await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
@@ -322,7 +342,7 @@ describe("CadastroFornecedor", () => {
 
   it("CNAE principal permanece somente leitura na Review de fornecedor novo (nenhum campo editavel para CNAE)", async () => {
     mockFetch(consulta, []);
-    render(<CadastroFornecedor />);
+    renderCadastroFornecedor();
 
     await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));

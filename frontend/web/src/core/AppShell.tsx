@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/hooks/useAuth";
 import { PERMISSOES } from "../auth/types/authTypes";
+import { UserMenu } from "./components/UserMenu";
 
 type NavItem = {
   to: string;
@@ -100,10 +101,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="portal-header">
         <div className="brand-mark">AZZAS 2154</div>
         <div className="logo-suffix">+Compras</div>
-        {usuario && <div className="user-chip">{usuario.nome}</div>}
-        <button type="button" className="btn btn-secondary" onClick={handleLogout}>
-          Sair
-        </button>
+        {usuario && <UserMenu usuario={usuario} onLogout={handleLogout} />}
       </header>
       <div className="app-body">
         <nav className="app-sidebar" aria-label="Navegacao do portal +Compras">

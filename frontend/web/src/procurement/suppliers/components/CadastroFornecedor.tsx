@@ -1,4 +1,5 @@
 import { FormEvent, useMemo, useRef, useState } from "react";
+import { useAuth } from "../../../auth/hooks/useAuth";
 import {
   analyzeEnrichment,
   consultCnpj,
@@ -56,6 +57,7 @@ const draftInicial: NovoFornecedorDraft = {
 };
 
 export function CadastroFornecedor() {
+  const { usuario } = useAuth();
   const [documento, setDocumento] = useState("");
   const [flowState, setFlowState] = useState<FlowState>("Idle");
   const [supplier, setSupplier] = useState<Fornecedor | null>(null);
@@ -248,7 +250,7 @@ export function CadastroFornecedor() {
             <div><dt>Estado</dt><dd className="mono">{flowState}</dd></div>
             <div><dt>Fonte</dt><dd>{consulta?.fonteConsulta ?? "Aguardando consulta"}</dd></div>
             <div><dt>Data/hora</dt><dd>{formatDateTime(consulta?.dataConsulta)}</dd></div>
-            <div><dt>Usuario</dt><dd>Identidade temporaria de desenvolvimento</dd></div>
+            <div><dt>Usuario</dt><dd>{usuario?.nome ?? "Nao identificado"}</dd></div>
             <div><dt>CorrelationId</dt><dd className="mono">{correlationId}</dd></div>
           </dl>
         </aside>
