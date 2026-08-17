@@ -13,7 +13,7 @@ export function ParametroFormPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao do Sistema</div>
+        <div className="section-title">Administracao</div>
         <h1>{parametro ? "Editar Parametro" : "Novo Parametro"}</h1>
       </header>
       <section className="card">

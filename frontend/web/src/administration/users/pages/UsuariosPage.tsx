@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ConfirmToggleAtivoUsuarioModal } from "../components/ConfirmToggleAtivoUsuarioModal";
 import { UsuarioTable } from "../components/UsuarioTable";
 import { useUsuarios } from "../hooks/useUsuarios";
-import type { Usuario } from "../types/userTypes";
+import { statusDoUsuario, type StatusUsuario, type Usuario } from "../types/userTypes";
 
 /**
  * Listagem de Usuarios (Gestao de Usuarios). A partir da O1.6, consome a API real
@@ -20,6 +20,18 @@ export function UsuariosPage() {
   const [usuarioParaAlternar, setUsuarioParaAlternar] = useState<Usuario | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [erroToggle, setErroToggle] = useState<string | null>(null);
+  const [busca, setBusca] = useState("");
+  const [statusFiltro, setStatusFiltro] = useState<StatusUsuario | "Todos">("Todos");
+
+  const usuariosFiltrados = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    return usuarios.filter((usuario) => {
+      const combinaBusca =
+        !termo || usuario.nome.toLowerCase().includes(termo) || usuario.email.toLowerCase().includes(termo);
+      const combinaStatus = statusFiltro === "Todos" || statusDoUsuario(usuario) === statusFiltro;
+      return combinaBusca && combinaStatus;
+    });
+  }, [usuarios, busca, statusFiltro]);
 
   async function confirmarToggleAtivo() {
     if (!usuarioParaAlternar) return;
@@ -59,13 +71,36 @@ export function UsuariosPage() {
             </button>
           </div>
 
+          <div className="input-row">
+            <label>
+              Pesquisar
+              <input
+                type="text"
+                value={busca}
+                onChange={(event) => setBusca(event.target.value)}
+                placeholder="Nome ou e-mail"
+              />
+            </label>
+            <label>
+              Status
+              <select
+                value={statusFiltro}
+                onChange={(event) => setStatusFiltro(event.target.value as StatusUsuario | "Todos")}
+              >
+                <option value="Todos">Todos</option>
+                <option value="Ativo">Ativo</option>
+                <option value="Inativo">Inativo</option>
+              </select>
+            </label>
+          </div>
+
           {error ? (
             <div className="notice notice-crit">{error}</div>
           ) : loading ? (
             <div className="empty-state">Carregando usuarios...</div>
           ) : (
             <UsuarioTable
-              usuarios={usuarios}
+              usuarios={usuariosFiltrados}
               onVisualizar={(usuario) => navigate(usuario.id)}
               onEditar={(usuario) => navigate(`${usuario.id}/editar`)}
               onToggleAtivo={(usuario) => {

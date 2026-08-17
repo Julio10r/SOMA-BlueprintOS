@@ -15,7 +15,7 @@ export function ParametrosPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao do Sistema</div>
+        <div className="section-title">Administracao</div>
         <h1>Parametros</h1>
         <p>Parametros tecnicos globais ou por Unidade de Negocio. Catalogo nasce vazio.</p>
       </header>

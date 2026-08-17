@@ -18,7 +18,7 @@ export function UnidadesNegocioPage() {
     <div className="page-stack">
       <header className="page-header">
         <div className="section-title">Administracao</div>
-        <h1>Cadastro de Unidades de Negocio</h1>
+        <h1>Gestao de Unidades de Negocio</h1>
         <p>Unidades de Negocio corporativas do +Compras. Nao ha exclusao fisica — apenas Ativar/Inativar.</p>
       </header>
 
