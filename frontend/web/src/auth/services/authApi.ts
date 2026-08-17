@@ -29,7 +29,10 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
   });
 
   if (!response.ok) {
-    let message = "Não foi possível concluir a operação.";
+    let message =
+      response.status === 429
+        ? "Muitas tentativas em pouco tempo. Aguarde alguns minutos antes de tentar novamente."
+        : "Não foi possível concluir a operação.";
     try {
       const data = (await response.json()) as ApiErrorBody;
       if (data.message) message = data.message;

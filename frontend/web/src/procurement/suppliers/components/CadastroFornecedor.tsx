@@ -50,7 +50,10 @@ type FlowState =
   | "ErrorConsulta"
   | "ErrorPersistencia";
 
-const draftInicial: NovoFornecedorDraft = { razaoSocial: "", nomeFantasia: "", email: "", telefone: "" };
+const draftInicial: NovoFornecedorDraft = {
+  razaoSocial: "", nomeFantasia: "", email: "", telefone: "",
+  cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", estado: ""
+};
 
 export function CadastroFornecedor() {
   const [documento, setDocumento] = useState("");
@@ -104,24 +107,59 @@ export function CadastroFornecedor() {
 
       setConsulta(query);
 
+      // CNPJ ja existente no +Compras NUNCA deve resultar em erro de "ja existe" (principio
+      // de convergencia CREATE/ADD_ROLE/UPDATE, B2.9/ADR-0023): a existencia local do Fornecedor
+      // e verificada ANTES de decidir por um estado de erro generico, mesmo que a reconsulta
+      // externa (BrasilAPI) tenha falhado de forma transitoria (ex: rate limit por reconsultar o
+      // mesmo documento logo apos o CREATE). Corrige BUG: reconsultar o CNPJ recem-cadastrado
+      // caia em "ErrorConsulta" em vez de carregar o fornecedor existente para revisao/edicao.
+      if (existingSupplier) {
+        setSupplier(existingSupplier);
+        if (query.sucesso) {
+          const enrichment = await analyzeEnrichment(existingSupplier.id, query, { businessUnit, erpSistema, correlationId });
+          setAnalise(enrichment);
+          setSelectedFields(enrichment.divergencias.map((item) => item.campo).filter((campo) => !protectedFields.has(campo)));
+          setStatus("Fornecedor localizado e divergencias calculadas. Revise antes de aprovar ou rejeitar.");
+        } else {
+          // Fornecedor ja existe no +Compras, mas a reconsulta externa falhou (rate limit, fonte
+          // indisponivel, timeout, etc.). Isso nunca deve ser tratado como "ja existe" nem como
+          // erro de consulta: carregamos o fornecedor existente sem divergencias calculadas,
+          // avisando o usuario que os dados externos nao puderam ser atualizados agora.
+          setAnalise({
+            fornecedorId: existingSupplier.id,
+            cnpj_Cpf: normalized,
+            consultaId: null,
+            fonteConsulta: query.fonteConsulta,
+            correlationId,
+            divergencias: [],
+            alertas: ["Nao foi possivel reconsultar a fonte externa agora; exibindo dados ja cadastrados."]
+          });
+          setSelectedFields([]);
+          setStatus("Fornecedor ja cadastrado. Reconsulta externa indisponivel no momento — revise os dados atuais.");
+        }
+        setFlowState("Review");
+        return;
+      }
+
       if (!query.sucesso) {
         setStatus("Consulta registrada sem dados de enriquecimento.");
         setFlowState("ErrorConsulta");
         return;
       }
 
-      if (existingSupplier) {
-        const enrichment = await analyzeEnrichment(existingSupplier.id, query, { businessUnit, erpSistema, correlationId });
-        setSupplier(existingSupplier);
-        setAnalise(enrichment);
-        setSelectedFields(enrichment.divergencias.map((item) => item.campo).filter((campo) => !protectedFields.has(campo)));
-        setStatus("Fornecedor localizado e divergencias calculadas. Revise antes de aprovar ou rejeitar.");
-      } else {
+      {
         setNovoDraft({
           razaoSocial: query.razaoSocial ?? "",
           nomeFantasia: query.nomeFantasia ?? "",
           email: query.email ?? "",
-          telefone: query.telefone ?? ""
+          telefone: query.telefone ?? "",
+          cep: query.cep ?? "",
+          logradouro: query.logradouro ?? "",
+          numero: query.numero ?? "",
+          complemento: query.complemento ?? "",
+          bairro: query.bairro ?? "",
+          cidade: query.cidade ?? "",
+          estado: query.estado ?? ""
         });
         setStatus("Nenhum fornecedor encontrado para este documento. Revise os dados antes de cadastrar.");
       }

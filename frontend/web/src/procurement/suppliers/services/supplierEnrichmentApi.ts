@@ -72,6 +72,14 @@ export async function createSupplierDraft(cnpjCpf: string, consulta?: ConsultaCn
       scoreIA: null,
       beneficiador: false,
       licenciado: false,
+      // Valores revisados pelo usuario na Review (B2.9, secao 5): o que e persistido e o que o
+      // usuario confirmou em tela, nunca a sugestao original do provider por si so.
+      nomeFantasia: consulta?.nomeFantasia ?? null,
+      cep: consulta?.cep ?? null,
+      logradouro: consulta?.logradouro ?? null,
+      numero: consulta?.numero ?? null,
+      complemento: consulta?.complemento ?? null,
+      bairro: consulta?.bairro ?? null,
       // CNAE principal (B2.8): vem exclusivamente da consulta oficial ja revisada em tela — nunca
       // editavel neste formulario. So e enviado nesta chamada explicita de cadastro, nunca durante
       // a consulta em si (consultar != persistir).

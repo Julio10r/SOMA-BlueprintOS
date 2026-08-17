@@ -14,6 +14,13 @@ export type NovoFornecedorDraft = {
   nomeFantasia: string;
   email: string;
   telefone: string;
+  cep: string;
+  logradouro: string;
+  numero: string;
+  complemento: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
 };
 
 export function NovoFornecedorPanel({
@@ -70,6 +77,34 @@ export function NovoFornecedorPanel({
         <label className="field-editable">
           <span>Telefone (DDD+numero)</span>
           <input value={draft.telefone} onChange={(event) => update("telefone", event.target.value)} />
+        </label>
+        <label className="field-editable">
+          <span>CEP</span>
+          <input value={draft.cep} onChange={(event) => update("cep", event.target.value)} />
+        </label>
+        <label className="field-editable">
+          <span>Logradouro</span>
+          <input value={draft.logradouro} onChange={(event) => update("logradouro", event.target.value)} />
+        </label>
+        <label className="field-editable">
+          <span>Numero</span>
+          <input value={draft.numero} onChange={(event) => update("numero", event.target.value)} />
+        </label>
+        <label className="field-editable">
+          <span>Complemento</span>
+          <input value={draft.complemento} onChange={(event) => update("complemento", event.target.value)} />
+        </label>
+        <label className="field-editable">
+          <span>Bairro</span>
+          <input value={draft.bairro} onChange={(event) => update("bairro", event.target.value)} />
+        </label>
+        <label className="field-editable">
+          <span>Cidade</span>
+          <input value={draft.cidade} onChange={(event) => update("cidade", event.target.value)} />
+        </label>
+        <label className="field-editable">
+          <span>UF</span>
+          <input value={draft.estado} onChange={(event) => update("estado", event.target.value)} />
         </label>
       </div>
 
