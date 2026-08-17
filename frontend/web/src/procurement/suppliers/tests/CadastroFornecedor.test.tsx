@@ -28,7 +28,7 @@ const consulta = {
   fonteConsulta: "BrasilAPI",
   dataConsulta: "2026-08-01T12:00:00Z",
   statusConsulta: "Sucesso",
-  mensagemErro: null,
+  mensagemErro: null as string | null,
   sucesso: true
 };
 
@@ -230,6 +230,28 @@ describe("CadastroFornecedor", () => {
     expect(screen.getByRole("button", { name: /cadastrar fornecedor/i })).not.toBeDisabled();
   });
 
+  it("BUG-5: reconsultar um CNPJ ja cadastrado NUNCA cai em ErrorConsulta, mesmo se a fonte externa falhar (reconhece fornecedor existente e permite revisao/edicao)", async () => {
+    const consultaComFalha = {
+      ...consulta,
+      sucesso: false,
+      statusConsulta: "Falha",
+      tipoErro: "LimiteDeConsultas",
+      mensagemErro: "Limite de consultas atingido na fonte externa."
+    };
+    mockFetch(consultaComFalha, [supplier]);
+    render(<CadastroFornecedor />);
+
+    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
+
+    // Nunca deve exibir o estado de erro generico quando ha um Fornecedor ja cadastrado para o
+    // mesmo documento: reconsultar deve reconhecer o fornecedor existente e permitir revisao,
+    // nunca falhar com "ja existe" nem com erro de consulta.
+    await waitFor(() => expect(screen.queryByText(/consulta interrompida/i)).not.toBeInTheDocument());
+    expect(screen.getByText(/fornecedor ja cadastrado/i)).toBeInTheDocument();
+    expect(screen.queryByText("ErrorConsulta")).not.toBeInTheDocument();
+  });
+
   it("protege contra submissao duplicada: dois cliques rapidos em Cadastrar fornecedor geram apenas um POST", async () => {
     const fetchMock = mockFetch(consulta, []);
     render(<CadastroFornecedor />);
@@ -244,6 +266,70 @@ describe("CadastroFornecedor", () => {
     await waitFor(() => expect(screen.getByText(/fornecedor cadastrado no \+compras/i)).toBeInTheDocument());
     const createCalls = fetchMock.mock.calls.filter(([input, init]) => String(input) === "/fornecedores" && (init as RequestInit)?.method === "POST");
     expect(createCalls.length).toBe(1);
+  });
+
+  it("Review de fornecedor novo permite editar RazaoSocial, NomeFantasia, endereco, email e telefone, e persiste os valores revisados (nao os originais da consulta)", async () => {
+    const fetchMock = mockFetch(consulta, []);
+    render(<CadastroFornecedor />);
+
+    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
+    await screen.findByRole("button", { name: /cadastrar fornecedor/i });
+
+    async function replace(label: string, value: string) {
+      const input = screen.getByRole("textbox", { name: label });
+      await userEvent.clear(input);
+      await userEvent.type(input, value);
+    }
+
+    await replace("RazaoSocial", "Razao Social Revisada Ltda");
+    await replace("NomeFantasia", "Fantasia Revisada");
+    await replace("Email", "revisado@example.invalid");
+    await replace("Telefone (DDD+numero)", "11888887777");
+    await replace("CEP", "04567000");
+    await replace("Logradouro", "Rua Revisada");
+    await replace("Numero", "999");
+    await replace("Complemento", "Bloco B");
+    await replace("Bairro", "Bairro Revisado");
+    await replace("Cidade", "Campinas");
+    await replace("UF", "MG");
+
+    await userEvent.click(screen.getByRole("button", { name: /cadastrar fornecedor/i }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      "/fornecedores",
+      expect.objectContaining({ method: "POST" })
+    ));
+
+    const [, init] = fetchMock.mock.calls.find(([input, callInit]) => String(input) === "/fornecedores" && (callInit as RequestInit)?.method === "POST")!;
+    const body = JSON.parse((init as RequestInit).body as string);
+
+    // Os valores enviados sao os revisados pelo usuario, nunca os originais retornados pela consulta.
+    expect(body.razaoSocial).toBe("Razao Social Revisada Ltda");
+    expect(body.nomeFantasia).toBe("Fantasia Revisada");
+    expect(body.email).toBe("revisado@example.invalid");
+    expect(body.telefone).toBe("11888887777");
+    expect(body.cep).toBe("04567000");
+    expect(body.logradouro).toBe("Rua Revisada");
+    expect(body.numero).toBe("999");
+    expect(body.complemento).toBe("Bloco B");
+    expect(body.bairro).toBe("Bairro Revisado");
+    expect(body.cidade).toBe("Campinas");
+    expect(body.estado).toBe("MG");
+    expect(body.razaoSocial).not.toBe(consulta.razaoSocial);
+    expect(body.cep).not.toBe(consulta.cep);
+  });
+
+  it("CNAE principal permanece somente leitura na Review de fornecedor novo (nenhum campo editavel para CNAE)", async () => {
+    mockFetch(consulta, []);
+    render(<CadastroFornecedor />);
+
+    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
+    await screen.findByRole("button", { name: /cadastrar fornecedor/i });
+
+    expect(screen.getByText("6201-5/01")).toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: /cnae/i })).not.toBeInTheDocument();
   });
 });
 
