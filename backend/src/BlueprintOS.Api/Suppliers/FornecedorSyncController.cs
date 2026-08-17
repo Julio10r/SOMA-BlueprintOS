@@ -1,4 +1,5 @@
 using BlueprintOS.Api.Authorization;
+using BlueprintOS.Application.Procurement.Suppliers;
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Application.Procurement.Suppliers.Models;
 using BlueprintOS.Domain.Identity;
@@ -20,7 +21,39 @@ public static class FornecedorSyncController
         group.MapPost("/sincronizar/lote", SyncBatch);
         group.MapGet("/sincronizar-erp", SyncErp);
         group.MapGet("/{fornecedorId:guid}/sincronizacoes", Audit);
+
+        // B2.9 — operação explícita de negócio ("garantir/atualizar fornecedor no ERP"), distinta das
+        // rotas administrativas acima: exige apenas a permissão de edição de Fornecedor, nunca disparada
+        // implicitamente por consulta de CNPJ (B2.6).
+        endpoints.MapGroup("/api/fornecedores")
+            .WithTags("Sincronização de Fornecedores")
+            .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorEditar))
+            .MapPost("/{fornecedorId:guid}/garantir-erp", GarantirErp);
+
         return endpoints;
+    }
+
+    private static async Task<IResult> GarantirErp(Guid fornecedorId, GarantirFornecedorErpRequestBody? body,
+        IGarantirFornecedorNoErpUseCase useCase, CancellationToken ct)
+    {
+        if (body is null || string.IsNullOrWhiteSpace(body.BusinessUnit))
+            return Results.BadRequest(new { code = "validation_error", message = "BusinessUnit é obrigatória." });
+        try
+        {
+            var resultado = await useCase.ExecuteAsync(fornecedorId, body.BusinessUnit, new GarantirFornecedorNoErpDto(body.CorrelationId), ct);
+            return resultado is null ? Results.NotFound() : Results.Ok(resultado);
+        }
+        catch (ErpFornecedorEscritaException ex)
+        {
+            return ex.Tipo switch
+            {
+                ErpFornecedorErro.Validacao => Results.BadRequest(new { code = "validation_error", message = ex.Message }),
+                ErpFornecedorErro.ConflitoRecuperavel => Results.Conflict(new { code = "conflict_retryable", message = ex.Message }),
+                ErpFornecedorErro.Timeout => Results.StatusCode(StatusCodes.Status504GatewayTimeout),
+                ErpFornecedorErro.Conectividade => Results.StatusCode(StatusCodes.Status502BadGateway),
+                _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
+            };
+        }
     }
 
     private static async Task<IResult> Sync(SincronizarFornecedorRequest? request, ISincronizarFornecedorUseCase useCase, CancellationToken ct)
@@ -61,3 +94,5 @@ public sealed record SincronizarFornecedoresLoteRequest(string BusinessUnit, str
 {
     public SincronizarFornecedoresLoteDto ToDto() => new(BusinessUnit, ErpSistema, FornecedorIds, Limite, CorrelationId);
 }
+
+public sealed record GarantirFornecedorErpRequestBody(string BusinessUnit, string? CorrelationId);

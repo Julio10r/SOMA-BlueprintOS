@@ -5,12 +5,15 @@ using BlueprintOS.Domain.Procurement.Suppliers;
 public sealed record CadastrarFornecedorDto(string Nome, string Cnpj, string? Categoria, string? Email, string? Telefone,
     string? Website, string? Cidade, string? Estado, string? Pais, string? Status, decimal? ScoreIA,
     FornecedorCanonico? DadosCanonicos = null, string? Cnpj_Cpf = null, string? TipoPessoa = null, string? RazaoSocial = null,
-    bool Beneficiador = false, bool Licenciado = false, string? CnaePrincipalCodigo = null, string? CnaePrincipalDescricao = null);
+    bool Beneficiador = false, bool Licenciado = false, string? CnaePrincipalCodigo = null, string? CnaePrincipalDescricao = null,
+    string? NomeFantasia = null, string? Cep = null, string? Logradouro = null, string? Numero = null,
+    string? Complemento = null, string? Bairro = null);
 public sealed record AtualizarFornecedorDto(string Nome, string? Categoria, string? Email, string? Telefone,
     string? Website, string? Cidade, string? Estado, string? Pais, string? Status, decimal? ScoreIA,
     FornecedorCanonico? DadosCanonicos = null, string? Cnpj = null, string? Cnpj_Cpf = null, string? TipoPessoa = null,
     string? RazaoSocial = null, bool? Beneficiador = null, bool? Licenciado = null, string? CnaePrincipalCodigo = null,
-    string? CnaePrincipalDescricao = null);
+    string? CnaePrincipalDescricao = null, string? NomeFantasia = null, string? Cep = null, string? Logradouro = null,
+    string? Numero = null, string? Complemento = null, string? Bairro = null);
 public sealed record FornecedorDto(Guid Id, string Nome, string Cnpj, string? Categoria, string? Email, string? Telefone,
     string? Website, string? Cidade, string? Estado, string? Pais, string Status, decimal? ScoreIA, Guid TemporaryUserId,
     DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, string? NomeFantasia = null, string? TipoPessoa = null,

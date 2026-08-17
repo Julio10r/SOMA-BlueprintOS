@@ -23,7 +23,8 @@ public sealed class Fornecedor
 
     public Fornecedor(Guid id, string razaoSocial, DocumentoFiscal documentoFiscal, string? tipoPessoa, string? categoria, string? email, string? telefone,
         string? website, string? cidade, string? estado, string? pais, string status, decimal? scoreIA,
-        Guid temporaryUserId, DateTimeOffset createdAt, string? businessUnit = null, string? erpSistema = null, string? erpFornecedorId = null)
+        Guid temporaryUserId, DateTimeOffset createdAt, string? businessUnit = null, string? erpSistema = null, string? erpFornecedorId = null,
+        string? nomeFantasia = null, string? cep = null, string? logradouro = null, string? numero = null, string? complemento = null, string? bairro = null)
     {
         if (string.IsNullOrWhiteSpace(razaoSocial)) throw new ArgumentException("RazaoSocial is required.", nameof(razaoSocial));
         if (temporaryUserId == Guid.Empty) throw new ArgumentException("TemporaryUserId is required.", nameof(temporaryUserId));
@@ -34,6 +35,8 @@ public sealed class Fornecedor
         Pais = pais?.Trim(); Status = string.IsNullOrWhiteSpace(status) ? "Ativo" : status.Trim(); ScoreIA = scoreIA;
         TemporaryUserId = temporaryUserId; CreatedAt = createdAt; UpdatedAt = createdAt;
         BusinessUnit = businessUnit?.Trim(); ErpSistema = erpSistema?.Trim(); ErpFornecedorId = erpFornecedorId?.Trim();
+        NomeFantasia = nomeFantasia?.Trim(); Cep = cep?.Trim(); Logradouro = logradouro?.Trim(); Numero = numero?.Trim();
+        Complemento = complemento?.Trim(); Bairro = bairro?.Trim();
         OrigemInformacao = "MaisCompras"; StatusSincronizacao = "Pendente";
     }
 
@@ -104,12 +107,16 @@ public sealed class Fornecedor
     public string? CnaePrincipalDescricao { get; private set; }
 
     public void Atualizar(string nome, string? categoria, string? email, string? telefone, string? website,
-        string? cidade, string? estado, string? pais, string status, decimal? scoreIA, DateTimeOffset updatedAt)
+        string? cidade, string? estado, string? pais, string status, decimal? scoreIA, DateTimeOffset updatedAt,
+        string? nomeFantasia = null, string? cep = null, string? logradouro = null, string? numero = null,
+        string? complemento = null, string? bairro = null)
     {
         if (string.IsNullOrWhiteSpace(nome)) throw new ArgumentException("Nome is required.", nameof(nome));
         RazaoSocial = nome.Trim(); Categoria = categoria?.Trim(); Email = email?.Trim(); Telefone = telefone?.Trim();
         Website = website?.Trim(); Cidade = cidade?.Trim(); Estado = estado?.Trim(); Pais = pais?.Trim();
         Status = string.IsNullOrWhiteSpace(status) ? "Ativo" : status.Trim(); ScoreIA = scoreIA; UpdatedAt = updatedAt;
+        NomeFantasia = nomeFantasia?.Trim() ?? NomeFantasia; Cep = cep?.Trim() ?? Cep; Logradouro = logradouro?.Trim() ?? Logradouro;
+        Numero = numero?.Trim() ?? Numero; Complemento = complemento?.Trim() ?? Complemento; Bairro = bairro?.Trim() ?? Bairro;
         OrigemUltimaAlteracao = "MaisCompras"; Versao++;
     }
 
