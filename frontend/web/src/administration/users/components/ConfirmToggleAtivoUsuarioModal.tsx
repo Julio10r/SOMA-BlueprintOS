@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import type { Usuario } from "../types/userTypes";
 
 /**
@@ -14,6 +15,15 @@ export function ConfirmToggleAtivoUsuarioModal({ usuario, error, loading, onConf
   onCancel: () => void;
 }) {
   const ativando = !usuario.ativo;
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && !loading) onCancel();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [loading, onCancel]);
+
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-toggle-usuario-title">
       <div className="card modal-card">

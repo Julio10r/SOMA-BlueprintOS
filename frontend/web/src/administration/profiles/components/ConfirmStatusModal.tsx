@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import type { Perfil } from "../types/perfilTypes";
 
 /**
@@ -21,6 +22,14 @@ export function ConfirmStatusModal({ perfil, error, loading, onConfirm, onCancel
 }) {
   const inativando = perfil.ativo;
   const titulo = inativando ? "Inativar perfil" : "Ativar perfil";
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && !loading) onCancel();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [loading, onCancel]);
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-status-title">
