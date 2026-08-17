@@ -307,7 +307,15 @@ select:focus {
   max-width: 100%;
   overflow: hidden;
   overflow-x: auto;
+  /* Barra de rolagem sempre visivel (nao depender do overlay scrollbar do
+     SO, que fica invisivel ate a interacao e esconde a affordance de que
+     ha colunas fora da viewport em telas estreitas, ex. 1024x768). */
+  scrollbar-width: thin;
 }
+.table-scroll::-webkit-scrollbar { height: 8px; }
+.table-scroll::-webkit-scrollbar-track { background: transparent; }
+.table-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--radius-pill); }
+.table-scroll::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 .divergence-table {
   border-collapse: collapse;
@@ -558,6 +566,7 @@ tbody tr:last-child td { border-bottom: none; }
   z-index: 10;
 }
 .modal-card { display: grid; gap: var(--space-3); max-width: 480px; width: 100%; }
+.modal-card .card-heading { margin-bottom: 0; }
 
 @media (max-width: 860px) {
   .app-body { flex-direction: column; }
