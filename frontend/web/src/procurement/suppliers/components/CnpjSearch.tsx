@@ -14,7 +14,7 @@ export function CnpjSearch({ value, onChange, onSubmit, loading, error }: {
 }) {
   return (
     <form className="card form-card" onSubmit={onSubmit}>
-      <label htmlFor="cnpjCpf">Cnpj_Cpf</label>
+      <label htmlFor="cnpjCpf">CNPJ/CPF</label>
       <div className="input-row">
         <input
           id="cnpjCpf"

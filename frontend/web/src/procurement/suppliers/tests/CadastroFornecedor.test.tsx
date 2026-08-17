@@ -92,7 +92,7 @@ describe("CadastroFornecedor", () => {
   it("renderiza a tela inicial", () => {
     renderCadastroFornecedor();
     expect(screen.getByRole("heading", { name: /cadastro com enriquecimento cnpj/i })).toBeInTheDocument();
-    expect(screen.getByLabelText("Cnpj_Cpf")).toBeInTheDocument();
+    expect(screen.getByLabelText("CNPJ/CPF")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /consultar cnpj/i })).toBeInTheDocument();
   });
 
@@ -100,7 +100,7 @@ describe("CadastroFornecedor", () => {
     mockFetch();
     renderCadastroFornecedor();
 
-    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12.345.678/0001-95");
+    await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12.345.678/0001-95");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
 
     expect(await screen.findByRole("heading", { name: "Divergencias encontradas" })).toBeInTheDocument();
@@ -117,7 +117,7 @@ describe("CadastroFornecedor", () => {
     mockFetch();
     renderCadastroFornecedor();
 
-    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
 
     expect(await screen.findByText("6201-5/01")).toBeInTheDocument();
@@ -128,7 +128,7 @@ describe("CadastroFornecedor", () => {
     mockFetch({ ...consulta, cnaePrincipalCodigo: null as unknown as string, cnaePrincipalDescricao: null as unknown as string }, []);
     renderCadastroFornecedor();
 
-    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
 
     await screen.findByText("CNAE principal");
@@ -140,7 +140,7 @@ describe("CadastroFornecedor", () => {
     const fetchMock = mockFetch(consulta, []);
     renderCadastroFornecedor();
 
-    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
     const cadastrarButton = await screen.findByRole("button", { name: /cadastrar fornecedor/i });
 
@@ -161,7 +161,7 @@ describe("CadastroFornecedor", () => {
     mockFetch({ ...consulta, situacaoCadastral: "Desconhecida" });
     renderCadastroFornecedor();
 
-    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
 
     expect(await screen.findByRole("heading", { name: "Divergencias encontradas" })).toBeInTheDocument();
@@ -172,7 +172,7 @@ describe("CadastroFornecedor", () => {
     const fetchMock = mockFetch();
     renderCadastroFornecedor();
 
-    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
     await screen.findByRole("heading", { name: "Divergencias encontradas" });
     await userEvent.click(screen.getByRole("button", { name: "Aceitar" }));
@@ -190,7 +190,7 @@ describe("CadastroFornecedor", () => {
     const fetchMock = mockFetch();
     renderCadastroFornecedor();
 
-    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
     await screen.findByRole("heading", { name: "Divergencias encontradas" });
     const row = screen.getAllByText("Email").find((node) => node.closest("tr"))!.closest("tr")!;
@@ -210,7 +210,7 @@ describe("CadastroFornecedor", () => {
     const fetchMock = mockFetch(consulta, []);
     renderCadastroFornecedor();
 
-    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
 
     expect(await screen.findByRole("heading", { name: /nenhum fornecedor cadastrado/i })).toBeInTheDocument();
@@ -222,7 +222,7 @@ describe("CadastroFornecedor", () => {
     const fetchMock = mockFetch(consulta, []);
     renderCadastroFornecedor();
 
-    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
     await screen.findByRole("button", { name: /cadastrar fornecedor/i });
 
@@ -240,7 +240,7 @@ describe("CadastroFornecedor", () => {
     mockFetch({ ...consulta, situacaoCadastral: "Suspensa" }, []);
     renderCadastroFornecedor();
 
-    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
     await screen.findByRole("button", { name: /cadastrar fornecedor/i });
 
@@ -261,7 +261,7 @@ describe("CadastroFornecedor", () => {
     mockFetch(consultaComFalha, [supplier]);
     renderCadastroFornecedor();
 
-    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
 
     // Nunca deve exibir o estado de erro generico quando ha um Fornecedor ja cadastrado para o
@@ -283,7 +283,7 @@ describe("CadastroFornecedor", () => {
     mockFetch(consultaComFalha, [supplier]);
     renderCadastroFornecedor();
 
-    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
 
     // Antes da correcao do DR-10, SupplierComparison so renderizava quando
@@ -304,7 +304,7 @@ describe("CadastroFornecedor", () => {
     const fetchMock = mockFetch(consulta, []);
     renderCadastroFornecedor();
 
-    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
     const cadastrarButton = await screen.findByRole("button", { name: /cadastrar fornecedor/i });
 
@@ -320,7 +320,7 @@ describe("CadastroFornecedor", () => {
     const fetchMock = mockFetch(consulta, []);
     renderCadastroFornecedor();
 
-    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
     await screen.findByRole("button", { name: /cadastrar fornecedor/i });
 
@@ -372,7 +372,7 @@ describe("CadastroFornecedor", () => {
     mockFetch(consulta, []);
     renderCadastroFornecedor();
 
-    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.type(screen.getByLabelText("CNPJ/CPF"), "12345678000195");
     await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
     await screen.findByRole("button", { name: /cadastrar fornecedor/i });
 

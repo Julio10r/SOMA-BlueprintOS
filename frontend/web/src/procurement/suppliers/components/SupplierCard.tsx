@@ -18,7 +18,7 @@ export function SupplierCard({ supplier }: { supplier: Fornecedor }) {
       </div>
       <div className="data-grid supplier-card-grid">
         <div className="field-readonly">
-          <span>Cnpj_Cpf</span>
+          <span>CNPJ/CPF</span>
           <strong className="mono">{supplier.cnpj_Cpf}</strong>
         </div>
         <div className="field-readonly">
