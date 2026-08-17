@@ -76,7 +76,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISincronizarFornecedoresErpUseCase, SincronizarFornecedoresErpUseCase>();
         services.AddScoped<ICadastrarFornecedorUseCase, CadastrarFornecedorUseCase>();
         services.AddScoped<IAtualizarFornecedorUseCase, AtualizarFornecedorUseCase>();
-        services.AddScoped<IExcluirFornecedorUseCase, ExcluirFornecedorUseCase>();
+        services.AddScoped<IInativarFornecedorUseCase, InativarFornecedorUseCase>();
         services.AddScoped<IObterFornecedorUseCase, ObterFornecedorUseCase>();
         services.AddScoped<IPesquisarFornecedorUseCase, PesquisarFornecedorUseCase>();
         services.AddScoped<IDescobrirFornecedoresUseCase, DescobrirFornecedoresUseCase>();

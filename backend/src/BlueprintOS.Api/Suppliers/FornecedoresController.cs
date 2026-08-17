@@ -58,7 +58,7 @@ public static class FornecedoresController
         try { return await useCase.ExecuteAsync(id, request.ToDto(), ct) is { } supplier ? Results.Ok(supplier) : Results.NotFound(); }
         catch (ArgumentException ex) { return Results.BadRequest(new { code = "validation_error", message = ex.Message }); }
     }
-    private static async Task<IResult> Delete(Guid id, IExcluirFornecedorUseCase useCase, CancellationToken ct) =>
+    private static async Task<IResult> Delete(Guid id, IInativarFornecedorUseCase useCase, CancellationToken ct) =>
         await useCase.ExecuteAsync(id, ct) ? Results.NoContent() : Results.NotFound();
 
     private static async Task<IResult> AnalyzeCnpjEnrichment(Guid id, FornecedorEnriquecimentoRequest? request,

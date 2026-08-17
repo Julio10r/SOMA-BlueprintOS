@@ -18,8 +18,14 @@ public sealed class FornecedorRepositoryIntegrationTests
         Assert.True(await repository.ExisteAsync("12345678000195"));
         Assert.Single(await repository.PesquisarAsync("Alpha", user));
         Assert.Empty(await repository.ListarAsync(Guid.NewGuid()));
-        await repository.ExcluirAsync(supplier);
-        Assert.Empty(await repository.ListarAsync(user));
+
+        // DR-18 (Design Review Pos-Onda 1): "excluir" Fornecedor e semantica de inativacao, nunca
+        // remocao fisica da linha — nem +Compras nem ERP executam DELETE fisico como operacao funcional.
+        supplier.AlterarStatus(false, DateTimeOffset.UtcNow, "MaisCompras");
+        await repository.AtualizarAsync(supplier);
+        var listados = await repository.ListarAsync(user);
+        Assert.Single(listados);
+        Assert.Equal("Inativo", listados[0].Status);
     }
 
     [Fact]

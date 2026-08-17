@@ -10,8 +10,6 @@ public sealed class FornecedorRepository(BlueprintOSDbContext context) : IFornec
     { await context.Fornecedores.AddAsync(fornecedor, cancellationToken); await context.SaveChangesAsync(cancellationToken); }
     public async Task AtualizarAsync(Fornecedor fornecedor, CancellationToken cancellationToken = default)
     { context.Fornecedores.Update(fornecedor); await context.SaveChangesAsync(cancellationToken); }
-    public async Task ExcluirAsync(Fornecedor fornecedor, CancellationToken cancellationToken = default)
-    { context.Fornecedores.Remove(fornecedor); await context.SaveChangesAsync(cancellationToken); }
     public Task<Fornecedor?> ObterPorIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default) =>
         context.Fornecedores.SingleOrDefaultAsync(x => x.Id == id && x.TemporaryUserId == userId, cancellationToken);
     public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid userId, CancellationToken cancellationToken = default) =>

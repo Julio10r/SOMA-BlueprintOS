@@ -116,13 +116,18 @@ public sealed class AtualizarFornecedorUseCase(
     }
 }
 
-public sealed class ExcluirFornecedorUseCase(IFornecedorRepository repository, ICurrentIdentity identity) : IExcluirFornecedorUseCase
+/// <summary>Implementa "Excluir Fornecedor" (rota HTTP <c>DELETE /fornecedores/{id}</c>, contrato externo
+/// mantido) como inativação semântica, nunca como remoção física (DR-18, Design Review Pós-Onda 1: nem
+/// +Compras nem ERP executam DELETE físico como operação funcional). Reaproveita
+/// <see cref="Fornecedor.AlterarStatus"/>, o mesmo mecanismo já usado pela sincronização com o ERP.</summary>
+public sealed class InativarFornecedorUseCase(IFornecedorRepository repository, ICurrentIdentity identity) : IInativarFornecedorUseCase
 {
     public async Task<bool> ExecuteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var fornecedor = await repository.ObterPorIdAsync(id, identity.GetRequired().UserId, cancellationToken);
         if (fornecedor is null) return false;
-        await repository.ExcluirAsync(fornecedor, cancellationToken);
+        fornecedor.AlterarStatus(false, DateTimeOffset.UtcNow, "MaisCompras");
+        await repository.AtualizarAsync(fornecedor, cancellationToken);
         return true;
     }
 }

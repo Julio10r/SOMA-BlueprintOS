@@ -222,7 +222,6 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         }
 
         public Task AtualizarAsync(Fornecedor fornecedor, CancellationToken cancellationToken = default) => inner.AtualizarAsync(fornecedor, cancellationToken);
-        public Task ExcluirAsync(Fornecedor fornecedor, CancellationToken cancellationToken = default) => inner.ExcluirAsync(fornecedor, cancellationToken);
         public Task<Fornecedor?> ObterPorIdAsync(Guid id, Guid temporaryUserId, CancellationToken cancellationToken = default) => inner.ObterPorIdAsync(id, temporaryUserId, cancellationToken);
         public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid temporaryUserId, CancellationToken cancellationToken = default) => inner.ObterPorCnpjAsync(cnpj, temporaryUserId, cancellationToken);
         public Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string termo, Guid temporaryUserId, CancellationToken cancellationToken = default) => inner.PesquisarAsync(termo, temporaryUserId, cancellationToken);

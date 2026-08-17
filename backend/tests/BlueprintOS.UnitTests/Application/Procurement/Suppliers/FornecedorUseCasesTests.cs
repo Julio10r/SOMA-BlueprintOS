@@ -170,6 +170,32 @@ public sealed class FornecedorUseCasesTests
         Assert.Equal("Pendente", supplierWithOwner.StatusSincronizacao);
     }
 
+    [Fact]
+    public async Task Inativar_Should_Mark_Status_Inativo_Instead_Of_Removing_Supplier()
+    {
+        // DR-18 (Design Review Pos-Onda 1, P1, BLOQUEIA GATE): "excluir" Fornecedor via
+        // DELETE /fornecedores/{id} e semantica de inativacao (AlterarStatus), nunca remocao fisica —
+        // nem +Compras nem ERP executam DELETE fisico como operacao funcional.
+        var identity = new FakeIdentity(); var repository = new FakeRepository();
+        var supplier = new Fornecedor(Guid.NewGuid(), "Empresa", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null,
+            identity.UserId, DateTimeOffset.UtcNow);
+        repository.Items.Add(supplier);
+
+        var result = await new InativarFornecedorUseCase(repository, identity).ExecuteAsync(supplier.Id);
+
+        Assert.True(result);
+        Assert.Contains(supplier, repository.Items);
+        Assert.Equal("Inativo", supplier.Status);
+    }
+
+    [Fact]
+    public async Task Inativar_Should_Return_False_When_Supplier_Not_Found()
+    {
+        var identity = new FakeIdentity(); var repository = new FakeRepository();
+        var result = await new InativarFornecedorUseCase(repository, identity).ExecuteAsync(Guid.NewGuid());
+        Assert.False(result);
+    }
+
     internal static CadastrarFornecedorUseCase CreateUseCase(IFornecedorRepository repository, ICurrentIdentity identity, IGarantirFornecedorNoErpUseCase? garantirNoErp = null) =>
         new(repository, identity, garantirNoErp ?? new FakeGarantirNoErpUseCase(), new ResolvedorBusinessUnit(new FakeUnidadeNegocioRepository()), NullLogger<CadastrarFornecedorUseCase>.Instance);
 
@@ -204,7 +230,6 @@ public sealed class FornecedorUseCasesTests
         public List<Fornecedor> Items { get; } = []; public string? ExistingCnpj { get; set; }
         public Task AdicionarAsync(Fornecedor f, CancellationToken ct = default) { Items.Add(f); return Task.CompletedTask; }
         public Task AtualizarAsync(Fornecedor f, CancellationToken ct = default) => Task.CompletedTask;
-        public Task ExcluirAsync(Fornecedor f, CancellationToken ct = default) { Items.Remove(f); return Task.CompletedTask; }
         public Task<Fornecedor?> ObterPorIdAsync(Guid id, Guid user, CancellationToken ct = default) => Task.FromResult(Items.SingleOrDefault(x => x.Id == id && x.TemporaryUserId == user));
         public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid user, CancellationToken ct = default) => Task.FromResult(Items.SingleOrDefault(x => x.Cnpj_Cpf == cnpj && x.TemporaryUserId == user));
         public Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string term, Guid user, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Fornecedor>>(Items.Where(x => x.TemporaryUserId == user).ToArray());
