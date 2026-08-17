@@ -62,49 +62,49 @@ export function NovoFornecedorPanel({
       </p>
 
       <div className="data-grid">
-        <label className="field-editable">
+        <label className="field-editable" htmlFor="novo-fornecedor-razao-social">
           <span>RazaoSocial</span>
-          <input value={draft.razaoSocial} onChange={(event) => update("razaoSocial", event.target.value)} />
+          <input id="novo-fornecedor-razao-social" name="razaoSocial" value={draft.razaoSocial} onChange={(event) => update("razaoSocial", event.target.value)} />
         </label>
-        <label className="field-editable">
+        <label className="field-editable" htmlFor="novo-fornecedor-nome-fantasia">
           <span>NomeFantasia</span>
-          <input value={draft.nomeFantasia} onChange={(event) => update("nomeFantasia", event.target.value)} />
+          <input id="novo-fornecedor-nome-fantasia" name="nomeFantasia" value={draft.nomeFantasia} onChange={(event) => update("nomeFantasia", event.target.value)} />
         </label>
-        <label className="field-editable">
+        <label className="field-editable" htmlFor="novo-fornecedor-email">
           <span>Email</span>
-          <input value={draft.email} onChange={(event) => update("email", event.target.value)} />
+          <input id="novo-fornecedor-email" name="email" type="email" value={draft.email} onChange={(event) => update("email", event.target.value)} />
         </label>
-        <label className="field-editable">
+        <label className="field-editable" htmlFor="novo-fornecedor-telefone">
           <span>Telefone (DDD+numero)</span>
-          <input value={draft.telefone} onChange={(event) => update("telefone", event.target.value)} />
+          <input id="novo-fornecedor-telefone" name="telefone" value={draft.telefone} onChange={(event) => update("telefone", event.target.value)} />
         </label>
-        <label className="field-editable">
+        <label className="field-editable" htmlFor="novo-fornecedor-cep">
           <span>CEP</span>
-          <input value={draft.cep} onChange={(event) => update("cep", event.target.value)} />
+          <input id="novo-fornecedor-cep" name="cep" value={draft.cep} onChange={(event) => update("cep", event.target.value)} />
         </label>
-        <label className="field-editable">
+        <label className="field-editable" htmlFor="novo-fornecedor-logradouro">
           <span>Logradouro</span>
-          <input value={draft.logradouro} onChange={(event) => update("logradouro", event.target.value)} />
+          <input id="novo-fornecedor-logradouro" name="logradouro" value={draft.logradouro} onChange={(event) => update("logradouro", event.target.value)} />
         </label>
-        <label className="field-editable">
+        <label className="field-editable" htmlFor="novo-fornecedor-numero">
           <span>Numero</span>
-          <input value={draft.numero} onChange={(event) => update("numero", event.target.value)} />
+          <input id="novo-fornecedor-numero" name="numero" value={draft.numero} onChange={(event) => update("numero", event.target.value)} />
         </label>
-        <label className="field-editable">
+        <label className="field-editable" htmlFor="novo-fornecedor-complemento">
           <span>Complemento</span>
-          <input value={draft.complemento} onChange={(event) => update("complemento", event.target.value)} />
+          <input id="novo-fornecedor-complemento" name="complemento" value={draft.complemento} onChange={(event) => update("complemento", event.target.value)} />
         </label>
-        <label className="field-editable">
+        <label className="field-editable" htmlFor="novo-fornecedor-bairro">
           <span>Bairro</span>
-          <input value={draft.bairro} onChange={(event) => update("bairro", event.target.value)} />
+          <input id="novo-fornecedor-bairro" name="bairro" value={draft.bairro} onChange={(event) => update("bairro", event.target.value)} />
         </label>
-        <label className="field-editable">
+        <label className="field-editable" htmlFor="novo-fornecedor-cidade">
           <span>Cidade</span>
-          <input value={draft.cidade} onChange={(event) => update("cidade", event.target.value)} />
+          <input id="novo-fornecedor-cidade" name="cidade" value={draft.cidade} onChange={(event) => update("cidade", event.target.value)} />
         </label>
-        <label className="field-editable">
+        <label className="field-editable" htmlFor="novo-fornecedor-estado">
           <span>UF</span>
-          <input value={draft.estado} onChange={(event) => update("estado", event.target.value)} />
+          <input id="novo-fornecedor-estado" name="estado" value={draft.estado} onChange={(event) => update("estado", event.target.value)} />
         </label>
       </div>
 

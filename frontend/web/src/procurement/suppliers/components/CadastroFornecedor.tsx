@@ -15,7 +15,7 @@ import type {
   SituacaoCadastralCnpj
 } from "../types/linxSupplierContract";
 import { CnpjSearch } from "./CnpjSearch";
-import { SupplierComparison } from "./SupplierComparison";
+import { ExistingSupplierSnapshot, SupplierComparison } from "./SupplierComparison";
 import { ApprovalPanel } from "./ApprovalPanel";
 import { NovoFornecedorPanel, type NovoFornecedorDraft } from "./NovoFornecedorPanel";
 
@@ -50,6 +50,25 @@ type FlowState =
   | "ErrorValidacao"
   | "ErrorConsulta"
   | "ErrorPersistencia";
+
+/**
+ * DR.4 (Design Review Pos-Onda 1): o valor cru do enum `FlowState` e um
+ * detalhe tecnico interno (usado inclusive em asserts de teste) e nao deve
+ * ser exposto ao usuario final. Este mapeamento traduz cada estado para uma
+ * mensagem de produto em PT-BR; os nomes internos do type/enum permanecem
+ * inalterados no codigo.
+ */
+const flowStateLabels: Record<FlowState, string> = {
+  Idle: "Aguardando",
+  Validating: "Validando",
+  Consulting: "Consultando fonte externa",
+  Review: "Em revisao",
+  Persisting: "Salvando...",
+  Success: "Concluido",
+  ErrorValidacao: "Documento invalido",
+  ErrorConsulta: "Falha na consulta externa",
+  ErrorPersistencia: "Falha ao salvar"
+};
 
 const draftInicial: NovoFornecedorDraft = {
   razaoSocial: "", nomeFantasia: "", email: "", telefone: "",
@@ -247,7 +266,7 @@ export function CadastroFornecedor() {
           <h1>Cadastro com enriquecimento CNPJ</h1>
           <p>{status}</p>
           <dl>
-            <div><dt>Estado</dt><dd className="mono">{flowState}</dd></div>
+            <div><dt>Estado</dt><dd className="mono">{flowStateLabels[flowState]}</dd></div>
             <div><dt>Fonte</dt><dd>{consulta?.fonteConsulta ?? "Aguardando consulta"}</dd></div>
             <div><dt>Data/hora</dt><dd>{formatDateTime(consulta?.dataConsulta)}</dd></div>
             <div><dt>Usuario</dt><dd>{usuario?.nome ?? "Nao identificado"}</dd></div>
@@ -266,6 +285,10 @@ export function CadastroFornecedor() {
               protectedFields={protectedFields}
               onToggleField={toggleField}
             />
+          )}
+
+          {consulta && !consulta.sucesso && supplier && (
+            <ExistingSupplierSnapshot supplier={supplier} />
           )}
 
           {showExistingSupplierFlow && (

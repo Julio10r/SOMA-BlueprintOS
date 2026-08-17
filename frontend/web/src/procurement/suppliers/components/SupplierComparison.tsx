@@ -1,6 +1,6 @@
 import { StatusBadge } from "../../../shared/components/StatusBadge";
 import { SituacaoCadastralBadge } from "./SituacaoCadastralBadge";
-import type { ConsultaCnpjResultado, FornecedorCampoDivergencia } from "../types/linxSupplierContract";
+import type { ConsultaCnpjResultado, Fornecedor, FornecedorCampoDivergencia } from "../types/linxSupplierContract";
 
 /**
  * Mostra os dados retornados pela consulta externa de CNPJ e, quando
@@ -33,30 +33,30 @@ export function SupplierComparison({
           <SituacaoCadastralBadge value={consulta.situacaoCadastral} />
         </div>
         <DataGrid title="Identificacao" items={[
-          ["Cnpj_Cpf", consulta.cnpj_Cpf],
-          ["RazaoSocial", consulta.razaoSocial],
-          ["NomeFantasia", consulta.nomeFantasia],
-          ["TipoPessoa", consulta.tipoPessoa]
+          ["CNPJ/CPF", consulta.cnpj_Cpf],
+          ["Razão Social", consulta.razaoSocial],
+          ["Nome Fantasia", consulta.nomeFantasia],
+          ["Tipo de Pessoa", consulta.tipoPessoa]
         ]} />
         <DataGrid title="CNAE principal" items={[
-          ["Codigo", formatCnaeCodigo(consulta.cnaePrincipalCodigo)],
-          ["Descricao", consulta.cnaePrincipalDescricao]
+          ["Código", formatCnaeCodigo(consulta.cnaePrincipalCodigo)],
+          ["Descrição", consulta.cnaePrincipalDescricao]
         ]} />
         <DataGrid title="Situacao" items={[
-          ["SituacaoCadastral", consulta.situacaoCadastral],
-          ["DataSituacaoCadastral", formatDate(consulta.dataSituacaoCadastral)]
+          ["Situação Cadastral", consulta.situacaoCadastral],
+          ["Data da Situação Cadastral", formatDate(consulta.dataSituacaoCadastral)]
         ]} />
         <DataGrid title="Endereco" items={[
-          ["Cep", consulta.cep],
+          ["CEP", consulta.cep],
           ["Logradouro", consulta.logradouro],
-          ["Numero", consulta.numero],
+          ["Número", consulta.numero],
           ["Complemento", consulta.complemento],
           ["Bairro", consulta.bairro],
           ["Cidade", consulta.cidade],
           ["Estado", consulta.estado]
         ]} />
         <DataGrid title="Contato" items={[
-          ["Email", consulta.email],
+          ["E-mail", consulta.email],
           ["Telefone", consulta.telefone]
         ]} />
       </section>
@@ -79,6 +79,59 @@ export function SupplierComparison({
         </section>
       )}
     </>
+  );
+}
+
+/**
+ * DR-10 (Design Review Pos-Onda 1): quando o fornecedor ja existe localmente
+ * mas a reconsulta externa falhou (rate limit, fonte indisponivel, timeout),
+ * o fluxo anterior deixava a tela sem NENHUM dado visivel do fornecedor —
+ * apenas o alerta de falha e um painel de decisao vazio. Isso viola "nenhuma
+ * decisao relevante sem contexto visivel". Este bloco exibe os dados JA
+ * CADASTRADOS localmente (objeto `Fornecedor` retornado por
+ * `searchSupplierByDocument`), para que o usuario tenha o que revisar mesmo
+ * sem dados atualizados da fonte externa. Os botoes Aceitar/Rejeitar
+ * continuam desabilitados (nenhuma divergencia foi calculada), mas a UI
+ * deixa de aparecer vazia.
+ */
+export function ExistingSupplierSnapshot({ supplier }: { supplier: Fornecedor }) {
+  return (
+    <section className="card">
+      <div className="card-heading">
+        <div>
+          <div className="section-title">Reconsulta indisponivel</div>
+          <h2>Dados atuais no +Compras</h2>
+        </div>
+      </div>
+      <p className="notice notice-warn">
+        Nao foi possivel obter dados atualizados da fonte externa agora. Nenhuma divergencia foi calculada,
+        por isso os botoes Aceitar/Rejeitar permanecem desabilitados ate uma nova consulta bem-sucedida. Os
+        dados abaixo sao os ja cadastrados no +Compras.
+      </p>
+      <DataGrid title="Identificacao" items={[
+        ["CNPJ/CPF", supplier.cnpj_Cpf],
+        ["Razão Social", supplier.razaoSocial],
+        ["Nome Fantasia", supplier.nomeFantasia],
+        ["Tipo de Pessoa", supplier.tipoPessoa]
+      ]} />
+      <DataGrid title="CNAE principal" items={[
+        ["Código", formatCnaeCodigo(supplier.cnaePrincipalCodigo)],
+        ["Descrição", supplier.cnaePrincipalDescricao]
+      ]} />
+      <DataGrid title="Endereco" items={[
+        ["CEP", supplier.cep],
+        ["Logradouro", supplier.logradouro],
+        ["Número", supplier.numero],
+        ["Complemento", supplier.complemento],
+        ["Bairro", supplier.bairro],
+        ["Cidade", supplier.cidade],
+        ["Estado", supplier.estado]
+      ]} />
+      <DataGrid title="Contato" items={[
+        ["E-mail", supplier.email],
+        ["Telefone", supplier.telefone]
+      ]} />
+    </section>
   );
 }
 

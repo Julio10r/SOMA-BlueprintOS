@@ -16,8 +16,21 @@ export function StatusBadge({ value, tone = "decisao" }: {
   value: FornecedorCampoDecisao | string;
   tone?: "situacao" | "decisao";
 }) {
-  const className = tone === "situacao" ? `status status-${value.toLowerCase()}` : `badge ${decisaoClass(value)}`;
+  const className = tone === "situacao" ? `status status-${situacaoSlug(value)}` : `badge ${decisaoClass(value)}`;
   return <span className={className}>{value}</span>;
+}
+
+/**
+ * Deriva a classe CSS de um valor de status generico (tone="situacao", ex.:
+ * Ativo/Inativo de Filial, Centro de Custo, Perfil, Usuario) de forma
+ * defensiva: nunca assume que `value` e uma string bem-formada. Valores
+ * vazios, com espacos ou nao-string caem em um slug seguro ("desconhecido")
+ * em vez de gerar uma classe CSS invalida ou lancar excecao.
+ */
+function situacaoSlug(value: unknown): string {
+  const text = typeof value === "string" ? value.trim() : String(value ?? "").trim();
+  if (!text) return "desconhecido";
+  return text.toLowerCase().replace(/\s+/g, "-");
 }
 
 function decisaoClass(value: string): string {

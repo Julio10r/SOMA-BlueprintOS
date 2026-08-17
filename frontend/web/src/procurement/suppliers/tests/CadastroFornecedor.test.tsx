@@ -272,6 +272,34 @@ describe("CadastroFornecedor", () => {
     expect(screen.queryByText("ErrorConsulta")).not.toBeInTheDocument();
   });
 
+  it("DR-10: fornecedor existente + reconsulta externa com falha exibe os dados ja cadastrados (nao fica vazio)", async () => {
+    const consultaComFalha = {
+      ...consulta,
+      sucesso: false,
+      statusConsulta: "Falha",
+      tipoErro: "LimiteDeConsultas",
+      mensagemErro: "Limite de consultas atingido na fonte externa."
+    };
+    mockFetch(consultaComFalha, [supplier]);
+    renderCadastroFornecedor();
+
+    await userEvent.type(screen.getByLabelText("Cnpj_Cpf"), "12345678000195");
+    await userEvent.click(screen.getByRole("button", { name: /consultar cnpj/i }));
+
+    // Antes da correcao do DR-10, SupplierComparison so renderizava quando
+    // consulta.sucesso e verdadeiro, deixando a tela sem nenhum dado do
+    // fornecedor quando a reconsulta externa falhava. Agora os dados ja
+    // cadastrados localmente (objeto Fornecedor) devem aparecer.
+    expect(await screen.findByRole("heading", { name: "Dados atuais no +Compras" })).toBeInTheDocument();
+    expect(screen.getByText("ABC LTDA")).toBeInTheDocument();
+    expect(screen.getByText("ERP Atual")).toBeInTheDocument();
+    expect(screen.getByText("antigo@example.invalid")).toBeInTheDocument();
+
+    // Decisao continua bloqueada: nenhuma divergencia foi calculada.
+    expect(screen.getByRole("button", { name: "Aceitar" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Rejeitar" })).toBeDisabled();
+  });
+
   it("protege contra submissao duplicada: dois cliques rapidos em Cadastrar fornecedor geram apenas um POST", async () => {
     const fetchMock = mockFetch(consulta, []);
     renderCadastroFornecedor();
