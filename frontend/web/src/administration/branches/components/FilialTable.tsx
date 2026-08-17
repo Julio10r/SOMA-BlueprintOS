@@ -16,6 +16,7 @@ export function FilialTable({ filiais, onVisualizar, onEditar, onToggleAtivo }: 
 }) {
   if (filiais.length === 0) return <div className="empty-state">Nenhuma filial encontrada.</div>;
   return (
+    <div className="table-scroll">
     <table className="divergence-table">
       <thead>
         <tr>
@@ -52,5 +53,6 @@ export function FilialTable({ filiais, onVisualizar, onEditar, onToggleAtivo }: 
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

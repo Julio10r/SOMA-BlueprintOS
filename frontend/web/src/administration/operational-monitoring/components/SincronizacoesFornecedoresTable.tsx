@@ -13,6 +13,7 @@ export function SincronizacoesFornecedoresTable({ itens }: { itens: Sincronizaca
   }
 
   return (
+    <div className="table-scroll">
     <table className="divergence-table">
       <thead>
         <tr>
@@ -49,5 +50,6 @@ export function SincronizacoesFornecedoresTable({ itens }: { itens: Sincronizaca
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

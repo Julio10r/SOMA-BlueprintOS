@@ -7,6 +7,7 @@ export function ParametroTable({ parametros, onEditar, onExcluir }: {
 }) {
   if (parametros.length === 0) return <div className="empty-state">Nenhum parametro encontrado.</div>;
   return (
+    <div className="table-scroll">
     <table className="divergence-table">
       <thead>
         <tr>
@@ -38,5 +39,6 @@ export function ParametroTable({ parametros, onEditar, onExcluir }: {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

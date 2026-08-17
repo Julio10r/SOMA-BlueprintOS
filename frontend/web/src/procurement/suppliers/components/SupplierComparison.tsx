@@ -106,6 +106,7 @@ function DivergenceTable({ divergencias, selectedFields, protectedFields, onTogg
 }) {
   if (divergencias.length === 0) return <div className="empty-state">Nenhuma divergencia encontrada.</div>;
   return (
+    <div className="table-scroll">
     <table className="divergence-table">
       <thead>
         <tr><th>Usar</th><th>Campo</th><th>Atual</th><th>Sugestao</th><th>Decisao</th></tr>
@@ -133,6 +134,7 @@ function DivergenceTable({ divergencias, selectedFields, protectedFields, onTogg
         })}
       </tbody>
     </table>
+    </div>
   );
 }
 

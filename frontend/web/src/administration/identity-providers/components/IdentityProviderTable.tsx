@@ -8,6 +8,7 @@ export function IdentityProviderTable({ providers, onEditar, onToggleStatus }: {
 }) {
   if (providers.length === 0) return <div className="empty-state">Nenhum Identity Provider cadastrado para esta Unidade de Negocio.</div>;
   return (
+    <div className="table-scroll">
     <table className="divergence-table">
       <thead>
         <tr>
@@ -39,5 +40,6 @@ export function IdentityProviderTable({ providers, onEditar, onToggleStatus }: {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

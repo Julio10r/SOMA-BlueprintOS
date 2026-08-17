@@ -12,6 +12,7 @@ export function RegraOrcamentariaTable({ regras, onEditar, onToggleStatus }: {
   }
 
   return (
+    <div className="table-scroll">
     <table className="divergence-table">
       <thead>
         <tr>
@@ -45,5 +46,6 @@ export function RegraOrcamentariaTable({ regras, onEditar, onToggleStatus }: {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

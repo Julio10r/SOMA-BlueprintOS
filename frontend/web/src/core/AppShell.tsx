@@ -17,29 +17,67 @@ type NavItem = {
   permissao?: string;
 };
 
-const navItems: NavItem[] = [
-  { to: "/", label: "Dashboard", end: true },
-  { to: "/administracao/perfis", label: "Perfis", permissao: PERMISSOES.perfilGerenciar },
-  { to: "/administracao/usuarios", label: "Usuarios", permissao: PERMISSOES.usuarioGerenciar },
-  { to: "/administracao/filiais", label: "Filiais", permissao: PERMISSOES.filialGerenciar },
-  { to: "/administracao/centros-custo", label: "Centros de Custo", permissao: PERMISSOES.centroCustoGerenciar },
-  { to: "/administracao/unidades-alocacao", label: "Unidades de Alocacao", permissao: PERMISSOES.unidadeAlocacaoGerenciar },
-  { to: "/administracao/unidades-negocio", label: "Unidades de Negocio", permissao: PERMISSOES.unidadeNegocioGerenciar },
-  { to: "/administracao/configuracao-erp", label: "Configuracao de ERP", permissao: PERMISSOES.configuracaoErpGerenciar },
-  { to: "/administracao/identity-providers", label: "Identity Providers", permissao: PERMISSOES.sistemaGerenciar },
-  { to: "/administracao/parametros", label: "Parametros", permissao: PERMISSOES.sistemaGerenciar },
-  { to: "/administracao/feature-flags", label: "Feature Flags", permissao: PERMISSOES.sistemaGerenciar },
-  { to: "/administracao/configuracao-notificacao", label: "Configuracao de Notificacoes", permissao: PERMISSOES.sistemaGerenciar },
-  { to: "/administracao/regras-workflow", label: "Regras de Workflow", permissao: PERMISSOES.workflowGerenciar },
-  { to: "/administracao/alcadas-aprovacao", label: "Alcadas de Aprovacao", permissao: PERMISSOES.alcadaGerenciar },
-  { to: "/administracao/regras-orcamentarias", label: "Regras Orcamentarias", permissao: PERMISSOES.orcamentoGerenciar },
-  { to: "/administracao/monitoramento", label: "Monitoramento", permissao: PERMISSOES.sistemaGerenciar },
-  { to: "/fornecedores", label: "Fornecedores" },
-  { to: "/pedidos", label: "Pedidos" },
-  { to: "/negociacoes", label: "Negociacoes" },
-  { to: "/indicadores", label: "Indicadores" },
-  { to: "/agentes-ia", label: "Agentes IA" },
-  { to: "/configuracoes", label: "Configuracoes" }
+type NavGroup = {
+  titulo: string;
+  itens: NavItem[];
+};
+
+/**
+ * Navegacao agrupada por contexto (Design Review Pos-Onda 1, lote DR.1).
+ * A lista de rotas e a logica de RBAC por item (`permissao` +
+ * `permissoesEfetivas`) permanecem exatamente como antes — apenas a
+ * apresentacao visual passou de lista plana para grupos com titulo.
+ */
+const navGroups: NavGroup[] = [
+  {
+    titulo: "Inicio",
+    itens: [{ to: "/", label: "Dashboard", end: true }]
+  },
+  {
+    titulo: "Fornecedores",
+    itens: [{ to: "/fornecedores", label: "Fornecedores" }]
+  },
+  {
+    titulo: "Compras",
+    itens: [
+      { to: "/pedidos", label: "Pedidos" },
+      { to: "/negociacoes", label: "Negociacoes" },
+      { to: "/indicadores", label: "Indicadores" }
+    ]
+  },
+  {
+    titulo: "Governanca de Compras",
+    itens: [
+      { to: "/administracao/regras-workflow", label: "Regras de Workflow", permissao: PERMISSOES.workflowGerenciar },
+      { to: "/administracao/alcadas-aprovacao", label: "Alcadas de Aprovacao", permissao: PERMISSOES.alcadaGerenciar },
+      { to: "/administracao/regras-orcamentarias", label: "Regras Orcamentarias", permissao: PERMISSOES.orcamentoGerenciar }
+    ]
+  },
+  {
+    titulo: "Administracao",
+    itens: [
+      { to: "/administracao/perfis", label: "Perfis", permissao: PERMISSOES.perfilGerenciar },
+      { to: "/administracao/usuarios", label: "Usuarios", permissao: PERMISSOES.usuarioGerenciar },
+      { to: "/administracao/filiais", label: "Filiais", permissao: PERMISSOES.filialGerenciar },
+      { to: "/administracao/centros-custo", label: "Centros de Custo", permissao: PERMISSOES.centroCustoGerenciar },
+      { to: "/administracao/unidades-alocacao", label: "Unidades de Alocacao", permissao: PERMISSOES.unidadeAlocacaoGerenciar },
+      { to: "/administracao/unidades-negocio", label: "Unidades de Negocio", permissao: PERMISSOES.unidadeNegocioGerenciar },
+      { to: "/administracao/configuracao-erp", label: "Configuracao de ERP", permissao: PERMISSOES.configuracaoErpGerenciar },
+      { to: "/administracao/identity-providers", label: "Identity Providers", permissao: PERMISSOES.sistemaGerenciar },
+      { to: "/administracao/parametros", label: "Parametros", permissao: PERMISSOES.sistemaGerenciar },
+      { to: "/administracao/feature-flags", label: "Feature Flags", permissao: PERMISSOES.sistemaGerenciar },
+      { to: "/administracao/configuracao-notificacao", label: "Configuracao de Notificacoes", permissao: PERMISSOES.sistemaGerenciar },
+      { to: "/administracao/monitoramento", label: "Monitoramento", permissao: PERMISSOES.sistemaGerenciar }
+    ]
+  },
+  {
+    titulo: "Agentes IA",
+    itens: [{ to: "/agentes-ia", label: "Agentes IA" }]
+  },
+  {
+    titulo: "Configuracoes",
+    itens: [{ to: "/configuracoes", label: "Configuracoes" }]
+  }
 ];
 
 /**
@@ -69,21 +107,30 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
       <div className="app-body">
         <nav className="app-sidebar" aria-label="Navegacao do portal +Compras">
-          <ul>
-            {navItems
-              .filter((item) => !item.permissao || permissoesEfetivas.includes(item.permissao.toLowerCase()))
-              .map((item) => (
-              <li key={item.to}>
-                <NavLink
-                  to={item.to}
-                  end={item.end}
-                  className={({ isActive }) => `app-nav-link${isActive ? " app-nav-link-active" : ""}`}
-                >
-                  {item.label}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
+          {navGroups.map((grupo) => {
+            const itensVisiveis = grupo.itens.filter(
+              (item) => !item.permissao || permissoesEfetivas.includes(item.permissao.toLowerCase())
+            );
+            if (itensVisiveis.length === 0) return null;
+            return (
+              <div className="app-nav-group" key={grupo.titulo}>
+                <div className="app-nav-section section-title">{grupo.titulo}</div>
+                <ul>
+                  {itensVisiveis.map((item) => (
+                    <li key={item.to}>
+                      <NavLink
+                        to={item.to}
+                        end={item.end}
+                        className={({ isActive }) => `app-nav-link${isActive ? " app-nav-link-active" : ""}`}
+                      >
+                        {item.label}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
         </nav>
         <main className="app-content">{children}</main>
       </div>

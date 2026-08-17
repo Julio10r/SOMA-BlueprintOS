@@ -96,6 +96,7 @@ export function SincronizacaoDetalhesPage() {
             {detalhe.erros.length === 0 ? (
               <div className="empty-state">Nenhum erro registrado nesta execucao.</div>
             ) : (
+              <div className="table-scroll">
               <table className="divergence-table">
                 <thead>
                   <tr>
@@ -114,6 +115,7 @@ export function SincronizacaoDetalhesPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </section>
         </>

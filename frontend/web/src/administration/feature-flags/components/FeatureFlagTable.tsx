@@ -11,6 +11,7 @@ export function FeatureFlagTable({ flags, unidadesNegocio, onAlterarStatus }: {
   }
 
   return (
+    <div className="table-scroll">
     <table className="divergence-table">
       <thead>
         <tr>
@@ -45,5 +46,6 @@ export function FeatureFlagTable({ flags, unidadesNegocio, onAlterarStatus }: {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

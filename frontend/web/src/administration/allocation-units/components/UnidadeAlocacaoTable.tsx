@@ -14,6 +14,7 @@ export function UnidadeAlocacaoTable({ unidadesAlocacao, onVisualizar, onEditar,
 }) {
   if (unidadesAlocacao.length === 0) return <div className="empty-state">Nenhuma unidade de alocacao encontrada.</div>;
   return (
+    <div className="table-scroll">
     <table className="divergence-table">
       <thead>
         <tr>
@@ -46,5 +47,6 @@ export function UnidadeAlocacaoTable({ unidadesAlocacao, onVisualizar, onEditar,
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

@@ -17,6 +17,7 @@ export function PerfilTable({ perfis, onVisualizar, onEditar, onAlternarStatus }
 }) {
   if (perfis.length === 0) return <div className="empty-state">Nenhum perfil cadastrado.</div>;
   return (
+    <div className="table-scroll">
     <table className="divergence-table">
       <thead>
         <tr>
@@ -53,5 +54,6 @@ export function PerfilTable({ perfis, onVisualizar, onEditar, onAlternarStatus }
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

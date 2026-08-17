@@ -11,6 +11,7 @@ export function RegraWorkflowTable({ regras, onEditar, onToggleStatus }: {
   }
 
   return (
+    <div className="table-scroll">
     <table className="divergence-table">
       <thead>
         <tr>
@@ -42,5 +43,6 @@ export function RegraWorkflowTable({ regras, onEditar, onToggleStatus }: {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

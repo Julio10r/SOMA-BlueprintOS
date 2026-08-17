@@ -70,6 +70,7 @@ export function AuditoriaFornecedorPage() {
         )}
 
         {!error && historico.length > 0 && (
+          <div className="table-scroll">
           <table className="divergence-table">
             <thead>
               <tr>
@@ -96,6 +97,7 @@ export function AuditoriaFornecedorPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </section>
     </div>

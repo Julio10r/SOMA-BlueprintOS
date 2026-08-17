@@ -42,6 +42,7 @@ export function PedidosPage() {
           </div>
           <span className="badge">{pedidosMock.length} pedidos</span>
         </div>
+        <div className="table-scroll">
         <table className="divergence-table">
           <thead>
             <tr><th>Pedido</th><th>Fornecedor</th><th>Categoria</th><th>Valor</th><th>Status</th><th>Atualizado em</th></tr>
@@ -59,6 +60,7 @@ export function PedidosPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </section>
     </div>
   );

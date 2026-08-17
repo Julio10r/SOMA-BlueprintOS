@@ -12,6 +12,7 @@ export function AlcadaAprovacaoTable({ alcadas, onEditar, onToggleStatus }: {
   }
 
   return (
+    <div className="table-scroll">
     <table className="divergence-table">
       <thead>
         <tr>
@@ -45,5 +46,6 @@ export function AlcadaAprovacaoTable({ alcadas, onEditar, onToggleStatus }: {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

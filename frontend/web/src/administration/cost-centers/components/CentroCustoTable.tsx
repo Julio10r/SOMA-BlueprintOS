@@ -18,6 +18,7 @@ export function CentroCustoTable({ centrosCusto, onVisualizar, onEditar, onToggl
 }) {
   if (centrosCusto.length === 0) return <div className="empty-state">Nenhum centro de custo encontrado.</div>;
   return (
+    <div className="table-scroll">
     <table className="divergence-table">
       <thead>
         <tr>
@@ -58,5 +59,6 @@ export function CentroCustoTable({ centrosCusto, onVisualizar, onEditar, onToggl
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
