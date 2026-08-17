@@ -3,11 +3,14 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/hooks/useAuth";
 import { PERMISSOES } from "../auth/types/authTypes";
 import { UserMenu } from "./components/UserMenu";
+import { NavIcon, type NavIconKey } from "./components/NavIcons";
 
 type NavItem = {
   to: string;
   label: string;
   end?: boolean;
+  /** Icone semantico do item (Redesign Fase 1 — Shell/DS, sidebar "afirmativa"). */
+  icon: NavIconKey;
   /**
    * Quando presente, o item so aparece se o usuario possuir a permissao efetiva
    * correspondente (O1.5). Isto e exclusivamente UX: a rota e, principalmente, a API
@@ -32,54 +35,108 @@ type NavGroup = {
 const navGroups: NavGroup[] = [
   {
     titulo: "Inicio",
-    itens: [{ to: "/", label: "Dashboard", end: true }]
+    itens: [{ to: "/", label: "Dashboard", end: true, icon: "dashboard" }]
   },
   {
     titulo: "Fornecedores",
-    itens: [{ to: "/fornecedores", label: "Fornecedores" }]
+    itens: [{ to: "/fornecedores", label: "Fornecedores", icon: "building" }]
   },
   {
     titulo: "Compras",
     itens: [
-      { to: "/pedidos", label: "Pedidos" },
-      { to: "/negociacoes", label: "Negociacoes" },
-      { to: "/indicadores", label: "Indicadores" }
+      { to: "/pedidos", label: "Pedidos", icon: "cart" },
+      { to: "/negociacoes", label: "Negociacoes", icon: "chat" },
+      { to: "/indicadores", label: "Indicadores", icon: "chart" }
     ]
   },
   {
     titulo: "Governanca de Compras",
     itens: [
-      { to: "/administracao/regras-workflow", label: "Regras de Workflow", permissao: PERMISSOES.workflowGerenciar },
-      { to: "/administracao/alcadas-aprovacao", label: "Alcadas de Aprovacao", permissao: PERMISSOES.alcadaGerenciar },
-      { to: "/administracao/regras-orcamentarias", label: "Regras Orcamentarias", permissao: PERMISSOES.orcamentoGerenciar }
+      {
+        to: "/administracao/regras-workflow",
+        label: "Regras de Workflow",
+        icon: "workflow",
+        permissao: PERMISSOES.workflowGerenciar
+      },
+      {
+        to: "/administracao/alcadas-aprovacao",
+        label: "Alcadas de Aprovacao",
+        icon: "shield",
+        permissao: PERMISSOES.alcadaGerenciar
+      },
+      {
+        to: "/administracao/regras-orcamentarias",
+        label: "Regras Orcamentarias",
+        icon: "wallet",
+        permissao: PERMISSOES.orcamentoGerenciar
+      }
     ]
   },
   {
     titulo: "Administracao",
     itens: [
-      { to: "/administracao/perfis", label: "Perfis", permissao: PERMISSOES.perfilGerenciar },
-      { to: "/administracao/usuarios", label: "Usuarios", permissao: PERMISSOES.usuarioGerenciar },
-      { to: "/administracao/filiais", label: "Filiais", permissao: PERMISSOES.filialGerenciar },
-      { to: "/administracao/centros-custo", label: "Centros de Custo", permissao: PERMISSOES.centroCustoGerenciar },
-      { to: "/administracao/unidades-alocacao", label: "Unidades de Alocacao", permissao: PERMISSOES.unidadeAlocacaoGerenciar },
-      { to: "/administracao/unidades-negocio", label: "Unidades de Negocio", permissao: PERMISSOES.unidadeNegocioGerenciar },
-      { to: "/administracao/configuracao-erp", label: "Configuracao de ERP", permissao: PERMISSOES.configuracaoErpGerenciar },
-      { to: "/administracao/identity-providers", label: "Identity Providers", permissao: PERMISSOES.sistemaGerenciar },
-      { to: "/administracao/parametros", label: "Parametros", permissao: PERMISSOES.sistemaGerenciar },
-      { to: "/administracao/feature-flags", label: "Feature Flags", permissao: PERMISSOES.sistemaGerenciar },
-      { to: "/administracao/configuracao-notificacao", label: "Configuracao de Notificacoes", permissao: PERMISSOES.sistemaGerenciar },
-      { to: "/administracao/monitoramento", label: "Monitoramento", permissao: PERMISSOES.sistemaGerenciar }
+      { to: "/administracao/perfis", label: "Perfis", icon: "users", permissao: PERMISSOES.perfilGerenciar },
+      { to: "/administracao/usuarios", label: "Usuarios", icon: "user", permissao: PERMISSOES.usuarioGerenciar },
+      { to: "/administracao/filiais", label: "Filiais", icon: "mapPin", permissao: PERMISSOES.filialGerenciar },
+      {
+        to: "/administracao/centros-custo",
+        label: "Centros de Custo",
+        icon: "tag",
+        permissao: PERMISSOES.centroCustoGerenciar
+      },
+      {
+        to: "/administracao/unidades-alocacao",
+        label: "Unidades de Alocacao",
+        icon: "layers",
+        permissao: PERMISSOES.unidadeAlocacaoGerenciar
+      },
+      {
+        to: "/administracao/unidades-negocio",
+        label: "Unidades de Negocio",
+        icon: "briefcase",
+        permissao: PERMISSOES.unidadeNegocioGerenciar
+      },
+      {
+        to: "/administracao/configuracao-erp",
+        label: "Configuracao de ERP",
+        icon: "server",
+        permissao: PERMISSOES.configuracaoErpGerenciar
+      },
+      {
+        to: "/administracao/identity-providers",
+        label: "Identity Providers",
+        icon: "key",
+        permissao: PERMISSOES.sistemaGerenciar
+      },
+      { to: "/administracao/parametros", label: "Parametros", icon: "sliders", permissao: PERMISSOES.sistemaGerenciar },
+      {
+        to: "/administracao/feature-flags",
+        label: "Feature Flags",
+        icon: "flag",
+        permissao: PERMISSOES.sistemaGerenciar
+      },
+      {
+        to: "/administracao/configuracao-notificacao",
+        label: "Configuracao de Notificacoes",
+        icon: "bell",
+        permissao: PERMISSOES.sistemaGerenciar
+      },
+      {
+        to: "/administracao/monitoramento",
+        label: "Monitoramento",
+        icon: "activity",
+        permissao: PERMISSOES.sistemaGerenciar
+      }
     ]
   },
   {
     titulo: "Agentes IA",
-    itens: [{ to: "/agentes-ia", label: "Agentes IA" }]
-  },
-  {
-    titulo: "Configuracoes",
-    itens: [{ to: "/configuracoes", label: "Configuracoes" }]
+    itens: [{ to: "/agentes-ia", label: "Agentes IA", icon: "cpu" }]
   }
 ];
+
+/** Item de rodape, tratado separadamente do restante da navegacao (ver AppShell). */
+const itemConfiguracoes: NavItem = { to: "/configuracoes", label: "Configuracoes", icon: "settings" };
 
 /**
  * Shell visual do Portal +Compras: header com identidade AZZAS 2154 e
@@ -105,30 +162,46 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
       <div className="app-body">
         <nav className="app-sidebar" aria-label="Navegacao do portal +Compras">
-          {navGroups.map((grupo) => {
-            const itensVisiveis = grupo.itens.filter(
-              (item) => !item.permissao || permissoesEfetivas.includes(item.permissao.toLowerCase())
-            );
-            if (itensVisiveis.length === 0) return null;
-            return (
-              <div className="app-nav-group" key={grupo.titulo}>
-                <div className="app-nav-section section-title">{grupo.titulo}</div>
-                <ul>
-                  {itensVisiveis.map((item) => (
-                    <li key={item.to}>
-                      <NavLink
-                        to={item.to}
-                        end={item.end}
-                        className={({ isActive }) => `app-nav-link${isActive ? " app-nav-link-active" : ""}`}
-                      >
-                        {item.label}
-                      </NavLink>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
+          <div className="app-nav-scroll">
+            {navGroups.map((grupo) => {
+              const itensVisiveis = grupo.itens.filter(
+                (item) => !item.permissao || permissoesEfetivas.includes(item.permissao.toLowerCase())
+              );
+              if (itensVisiveis.length === 0) return null;
+              return (
+                <div className="app-nav-group" key={grupo.titulo}>
+                  <div className="app-nav-section section-title">{grupo.titulo}</div>
+                  <ul>
+                    {itensVisiveis.map((item) => (
+                      <li key={item.to}>
+                        <NavLink
+                          to={item.to}
+                          end={item.end}
+                          className={({ isActive }) => `app-nav-link${isActive ? " app-nav-link-active" : ""}`}
+                        >
+                          <span className="app-nav-left">
+                            <NavIcon name={item.icon} />
+                            {item.label}
+                          </span>
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+          <div className="app-nav-footer">
+            <NavLink
+              to={itemConfiguracoes.to}
+              className={({ isActive }) => `app-nav-link${isActive ? " app-nav-link-active" : ""}`}
+            >
+              <span className="app-nav-left">
+                <NavIcon name={itemConfiguracoes.icon} />
+                {itemConfiguracoes.label}
+              </span>
+            </NavLink>
+          </div>
         </nav>
         <main className="app-content">{children}</main>
       </div>
