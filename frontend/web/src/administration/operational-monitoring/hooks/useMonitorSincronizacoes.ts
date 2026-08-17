@@ -25,7 +25,7 @@ export function useMonitorSincronizacoes() {
       setItens(resultado.itens);
       setTotalRegistros(resultado.totalRegistros);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao carregar as execucoes de sincronizacao.");
+      setError(err instanceof Error ? err.message : "Falha ao carregar as execuções de sincronização.");
       setItens([]);
       setTotalRegistros(0);
     } finally {

@@ -8,8 +8,8 @@ type NegociacaoMock = {
 
 const negociacoesMock: NegociacaoMock[] = [
   { id: "NEG-2026-014", fornecedor: "Textil Ipiranga LTDA", objetivo: "Renegociar prazo de pagamento", economiaEstimada: "R$ 8.200,00", fase: "Proposta enviada" },
-  { id: "NEG-2026-013", fornecedor: "Malharia Boa Vista", objetivo: "Reducao de preco por volume", economiaEstimada: "R$ 15.600,00", fase: "Em analise" },
-  { id: "NEG-2026-012", fornecedor: "Embalagens Fenix", objetivo: "Revisao de contrato anual", economiaEstimada: "R$ 3.400,00", fase: "Aguardando fornecedor" }
+  { id: "NEG-2026-013", fornecedor: "Malharia Boa Vista", objetivo: "Redução de preço por volume", economiaEstimada: "R$ 15.600,00", fase: "Em análise" },
+  { id: "NEG-2026-012", fornecedor: "Embalagens Fenix", objetivo: "Revisão de contrato anual", economiaEstimada: "R$ 3.400,00", fase: "Aguardando fornecedor" }
 ];
 
 /**
@@ -21,12 +21,12 @@ export function NegociacoesPage() {
     <div className="page-stack">
       <header className="page-header">
         <div className="section-title">+Compras</div>
-        <h1>Negociacoes</h1>
-        <p>Recomendacoes e acompanhamento de negociacoes com fornecedores.</p>
+        <h1>Negociações</h1>
+        <p>Recomendações e acompanhamento de negociações com fornecedores.</p>
       </header>
 
       <div className="notice notice-warn">
-        <strong>Em desenvolvimento:</strong> conteudo de demonstracao. A integracao com o motor de recomendacao de negociacoes esta em construcao.
+        <strong>Em desenvolvimento:</strong> conteúdo de demonstração. A integração com o motor de recomendação de negociações está em construção.
       </div>
 
       <div className="supplier-card-list">

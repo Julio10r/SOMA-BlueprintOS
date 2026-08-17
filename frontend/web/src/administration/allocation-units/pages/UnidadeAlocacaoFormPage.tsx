@@ -21,7 +21,7 @@ export function UnidadeAlocacaoFormPage() {
     setLoadingUnidadeAlocacao(true);
     getUnidadeAlocacao(id).then((found) => {
       if (!found) {
-        setError("Unidade de alocacao nao encontrada.");
+        setError("Unidade de alocação não encontrada.");
         return;
       }
       setUnidadeAlocacao(found);
@@ -39,7 +39,7 @@ export function UnidadeAlocacaoFormPage() {
       }
       navigate("..", { relative: "path" });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao salvar unidade de alocacao.");
+      setError(err instanceof Error ? err.message : "Falha ao salvar unidade de alocação.");
     } finally {
       setSaving(false);
     }
@@ -48,13 +48,13 @@ export function UnidadeAlocacaoFormPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>{id ? "Editar unidade de alocacao" : "Nova unidade de alocacao"}</h1>
-        <p>Unidades de Alocacao pertencem exclusivamente ao +Compras e nao sao integradas do ERP.</p>
+        <div className="section-title">Administração</div>
+        <h1>{id ? "Editar unidade de alocação" : "Nova unidade de alocação"}</h1>
+        <p>Unidades de Alocação pertencem exclusivamente ao +Compras e não são integradas do ERP.</p>
       </header>
 
       {loadingUnidadeAlocacao ? (
-        <div className="empty-state">Carregando unidade de alocacao...</div>
+        <div className="empty-state">Carregando unidade de alocação...</div>
       ) : (
         <UnidadeAlocacaoForm
           unidadeAlocacao={unidadeAlocacao ?? undefined}

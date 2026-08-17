@@ -27,12 +27,12 @@ export function UnidadeAlocacaoForm({ unidadeAlocacao, error, loading, onSubmit,
   return (
     <form className="card form-card" onSubmit={handleSubmit}>
       <div className="card-heading">
-        <h2>{unidadeAlocacao ? "Editar unidade de alocacao" : "Nova unidade de alocacao"}</h2>
+        <h2>{unidadeAlocacao ? "Editar unidade de alocação" : "Nova unidade de alocação"}</h2>
       </div>
 
       <div className="notice notice-warn">
-        Unidades de Alocacao pertencem exclusivamente ao +Compras e podem ser usadas por diversos Centros de Custo
-        para orcamento, gestao, relatorios, consolidacao e classificacao operacional.
+        Unidades de Alocação pertencem exclusivamente ao +Compras e podem ser usadas por diversos Centros de Custo
+        para orçamento, gestão, relatórios, consolidação e classificação operacional.
       </div>
 
       {error && <div className="notice notice-crit">{error}</div>}
@@ -43,7 +43,7 @@ export function UnidadeAlocacaoForm({ unidadeAlocacao, error, loading, onSubmit,
       </label>
 
       <label>
-        Descricao
+        Descrição
         <input value={descricao} onChange={(event) => setDescricao(event.target.value)} required disabled={loading} />
       </label>
 

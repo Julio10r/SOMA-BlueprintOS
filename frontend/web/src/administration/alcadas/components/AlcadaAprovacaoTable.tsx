@@ -8,7 +8,7 @@ export function AlcadaAprovacaoTable({ alcadas, onEditar, onToggleStatus }: {
   onToggleStatus: (alcada: AlcadaAprovacao) => void;
 }) {
   if (alcadas.length === 0) {
-    return <div className="empty-state">Nenhuma Alcada de Aprovacao cadastrada para esta Unidade de Negocio.</div>;
+    return <div className="empty-state">Nenhuma Alçada de Aprovação cadastrada para esta Unidade de Negócio.</div>;
   }
 
   return (
@@ -30,7 +30,7 @@ export function AlcadaAprovacaoTable({ alcadas, onEditar, onToggleStatus }: {
             <td>{alcada.nome}</td>
             <td>{CRITERIO_ALCADA_LABELS[alcada.criterio]}</td>
             <td>{alcada.nivel}</td>
-            <td>{alcada.aprovadorUsuarioId ? "Usuario" : "Perfil"}</td>
+            <td>{alcada.aprovadorUsuarioId ? "Usuário" : "Perfil"}</td>
             <td><StatusBadge value={alcada.status} tone="situacao" /></td>
             <td>
               <div className="actions">

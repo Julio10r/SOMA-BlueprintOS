@@ -22,11 +22,11 @@ export function CentroCustoTable({ centrosCusto, onVisualizar, onEditar, onToggl
     <table className="divergence-table">
       <thead>
         <tr>
-          <th>Codigo</th>
-          <th>Descricao ERP</th>
-          <th>Descricao +Compras</th>
+          <th>Código</th>
+          <th>Descrição ERP</th>
+          <th>Descrição +Compras</th>
           <th>Unidade de Negocio</th>
-          <th>Unidade de Alocacao padrao</th>
+          <th>Unidade de Alocação padrão</th>
           <th>Status</th>
           <th>Acoes</th>
         </tr>
@@ -36,10 +36,10 @@ export function CentroCustoTable({ centrosCusto, onVisualizar, onEditar, onToggl
           <tr key={centroCusto.id}>
             <td className="mono">{centroCusto.codigoErp}</td>
             <td>{centroCusto.descricaoErp}</td>
-            <td>{centroCusto.descricaoMaisCompras || <span className="empty-state">Sem descricao +Compras</span>}</td>
+            <td>{centroCusto.descricaoMaisCompras || <span className="empty-state">Sem descrição +Compras</span>}</td>
             <td>{centroCusto.unidadeNegocioId}</td>
             <td>
-              {centroCusto.unidadeAlocacaoPadraoNome || <span className="empty-state">Sem unidade padrao</span>}
+              {centroCusto.unidadeAlocacaoPadraoNome || <span className="empty-state">Sem unidade padrão</span>}
             </td>
             <td><StatusBadge value={statusCentroCusto(centroCusto)} tone="situacao" /></td>
             <td>

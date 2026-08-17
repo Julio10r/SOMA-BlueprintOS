@@ -3,9 +3,9 @@ type BarMock = { label: string; percent: number };
 
 const kpisMock: KpiMock[] = [
   { label: "Economia acumulada (ano)", value: "R$ 482.900,00", trend: "+12% vs. ano anterior" },
-  { label: "Tempo medio de cotacao", value: "4,2 dias", trend: "-0,8 dia vs. mes anterior" },
+  { label: "Tempo médio de cotação", value: "4,2 dias", trend: "-0,8 dia vs. mês anterior" },
   { label: "Fornecedores ativos", value: "186", trend: "+9 no trimestre" },
-  { label: "SLA de aprovacao", value: "92%", trend: "+3pp vs. meta" }
+  { label: "SLA de aprovação", value: "92%", trend: "+3pp vs. meta" }
 ];
 
 const categoriasMock: BarMock[] = [
@@ -25,11 +25,11 @@ export function IndicadoresPage() {
       <header className="page-header">
         <div className="section-title">+Compras</div>
         <h1>Indicadores</h1>
-        <p>Visao consolidada de desempenho de compras.</p>
+        <p>Visão consolidada de desempenho de compras.</p>
       </header>
 
       <div className="notice notice-warn">
-        <strong>Em desenvolvimento:</strong> indicadores ilustrativos. Os valores nao refletem dados reais ate a integracao do dominio.
+        <strong>Em desenvolvimento:</strong> indicadores ilustrativos. Os valores não refletem dados reais até a integração do domínio.
       </div>
 
       <section className="kpi-grid">
@@ -46,7 +46,7 @@ export function IndicadoresPage() {
         <div className="card-heading">
           <div>
             <div className="section-title">Volume</div>
-            <h2>Participacao por categoria</h2>
+            <h2>Participação por categoria</h2>
           </div>
         </div>
         <div className="bar-chart">

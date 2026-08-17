@@ -14,7 +14,7 @@ export function IdentityProviderTable({ providers, onEditar, onToggleStatus }: {
         <tr>
           <th>Tipo</th>
           <th>Dominios autorizados</th>
-          <th>Configuracao</th>
+          <th>Configuração</th>
           <th>Status</th>
           <th>Acoes</th>
         </tr>
@@ -24,7 +24,7 @@ export function IdentityProviderTable({ providers, onEditar, onToggleStatus }: {
           <tr key={provider.id}>
             <td>{provider.tipo}</td>
             <td>{provider.dominiosAutorizados.join(", ")}</td>
-            <td>{provider.parametrosConfigurados ? "Ja configurado" : "Nao configurado"}</td>
+            <td>{provider.parametrosConfigurados ? "Já configurado" : "Não configurado"}</td>
             <td><StatusBadge value={provider.status} tone="situacao" /></td>
             <td>
               <div className="actions">

@@ -90,12 +90,12 @@ function renderRegrasWorkflow() {
 }
 
 async function selecionarUnidadeNegocio() {
-  const seletor = await screen.findByLabelText("Unidade de Negocio");
+  const seletor = await screen.findByLabelText("Unidade de Negócio");
   await userEvent.selectOptions(seletor, UN_ID);
 }
 
 describe("RegrasWorkflowPage", () => {
-  it("lista as Regras de Workflow da Unidade de Negocio selecionada", async () => {
+  it("lista as Regras de Workflow da Unidade de Negócio selecionada", async () => {
     renderRegrasWorkflow();
     await selecionarUnidadeNegocio();
     expect(await screen.findByText("Aprovacao de Pedido")).toBeInTheDocument();

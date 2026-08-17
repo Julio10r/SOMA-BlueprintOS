@@ -33,7 +33,7 @@ export class RegraOrcamentariaApiError extends Error {
 }
 
 export class RegraOrcamentariaAcessoNegadoError extends RegraOrcamentariaApiError {
-  constructor(message = "Voce nao tem permissao para acessar as Regras Orcamentarias.") {
+  constructor(message = "Você não tem permissão para acessar as Regras Orçamentárias.") {
     super(message, "acesso_negado");
     this.name = "RegraOrcamentariaAcessoNegadoError";
   }
@@ -77,7 +77,7 @@ function paraRegraOrcamentaria(dto: RegraOrcamentariaApiDto): RegraOrcamentaria 
 
 export async function listRegrasOrcamentarias(unidadeNegocioId: string): Promise<RegraOrcamentaria[]> {
   const response = await fetch(`${BASE}/${encodeURIComponent(unidadeNegocioId)}/regras-orcamentarias`, { credentials: "include" });
-  if (!response.ok) await lerErro(response, "Falha ao carregar Regras Orcamentarias.");
+  if (!response.ok) await lerErro(response, "Falha ao carregar Regras Orçamentárias.");
   const data = (await response.json()) as RegraOrcamentariaApiDto[];
   return data.map(paraRegraOrcamentaria);
 }
@@ -94,7 +94,7 @@ export async function createRegraOrcamentaria(unidadeNegocioId: string, input: R
       periodo: input.periodo
     })
   });
-  if (!response.ok) await lerErro(response, "Falha ao criar Regra Orcamentaria.");
+  if (!response.ok) await lerErro(response, "Falha ao criar Regra Orçamentária.");
   return paraRegraOrcamentaria((await response.json()) as RegraOrcamentariaApiDto);
 }
 
@@ -110,7 +110,7 @@ export async function updateRegraOrcamentaria(unidadeNegocioId: string, id: stri
       periodo: input.periodo
     })
   });
-  if (!response.ok) await lerErro(response, "Falha ao salvar Regra Orcamentaria.");
+  if (!response.ok) await lerErro(response, "Falha ao salvar Regra Orçamentária.");
   return paraRegraOrcamentaria((await response.json()) as RegraOrcamentariaApiDto);
 }
 
@@ -122,6 +122,6 @@ export async function toggleStatusRegraOrcamentaria(unidadeNegocioId: string, re
     headers: { "Content-Type": "application/json", [CSRF_HEADER]: "1" },
     body: JSON.stringify({ ativo: proximoAtivo })
   });
-  if (!response.ok) await lerErro(response, "Falha ao alterar o status da Regra Orcamentaria.");
+  if (!response.ok) await lerErro(response, "Falha ao alterar o status da Regra Orçamentária.");
   return paraRegraOrcamentaria((await response.json()) as RegraOrcamentariaApiDto);
 }

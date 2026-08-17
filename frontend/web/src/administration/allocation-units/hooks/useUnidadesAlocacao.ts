@@ -13,7 +13,7 @@ export function useUnidadesAlocacao() {
     try {
       setUnidadesAlocacao(await listUnidadesAlocacao());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao carregar unidades de alocacao.");
+      setError(err instanceof Error ? err.message : "Falha ao carregar unidades de alocação.");
     } finally {
       setLoading(false);
     }

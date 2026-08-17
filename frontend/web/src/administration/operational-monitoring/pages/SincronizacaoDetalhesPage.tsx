@@ -40,9 +40,9 @@ export function SincronizacaoDetalhesPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>Detalhe da Execucao de Sincronizacao</h1>
-        <Link to="/administracao/monitoramento">Voltar para o Monitor de Integracoes</Link>
+        <div className="section-title">Administração</div>
+        <h1>Detalhe da Execução de Sincronização</h1>
+        <Link to="/administracao/monitoramento">Voltar para o Monitor de Integrações</Link>
       </header>
 
       {error && <div className="notice notice-crit">{error}</div>}
@@ -66,7 +66,7 @@ export function SincronizacaoDetalhesPage() {
                 <strong><StatusExecucaoBadge status={detalhe.status} /></strong>
               </div>
               <div className="field-readonly">
-                <span>Duracao (ms)</span>
+                <span>Duração (ms)</span>
                 <strong>{detalhe.tempoExecucaoMs}</strong>
               </div>
               <div className="field-readonly">
@@ -78,7 +78,7 @@ export function SincronizacaoDetalhesPage() {
                 <strong>{formatarData(detalhe.dataFim)}</strong>
               </div>
               <div className="field-readonly">
-                <span>Consultados / Incluidos / Atualizados / Sem Alteracao</span>
+                <span>Consultados / Incluídos / Atualizados / Sem Alteração</span>
                 <strong>{detalhe.totalConsultado} / {detalhe.totalIncluido} / {detalhe.totalAtualizado} / {detalhe.totalSemAlteracao}</strong>
               </div>
               <div className="field-readonly">

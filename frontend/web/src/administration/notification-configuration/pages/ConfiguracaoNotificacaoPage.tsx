@@ -19,7 +19,7 @@ export function ConfiguracaoNotificacaoPage() {
       await salvarConfiguracaoNotificacao(unidadeNegocioId, input);
       await reload();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Falha ao salvar Configuracao de Notificacoes.");
+      setFormError(err instanceof Error ? err.message : "Falha ao salvar Configuração de Notificações.");
     } finally {
       setSaving(false);
     }
@@ -28,9 +28,9 @@ export function ConfiguracaoNotificacaoPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>Configuracao de Notificacoes</h1>
-        <p>Registro de configuracao do canal de e-mail por Unidade de Negocio. Sem envio real de e-mail nesta sprint.</p>
+        <div className="section-title">Administração</div>
+        <h1>Configuração de Notificações</h1>
+        <p>Registro de configuração do canal de e-mail por Unidade de Negócio. Sem envio real de e-mail nesta sprint.</p>
       </header>
 
       <section className="card">
@@ -42,9 +42,9 @@ export function ConfiguracaoNotificacaoPage() {
           {error && <div className="notice notice-crit">{error}</div>}
 
           {loading ? (
-            <div className="empty-state">Carregando Configuracao de Notificacoes...</div>
+            <div className="empty-state">Carregando Configuração de Notificações...</div>
           ) : !configuracao ? (
-            <div className="empty-state">Nenhuma Configuracao de Notificacoes cadastrada para esta Unidade de Negocio.</div>
+            <div className="empty-state">Nenhuma Configuração de Notificações cadastrada para esta Unidade de Negócio.</div>
           ) : null}
 
           {!loading && (

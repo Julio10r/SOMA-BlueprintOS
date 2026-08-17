@@ -26,14 +26,14 @@ describe("IdentityProviderForm", () => {
       <IdentityProviderForm provider={provider} error={null} loading={false} onSubmit={vi.fn()} onCancel={vi.fn()} />
     );
 
-    const campoParametros = screen.getByLabelText(/Parametros de configuracao/i) as HTMLInputElement;
+    const campoParametros = screen.getByLabelText(/Parâmetros de configuração/i) as HTMLInputElement;
     expect(campoParametros.value).toBe("");
     expect(campoParametros.type).toBe("password");
-    expect(screen.getByText("Ja configurado")).toBeInTheDocument();
+    expect(screen.getByText("Já configurado")).toBeInTheDocument();
   });
 
-  it("nao exibe indicador 'Ja configurado' para um provider novo", () => {
+  it("nao exibe indicador 'Já configurado' para um provider novo", () => {
     render(<IdentityProviderForm error={null} loading={false} onSubmit={vi.fn()} onCancel={vi.fn()} />);
-    expect(screen.queryByText("Ja configurado")).not.toBeInTheDocument();
+    expect(screen.queryByText("Já configurado")).not.toBeInTheDocument();
   });
 });

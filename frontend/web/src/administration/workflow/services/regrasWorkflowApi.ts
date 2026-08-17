@@ -32,7 +32,7 @@ export class RegraWorkflowApiError extends Error {
 }
 
 export class RegraWorkflowAcessoNegadoError extends RegraWorkflowApiError {
-  constructor(message = "Voce nao tem permissao para acessar as Regras de Workflow.") {
+  constructor(message = "Você não tem permissão para acessar as Regras de Workflow.") {
     super(message, "acesso_negado");
     this.name = "RegraWorkflowAcessoNegadoError";
   }

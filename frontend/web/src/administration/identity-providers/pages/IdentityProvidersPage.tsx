@@ -39,9 +39,9 @@ export function IdentityProvidersPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
+        <div className="section-title">Administração</div>
         <h1>Identity Providers</h1>
-        <p>Configuracao de Identity Providers por Unidade de Negocio. Segredos nunca sao exibidos apos salvos.</p>
+        <p>Configuração de Identity Providers por Unidade de Negócio. Segredos nunca são exibidos após salvos.</p>
       </header>
 
       <section className="card">

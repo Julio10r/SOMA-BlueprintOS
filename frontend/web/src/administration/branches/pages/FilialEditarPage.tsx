@@ -22,7 +22,7 @@ export function FilialEditarPage() {
     setLoadingFilial(true);
     getFilial(id).then((found) => {
       if (!found) {
-        setError("Filial nao encontrada.");
+        setError("Filial não encontrada.");
         return;
       }
       setFilial(found);
@@ -47,7 +47,7 @@ export function FilialEditarPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
+        <div className="section-title">Administração</div>
         <h1>Editar filial</h1>
         <p>Apenas os metadados locais do +Compras podem ser alterados aqui.</p>
       </header>

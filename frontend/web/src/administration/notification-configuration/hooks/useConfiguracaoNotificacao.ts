@@ -18,7 +18,7 @@ export function useConfiguracaoNotificacao(unidadeNegocioId: string | null) {
     try {
       setConfiguracao(await getConfiguracaoNotificacao(unidadeNegocioId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao carregar Configuracao de Notificacoes.");
+      setError(err instanceof Error ? err.message : "Falha ao carregar Configuração de Notificações.");
     } finally {
       setLoading(false);
     }

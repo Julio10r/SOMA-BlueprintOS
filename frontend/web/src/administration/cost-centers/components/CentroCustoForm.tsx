@@ -69,7 +69,7 @@ export function CentroCustoForm({
         </div>
 
         <div className="notice notice-warn">
-          Os dados de origem do ERP sao somente leitura. Alteracoes realizadas no +Compras nao modificam o ERP.
+          Os dados de origem do ERP são somente leitura. Alterações realizadas no +Compras não modificam o ERP.
         </div>
 
         {error && <div className="notice notice-crit">{error}</div>}
@@ -78,11 +78,11 @@ export function CentroCustoForm({
           <div className="section-title">Dados do ERP (somente leitura)</div>
           <div className="data-grid">
             <div className="field-readonly">
-              <span>Codigo Centro de Custo</span>
+              <span>Código Centro de Custo</span>
               <strong>{centroCusto.codigoErp}</strong>
             </div>
             <div className="field-readonly">
-              <span>Descricao ERP</span>
+              <span>Descrição ERP</span>
               <strong>{centroCusto.descricaoErp}</strong>
             </div>
             <div className="field-readonly">
@@ -93,14 +93,14 @@ export function CentroCustoForm({
         </div>
 
         <div className="data-block">
-          <div className="section-title">Dados +Compras (editaveis)</div>
+          <div className="section-title">Dados +Compras (editáveis)</div>
 
           <label>
-            Descricao +Compras
+            Descrição +Compras
             <input
               value={descricaoMaisCompras}
               onChange={(event) => setDescricaoMaisCompras(event.target.value)}
-              placeholder="Opcional - nao substitui a Descricao ERP"
+              placeholder="Opcional - não substitui a Descrição ERP"
               disabled={loading}
             />
           </label>
@@ -113,7 +113,7 @@ export function CentroCustoForm({
               disabled={loading}
             />
             <strong>Ativo no +Compras</strong>
-            <span>Controla apenas o uso deste centro de custo no +Compras; nao altera o cadastro no ERP.</span>
+            <span>Controla apenas o uso deste centro de custo no +Compras; não altera o cadastro no ERP.</span>
           </label>
         </div>
 
@@ -129,18 +129,18 @@ export function CentroCustoForm({
 
       <form className="card form-card" onSubmit={handleSubmitVinculos}>
         <div className="card-heading">
-          <h2>Unidades de Alocacao vinculadas</h2>
+          <h2>Unidades de Alocação vinculadas</h2>
         </div>
 
         <div className="notice notice-warn">
-          Selecione as Unidades de Alocacao permitidas para este Centro de Custo e, entre elas, qual e a
-          padrao. Nao e permitido selecionar Unidade de Alocacao fora do vinculo configurado (ADR-0020, item 6).
+          Selecione as Unidades de Alocação permitidas para este Centro de Custo e, entre elas, qual é a
+          padrão. Não é permitido selecionar Unidade de Alocação fora do vínculo configurado (ADR-0020, item 6).
         </div>
 
         {errorVinculos && <div className="notice notice-crit">{errorVinculos}</div>}
 
         {catalogoUnidadesAlocacao.length === 0 ? (
-          <div className="empty-state">Nenhuma unidade de alocacao cadastrada.</div>
+          <div className="empty-state">Nenhuma unidade de alocação cadastrada.</div>
         ) : (
           <div className="data-grid">
             {catalogoUnidadesAlocacao.map((unidade) => {

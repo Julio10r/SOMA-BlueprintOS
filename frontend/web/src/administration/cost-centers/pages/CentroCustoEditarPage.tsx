@@ -43,7 +43,7 @@ export function CentroCustoEditarPage() {
         listVinculosUnidadeAlocacao(id)
       ]);
       if (!centro) {
-        setError("Centro de custo nao encontrado.");
+        setError("Centro de custo não encontrado.");
         return;
       }
       setCentroCusto(centro);
@@ -82,7 +82,7 @@ export function CentroCustoEditarPage() {
       const atualizados = await substituirVinculosUnidadeAlocacao(id, unidadeAlocacaoIds, padraoId);
       setVinculosAtuais(atualizados);
     } catch (err) {
-      setErrorVinculos(err instanceof Error ? err.message : "Falha ao salvar unidades de alocacao vinculadas.");
+      setErrorVinculos(err instanceof Error ? err.message : "Falha ao salvar unidades de alocação vinculadas.");
     } finally {
       setSavingVinculos(false);
     }
@@ -91,9 +91,9 @@ export function CentroCustoEditarPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
+        <div className="section-title">Administração</div>
         <h1>Editar centro de custo</h1>
-        <p>Apenas os metadados locais do +Compras e o vinculo com Unidades de Alocacao podem ser alterados aqui.</p>
+        <p>Apenas os metadados locais do +Compras e o vínculo com Unidades de Alocação podem ser alterados aqui.</p>
       </header>
 
       {loadingCentroCusto ? (

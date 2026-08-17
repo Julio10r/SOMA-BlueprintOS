@@ -28,7 +28,7 @@ export function AlcadasAprovacaoPage() {
       setCriando(false);
       await reload();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Falha ao salvar Alcada de Aprovacao.");
+      setFormError(err instanceof Error ? err.message : "Falha ao salvar Alçada de Aprovação.");
     } finally {
       setSaving(false);
     }
@@ -39,9 +39,9 @@ export function AlcadasAprovacaoPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>Alcadas de Aprovacao</h1>
-        <p>Cadastro de Alcadas de Aprovacao por Unidade de Negocio. Nenhum motor de avaliacao/execucao e acionado nesta sprint.</p>
+        <div className="section-title">Administração</div>
+        <h1>Alçadas de Aprovação</h1>
+        <p>Cadastro de Alçadas de Aprovação por Unidade de Negócio. Nenhum motor de avaliação/execução é acionado nesta sprint.</p>
       </header>
 
       <section className="card">
@@ -58,16 +58,16 @@ export function AlcadasAprovacaoPage() {
       {unidadeNegocioId && (
         <section className="card">
           <div className="card-heading">
-            <h2>Alcadas de Aprovacao cadastradas</h2>
+            <h2>Alçadas de Aprovação cadastradas</h2>
             <button type="button" className="btn btn-primary" onClick={() => { setCriando(true); setEditando(null); }}>
-              Nova Alcada de Aprovacao
+              Nova Alçada de Aprovação
             </button>
           </div>
 
           {error && <div className="notice notice-crit">{error}</div>}
 
           {loading ? (
-            <div className="empty-state">Carregando Alcadas de Aprovacao...</div>
+            <div className="empty-state">Carregando Alçadas de Aprovação...</div>
           ) : (
             <AlcadaAprovacaoTable
               alcadas={alcadas}

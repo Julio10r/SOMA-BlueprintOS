@@ -17,7 +17,7 @@ export function Dashboard() {
     let active = true;
     listSuppliers()
       .then((result) => { if (active) setSuppliers(result); })
-      .catch(() => { if (active) setError("Nao foi possivel carregar o resumo de fornecedores."); });
+      .catch(() => { if (active) setError("Não foi possível carregar o resumo de fornecedores."); });
     return () => { active = false; };
   }, []);
 
@@ -28,14 +28,14 @@ export function Dashboard() {
       <header className="page-header">
         <div className="section-title">+Compras</div>
         <h1>Dashboard</h1>
-        <p>Visao executiva do portal: integracoes, alertas e atividade recente.</p>
+        <p>Visão executiva do portal: integrações, alertas e atividade recente.</p>
       </header>
 
       <section className="kpi-grid">
         <KpiCard label="Fornecedores cadastrados" value={total === null ? (error ? "--" : "...") : String(total)} />
         <KpiCard label="Pedidos em aberto" value="--" hint="Demo" />
-        <KpiCard label="Negociacoes ativas" value="--" hint="Demo" />
-        <KpiCard label="Alertas de integracao" value={error ? "1" : "0"} hint={error ?? "Nenhum alerta"} />
+        <KpiCard label="Negociações ativas" value="--" hint="Demo" />
+        <KpiCard label="Alertas de integração" value={error ? "1" : "0"} hint={error ?? "Nenhum alerta"} />
       </section>
 
       {error && <div className="notice notice-crit">{error}</div>}
@@ -49,7 +49,7 @@ export function Dashboard() {
         </div>
         {!suppliers && !error && <div className="empty-state">Carregando fornecedores...</div>}
         {suppliers && suppliers.length === 0 && (
-          <div className="empty-state">Nenhum fornecedor cadastrado ainda. Utilize o modulo Fornecedores para iniciar um cadastro.</div>
+          <div className="empty-state">Nenhum fornecedor cadastrado ainda. Utilize o módulo Fornecedores para iniciar um cadastro.</div>
         )}
         {suppliers && suppliers.length > 0 && (
           <div className="supplier-card-list">

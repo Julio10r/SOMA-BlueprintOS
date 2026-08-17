@@ -42,22 +42,22 @@ export function UnidadesAlocacaoPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>Gestao de Unidades de Alocacao</h1>
+        <div className="section-title">Administração</div>
+        <h1>Gestão de Unidades de Alocação</h1>
         <p>
-          Unidades de Alocacao pertencem ao +Compras e nao sao integradas do ERP. Podem representar agrupamentos
-          administrativos usados para orcamento, gestao, relatorios, consolidacao e classificacao operacional.
+          Unidades de Alocação pertencem ao +Compras e não são integradas do ERP. Podem representar agrupamentos
+          administrativos usados para orçamento, gestão, relatórios, consolidação e classificação operacional.
         </p>
       </header>
 
       <section className="card">
         <div className="card-heading">
           <div>
-            <div className="section-title">Unidades de Alocacao</div>
-            <h2>Unidades de Alocacao cadastradas</h2>
+            <div className="section-title">Unidades de Alocação</div>
+            <h2>Unidades de Alocação cadastradas</h2>
           </div>
           <button type="button" className="btn btn-primary" onClick={() => navigate("novo")}>
-            Nova unidade de alocacao
+            Nova unidade de alocação
           </button>
         </div>
 
@@ -68,7 +68,7 @@ export function UnidadesAlocacaoPage() {
               type="text"
               value={busca}
               onChange={(event) => setBusca(event.target.value)}
-              placeholder="Nome ou descricao"
+              placeholder="Nome ou descrição"
             />
           </label>
           <label>
@@ -88,7 +88,7 @@ export function UnidadesAlocacaoPage() {
         {toggleErro && <div className="notice notice-crit">{toggleErro}</div>}
 
         {loading ? (
-          <div className="empty-state">Carregando unidades de alocacao...</div>
+          <div className="empty-state">Carregando unidades de alocação...</div>
         ) : (
           <UnidadeAlocacaoTable
             unidadesAlocacao={unidadesAlocacaoFiltradas}

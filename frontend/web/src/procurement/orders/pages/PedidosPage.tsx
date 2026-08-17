@@ -27,11 +27,11 @@ export function PedidosPage() {
       <header className="page-header">
         <div className="section-title">+Compras</div>
         <h1>Pedidos</h1>
-        <p>Acompanhamento de pedidos de compra em aberto e concluidos.</p>
+        <p>Acompanhamento de pedidos de compra em aberto e concluídos.</p>
       </header>
 
       <div className="notice notice-warn">
-        <strong>Em desenvolvimento:</strong> esta tela exibe dados de demonstracao. A integracao com o dominio de Pedidos ainda nao foi entregue.
+        <strong>Em desenvolvimento:</strong> esta tela exibe dados de demonstração. A integração com o domínio de Pedidos ainda não foi entregue.
       </div>
 
       <section className="card">

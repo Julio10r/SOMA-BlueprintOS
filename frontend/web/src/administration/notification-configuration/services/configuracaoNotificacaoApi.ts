@@ -29,7 +29,7 @@ export class ConfiguracaoNotificacaoApiError extends Error {
 }
 
 export class ConfiguracaoNotificacaoAcessoNegadoError extends ConfiguracaoNotificacaoApiError {
-  constructor(message = "Voce nao tem permissao para acessar a Configuracao de Notificacoes.") {
+  constructor(message = "Você não tem permissão para acessar a Configuração de Notificações.") {
     super(message, "acesso_negado");
     this.name = "ConfiguracaoNotificacaoAcessoNegadoError";
   }
@@ -70,7 +70,7 @@ function paraConfiguracaoNotificacao(dto: ConfiguracaoNotificacaoApiDto): Config
 export async function getConfiguracaoNotificacao(unidadeNegocioId: string): Promise<ConfiguracaoNotificacao | null> {
   const response = await fetch(`${BASE}/${encodeURIComponent(unidadeNegocioId)}/configuracao-notificacao`, { credentials: "include" });
   if (response.status === 404) return null;
-  if (!response.ok) await lerErro(response, "Falha ao carregar Configuracao de Notificacoes.");
+  if (!response.ok) await lerErro(response, "Falha ao carregar Configuração de Notificações.");
   return paraConfiguracaoNotificacao((await response.json()) as ConfiguracaoNotificacaoApiDto);
 }
 
@@ -88,6 +88,6 @@ export async function salvarConfiguracaoNotificacao(
       nomeRemetente: input.nomeRemetente || undefined
     })
   });
-  if (!response.ok) await lerErro(response, "Falha ao salvar Configuracao de Notificacoes.");
+  if (!response.ok) await lerErro(response, "Falha ao salvar Configuração de Notificações.");
   return paraConfiguracaoNotificacao((await response.json()) as ConfiguracaoNotificacaoApiDto);
 }

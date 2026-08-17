@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FiliaisRoutes } from "../routes/FiliaisRoutes";
 
 /**
- * O1.7 — a Gestao de Filiais consome a API real (`administracao/filiais`), substituindo o
+ * O1.7 — a Gestão de Filiais consome a API real (`administracao/filiais`), substituindo o
  * `filiaisMockApi.ts` removido nesta sprint. Mesmo padrao de integracao HTTP de
  * `administration/users/tests/UsuariosPage.test.tsx` (O1.6): fetch interceptado.
  */
@@ -95,7 +95,7 @@ function renderFiliais(initialPath = "/") {
 }
 
 describe("FiliaisPage", () => {
-  it("lista as filiais vindas da API com Codigo CliFor, Nome CliFor e Descricao +Compras", async () => {
+  it("lista as filiais vindas da API com Código CliFor, Nome CliFor e Descrição +Compras", async () => {
     renderFiliais();
     expect(await screen.findByRole("heading", { name: "Filiais integradas do ERP" })).toBeInTheDocument();
     expect(await screen.findByText("0101")).toBeInTheDocument();
@@ -120,19 +120,19 @@ describe("FiliaisPage", () => {
     expect(await screen.findByRole("heading", { name: "Editar filial", level: 1 })).toBeInTheDocument();
     expect(await screen.findByText("Dados do ERP (somente leitura)")).toBeInTheDocument();
 
-    expect(screen.queryByLabelText("Codigo CliFor")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Código CliFor")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Nome CliFor")).not.toBeInTheDocument();
     expect(screen.getAllByText("0101").length).toBeGreaterThan(0);
     expect(screen.getAllByText("SOMA MATRIZ SAO PAULO").length).toBeGreaterThan(0);
   });
 
-  it("permite editar a Descricao +Compras sem alterar o Nome CliFor do ERP", async () => {
+  it("permite editar a Descrição +Compras sem alterar o Nome CliFor do ERP", async () => {
     renderFiliais();
     const row = (await screen.findByText("SOMA MATRIZ SAO PAULO")).closest("tr")!;
     await userEvent.click(within(row).getByRole("button", { name: "Editar" }));
 
     await screen.findByRole("heading", { name: "Editar filial", level: 1 });
-    await userEvent.type(await screen.findByLabelText("Descricao +Compras"), "Sede administrativa");
+    await userEvent.type(await screen.findByLabelText("Descrição +Compras"), "Sede administrativa");
     await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Detalhes da filial" })).toBeInTheDocument());
@@ -164,7 +164,7 @@ describe("FiliaisPage", () => {
     expect(screen.getByText("FARM CD GUARULHOS")).toBeInTheDocument();
   });
 
-  it("pesquisa por Codigo CliFor", async () => {
+  it("pesquisa por Código CliFor", async () => {
     renderFiliais();
     await screen.findByText("SOMA MATRIZ SAO PAULO");
 
@@ -180,6 +180,6 @@ describe("FiliaisPage", () => {
 
     renderFiliais();
 
-    expect(await screen.findByText(/nao tem permissao para acessar a Gestao de Filiais/i)).toBeInTheDocument();
+    expect(await screen.findByText(/não tem permissão para acessar a Gestão de Filiais/i)).toBeInTheDocument();
   });
 });

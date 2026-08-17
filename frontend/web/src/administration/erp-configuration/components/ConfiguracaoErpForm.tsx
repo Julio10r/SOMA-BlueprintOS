@@ -22,7 +22,7 @@ export function ConfiguracaoErpForm({ configuracao, error, loading, onSubmit }: 
   return (
     <form className="card form-card" onSubmit={handleSubmit}>
       <div className="card-heading">
-        <h2>{configuracao ? "Editar Configuracao de ERP" : "Configurar ERP"}</h2>
+        <h2>{configuracao ? "Editar Configuração de ERP" : "Configurar ERP"}</h2>
       </div>
 
       {error && <div className="notice notice-crit">{error}</div>}
@@ -34,7 +34,7 @@ export function ConfiguracaoErpForm({ configuracao, error, loading, onSubmit }: 
 
       <label>
         Parametros de conexao
-        {configuracao?.parametrosConfigurados && <span className="notice notice-info">Ja configurado</span>}
+        {configuracao?.parametrosConfigurados && <span className="notice notice-info">Já configurado</span>}
         <input
           type="password"
           value={parametrosConexao}

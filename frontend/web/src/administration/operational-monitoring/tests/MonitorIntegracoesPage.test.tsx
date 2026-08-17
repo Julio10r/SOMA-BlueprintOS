@@ -114,7 +114,7 @@ describe("MonitorIntegracoesPage", () => {
   it("exibe estado vazio quando nao ha execucoes", async () => {
     execucoes = [];
     renderPage();
-    expect(await screen.findByText("Nenhuma execucao de sincronizacao de fornecedores encontrada.")).toBeInTheDocument();
+    expect(await screen.findByText("Nenhuma execução de sincronização de fornecedores encontrada.")).toBeInTheDocument();
   });
 
   it("exibe mensagem de erro quando a chamada falha", async () => {
@@ -126,7 +126,7 @@ describe("MonitorIntegracoesPage", () => {
   it("exibe mensagem clara quando o acesso e negado (403)", async () => {
     forcarForbidden = true;
     renderPage();
-    expect(await screen.findByText(/permissao para acessar o Monitoramento Operacional/i)).toBeInTheDocument();
+    expect(await screen.findByText(/permissão para acessar o Monitoramento Operacional/i)).toBeInTheDocument();
   });
 
   it("filtra por status", async () => {
@@ -140,13 +140,13 @@ describe("MonitorIntegracoesPage", () => {
     expect(screen.queryByText("DEFAULT")).not.toBeInTheDocument();
   });
 
-  it("dispara reprocessamento ao clicar em Reprocessar sincronizacao", async () => {
+  it("dispara reprocessamento ao clicar em Reprocessar sincronização", async () => {
     renderPage();
     await screen.findByText("SOMA_DESENV");
 
-    await userEvent.type(screen.getAllByLabelText("Unidade de Negocio (BusinessUnit)")[0], "DEFAULT");
-    await userEvent.click(screen.getByRole("button", { name: "Reprocessar sincronizacao" }));
+    await userEvent.type(screen.getAllByLabelText("Unidade de Negócio (BusinessUnit)")[0], "DEFAULT");
+    await userEvent.click(screen.getByRole("button", { name: "Reprocessar sincronização" }));
 
-    await waitFor(() => expect(screen.getByText(/Sincronizacao disparada\. Status: Sucesso/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Sincronização disparada\. Status: Sucesso/)).toBeInTheDocument());
   });
 });

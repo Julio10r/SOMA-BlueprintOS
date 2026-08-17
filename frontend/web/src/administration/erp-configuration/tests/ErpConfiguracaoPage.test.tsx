@@ -68,32 +68,32 @@ function renderErpConfiguracao() {
 }
 
 describe("ErpConfiguracaoPage", () => {
-  it("exibe a Configuracao de ERP existente ao selecionar a Unidade de Negocio", async () => {
+  it("exibe a Configuração de ERP existente ao selecionar a Unidade de Negócio", async () => {
     renderErpConfiguracao();
-    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negocio"), UN_ID);
+    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negócio"), UN_ID);
     expect(await screen.findByRole("heading", { name: "SAP" })).toBeInTheDocument();
   });
 
   it("trata 404 (nao configurado) como estado vazio, nao como erro", async () => {
     renderErpConfiguracao();
-    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negocio"), UN_SEM_CONFIG_ID);
-    expect(await screen.findByText(/Nenhuma Configuracao de ERP cadastrada/i)).toBeInTheDocument();
+    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negócio"), UN_SEM_CONFIG_ID);
+    expect(await screen.findByText(/Nenhuma Configuração de ERP cadastrada/i)).toBeInTheDocument();
     expect(screen.queryByText(/configuracao_erp_nao_encontrada/i)).not.toBeInTheDocument();
   });
 
   it("NUNCA pre-preenche o campo de parametros de conexao ao editar uma configuracao ja existente", async () => {
     renderErpConfiguracao();
-    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negocio"), UN_ID);
+    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negócio"), UN_ID);
     await screen.findByRole("heading", { name: "SAP" });
 
     const campoParametros = await screen.findByLabelText(/Parametros de conexao/i);
     expect(campoParametros).toHaveValue("");
-    expect(screen.getByText("Ja configurado")).toBeInTheDocument();
+    expect(screen.getByText("Já configurado")).toBeInTheDocument();
   });
 
-  it("salva a Configuracao de ERP mantendo o segredo quando o campo e deixado vazio", async () => {
+  it("salva a Configuração de ERP mantendo o segredo quando o campo e deixado vazio", async () => {
     renderErpConfiguracao();
-    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negocio"), UN_ID);
+    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negócio"), UN_ID);
     await screen.findByRole("heading", { name: "SAP" });
 
     const campoSistema = screen.getByLabelText("Sistema ERP");

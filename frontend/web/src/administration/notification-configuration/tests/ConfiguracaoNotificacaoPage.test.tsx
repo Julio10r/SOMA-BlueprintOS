@@ -69,26 +69,26 @@ function renderConfiguracaoNotificacao() {
 }
 
 describe("ConfiguracaoNotificacaoPage", () => {
-  it("exibe a Configuracao de Notificacoes existente ao selecionar a Unidade de Negocio", async () => {
+  it("exibe a Configuração de Notificações existente ao selecionar a Unidade de Negócio", async () => {
     renderConfiguracaoNotificacao();
-    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negocio"), UN_ID);
+    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negócio"), UN_ID);
     expect(await screen.findByDisplayValue("notificacoes@azzas.com.br")).toBeInTheDocument();
     expect(screen.getByDisplayValue("AZZAS")).toBeInTheDocument();
   });
 
   it("trata 404 (nao configurado) como estado vazio, nao como erro", async () => {
     renderConfiguracaoNotificacao();
-    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negocio"), UN_SEM_CONFIG_ID);
-    expect(await screen.findByText(/Nenhuma Configuracao de Notificacoes cadastrada/i)).toBeInTheDocument();
+    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negócio"), UN_SEM_CONFIG_ID);
+    expect(await screen.findByText(/Nenhuma Configuração de Notificações cadastrada/i)).toBeInTheDocument();
     expect(screen.queryByText(/configuracao_notificacao_nao_encontrada/i)).not.toBeInTheDocument();
   });
 
   it("permite ativar/inativar as notificacoes por e-mail e salvar", async () => {
     renderConfiguracaoNotificacao();
-    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negocio"), UN_ID);
+    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negócio"), UN_ID);
     await screen.findByDisplayValue("notificacoes@azzas.com.br");
 
-    const checkbox = screen.getByRole("checkbox", { name: /Notificacoes por e-mail ativadas/i });
+    const checkbox = screen.getByRole("checkbox", { name: /Notificações por e-mail ativadas/i });
     expect(checkbox).toBeChecked();
     await userEvent.click(checkbox);
     await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
@@ -98,10 +98,10 @@ describe("ConfiguracaoNotificacaoPage", () => {
 
   it("nao exibe catalogo de eventos ficticio, apenas uma indicacao textual de disponibilidade futura", async () => {
     renderConfiguracaoNotificacao();
-    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negocio"), UN_ID);
+    await userEvent.selectOptions(await screen.findByLabelText("Unidade de Negócio"), UN_ID);
     await screen.findByDisplayValue("notificacoes@azzas.com.br");
 
     expect(screen.queryAllByRole("checkbox").length).toBe(1);
-    expect(screen.getByText(/catalogo de eventos configuraveis/i)).toBeInTheDocument();
+    expect(screen.getByText(/catálogo de eventos configuráveis/i)).toBeInTheDocument();
   });
 });

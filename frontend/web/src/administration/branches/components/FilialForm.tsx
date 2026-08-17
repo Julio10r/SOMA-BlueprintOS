@@ -32,7 +32,7 @@ export function FilialForm({ filial, error, loading, onSubmit, onCancel }: {
       </div>
 
       <div className="notice notice-warn">
-        Os dados de origem do ERP sao somente leitura. Alteracoes realizadas no +Compras nao modificam o ERP.
+        Os dados de origem do ERP são somente leitura. Alterações realizadas no +Compras não modificam o ERP.
       </div>
 
       {error && <div className="notice notice-crit">{error}</div>}
@@ -41,7 +41,7 @@ export function FilialForm({ filial, error, loading, onSubmit, onCancel }: {
         <div className="section-title">Dados do ERP (somente leitura)</div>
         <div className="data-grid">
           <div className="field-readonly">
-            <span>Codigo CliFor</span>
+            <span>Código CliFor</span>
             <strong>{filial.codigoCliFor}</strong>
           </div>
           <div className="field-readonly">
@@ -56,14 +56,14 @@ export function FilialForm({ filial, error, loading, onSubmit, onCancel }: {
       </div>
 
       <div className="data-block">
-        <div className="section-title">Dados +Compras (editaveis)</div>
+        <div className="section-title">Dados +Compras (editáveis)</div>
 
         <label>
-          Descricao +Compras
+          Descrição +Compras
           <input
             value={descricaoMaisCompras}
             onChange={(event) => setDescricaoMaisCompras(event.target.value)}
-            placeholder="Opcional - nao substitui o Nome CliFor do ERP"
+            placeholder="Opcional - não substitui o Nome CliFor do ERP"
             disabled={loading}
           />
         </label>
@@ -76,7 +76,7 @@ export function FilialForm({ filial, error, loading, onSubmit, onCancel }: {
             disabled={loading}
           />
           <strong>Ativo no +Compras</strong>
-          <span>Controla apenas o uso desta filial no +Compras; nao altera o cadastro no ERP.</span>
+          <span>Controla apenas o uso desta filial no +Compras; não altera o cadastro no ERP.</span>
         </label>
       </div>
 

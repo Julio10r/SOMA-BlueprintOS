@@ -66,7 +66,7 @@ export class CentroCustoApiError extends Error {
 
 /** 403 — sessao valida, porem sem a permissao `CentroCusto.Gerenciar`. */
 export class CentroCustoAcessoNegadoError extends CentroCustoApiError {
-  constructor(message = "Voce nao tem permissao para acessar a Gestao de Centros de Custo.") {
+  constructor(message = "Você não tem permissão para acessar a Gestão de Centros de Custo.") {
     super(message, "acesso_negado");
     this.name = "CentroCustoAcessoNegadoError";
   }
@@ -160,7 +160,7 @@ export async function updateCentroCusto(id: string, input: CentroCustoUpdateInpu
  */
 export async function listUnidadesAlocacaoParaVinculo(): Promise<UnidadeAlocacaoParaVinculo[]> {
   const response = await fetch("/api/administracao/unidades-alocacao", { credentials: "include" });
-  if (!response.ok) await lerErro(response, "Falha ao carregar unidades de alocacao.");
+  if (!response.ok) await lerErro(response, "Falha ao carregar unidades de alocação.");
   const data = (await response.json()) as UnidadeAlocacaoApiDto[];
   return data.map(paraUnidadeAlocacaoParaVinculo);
 }
@@ -170,7 +170,7 @@ export async function listVinculosUnidadeAlocacao(codigoErp: string): Promise<Un
   const response = await fetch(`${BASE}/centros-custo/${encodeURIComponent(codigoErp)}/unidades-alocacao`, {
     credentials: "include"
   });
-  if (!response.ok) await lerErro(response, "Falha ao carregar unidades de alocacao vinculadas.");
+  if (!response.ok) await lerErro(response, "Falha ao carregar unidades de alocação vinculadas.");
   const data = (await response.json()) as UnidadeAlocacaoVinculoApiDto[];
   return data.map(paraUnidadeAlocacaoVinculoResumo);
 }
@@ -188,7 +188,7 @@ export async function substituirVinculosUnidadeAlocacao(
     headers: { "Content-Type": "application/json", [CSRF_HEADER]: "1" },
     body: JSON.stringify({ unidadeAlocacaoIds, padraoId })
   });
-  if (!response.ok) await lerErro(response, "Falha ao salvar unidades de alocacao vinculadas.");
+  if (!response.ok) await lerErro(response, "Falha ao salvar unidades de alocação vinculadas.");
   const data = (await response.json()) as UnidadeAlocacaoVinculoApiDto[];
   return data.map(paraUnidadeAlocacaoVinculoResumo);
 }

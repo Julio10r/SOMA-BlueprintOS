@@ -27,7 +27,7 @@ export class MonitoramentoApiError extends Error {
 }
 
 export class MonitoramentoAcessoNegadoError extends MonitoramentoApiError {
-  constructor(message = "Voce nao tem permissao para acessar o Monitoramento Operacional.") {
+  constructor(message = "Você não tem permissão para acessar o Monitoramento Operacional.") {
     super(message, "acesso_negado");
     this.name = "MonitoramentoAcessoNegadoError";
   }
@@ -65,13 +65,13 @@ export async function listarSincronizacoesFornecedores(
   params.set("tamanhoPagina", String(filtro.tamanhoPagina ?? 20));
 
   const response = await fetch(`${MONITOR_BASE}/sincronizacoes-fornecedores?${params.toString()}`, { credentials: "include" });
-  if (!response.ok) await lerErro(response, "Falha ao carregar as execucoes de sincronizacao de fornecedores.");
+  if (!response.ok) await lerErro(response, "Falha ao carregar as execuções de sincronização de fornecedores.");
   return (await response.json()) as ListarSincronizacoesResultado;
 }
 
 export async function obterSincronizacaoFornecedor(id: string): Promise<SincronizacaoFornecedorDetalhe> {
   const response = await fetch(`${MONITOR_BASE}/sincronizacoes-fornecedores/${encodeURIComponent(id)}`, { credentials: "include" });
-  if (!response.ok) await lerErro(response, "Falha ao carregar o detalhe da execucao de sincronizacao.");
+  if (!response.ok) await lerErro(response, "Falha ao carregar o detalhe da execução de sincronização.");
   return (await response.json()) as SincronizacaoFornecedorDetalhe;
 }
 
@@ -82,12 +82,12 @@ export async function dispararSincronizacaoErp(businessUnit: string): Promise<Di
     credentials: "include",
     headers: { [CSRF_HEADER]: "1" }
   });
-  if (!response.ok) await lerErro(response, "Falha ao disparar a sincronizacao de fornecedores.");
+  if (!response.ok) await lerErro(response, "Falha ao disparar a sincronização de fornecedores.");
   return (await response.json()) as DispararSincronizacaoErpResultado;
 }
 
 export async function obterHistoricoFornecedor(fornecedorId: string): Promise<FornecedorSincronizacaoHistorico[]> {
   const response = await fetch(`${FORNECEDORES_BASE}/${encodeURIComponent(fornecedorId)}/sincronizacoes`, { credentials: "include" });
-  if (!response.ok) await lerErro(response, "Falha ao carregar o historico de sincronizacao do fornecedor.");
+  if (!response.ok) await lerErro(response, "Falha ao carregar o histórico de sincronização do fornecedor.");
   return (await response.json()) as FornecedorSincronizacaoHistorico[];
 }

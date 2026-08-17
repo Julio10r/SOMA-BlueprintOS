@@ -32,7 +32,7 @@ export function AuditoriaFornecedorPage() {
     try {
       setHistorico(await obterHistoricoFornecedor(fornecedorId.trim()));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao carregar o historico de sincronizacao do fornecedor.");
+      setError(err instanceof Error ? err.message : "Falha ao carregar o histórico de sincronização do fornecedor.");
       setHistorico([]);
     } finally {
       setLoading(false);
@@ -42,9 +42,9 @@ export function AuditoriaFornecedorPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
+        <div className="section-title">Administração</div>
         <h1>Auditoria de Fornecedor</h1>
-        <p>Historico detalhado de sincronizacao por fornecedor (direcao, decisao, campos alterados, tentativas).</p>
+        <p>Histórico detalhado de sincronização por fornecedor (direção, decisão, campos alterados, tentativas).</p>
       </header>
 
       <section className="card">
@@ -66,7 +66,7 @@ export function AuditoriaFornecedorPage() {
         {error && <div className="notice notice-crit">{error}</div>}
 
         {!error && buscou && !loading && historico.length === 0 && (
-          <div className="empty-state">Nenhum registro de sincronizacao encontrado para este fornecedor.</div>
+          <div className="empty-state">Nenhum registro de sincronização encontrado para este fornecedor.</div>
         )}
 
         {!error && historico.length > 0 && (
@@ -80,7 +80,7 @@ export function AuditoriaFornecedorPage() {
                 <th>Campos Alterados</th>
                 <th>Tentativa</th>
                 <th>Executada Em</th>
-                <th>Duracao (ms)</th>
+                <th>Duração (ms)</th>
               </tr>
             </thead>
             <tbody>

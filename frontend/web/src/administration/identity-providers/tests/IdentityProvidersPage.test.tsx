@@ -85,17 +85,17 @@ function renderIdentityProviders() {
 }
 
 async function selecionarUnidadeNegocio() {
-  const seletor = await screen.findByLabelText("Unidade de Negocio");
+  const seletor = await screen.findByLabelText("Unidade de Negócio");
   await userEvent.selectOptions(seletor, UN_ID);
 }
 
 describe("IdentityProvidersPage", () => {
-  it("lista os Identity Providers da Unidade de Negocio selecionada", async () => {
+  it("lista os Identity Providers da Unidade de Negócio selecionada", async () => {
     renderIdentityProviders();
     await selecionarUnidadeNegocio();
     expect(await screen.findByText("MicrosoftEntraId")).toBeInTheDocument();
     expect(screen.getByText("azzas2154.com.br")).toBeInTheDocument();
-    expect(screen.getByText("Ja configurado")).toBeInTheDocument();
+    expect(screen.getByText("Já configurado")).toBeInTheDocument();
   });
 
   it("NUNCA pre-preenche o campo de parametros de configuracao ao editar um provider existente", async () => {
@@ -106,9 +106,9 @@ describe("IdentityProvidersPage", () => {
     const row = screen.getByText("MicrosoftEntraId").closest("tr")!;
     await userEvent.click(within(row).getByRole("button", { name: "Editar" }));
 
-    const campoParametros = await screen.findByLabelText(/Parametros de configuracao/i);
+    const campoParametros = await screen.findByLabelText(/Parâmetros de configuração/i);
     expect(campoParametros).toHaveValue("");
-    expect(screen.getAllByText("Ja configurado").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Já configurado").length).toBeGreaterThan(0);
   });
 
   it("cria um novo Identity Provider com dominios autorizados", async () => {

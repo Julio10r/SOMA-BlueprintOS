@@ -43,7 +43,7 @@ export class UnidadeAlocacaoApiError extends Error {
 
 /** 403 — sessao valida, porem sem a permissao `UnidadeAlocacao.Gerenciar`. */
 export class UnidadeAlocacaoAcessoNegadoError extends UnidadeAlocacaoApiError {
-  constructor(message = "Voce nao tem permissao para acessar a Gestao de Unidades de Alocacao.") {
+  constructor(message = "Você não tem permissão para acessar a Gestão de Unidades de Alocação.") {
     super(message, "acesso_negado");
     this.name = "UnidadeAlocacaoAcessoNegadoError";
   }
@@ -87,7 +87,7 @@ function paraUnidadeAlocacao(dto: UnidadeAlocacaoApiDto): UnidadeAlocacao {
 
 export async function listUnidadesAlocacao(): Promise<UnidadeAlocacao[]> {
   const response = await fetch(`${BASE}/unidades-alocacao`, { credentials: "include" });
-  if (!response.ok) await lerErro(response, "Falha ao carregar unidades de alocacao.");
+  if (!response.ok) await lerErro(response, "Falha ao carregar unidades de alocação.");
   const data = (await response.json()) as UnidadeAlocacaoApiDto[];
   return data.map(paraUnidadeAlocacao);
 }
@@ -95,7 +95,7 @@ export async function listUnidadesAlocacao(): Promise<UnidadeAlocacao[]> {
 export async function getUnidadeAlocacao(id: string): Promise<UnidadeAlocacao | null> {
   const response = await fetch(`${BASE}/unidades-alocacao/${encodeURIComponent(id)}`, { credentials: "include" });
   if (response.status === 404) return null;
-  if (!response.ok) await lerErro(response, "Falha ao carregar unidade de alocacao.");
+  if (!response.ok) await lerErro(response, "Falha ao carregar unidade de alocação.");
   return paraUnidadeAlocacao((await response.json()) as UnidadeAlocacaoApiDto);
 }
 
@@ -106,7 +106,7 @@ export async function createUnidadeAlocacao(input: UnidadeAlocacaoInput): Promis
     headers: { "Content-Type": "application/json", [CSRF_HEADER]: "1" },
     body: JSON.stringify({ nome: input.nome, descricao: input.descricao })
   });
-  if (!response.ok) await lerErro(response, "Falha ao criar unidade de alocacao.");
+  if (!response.ok) await lerErro(response, "Falha ao criar unidade de alocação.");
   return paraUnidadeAlocacao((await response.json()) as UnidadeAlocacaoApiDto);
 }
 
@@ -117,7 +117,7 @@ export async function updateUnidadeAlocacao(id: string, input: UnidadeAlocacaoIn
     headers: { "Content-Type": "application/json", [CSRF_HEADER]: "1" },
     body: JSON.stringify({ nome: input.nome, descricao: input.descricao })
   });
-  if (!response.ok) await lerErro(response, "Falha ao salvar unidade de alocacao.");
+  if (!response.ok) await lerErro(response, "Falha ao salvar unidade de alocação.");
   return paraUnidadeAlocacao((await response.json()) as UnidadeAlocacaoApiDto);
 }
 
@@ -129,6 +129,6 @@ export async function toggleStatusUnidadeAlocacao(unidadeAlocacao: UnidadeAlocac
     headers: { "Content-Type": "application/json", [CSRF_HEADER]: "1" },
     body: JSON.stringify({ ativo: proximoAtivo })
   });
-  if (!response.ok) await lerErro(response, "Falha ao alterar o status da unidade de alocacao.");
+  if (!response.ok) await lerErro(response, "Falha ao alterar o status da unidade de alocação.");
   return paraUnidadeAlocacao((await response.json()) as UnidadeAlocacaoApiDto);
 }

@@ -47,11 +47,11 @@ export function CentrosCustoPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>Gestao de Centros de Custo</h1>
+        <div className="section-title">Administração</div>
+        <h1>Gestão de Centros de Custo</h1>
         <p>
-          Centros de Custo sao dados mestres do ERP. O +Compras nao cria nem altera dados mestres do ERP: apenas
-          administra metadados locais (descricao +Compras e status de uso no +Compras).
+          Centros de Custo são dados mestres do ERP. O +Compras não cria nem altera dados mestres do ERP: apenas
+          administra metadados locais (descrição +Compras e status de uso no +Compras).
         </p>
       </header>
 
@@ -70,7 +70,7 @@ export function CentrosCustoPage() {
               type="text"
               value={busca}
               onChange={(event) => setBusca(event.target.value)}
-              placeholder="Codigo, Descricao ERP ou Descricao +Compras"
+              placeholder="Código, Descrição ERP ou Descrição +Compras"
             />
           </label>
           <label>

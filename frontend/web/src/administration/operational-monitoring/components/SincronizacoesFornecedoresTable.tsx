@@ -9,7 +9,7 @@ function formatarData(data: string | null): string {
 
 export function SincronizacoesFornecedoresTable({ itens }: { itens: SincronizacaoFornecedorResumo[] }) {
   if (itens.length === 0) {
-    return <div className="empty-state">Nenhuma execucao de sincronizacao de fornecedores encontrada.</div>;
+    return <div className="empty-state">Nenhuma execução de sincronização de fornecedores encontrada.</div>;
   }
 
   return (
@@ -18,14 +18,14 @@ export function SincronizacoesFornecedoresTable({ itens }: { itens: Sincronizaca
       <thead>
         <tr>
           <th>Sistema de Origem</th>
-          <th>Unidade de Negocio</th>
+          <th>Unidade de Negócio</th>
           <th>Status</th>
-          <th>Inicio</th>
+          <th>Início</th>
           <th>Fim</th>
-          <th>Incluidos</th>
+          <th>Incluídos</th>
           <th>Atualizados</th>
           <th>Erros</th>
-          <th>Duracao (ms)</th>
+          <th>Duração (ms)</th>
           <th></th>
         </tr>
       </thead>

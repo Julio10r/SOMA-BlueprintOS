@@ -8,7 +8,7 @@ export function RegraOrcamentariaTable({ regras, onEditar, onToggleStatus }: {
   onToggleStatus: (regra: RegraOrcamentaria) => void;
 }) {
   if (regras.length === 0) {
-    return <div className="empty-state">Nenhuma Regra Orcamentaria cadastrada para esta Unidade de Negocio.</div>;
+    return <div className="empty-state">Nenhuma Regra Orçamentária cadastrada para esta Unidade de Negócio.</div>;
   }
 
   return (

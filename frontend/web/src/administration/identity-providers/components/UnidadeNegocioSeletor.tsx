@@ -22,7 +22,7 @@ export function UnidadeNegocioSeletor({ value, onChange }: {
 
   return (
     <label>
-      Unidade de Negocio
+      Unidade de Negócio
       <select value={value ?? ""} disabled={loading} onChange={(event) => onChange(event.target.value)}>
         <option value="" disabled>
           Selecione...

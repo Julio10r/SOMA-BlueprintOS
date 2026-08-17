@@ -20,9 +20,9 @@ export function FilialTable({ filiais, onVisualizar, onEditar, onToggleAtivo }: 
     <table className="divergence-table">
       <thead>
         <tr>
-          <th>Codigo CliFor</th>
-          <th>Nome CliFor / Descricao ERP</th>
-          <th>Descricao +Compras</th>
+          <th>Código CliFor</th>
+          <th>Nome CliFor / Descrição ERP</th>
+          <th>Descrição +Compras</th>
           <th>Status no +Compras</th>
           <th>Unidade de Negocio</th>
           <th>Acoes</th>
@@ -33,7 +33,7 @@ export function FilialTable({ filiais, onVisualizar, onEditar, onToggleAtivo }: 
           <tr key={filial.id}>
             <td className="mono">{filial.codigoCliFor}</td>
             <td>{filial.nomeCliFor}</td>
-            <td>{filial.descricaoMaisCompras || <span className="empty-state">Sem descricao +Compras</span>}</td>
+            <td>{filial.descricaoMaisCompras || <span className="empty-state">Sem descrição +Compras</span>}</td>
             <td><StatusBadge value={statusFilial(filial)} tone="situacao" /></td>
             <td>{filial.unidadeNegocioId}</td>
             <td>

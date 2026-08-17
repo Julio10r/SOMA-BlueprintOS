@@ -97,24 +97,24 @@ function renderRegrasOrcamentarias() {
 }
 
 async function selecionarUnidadeNegocio() {
-  const seletor = await screen.findByLabelText("Unidade de Negocio");
+  const seletor = await screen.findByLabelText("Unidade de Negócio");
   await userEvent.selectOptions(seletor, UN_ID);
 }
 
 describe("RegrasOrcamentariasPage", () => {
-  it("lista as Regras Orcamentarias da Unidade de Negocio selecionada", async () => {
+  it("lista as Regras Orçamentárias da Unidade de Negócio selecionada", async () => {
     renderRegrasOrcamentarias();
     await selecionarUnidadeNegocio();
     expect(await screen.findByText("Orcamento Marketing")).toBeInTheDocument();
     expect(screen.getByText("Mensal")).toBeInTheDocument();
   });
 
-  it("cria uma nova Regra Orcamentaria", async () => {
+  it("cria uma nova Regra Orçamentária", async () => {
     renderRegrasOrcamentarias();
     await selecionarUnidadeNegocio();
     await screen.findByText("Orcamento Marketing");
 
-    await userEvent.click(screen.getByRole("button", { name: "Nova Regra Orcamentaria" }));
+    await userEvent.click(screen.getByRole("button", { name: "Nova Regra Orçamentária" }));
     await userEvent.type(screen.getByLabelText("Nome"), "Orcamento TI");
     await userEvent.selectOptions(screen.getByLabelText("Centro de Custo"), CC_ID);
     await userEvent.type(screen.getByLabelText("Valor limite"), "20000");
@@ -124,7 +124,7 @@ describe("RegrasOrcamentariasPage", () => {
     await waitFor(() => expect(screen.getByText("Orcamento TI")).toBeInTheDocument());
   });
 
-  it("edita uma Regra Orcamentaria existente", async () => {
+  it("edita uma Regra Orçamentária existente", async () => {
     renderRegrasOrcamentarias();
     await selecionarUnidadeNegocio();
     await screen.findByText("Orcamento Marketing");
@@ -140,7 +140,7 @@ describe("RegrasOrcamentariasPage", () => {
     await waitFor(() => expect(screen.getByText("Orcamento Marketing Revisado")).toBeInTheDocument());
   });
 
-  it("ativa/inativa uma Regra Orcamentaria", async () => {
+  it("ativa/inativa uma Regra Orçamentária", async () => {
     renderRegrasOrcamentarias();
     await selecionarUnidadeNegocio();
     await screen.findByText("Orcamento Marketing");

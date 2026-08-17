@@ -31,7 +31,7 @@ export function RegraOrcamentariaForm({ regra, error, loading, onSubmit, onCance
   return (
     <form className="card form-card" onSubmit={handleSubmit}>
       <div className="card-heading">
-        <h2>{regra ? "Editar Regra Orcamentaria" : "Nova Regra Orcamentaria"}</h2>
+        <h2>{regra ? "Editar Regra Orçamentária" : "Nova Regra Orçamentária"}</h2>
       </div>
 
       {error && <div className="notice notice-crit">{error}</div>}
@@ -55,7 +55,7 @@ export function RegraOrcamentariaForm({ regra, error, loading, onSubmit, onCance
             >
               {centroCusto.codigoErp} — {centroCusto.descricaoErp}
               {!centroCusto.centroCustoMetadadoId
-                ? " (disponivel apenas apos primeira edicao em Gestao de Centros de Custo)"
+                ? " (disponível apenas após primeira edição em Gestão de Centros de Custo)"
                 : ""}
             </option>
           ))}

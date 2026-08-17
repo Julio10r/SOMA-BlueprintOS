@@ -28,7 +28,7 @@ export class ConfiguracaoErpApiError extends Error {
 }
 
 export class ConfiguracaoErpAcessoNegadoError extends ConfiguracaoErpApiError {
-  constructor(message = "Voce nao tem permissao para acessar a Configuracao de ERP.") {
+  constructor(message = "Você não tem permissão para acessar a Configuração de ERP.") {
     super(message, "acesso_negado");
     this.name = "ConfiguracaoErpAcessoNegadoError";
   }
@@ -69,7 +69,7 @@ function paraConfiguracaoErp(dto: ConfiguracaoErpApiDto): ConfiguracaoErp {
 export async function getConfiguracaoErp(unidadeNegocioId: string): Promise<ConfiguracaoErp | null> {
   const response = await fetch(`${BASE}/${encodeURIComponent(unidadeNegocioId)}/configuracao-erp`, { credentials: "include" });
   if (response.status === 404) return null;
-  if (!response.ok) await lerErro(response, "Falha ao carregar Configuracao de ERP.");
+  if (!response.ok) await lerErro(response, "Falha ao carregar Configuração de ERP.");
   return paraConfiguracaoErp((await response.json()) as ConfiguracaoErpApiDto);
 }
 
@@ -80,7 +80,7 @@ export async function salvarConfiguracaoErp(unidadeNegocioId: string, input: Con
     headers: { "Content-Type": "application/json", [CSRF_HEADER]: "1" },
     body: JSON.stringify({ sistemaErp: input.sistemaErp, parametrosConexao: input.parametrosConexao || undefined })
   });
-  if (!response.ok) await lerErro(response, "Falha ao salvar Configuracao de ERP.");
+  if (!response.ok) await lerErro(response, "Falha ao salvar Configuração de ERP.");
   return paraConfiguracaoErp((await response.json()) as ConfiguracaoErpApiDto);
 }
 
@@ -92,6 +92,6 @@ export async function toggleStatusConfiguracaoErp(unidadeNegocioId: string, conf
     headers: { "Content-Type": "application/json", [CSRF_HEADER]: "1" },
     body: JSON.stringify({ ativo: proximoAtivo })
   });
-  if (!response.ok) await lerErro(response, "Falha ao alterar o status da Configuracao de ERP.");
+  if (!response.ok) await lerErro(response, "Falha ao alterar o status da Configuração de ERP.");
   return paraConfiguracaoErp((await response.json()) as ConfiguracaoErpApiDto);
 }

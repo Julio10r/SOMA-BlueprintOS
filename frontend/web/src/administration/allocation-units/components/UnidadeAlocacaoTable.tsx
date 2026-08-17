@@ -12,14 +12,14 @@ export function UnidadeAlocacaoTable({ unidadesAlocacao, onVisualizar, onEditar,
   onEditar: (unidadeAlocacao: UnidadeAlocacao) => void;
   onToggleStatus: (unidadeAlocacao: UnidadeAlocacao) => void;
 }) {
-  if (unidadesAlocacao.length === 0) return <div className="empty-state">Nenhuma unidade de alocacao encontrada.</div>;
+  if (unidadesAlocacao.length === 0) return <div className="empty-state">Nenhuma unidade de alocação encontrada.</div>;
   return (
     <div className="table-scroll">
     <table className="divergence-table">
       <thead>
         <tr>
           <th>Nome</th>
-          <th>Descricao</th>
+          <th>Descrição</th>
           <th>Status</th>
           <th>Acoes</th>
         </tr>

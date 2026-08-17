@@ -5,11 +5,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CentrosCustoRoutes } from "../routes/CentrosCustoRoutes";
 
 /**
- * O1.7 — a Gestao de Centros de Custo consome a API real (`administracao/centros-custo`), substituindo o
+ * O1.7 — a Gestão de Centros de Custo consome a API real (`administracao/centros-custo`), substituindo o
  * `centrosCustoMockApi.ts` removido nesta sprint. Mesmo padrao de integracao HTTP de
  * `administration/users/tests/UsuariosPage.test.tsx` (O1.6): fetch interceptado.
  *
- * O1.9 — o vinculo real N:N com Unidade de Alocacao (`unidadeAlocacaoPadraoNome`/
+ * O1.9 — o vinculo real N:N com Unidade de Alocação (`unidadeAlocacaoPadraoNome`/
  * `quantidadeUnidadesAlocacaoVinculadas`) e testado nos casos abaixo, substituindo o teste removido na O1.7
  * (que documentava esses campos como sempre indefinidos/zero, dívida ja resolvida).
  */
@@ -128,7 +128,7 @@ function renderCentrosCusto(initialPath = "/") {
 }
 
 describe("CentrosCustoPage", () => {
-  it("lista os centros de custo vindos da API com Codigo, Descricao ERP e Descricao +Compras", async () => {
+  it("lista os centros de custo vindos da API com Codigo, Descrição ERP e Descrição +Compras", async () => {
     renderCentrosCusto();
     expect(await screen.findByRole("heading", { name: "Centros de Custo integrados do ERP" })).toBeInTheDocument();
     expect(await screen.findByText("1001")).toBeInTheDocument();
@@ -153,19 +153,19 @@ describe("CentrosCustoPage", () => {
     expect(await screen.findByRole("heading", { name: "Editar centro de custo", level: 1 })).toBeInTheDocument();
     expect(await screen.findByText("Dados do ERP (somente leitura)")).toBeInTheDocument();
 
-    expect(screen.queryByLabelText("Codigo Centro de Custo")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Descricao ERP")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Código Centro de Custo")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Descrição ERP")).not.toBeInTheDocument();
     expect(screen.getAllByText("1001").length).toBeGreaterThan(0);
     expect(screen.getAllByText("ADMINISTRATIVO CORPORATIVO").length).toBeGreaterThan(0);
   });
 
-  it("permite editar a Descricao +Compras sem alterar a Descricao ERP", async () => {
+  it("permite editar a Descrição +Compras sem alterar a Descrição ERP", async () => {
     renderCentrosCusto();
     const row = (await screen.findByText("ADMINISTRATIVO CORPORATIVO")).closest("tr")!;
     await userEvent.click(within(row).getByRole("button", { name: "Editar" }));
 
     await screen.findByRole("heading", { name: "Editar centro de custo", level: 1 });
-    await userEvent.type(await screen.findByLabelText("Descricao +Compras"), "Sede administrativa");
+    await userEvent.type(await screen.findByLabelText("Descrição +Compras"), "Sede administrativa");
     await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Detalhes do centro de custo" })).toBeInTheDocument());
@@ -212,15 +212,15 @@ describe("CentrosCustoPage", () => {
 
     renderCentrosCusto();
 
-    expect(await screen.findByText(/nao tem permissao para acessar a Gestao de Centros de Custo/i)).toBeInTheDocument();
+    expect(await screen.findByText(/não tem permissão para acessar a Gestão de Centros de Custo/i)).toBeInTheDocument();
   });
 
-  it("vincula Unidades de Alocacao reais e define a padrao, refletindo na listagem", async () => {
+  it("vincula Unidades de Alocação reais e define a padrao, refletindo na listagem", async () => {
     renderCentrosCusto();
     const row = (await screen.findByText("ADMINISTRATIVO CORPORATIVO")).closest("tr")!;
     await userEvent.click(within(row).getByRole("button", { name: "Editar" }));
 
-    await screen.findByRole("heading", { name: "Unidades de Alocacao vinculadas" });
+    await screen.findByRole("heading", { name: "Unidades de Alocação vinculadas" });
     await userEvent.click(screen.getByRole("checkbox", { name: /Farm/i }));
     await userEvent.click(screen.getByRole("checkbox", { name: /Animale/i }));
 
@@ -235,12 +235,12 @@ describe("CentrosCustoPage", () => {
     await waitFor(() => expect(screen.getByRole("heading", { name: "Detalhes do centro de custo" })).toBeInTheDocument());
   });
 
-  it("nao permite marcar como padrao uma Unidade de Alocacao nao selecionada", async () => {
+  it("nao permite marcar como padrao uma Unidade de Alocação nao selecionada", async () => {
     renderCentrosCusto();
     const row = (await screen.findByText("ADMINISTRATIVO CORPORATIVO")).closest("tr")!;
     await userEvent.click(within(row).getByRole("button", { name: "Editar" }));
 
-    await screen.findByRole("heading", { name: "Unidades de Alocacao vinculadas" });
+    await screen.findByRole("heading", { name: "Unidades de Alocação vinculadas" });
     const linhaFarm = screen.getByText("Farm").closest("label")!;
 
     expect(within(linhaFarm).getByRole("radio", { name: "Padrao" })).toBeDisabled();

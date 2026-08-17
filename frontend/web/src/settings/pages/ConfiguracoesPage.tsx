@@ -2,11 +2,11 @@ type ConfigGroup = { titulo: string; itens: Array<{ label: string; valor: string
 
 const gruposMock: ConfigGroup[] = [
   {
-    titulo: "Integracao ERP",
+    titulo: "Integração ERP",
     itens: [
       { label: "Sistema ERP", valor: "SOMA_DESENV" },
-      { label: "Unidade de negocio padrao", valor: "SOMA" },
-      { label: "Timeout de integracao", valor: "30s" }
+      { label: "Unidade de negócio padrão", valor: "SOMA" },
+      { label: "Timeout de integração", valor: "30s" }
     ]
   },
   {
@@ -17,10 +17,10 @@ const gruposMock: ConfigGroup[] = [
     ]
   },
   {
-    titulo: "Notificacoes",
+    titulo: "Notificações",
     itens: [
-      { label: "Alertas de situacao cadastral", valor: "Ativado" },
-      { label: "Resumo diario por e-mail", valor: "Desativado" }
+      { label: "Alertas de situação cadastral", valor: "Ativado" },
+      { label: "Resumo diário por e-mail", valor: "Desativado" }
     ]
   }
 ];
@@ -34,19 +34,19 @@ export function ConfiguracoesPage() {
     <div className="page-stack">
       <header className="page-header">
         <div className="section-title">+Compras</div>
-        <h1>Configuracoes</h1>
-        <p>Parametros de integracao e notificacoes do portal.</p>
+        <h1>Configurações</h1>
+        <p>Parâmetros de integração e notificações do portal.</p>
       </header>
 
       <div className="notice notice-warn">
-        <strong>Em desenvolvimento:</strong> valores ilustrativos. A edicao destes parametros ainda nao esta disponivel nesta tela.
+        <strong>Em desenvolvimento:</strong> valores ilustrativos. A edição destes parâmetros ainda não está disponível nesta tela.
       </div>
 
       {gruposMock.map((grupo) => (
         <section className="card" key={grupo.titulo}>
           <div className="card-heading">
             <div>
-              <div className="section-title">Configuracao</div>
+              <div className="section-title">Configuração</div>
               <h2>{grupo.titulo}</h2>
             </div>
           </div>

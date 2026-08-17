@@ -110,30 +110,30 @@ function renderAlcadas() {
 }
 
 async function selecionarUnidadeNegocio() {
-  const seletor = await screen.findByLabelText("Unidade de Negocio");
+  const seletor = await screen.findByLabelText("Unidade de Negócio");
   await userEvent.selectOptions(seletor, UN_ID);
 }
 
 describe("AlcadasAprovacaoPage", () => {
-  it("lista as Alcadas de Aprovacao da Unidade de Negocio selecionada", async () => {
+  it("lista as Alçadas de Aprovação da Unidade de Negócio selecionada", async () => {
     renderAlcadas();
     await selecionarUnidadeNegocio();
     expect(await screen.findByText("Alcada Nivel 1")).toBeInTheDocument();
     expect(screen.getByText("Valor")).toBeInTheDocument();
-    expect(screen.getByText("Usuario")).toBeInTheDocument();
+    expect(screen.getByText("Usuário")).toBeInTheDocument();
   });
 
-  it("cria uma nova Alcada de Aprovacao com aprovador Usuario", async () => {
+  it("cria uma nova Alçada de Aprovação com aprovador Usuario", async () => {
     renderAlcadas();
     await selecionarUnidadeNegocio();
     await screen.findByText("Alcada Nivel 1");
 
-    await userEvent.click(screen.getByRole("button", { name: "Nova Alcada de Aprovacao" }));
+    await userEvent.click(screen.getByRole("button", { name: "Nova Alçada de Aprovação" }));
     await userEvent.type(screen.getByLabelText("Nome"), "Alcada Nivel 2");
     const nivelInput = screen.getByLabelText("Nivel");
     await userEvent.clear(nivelInput);
     await userEvent.type(nivelInput, "2");
-    await userEvent.selectOptions(screen.getByLabelText("Usuario aprovador"), USUARIO_ID);
+    await userEvent.selectOptions(screen.getByLabelText("Usuário aprovador"), USUARIO_ID);
     await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
 
     await waitFor(() => expect(screen.getByText("Alcada Nivel 2")).toBeInTheDocument());
@@ -144,14 +144,14 @@ describe("AlcadasAprovacaoPage", () => {
     await selecionarUnidadeNegocio();
     await screen.findByText("Alcada Nivel 1");
 
-    await userEvent.click(screen.getByRole("button", { name: "Nova Alcada de Aprovacao" }));
+    await userEvent.click(screen.getByRole("button", { name: "Nova Alçada de Aprovação" }));
     await userEvent.selectOptions(screen.getByLabelText("Tipo de aprovador"), "Perfil");
 
     expect(screen.queryByLabelText("Usuario aprovador")).not.toBeInTheDocument();
     await userEvent.selectOptions(screen.getByLabelText("Perfil aprovador"), PERFIL_ID);
   });
 
-  it("ativa/inativa uma Alcada de Aprovacao", async () => {
+  it("ativa/inativa uma Alçada de Aprovação", async () => {
     renderAlcadas();
     await selecionarUnidadeNegocio();
     await screen.findByText("Alcada Nivel 1");

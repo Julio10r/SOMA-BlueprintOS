@@ -16,7 +16,7 @@ export function UnidadeAlocacaoDetalhesPage() {
     setLoading(true);
     getUnidadeAlocacao(id).then((found) => {
       if (!found) {
-        setError("Unidade de alocacao nao encontrada.");
+        setError("Unidade de alocação não encontrada.");
         return;
       }
       setUnidadeAlocacao(found);
@@ -26,19 +26,19 @@ export function UnidadeAlocacaoDetalhesPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>Detalhes da unidade de alocacao</h1>
-        <p>Visualizacao somente leitura dos dados cadastrados no +Compras.</p>
+        <div className="section-title">Administração</div>
+        <h1>Detalhes da unidade de alocação</h1>
+        <p>Visualização somente leitura dos dados cadastrados no +Compras.</p>
       </header>
 
       {error && <div className="notice notice-crit">{error}</div>}
-      {loading && <div className="empty-state">Carregando unidade de alocacao...</div>}
+      {loading && <div className="empty-state">Carregando unidade de alocação...</div>}
 
       {unidadeAlocacao && (
         <section className="card">
           <div className="card-heading">
             <div>
-              <div className="section-title">Unidade de Alocacao</div>
+              <div className="section-title">Unidade de Alocação</div>
               <h2>{unidadeAlocacao.nome}</h2>
             </div>
             <StatusBadge value={unidadeAlocacao.status} tone="situacao" />

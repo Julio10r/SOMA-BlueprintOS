@@ -41,7 +41,7 @@ export class FilialApiError extends Error {
 
 /** 403 — sessao valida, porem sem a permissao `Filial.Gerenciar`. */
 export class FilialAcessoNegadoError extends FilialApiError {
-  constructor(message = "Voce nao tem permissao para acessar a Gestao de Filiais.") {
+  constructor(message = "Você não tem permissão para acessar a Gestão de Filiais.") {
     super(message, "acesso_negado");
     this.name = "FilialAcessoNegadoError";
   }

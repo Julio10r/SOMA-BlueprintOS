@@ -46,11 +46,11 @@ export function FiliaisPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>Gestao de Filiais</h1>
+        <div className="section-title">Administração</div>
+        <h1>Gestão de Filiais</h1>
         <p>
-          Filiais sao dados mestres do ERP. O +Compras nao cria nem altera dados mestres do ERP: apenas administra
-          metadados locais (descricao +Compras e status de uso no +Compras).
+          Filiais são dados mestres do ERP. O +Compras não cria nem altera dados mestres do ERP: apenas administra
+          metadados locais (descrição +Compras e status de uso no +Compras).
         </p>
       </header>
 
@@ -69,7 +69,7 @@ export function FiliaisPage() {
               type="text"
               value={busca}
               onChange={(event) => setBusca(event.target.value)}
-              placeholder="Codigo CliFor, Nome CliFor ou Descricao +Compras"
+              placeholder="Código CliFor, Nome CliFor ou Descrição +Compras"
             />
           </label>
           <label>

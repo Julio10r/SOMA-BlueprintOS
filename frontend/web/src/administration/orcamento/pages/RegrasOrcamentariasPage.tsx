@@ -28,7 +28,7 @@ export function RegrasOrcamentariasPage() {
       setCriando(false);
       await reload();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Falha ao salvar Regra Orcamentaria.");
+      setFormError(err instanceof Error ? err.message : "Falha ao salvar Regra Orçamentária.");
     } finally {
       setSaving(false);
     }
@@ -39,9 +39,9 @@ export function RegrasOrcamentariasPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>Regras Orcamentarias</h1>
-        <p>Cadastro de Regras Orcamentarias por Unidade de Negocio. Apenas o cadastro: nenhuma reserva contabil, consumo real ou bloqueio operacional acontece nesta sprint.</p>
+        <div className="section-title">Administração</div>
+        <h1>Regras Orçamentárias</h1>
+        <p>Cadastro de Regras Orçamentárias por Unidade de Negócio. Apenas o cadastro: nenhuma reserva contábil, consumo real ou bloqueio operacional acontece nesta sprint.</p>
       </header>
 
       <section className="card">
@@ -58,16 +58,16 @@ export function RegrasOrcamentariasPage() {
       {unidadeNegocioId && (
         <section className="card">
           <div className="card-heading">
-            <h2>Regras Orcamentarias cadastradas</h2>
+            <h2>Regras Orçamentárias cadastradas</h2>
             <button type="button" className="btn btn-primary" onClick={() => { setCriando(true); setEditando(null); }}>
-              Nova Regra Orcamentaria
+              Nova Regra Orçamentária
             </button>
           </div>
 
           {error && <div className="notice notice-crit">{error}</div>}
 
           {loading ? (
-            <div className="empty-state">Carregando Regras Orcamentarias...</div>
+            <div className="empty-state">Carregando Regras Orçamentárias...</div>
           ) : (
             <RegraOrcamentariaTable
               regras={regras}

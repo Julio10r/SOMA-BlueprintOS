@@ -29,7 +29,7 @@ export class IdentityProviderApiError extends Error {
 }
 
 export class IdentityProviderAcessoNegadoError extends IdentityProviderApiError {
-  constructor(message = "Voce nao tem permissao para acessar os Identity Providers.") {
+  constructor(message = "Você não tem permissão para acessar os Identity Providers.") {
     super(message, "acesso_negado");
     this.name = "IdentityProviderAcessoNegadoError";
   }

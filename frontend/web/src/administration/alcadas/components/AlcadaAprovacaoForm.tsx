@@ -55,7 +55,7 @@ export function AlcadaAprovacaoForm({ unidadeNegocioId, alcada, error, loading, 
   return (
     <form className="card form-card" onSubmit={handleSubmit}>
       <div className="card-heading">
-        <h2>{alcada ? "Editar Alcada de Aprovacao" : "Nova Alcada de Aprovacao"}</h2>
+        <h2>{alcada ? "Editar Alçada de Aprovação" : "Nova Alçada de Aprovação"}</h2>
       </div>
 
       {error && <div className="notice notice-crit">{error}</div>}
@@ -129,7 +129,7 @@ export function AlcadaAprovacaoForm({ unidadeNegocioId, alcada, error, loading, 
             >
               {centroCusto.codigoErp} — {centroCusto.descricaoErp}
               {!centroCusto.centroCustoMetadadoId
-                ? " (disponivel apenas apos primeira edicao em Gestao de Centros de Custo)"
+                ? " (disponível apenas após primeira edição em Gestão de Centros de Custo)"
                 : ""}
             </option>
           ))}
@@ -143,14 +143,14 @@ export function AlcadaAprovacaoForm({ unidadeNegocioId, alcada, error, loading, 
           onChange={(event) => setTipoAprovador(event.target.value as TipoAprovador)}
           disabled={loading}
         >
-          <option value="Usuario">Usuario</option>
+          <option value="Usuario">Usuário</option>
           <option value="Perfil">Perfil</option>
         </select>
       </label>
 
       {tipoAprovador === "Usuario" ? (
         <label>
-          Usuario aprovador
+          Usuário aprovador
           <select value={aprovadorUsuarioId} onChange={(event) => setAprovadorUsuarioId(event.target.value)} disabled={loading} required>
             <option value="" disabled>
               Selecione...

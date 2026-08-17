@@ -37,7 +37,7 @@ export class AlcadaAprovacaoApiError extends Error {
 }
 
 export class AlcadaAprovacaoAcessoNegadoError extends AlcadaAprovacaoApiError {
-  constructor(message = "Voce nao tem permissao para acessar as Alcadas de Aprovacao.") {
+  constructor(message = "Você não tem permissão para acessar as Alçadas de Aprovação.") {
     super(message, "acesso_negado");
     this.name = "AlcadaAprovacaoAcessoNegadoError";
   }
@@ -98,7 +98,7 @@ function corpoInput(input: AlcadaAprovacaoInput) {
 
 export async function listAlcadasAprovacao(unidadeNegocioId: string): Promise<AlcadaAprovacao[]> {
   const response = await fetch(`${BASE}/${encodeURIComponent(unidadeNegocioId)}/alcadas-aprovacao`, { credentials: "include" });
-  if (!response.ok) await lerErro(response, "Falha ao carregar Alcadas de Aprovacao.");
+  if (!response.ok) await lerErro(response, "Falha ao carregar Alçadas de Aprovação.");
   const data = (await response.json()) as AlcadaAprovacaoApiDto[];
   return data.map(paraAlcadaAprovacao);
 }
@@ -110,7 +110,7 @@ export async function createAlcadaAprovacao(unidadeNegocioId: string, input: Alc
     headers: { "Content-Type": "application/json", [CSRF_HEADER]: "1" },
     body: JSON.stringify(corpoInput(input))
   });
-  if (!response.ok) await lerErro(response, "Falha ao criar Alcada de Aprovacao.");
+  if (!response.ok) await lerErro(response, "Falha ao criar Alçada de Aprovação.");
   return paraAlcadaAprovacao((await response.json()) as AlcadaAprovacaoApiDto);
 }
 
@@ -121,7 +121,7 @@ export async function updateAlcadaAprovacao(unidadeNegocioId: string, id: string
     headers: { "Content-Type": "application/json", [CSRF_HEADER]: "1" },
     body: JSON.stringify(corpoInput(input))
   });
-  if (!response.ok) await lerErro(response, "Falha ao salvar Alcada de Aprovacao.");
+  if (!response.ok) await lerErro(response, "Falha ao salvar Alçada de Aprovação.");
   return paraAlcadaAprovacao((await response.json()) as AlcadaAprovacaoApiDto);
 }
 
@@ -133,6 +133,6 @@ export async function toggleStatusAlcadaAprovacao(unidadeNegocioId: string, alca
     headers: { "Content-Type": "application/json", [CSRF_HEADER]: "1" },
     body: JSON.stringify({ ativo: proximoAtivo })
   });
-  if (!response.ok) await lerErro(response, "Falha ao alterar o status da Alcada de Aprovacao.");
+  if (!response.ok) await lerErro(response, "Falha ao alterar o status da Alçada de Aprovação.");
   return paraAlcadaAprovacao((await response.json()) as AlcadaAprovacaoApiDto);
 }

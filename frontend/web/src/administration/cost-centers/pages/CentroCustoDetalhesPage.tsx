@@ -23,7 +23,7 @@ export function CentroCustoDetalhesPage() {
     setLoading(true);
     getCentroCusto(id).then((found) => {
       if (!found) {
-        setError("Centro de custo nao encontrado.");
+        setError("Centro de custo não encontrado.");
         return;
       }
       setCentroCusto(found);
@@ -34,9 +34,9 @@ export function CentroCustoDetalhesPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
+        <div className="section-title">Administração</div>
         <h1>Detalhes do centro de custo</h1>
-        <p>Os dados de origem do ERP sao somente leitura. Alteracoes realizadas no +Compras nao modificam o ERP.</p>
+        <p>Os dados de origem do ERP são somente leitura. Alterações realizadas no +Compras não modificam o ERP.</p>
       </header>
 
       {error && <div className="notice notice-crit">{error}</div>}
@@ -56,11 +56,11 @@ export function CentroCustoDetalhesPage() {
             <div className="section-title">Dados do ERP (somente leitura)</div>
             <div className="data-grid">
               <div className="field-readonly">
-                <span>Codigo Centro de Custo</span>
+                <span>Código Centro de Custo</span>
                 <strong>{centroCusto.codigoErp}</strong>
               </div>
               <div className="field-readonly">
-                <span>Descricao ERP</span>
+                <span>Descrição ERP</span>
                 <strong>{centroCusto.descricaoErp}</strong>
               </div>
               <div className="field-readonly">
@@ -74,8 +74,8 @@ export function CentroCustoDetalhesPage() {
             <div className="section-title">Dados +Compras</div>
             <div className="data-grid">
               <div className="field-readonly">
-                <span>Descricao +Compras</span>
-                <strong>{centroCusto.descricaoMaisCompras || "Sem descricao +Compras"}</strong>
+                <span>Descrição +Compras</span>
+                <strong>{centroCusto.descricaoMaisCompras || "Sem descrição +Compras"}</strong>
               </div>
               <div className="field-readonly">
                 <span>Status no +Compras</span>
@@ -91,14 +91,14 @@ export function CentroCustoDetalhesPage() {
           </div>
 
           <div className="data-block">
-            <div className="section-title">Unidades de Alocacao vinculadas</div>
+            <div className="section-title">Unidades de Alocação vinculadas</div>
             <div className="data-grid">
               <div className="field-readonly">
-                <span>Unidade de Alocacao padrao</span>
-                <strong>{centroCusto.unidadeAlocacaoPadraoNome || "Sem unidade padrao"}</strong>
+                <span>Unidade de Alocação padrão</span>
+                <strong>{centroCusto.unidadeAlocacaoPadraoNome || "Sem unidade padrão"}</strong>
               </div>
               <div className="field-readonly">
-                <span>Unidades de Alocacao vinculadas</span>
+                <span>Unidades de Alocação vinculadas</span>
                 <strong>{centroCusto.quantidadeUnidadesAlocacaoVinculadas}</strong>
               </div>
             </div>

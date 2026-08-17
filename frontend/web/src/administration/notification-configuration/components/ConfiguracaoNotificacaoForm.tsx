@@ -28,14 +28,14 @@ export function ConfiguracaoNotificacaoForm({ configuracao, error, loading, onSu
   return (
     <form className="card form-card" onSubmit={handleSubmit}>
       <div className="card-heading">
-        <h2>Configuracao de Notificacoes</h2>
+        <h2>Configuração de Notificações</h2>
       </div>
 
       {error && <div className="notice notice-crit">{error}</div>}
 
       <label>
         <input type="checkbox" checked={emailAtivado} onChange={(event) => setEmailAtivado(event.target.checked)} disabled={loading} />
-        {" "}Notificacoes por e-mail ativadas
+        {" "}Notificações por e-mail ativadas
       </label>
 
       <label>
@@ -56,7 +56,7 @@ export function ConfiguracaoNotificacaoForm({ configuracao, error, loading, onSu
       </label>
 
       <p className="notice notice-info">
-        O catalogo de eventos configuraveis por notificacao sera disponibilizado nesta tela quando os
+        O catálogo de eventos configuráveis por notificação será disponibilizado nesta tela quando os
         workflows operacionais correspondentes existirem.
       </p>
 

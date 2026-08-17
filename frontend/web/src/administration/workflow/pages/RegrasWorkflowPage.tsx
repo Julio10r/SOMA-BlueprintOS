@@ -39,7 +39,7 @@ export function RegrasWorkflowPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
+        <div className="section-title">Administração</div>
         <h1>Regras de Workflow</h1>
         <p>Cadastro de Regras de Workflow por Unidade de Negocio. Nenhum motor de execucao e acionado nesta sprint.</p>
       </header>

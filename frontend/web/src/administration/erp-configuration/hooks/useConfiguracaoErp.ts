@@ -18,7 +18,7 @@ export function useConfiguracaoErp(unidadeNegocioId: string | null) {
     try {
       setConfiguracao(await getConfiguracaoErp(unidadeNegocioId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao carregar Configuracao de ERP.");
+      setError(err instanceof Error ? err.message : "Falha ao carregar Configuração de ERP.");
     } finally {
       setLoading(false);
     }

@@ -6,7 +6,7 @@ import type { Fornecedor } from "../types/linxSupplierContract";
  * e nao realiza chamadas de API nem decisoes de negocio.
  */
 export function SupplierCard({ supplier }: { supplier: Fornecedor }) {
-  const localizacao = [supplier.cidade, supplier.estado].filter(Boolean).join(" / ") || "Nao informado";
+  const localizacao = [supplier.cidade, supplier.estado].filter(Boolean).join(" / ") || "Não informado";
   return (
     <div className="card supplier-card">
       <div className="card-heading">
@@ -23,15 +23,15 @@ export function SupplierCard({ supplier }: { supplier: Fornecedor }) {
         </div>
         <div className="field-readonly">
           <span>Tipo de pessoa</span>
-          <strong>{supplier.tipoPessoa || "Nao informado"}</strong>
+          <strong>{supplier.tipoPessoa || "Não informado"}</strong>
         </div>
         <div className="field-readonly">
-          <span>Localizacao</span>
+          <span>Localização</span>
           <strong>{localizacao}</strong>
         </div>
         <div className="field-readonly">
           <span>Contato</span>
-          <strong>{supplier.email || supplier.telefone || "Nao informado"}</strong>
+          <strong>{supplier.email || supplier.telefone || "Não informado"}</strong>
         </div>
       </div>
     </div>

@@ -22,7 +22,7 @@ export function FilialDetalhesPage() {
     setLoading(true);
     getFilial(id).then((found) => {
       if (!found) {
-        setError("Filial nao encontrada.");
+        setError("Filial não encontrada.");
         return;
       }
       setFilial(found);
@@ -33,9 +33,9 @@ export function FilialDetalhesPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
+        <div className="section-title">Administração</div>
         <h1>Detalhes da filial</h1>
-        <p>Os dados de origem do ERP sao somente leitura. Alteracoes realizadas no +Compras nao modificam o ERP.</p>
+        <p>Os dados de origem do ERP são somente leitura. Alterações realizadas no +Compras não modificam o ERP.</p>
       </header>
 
       {error && <div className="notice notice-crit">{error}</div>}
@@ -55,7 +55,7 @@ export function FilialDetalhesPage() {
             <div className="section-title">Dados do ERP (somente leitura)</div>
             <div className="data-grid">
               <div className="field-readonly">
-                <span>Codigo CliFor</span>
+                <span>Código CliFor</span>
                 <strong>{filial.codigoCliFor}</strong>
               </div>
               <div className="field-readonly">
@@ -73,8 +73,8 @@ export function FilialDetalhesPage() {
             <div className="section-title">Dados +Compras</div>
             <div className="data-grid">
               <div className="field-readonly">
-                <span>Descricao +Compras</span>
-                <strong>{filial.descricaoMaisCompras || "Sem descricao +Compras"}</strong>
+                <span>Descrição +Compras</span>
+                <strong>{filial.descricaoMaisCompras || "Sem descrição +Compras"}</strong>
               </div>
               <div className="field-readonly">
                 <span>Status no +Compras</span>

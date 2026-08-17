@@ -5,11 +5,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { UnidadesAlocacaoRoutes } from "../routes/UnidadesAlocacaoRoutes";
 
 /**
- * O1.8 — a Gestao de Unidades de Alocacao consome a API real (`administracao/unidades-alocacao`),
+ * O1.8 — a Gestão de Unidades de Alocação consome a API real (`administracao/unidades-alocacao`),
  * substituindo o `unidadesAlocacaoMockApi.ts` removido nesta sprint. Mesmo padrao de integracao HTTP de
  * `administration/cost-centers/tests/CentrosCustoPage.test.tsx` (O1.7): fetch interceptado.
  *
- * Sem vinculo com Centro de Custo (escopo da O1.9) e sem campo de Unidade de Negocio no formulario — ela
+ * Sem vinculo com Centro de Custo (escopo da O1.9) e sem campo de Unidade de Negócio no formulario — ela
  * e sempre resolvida pelo backend a partir da sessao, nunca escolhida pelo cliente.
  */
 type UnidadeAlocacaoApiDto = {
@@ -79,7 +79,7 @@ beforeEach(() => {
     if (method === "POST" && url === base) {
       const body = init?.body ? JSON.parse(String(init.body)) : {};
       const duplicado = unidadesAlocacao.some((u) => u.nome.toLowerCase() === String(body.nome).toLowerCase());
-      if (duplicado) return { ok: false, status: 409, json: async () => ({ code: "nome_duplicado", message: "Ja existe uma Unidade de Alocacao com este nome." }) } as Response;
+      if (duplicado) return { ok: false, status: 409, json: async () => ({ code: "nome_duplicado", message: "Ja existe uma Unidade de Alocação com este nome." }) } as Response;
       const criada = unidadeAlocacaoDto({
         id: `aaaaaaaa-0000-0000-0000-${String(unidadesAlocacao.length + 1).padStart(12, "0")}`,
         nome: body.nome,
@@ -129,24 +129,24 @@ function renderUnidadesAlocacao(initialPath = "/") {
 describe("UnidadesAlocacaoPage", () => {
   it("lista as unidades de alocacao vindas da API", async () => {
     renderUnidadesAlocacao();
-    expect(await screen.findByRole("heading", { name: "Unidades de Alocacao cadastradas" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Unidades de Alocação cadastradas" })).toBeInTheDocument();
     expect(await screen.findByText("SOMA Corporativo")).toBeInTheDocument();
     expect(await screen.findByText("Farm")).toBeInTheDocument();
   });
 
-  it("abre o formulario de nova unidade de alocacao e volta para a lista apos salvar", async () => {
+  it("abre o formulario de nova unidade de alocação e volta para a lista apos salvar", async () => {
     renderUnidadesAlocacao();
     await screen.findByText("SOMA Corporativo");
 
-    await userEvent.click(screen.getByRole("button", { name: "Nova unidade de alocacao" }));
-    expect(await screen.findAllByRole("heading", { name: "Nova unidade de alocacao" })).toHaveLength(2);
+    await userEvent.click(screen.getByRole("button", { name: "Nova unidade de alocação" }));
+    expect(await screen.findAllByRole("heading", { name: "Nova unidade de alocação" })).toHaveLength(2);
 
     await userEvent.type(screen.getByLabelText("Nome"), "Fabula Outlet");
-    await userEvent.type(screen.getByLabelText("Descricao"), "Agrupamento das lojas de outlet da Fabula.");
+    await userEvent.type(screen.getByLabelText("Descrição"), "Agrupamento das lojas de outlet da Fabula.");
 
     await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
 
-    await waitFor(() => expect(screen.getByRole("heading", { name: "Unidades de Alocacao cadastradas" })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Unidades de Alocação cadastradas" })).toBeInTheDocument());
     expect(await screen.findByText("Fabula Outlet")).toBeInTheDocument();
   });
 
@@ -154,15 +154,15 @@ describe("UnidadesAlocacaoPage", () => {
     renderUnidadesAlocacao();
     await screen.findByText("SOMA Corporativo");
 
-    await userEvent.click(screen.getByRole("button", { name: "Nova unidade de alocacao" }));
+    await userEvent.click(screen.getByRole("button", { name: "Nova unidade de alocação" }));
     await userEvent.type(screen.getByLabelText("Nome"), "Farm");
-    await userEvent.type(screen.getByLabelText("Descricao"), "Duplicada.");
+    await userEvent.type(screen.getByLabelText("Descrição"), "Duplicada.");
     await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
 
-    expect(await screen.findByText(/Ja existe uma Unidade de Alocacao com este nome/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Ja existe uma Unidade de Alocação com este nome/i)).toBeInTheDocument();
   });
 
-  it("visualiza uma unidade de alocacao existente", async () => {
+  it("visualiza uma unidade de alocação existente", async () => {
     renderUnidadesAlocacao();
     await screen.findByText("SOMA Corporativo");
 
@@ -173,15 +173,15 @@ describe("UnidadesAlocacaoPage", () => {
     expect(screen.getByText("Agrupamento orcamentario e de relatorios da marca Farm.")).toBeInTheDocument();
   });
 
-  it("edita uma unidade de alocacao existente", async () => {
+  it("edita uma unidade de alocação existente", async () => {
     renderUnidadesAlocacao();
     await screen.findByText("SOMA Corporativo");
 
     const row = screen.getByText("Animale").closest("tr")!;
     await userEvent.click(within(row).getByRole("button", { name: "Editar" }));
 
-    expect(await screen.findByRole("heading", { name: "Editar unidade de alocacao", level: 1 })).toBeInTheDocument();
-    const descricaoInput = await screen.findByLabelText("Descricao");
+    expect(await screen.findByRole("heading", { name: "Editar unidade de alocação", level: 1 })).toBeInTheDocument();
+    const descricaoInput = await screen.findByLabelText("Descrição");
     await userEvent.clear(descricaoInput);
     await userEvent.type(descricaoInput, "Descricao atualizada da unidade Animale.");
     await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
@@ -190,7 +190,7 @@ describe("UnidadesAlocacaoPage", () => {
     expect(await screen.findByText("Descricao atualizada da unidade Animale.")).toBeInTheDocument();
   });
 
-  it("ativa e inativa uma unidade de alocacao pela listagem", async () => {
+  it("ativa e inativa uma unidade de alocação pela listagem", async () => {
     renderUnidadesAlocacao();
     await screen.findByText("Projetos Especiais");
 
@@ -209,14 +209,14 @@ describe("UnidadesAlocacaoPage", () => {
     expect(screen.queryByRole("button", { name: "Excluir" })).not.toBeInTheDocument();
   });
 
-  it("nao exibe campo de Unidade de Negocio no formulario", async () => {
+  it("nao exibe campo de Unidade de Negócio no formulario", async () => {
     renderUnidadesAlocacao();
     await screen.findByText("SOMA Corporativo");
 
-    await userEvent.click(screen.getByRole("button", { name: "Nova unidade de alocacao" }));
-    await screen.findAllByRole("heading", { name: "Nova unidade de alocacao" });
+    await userEvent.click(screen.getByRole("button", { name: "Nova unidade de alocação" }));
+    await screen.findAllByRole("heading", { name: "Nova unidade de alocação" });
 
-    expect(screen.queryByLabelText("Unidade de Negocio")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Unidade de Negócio")).not.toBeInTheDocument();
   });
 
   it("mostra acesso negado quando a API responde 403", async () => {
@@ -224,7 +224,7 @@ describe("UnidadesAlocacaoPage", () => {
 
     renderUnidadesAlocacao();
 
-    expect(await screen.findByText(/nao tem permissao para acessar a Gestao de Unidades de Alocacao/i)).toBeInTheDocument();
+    expect(await screen.findByText(/não tem permissão para acessar a Gestão de Unidades de Alocação/i)).toBeInTheDocument();
   });
 
   it("mostra sessao expirada quando a API responde 401", async () => {

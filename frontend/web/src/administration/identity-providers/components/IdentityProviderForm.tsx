@@ -59,13 +59,13 @@ export function IdentityProviderForm({ provider, error, loading, onSubmit, onCan
       </label>
 
       <label>
-        Dominios autorizados
+        Domínios autorizados
         <input
           value={novoDominio}
           onChange={(event) => setNovoDominio(event.target.value)}
           onKeyDown={handleDominioKeyDown}
           onBlur={adicionarDominio}
-          placeholder="dominio.com.br e pressione Enter"
+          placeholder="domínio.com.br e pressione Enter"
           disabled={loading}
         />
       </label>
@@ -81,8 +81,8 @@ export function IdentityProviderForm({ provider, error, loading, onSubmit, onCan
       </ul>
 
       <label>
-        Parametros de configuracao
-        {provider?.parametrosConfigurados && <span className="notice notice-info">Ja configurado</span>}
+        Parâmetros de configuração
+        {provider?.parametrosConfigurados && <span className="notice notice-info">Já configurado</span>}
         <input
           type="password"
           value={parametros}

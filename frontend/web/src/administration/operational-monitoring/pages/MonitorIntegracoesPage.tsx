@@ -22,7 +22,7 @@ export function MonitorIntegracoesPage() {
   const [reprocessarErro, setReprocessarErro] = useState<string | null>(null);
   const [reprocessarSucesso, setReprocessarSucesso] = useState<string | null>(null);
 
-  const acessoNegado = error?.toLowerCase().includes("permissao") ?? false;
+  const acessoNegado = error?.toLowerCase().includes("permiss") ?? false;
 
   async function handleReprocessar() {
     if (!businessUnitReprocessar.trim()) return;
@@ -32,11 +32,11 @@ export function MonitorIntegracoesPage() {
     try {
       const resultado = await dispararSincronizacaoErp(businessUnitReprocessar.trim());
       setReprocessarSucesso(
-        `Sincronizacao disparada. Status: ${resultado.status}. Consultados: ${resultado.consultados}. Erros: ${resultado.erros}.`
+        `Sincronização disparada. Status: ${resultado.status}. Consultados: ${resultado.consultados}. Erros: ${resultado.erros}.`
       );
       await reload();
     } catch (err) {
-      setReprocessarErro(err instanceof Error ? err.message : "Falha ao disparar a sincronizacao.");
+      setReprocessarErro(err instanceof Error ? err.message : "Falha ao disparar a sincronização.");
     } finally {
       setReprocessando(false);
     }
@@ -45,21 +45,21 @@ export function MonitorIntegracoesPage() {
   return (
     <div className="page-stack">
       <header className="page-header">
-        <div className="section-title">Administracao</div>
-        <h1>Monitor de Integracoes</h1>
+        <div className="section-title">Administração</div>
+        <h1>Monitor de Integrações</h1>
         <p>
-          Execucoes em lote de sincronizacao de fornecedores com o ERP. Reaproveita integralmente a
-          infraestrutura real de sincronizacao (B2.1.3) — apenas consulta, nenhum motor novo.
+          Execuções em lote de sincronização de fornecedores com o ERP. Reaproveita integralmente a
+          infraestrutura real de sincronização (B2.1.3) — apenas consulta, nenhum motor novo.
         </p>
       </header>
 
       <section className="card">
         <div className="card-heading">
-          <h2>Reprocessar sincronizacao</h2>
+          <h2>Reprocessar sincronização</h2>
         </div>
         <div className="actions" style={{ justifyContent: "flex-start" }}>
           <label>
-            Unidade de Negocio (BusinessUnit)
+            Unidade de Negócio (BusinessUnit)
             <input
               type="text"
               value={businessUnitReprocessar}
@@ -68,7 +68,7 @@ export function MonitorIntegracoesPage() {
             />
           </label>
           <button type="button" className="btn btn-primary" disabled={reprocessando} onClick={handleReprocessar}>
-            {reprocessando ? "Reprocessando..." : "Reprocessar sincronizacao"}
+            {reprocessando ? "Reprocessando..." : "Reprocessar sincronização"}
           </button>
         </div>
         {reprocessarErro && <div className="notice notice-crit">{reprocessarErro}</div>}
@@ -77,7 +77,7 @@ export function MonitorIntegracoesPage() {
 
       <section className="card">
         <div className="card-heading">
-          <h2>Execucoes de sincronizacao</h2>
+          <h2>Execuções de sincronização</h2>
         </div>
 
         <div className="actions" style={{ justifyContent: "flex-start" }}>
@@ -91,7 +91,7 @@ export function MonitorIntegracoesPage() {
             </select>
           </label>
           <label>
-            Unidade de Negocio (Filtro)
+            Unidade de Negócio (Filtro)
             <input
               type="text"
               value={businessUnit ?? ""}
@@ -103,7 +103,7 @@ export function MonitorIntegracoesPage() {
 
         {error && <div className="notice notice-crit">{error}</div>}
 
-        {!error && loading && <div className="empty-state">Carregando execucoes de sincronizacao...</div>}
+        {!error && loading && <div className="empty-state">Carregando execuções de sincronização...</div>}
 
         {!error && !loading && <SincronizacoesFornecedoresTable itens={itens} />}
 
@@ -112,14 +112,14 @@ export function MonitorIntegracoesPage() {
             <button type="button" className="btn btn-secondary" disabled={pagina <= 1} onClick={() => setPagina(pagina - 1)}>
               Anterior
             </button>
-            <span>Pagina {pagina} de {Math.ceil(totalRegistros / tamanhoPagina)}</span>
+            <span>Página {pagina} de {Math.ceil(totalRegistros / tamanhoPagina)}</span>
             <button
               type="button"
               className="btn btn-secondary"
               disabled={pagina >= Math.ceil(totalRegistros / tamanhoPagina)}
               onClick={() => setPagina(pagina + 1)}
             >
-              Proxima
+              Próxima
             </button>
           </div>
         )}
