@@ -34,6 +34,7 @@ Nenhuma implementação deve começar sem essa leitura (ver PROJECT.md §7).
 | [context/git-workflow.md](./context/git-workflow.md) | for commitar e enviar código |
 | [context/tech-stack.md](./context/tech-stack.md) | precisar confirmar a stack oficial |
 | [context/definition-of-done.md](./context/definition-of-done.md) | for verificar se uma tarefa está concluída |
+| [context/linx-wise-daily-integration.md](./context/linx-wise-daily-integration.md) | for processar planilha de integração diária Linx/WISE (`MB_PROD_EXTRA_WEB`, WISE e `WS_ESTOQUE_PRODUTOS`) |
 
 ---
 
@@ -46,6 +47,7 @@ Nenhuma implementação deve começar sem essa leitura (ver PROJECT.md §7).
 | [prompts/new-database.md](./prompts/new-database.md) | criar tabela/migração de banco |
 | [prompts/refactor.md](./prompts/refactor.md) | refatorar código existente |
 | [prompts/tests.md](./prompts/tests.md) | escrever testes para uma funcionalidade |
+| [prompts/processar-planilha-integracao-linx-wise.md](./prompts/processar-planilha-integracao-linx-wise.md) | disparar a rotina diária de planilha Linx/WISE com uma instrução curta |
 
 ---
 

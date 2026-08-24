@@ -83,6 +83,7 @@ frontend/web/dist_old_*/
 # ==========================================================
 
 .env
+.ai/local-output/
 .env.*
 
 !.env.example

@@ -26,3 +26,11 @@ Como qualquer módulo, Knowledge deve ser consumido por outros módulos exclusiv
 ## O que este documento não define
 
 Este documento não especifica motor de indexação, provedor de embeddings, ou schema de armazenamento — essas decisões devem ser registradas como ADR em [DECISIONS.md](../DECISIONS.md) quando implementadas, seguindo o fluxo de mudança arquitetural de WORKFLOW.md §16.
+
+## Conhecimento operacional persistido em Markdown
+
+Enquanto o módulo Knowledge persistente/versionado não expõe uma rotina de ingestão automática para este tipo de runbook operacional, conhecimentos canônicos validados podem ser persistidos em `.ai/context/` e linkados a partir deste handbook.
+
+Entradas atuais:
+
+- [linx-wise-daily-integration.md](./linx-wise-daily-integration.md) — conhecimento operacional aprovado para a rotina diária Linx/WISE (`MB_PROD_EXTRA_WEB`, validações Linx, WISE e `WS_ESTOQUE_PRODUTOS`).
