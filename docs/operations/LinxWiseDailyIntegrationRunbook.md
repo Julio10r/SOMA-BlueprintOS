@@ -57,11 +57,12 @@ Não escolher campanha com base no legado ou em execuções anteriores.
 6. Garantir `PRODUTOS.ENVIA_ATACADO_INTERNET = 1`.
 7. Verificar `PRODUTOS_PRECOS.CODIGO_TAB_PRECO = 'DL'`.
 8. Perguntar `ID_CAMPANHA`.
-9. Integrar WISE somente para produtos aprovados e com `DL`.
-10. Inativar com `DT_EXCLUSAO = GETDATE()` registros ativos da campanha/universo que não estejam no conjunto aprovado.
-11. Validar por releitura.
-12. Gerar planilha processada.
-13. Gerar relatórios.
+9. Reconciliar a atividade no WISE somente para produtos aprovados e com `DL`: reativar os aprovados inativos e inativar com `DT_EXCLUSAO = GETDATE()` os registros ativos da campanha/universo fora do conjunto aprovado.
+10. Validar por releitura a atividade da campanha.
+11. Atualizar os saldos e grades somente dos produto/cores aprovados e ativos.
+12. Validar por releitura os saldos e grades.
+13. Gerar planilha processada.
+14. Gerar relatórios.
 
 ## MB_PROD_EXTRA_WEB
 
@@ -123,13 +124,21 @@ Para a campanha informada:
 
 Nunca executar `DELETE` físico.
 
+## Ordem de Reconciliação e Saldo
+
+Para cada campanha, executar nesta ordem:
+
+1. Para cada produto/cor aprovado: inserir o registro quando não existir na campanha; reativar quando existir com `DT_EXCLUSAO` preenchida.
+2. Inativar os registros ativos fora do conjunto aprovado.
+3. Reler e confirmar que o conjunto ativo coincide com o conjunto aprovado.
+4. Somente então atualizar `ESTOQUE`, `ES1..ES16`, `LIBERAR_GRADE_WEB`, `DATA_PARA_TRANSFERENCIA` e `DT_INTEGRACAO`.
+
+Essa separação evita atualizar saldo de registro que deva permanecer inativo e torna a validação de campanha independente da validação de estoque.
+
 ## Produto, Cor, Preço e Barras
 
-- `WS_PRODUTOS`: verificar/atualizar somente produtos aprovados, se necessário.
-- `WS_PRODUTO_CORES`: verificar/atualizar somente produto/cor aprovados, se necessário.
-- `WS_PRODUTOS_PRECOS`: para este workflow diário, verificar somente `CODIGO_TAB_PRECO = 'DL'`; não reproduzir export amplo de preços.
-- `WS_PRODUTOS_BARRA`: verificar para produtos aprovados quando necessário.
-- `WS_PROP_PRODUTOS`: verificar propriedade esperada quando aplicável.
+- `WS_PRODUTOS`, `WS_PRODUTO_CORES`, `WS_PRODUTOS_BARRA` e `WS_PROP_PRODUTOS`: para o conjunto aprovado, inserir quando a chave não existir e atualizar somente os campos divergentes quando existir.
+- `WS_PRODUTOS_PRECOS`: para este workflow diário, verificar somente `CODIGO_TAB_PRECO = 'DL'`. Para cada produto aprovado, localizar o registro remoto da campanha com `CODIGO_TAB_PRECO = 'DL'`: quando ausente, registrar como pendência; quando existir, comparar `PRODUTOS_PRECOS.PRECO1` com `WS_PRODUTOS_PRECOS.PRECO1`. Quando diferente, atualizar somente `WS_PRODUTOS_PRECOS.PRECO1`, restringindo por `ID_CAMPANHA`, `PRODUTO` e `CODIGO_TAB_PRECO = 'DL'`.
 
 Não executar tabelas auxiliares amplas de campanha/rede sem novo escopo aprovado.
 

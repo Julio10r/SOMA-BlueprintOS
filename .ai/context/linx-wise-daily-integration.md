@@ -197,12 +197,24 @@ Map the function result to `WS_ESTOQUE_PRODUTOS`:
 ### Activity Rules
 
 - Approved spreadsheet row with `DL_OK`: must be active in WISE.
+  - If the `ID_CAMPANHA + PRODUTO + COR_PRODUTO` key does not exist, insert it with the expected stock/grade values and `DT_EXCLUSAO = NULL`.
   - If `DT_EXCLUSAO IS NOT NULL`, reactivate with `DT_EXCLUSAO = NULL`.
   - Update only divergent stock/grade fields.
 - Product in spreadsheet with `SEM_TABELA_DL`: do not integrate as active.
 - Active remote row in the campaign/universe that is not in the spreadsheet-approved set: mark `DT_EXCLUSAO = GETDATE()`.
 - If a row is already inactive and should remain inactive, do not rewrite `DT_EXCLUSAO`.
 - Never physically delete from `WS_ESTOQUE_PRODUTOS`.
+
+### Required Execution Order
+
+`DECISAO_PO`: Reconcile activity before updating stock values:
+
+1. Insert approved product/color rows missing from the campaign, or reactivate approved rows that are inactive.
+2. Inactivate active campaign rows outside the approved set.
+3. Re-read and validate that the active campaign set matches the approved set.
+4. Only then update `ESTOQUE`, `ES1..ES16`, `LIBERAR_GRADE_WEB`, `DATA_PARA_TRANSFERENCIA`, and `DT_INTEGRACAO` for approved active rows.
+
+This ordering is mandatory for future daily executions.
 
 ### Confirmed Successful Execution Pattern
 
@@ -211,19 +223,19 @@ The safe correction pattern used successfully:
 1. Build `#aprov_pc` from approved product/color rows.
 2. Build `#expected` from `FN_CONSULTA_SALDO_WEB_WISE('%','%',NULL,NULL)` filtered by `ID_CAMPANHA` and joined to `#aprov_pc`.
 3. Abort if `#expected` count differs from approved product/color count.
-4. `UPDATE [WISE_AZURE].[SOMA_LINX].[dbo].[WS_ESTOQUE_PRODUTOS]` joined to `#expected`.
-5. Update only rows where `LIBERAR_GRADE_WEB`, `ESTOQUE`, `ES1..ES16`, or `DT_EXCLUSAO` differ.
-6. Re-read remote rows and assert zero mismatches.
+4. Reconcile activity first: insert missing approved rows, reactivate approved inactive rows, then inactivate active rows outside `#expected`.
+5. Re-read the remote active set and validate it before touching stock fields.
+6. `UPDATE [WISE_AZURE].[SOMA_LINX].[dbo].[WS_ESTOQUE_PRODUTOS]` joined to `#expected` only for stock and grade fields.
+7. Update only rows where `LIBERAR_GRADE_WEB`, `ESTOQUE`, or `ES1..ES16` differ.
+8. Re-read remote rows and assert zero mismatches.
 
 ## Product-Dependent WISE Tables
 
 `CONFIRMADO` from the 2026-08-24 execution:
 
-- `WS_PRODUTOS`: verified for approved products; already consistent.
-- `WS_PRODUTO_CORES`: verified for approved product/color rows; already consistent.
-- `WS_PRODUTOS_PRECOS`: verify only `CODIGO_TAB_PRECO = 'DL'`; do not update in the daily routine unless explicitly authorized.
-- `WS_PROP_PRODUTOS`: no expected rows for property `00717` in that execution.
-- `WS_PRODUTOS_BARRA`: verified for approved products; no missing rows.
+- `DECISAO_PO`: `WS_PRODUTOS`, `WS_PRODUTO_CORES`, `WS_PRODUTOS_BARRA`, and `WS_PROP_PRODUTOS` use incremental synchronization for the approved set: insert missing keys; update only divergent fields for existing keys.
+- `DECISAO_PO`: For each approved product, locate the remote `WS_PRODUTOS_PRECOS` row for the current campaign where `CODIGO_TAB_PRECO = 'DL'`. When the remote price is missing, report it as pending and do not insert it. When it exists, compare `PRODUTOS_PRECOS.PRECO1` with `WS_PRODUTOS_PRECOS.PRECO1`; if different, update only the remote `PRECO1`, restricted by `ID_CAMPANHA`, `PRODUTO`, and `CODIGO_TAB_PRECO = 'DL'`.
+- `CONFIRMADO`: `WS_PROP_PRODUTOS` had no expected rows for property `00717` in the 2026-08-24 execution.
 
 Do not execute broad auxiliary table reloads from the procedures unless a future, explicit Product Owner-approved workflow is created for that scope.
 
