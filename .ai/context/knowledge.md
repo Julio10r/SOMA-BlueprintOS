@@ -34,3 +34,4 @@ Enquanto o módulo Knowledge persistente/versionado não expõe uma rotina de in
 Entradas atuais:
 
 - [linx-wise-daily-integration.md](./linx-wise-daily-integration.md) — conhecimento operacional aprovado para a rotina diária Linx/WISE (`MB_PROD_EXTRA_WEB`, validações Linx, WISE e `WS_ESTOQUE_PRODUTOS`).
+- [wise-knowledge.md](./wise-knowledge.md) — conhecimento operacional do WISE Agent: ambiente WISE, Linked Server `WISE_AZURE`, campanhas, saldo/estoque, estrutura `WS_*`, e relacionamento Showcase ↔ WISE.
