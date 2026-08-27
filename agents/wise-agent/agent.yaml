@@ -2,7 +2,7 @@ schema_version: 1
 contract_version: 1.1
 id: wise-agent
 name: WISE Agent
-version: 1.1.0
+version: 1.1.1
 type: operational
 status: active
 owner: product-owner
@@ -157,7 +157,8 @@ observability:
 tests:
   unit: []
   integration: []
-  safety: []
+  safety:
+    - tools/agents/wise-agent-safety.test.js
   contract:
     - tools/agents/validate-agent-manifests.js
 relationships:
