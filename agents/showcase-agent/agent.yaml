@@ -1,0 +1,156 @@
+schema_version: 1
+id: showcase-agent
+name: Showcase Agent
+version: 1.0.0
+type: operational
+status: active
+owner: product-owner
+responsibility:
+  objective: Especialista operacional em acesso autenticado ao Showcase, coleta de catalogo, grade, fotos e geracao de artefatos locais.
+  responsibilities:
+    - Detectar contexto de marca, mercado e collection da sessao autenticada.
+    - Consumir API do Showcase em modo leitura.
+    - Paginar catalogo completo.
+    - Baixar fotos disponiveis com checkpoint.
+    - Gerar JSON, CSV e Excel conforme scripts existentes.
+    - Colaborar com WISE Agent para saldo quando solicitado.
+  non_goals:
+    - Nao preencher login, senha, MFA ou credenciais.
+    - Nao persistir token, cookie, senha ou segredo.
+    - Nao alterar carrinho, pedido, produto, usuario, cadastro ou configuracao.
+    - Nao assumir marca, regiao, collection ou parametros fixos.
+    - Nao interpretar WS_ESTOQUE_PRODUTOS sozinho.
+  escalation_rules:
+    - Parar e pedir login manual ao Product Owner quando encontrar tela de login.
+    - Parar e pedir nova autenticacao quando receber HTML, 401 ou 403.
+    - Encaminhar saldo e campanha para WISE Agent.
+    - Escalar para Security/LGPD e AI Governance quando exportacao envolver dado pessoal, segredo ou risco material.
+implementation:
+  code_paths: []
+  prompt_paths:
+    - .ai/prompts/coletar-showcase.md
+  context_paths:
+    - .ai/context/showcase-knowledge.md
+    - .ai/context/wise-knowledge.md
+  runbook_paths:
+    - docs/operations/ShowcaseAgentRunbook.md
+    - docs/operations/WiseAgentRunbook.md
+  script_paths:
+    - scripts/showcase_collector/README.md
+    - scripts/showcase_collector/package.json
+    - scripts/showcase_collector/collect.js
+    - scripts/showcase_collector/enrich.js
+    - scripts/showcase_collector/build_excel.js
+  docs_paths:
+    - docs/agents/Agents.md
+  di_registration: null
+runtime:
+  implemented: false
+  interface: null
+  factory_supported: false
+  constructor_dependencies: []
+  dependencies: []
+capabilities:
+  tools:
+    - Chrome DevTools MCP with Product Owner authenticated session
+    - Node.js fetch
+    - Showcase API read-only endpoints
+    - Excel generation through existing script dependency
+  allowed_operations:
+    - Aguardar login manual.
+    - Ler contexto efemero de sessao em memoria durante a execucao.
+    - Executar chamadas GET/consulta da API do Showcase.
+    - Baixar fotos publicadas para o contexto autenticado.
+    - Gerar artefatos locais de catalogo.
+  forbidden_operations:
+    - Preencher credenciais.
+    - Persistir token, cookie, senha ou segredo.
+    - Alterar carrinho, pedido, usuario, produto, cadastro ou configuracao.
+    - Executar escrita no Showcase.
+    - Fazer chamadas massivas sem cadencia controlada.
+    - Duplicar logica de saldo/campanha do WISE Agent.
+data:
+  systems:
+    - Showcase
+    - Compuwise/WiseCommerce
+    - Showcase API
+    - local export artifacts
+  resources:
+    - catalogo
+    - grade
+    - fotos
+    - produto
+    - cor
+    - estoque retornado pelo endpoint stock
+  classifications:
+    - Internal
+    - Confidential
+    - Unknown
+  pii_allowed: false
+  sensitive_pii_allowed: false
+  secrets_allowed: false
+governance:
+  read_only: true
+  can_propose_write: false
+  can_execute_write: false
+  can_execute_destructive_operation: false
+  policy_engine_required: false
+  requires_action_proposal_for:
+    - Exportacao material com dado pessoal.
+    - Qualquer tentativa futura de escrita.
+    - Exposicao ou uso de segredo.
+    - Chamada externa com efeito material.
+  approval_required_for:
+    - Qualquer operacao fora do modo leitura.
+    - Qualquer operacao Yellow quando conectada ao Policy Engine.
+  audit_required: true
+  default_risk: Green
+  enforcement_status: DOCUMENTAL
+knowledge:
+  memory_paths:
+    - .ai/context/showcase-knowledge.md
+    - .ai/context/wise-knowledge.md
+  provenance_labels:
+    - CONFIRMADO
+    - DECISAO_PO
+    - INFERIDO
+    - PARTICULARIDADE_MARCA
+    - AINDA_NAO_MAPEADO
+    - NAO_USAR
+  update_rules:
+    - Atualizar showcase-knowledge.md somente com conhecimento novo e confirmado.
+    - Nunca promover INFERIDO, PARTICULARIDADE_MARCA ou AINDA_NAO_MAPEADO para CONFIRMADO sem verificacao direta.
+    - Nunca registrar valores reais de token, cookie, senha ou segredo.
+observability:
+  logs:
+    - Checkpoint CSV de fotos gerado pelo coletor.
+    - Erros JSON sem segredos.
+    - Resumo de execucao gerado pelos scripts.
+  metrics:
+    - produtos coletados
+    - fotos baixadas
+    - itens sem foto
+    - itens sem saldo
+    - erros de coleta
+  audit_events:
+    - Future ActionProposal for sensitive export or write flows.
+  redaction_required: true
+tests:
+  unit: []
+  integration: []
+  safety: []
+  contract:
+    - tools/agents/validate-agent-manifests.js
+relationships:
+  upstream_agents:
+    - security-lgpd-agent
+  downstream_agents:
+    - wise-agent
+  workflows:
+    - Showcase catalog collection flow.
+    - Showcase to WISE stock enrichment flow.
+  conflicts_with:
+    - Nao substitui WISE Agent.
+catalog:
+  summary: Especialista operacional de coleta read-only do Showcase e fotos.
+  display_order: 70

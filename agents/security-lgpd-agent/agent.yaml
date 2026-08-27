@@ -1,0 +1,149 @@
+schema_version: 1
+id: security-lgpd-agent
+name: Security/LGPD Agent
+version: 1.0.0
+type: hybrid
+status: active
+owner: security
+responsibility:
+  objective: Interpretar contexto de seguranca, privacidade e LGPD para apoiar revisao humana de propostas classificadas pela AI Governance.
+  responsibilities:
+    - Revisar ActionProposal e PolicyDecision sob perspectiva consultiva.
+    - Explicar riscos de minimizacao, finalidade, exposicao em logs, prompts, planilhas, dados pessoais e segredos.
+    - Apoiar humanos na avaliacao de operacoes sensiveis.
+  non_goals:
+    - Nao aprovar execucoes.
+    - Nao substituir AIGovernancePolicyEngine.
+    - Nao substituir ApprovalPolicy.
+    - Nao atuar como Tool Gateway.
+    - Nao executar escrita ou operacao destrutiva.
+  escalation_rules:
+    - Escalar para aprovador humano quando a proposta exigir approval.
+    - Escalar para Security/Legal quando envolver dado pessoal sensivel, segredo ou risco Red.
+implementation:
+  code_paths:
+    - backend/src/BlueprintOS.Core/Agents/SecurityLgpdAgent.cs
+    - backend/src/BlueprintOS.Core/AI/Governance/Models/ActionProposal.cs
+    - backend/src/BlueprintOS.Core/AI/Governance/Models/PolicyDecision.cs
+    - backend/src/BlueprintOS.Core/AI/Governance/AIGovernancePolicyEngine.cs
+    - backend/src/BlueprintOS.Core/AI/Governance/ApprovalPolicy.cs
+  prompt_paths: []
+  context_paths:
+    - .ai/context/agents.md
+    - .ai/context/runtime.md
+    - .ai/context/security.md
+  runbook_paths: []
+  script_paths: []
+  docs_paths:
+    - docs/agents/Agents.md
+    - docs/architecture/AIGovernance.md
+  di_registration: services.AddScoped<SecurityLgpdAgent>()
+runtime:
+  implemented: true
+  interface: BlueprintOS.Core.Agents.Contracts.IAgent
+  factory_supported: true
+  constructor_dependencies:
+    - IAIRuntime
+  dependencies:
+    - BlueprintOS.Core.AI.Contracts.IAIRuntime
+    - BlueprintOS.Core.AI.Governance.Models.ActionProposal
+    - BlueprintOS.Core.AI.Governance.Models.PolicyDecision
+capabilities:
+  tools:
+    - IAIRuntime
+    - ActionProposal review
+    - PolicyDecision review
+  allowed_operations:
+    - Interpretar contexto de risco.
+    - Explicar pontos de atencao para revisao humana.
+    - Gerar avaliacao consultiva.
+  forbidden_operations:
+    - Aprovar operacao sensivel.
+    - Autoaprovar acao propria ou de outro Agent.
+    - Executar SQL.
+    - Executar escrita.
+    - Executar operacao destrutiva.
+    - Registrar segredo em prompt, log ou manifesto.
+data:
+  systems:
+    - AI Governance
+    - IA Runtime configurado
+  resources:
+    - ActionProposal
+    - PolicyDecision
+    - AgentContext.Input
+    - AgentResult.Output
+  classifications:
+    - Public
+    - Internal
+    - Confidential
+    - PersonalData
+    - SensitivePersonalData
+    - SecretCredential
+    - Unknown
+  pii_allowed: true
+  sensitive_pii_allowed: true
+  secrets_allowed: false
+governance:
+  read_only: true
+  can_propose_write: false
+  can_execute_write: false
+  can_execute_destructive_operation: false
+  policy_engine_required: true
+  requires_action_proposal_for:
+    - Revisao consultiva de acao sensivel proposta por Agent ou use case.
+  approval_required_for:
+    - Qualquer operacao classificada como Yellow pelo Policy Engine deve ter ApprovalGrant valido antes de execucao.
+    - Operacoes Red permanecem bloqueadas pelo Policy Engine.
+  audit_required: true
+  default_risk: Unknown
+  enforcement_status: PARTIAL
+knowledge:
+  memory_paths:
+    - .ai/context/security.md
+    - docs/architecture/AIGovernance.md
+  provenance_labels:
+    - CONFIRMADO
+    - INFERIDO
+    - AINDA_NAO_MAPEADO
+  update_rules:
+    - Nao registrar payload pessoal desnecessario.
+    - Nao registrar segredos.
+    - Nao declarar enforcement universal enquanto Tool Gateway nao existir.
+observability:
+  logs:
+    - GovernanceAuditEntry when used through governed flows.
+  metrics: []
+  audit_events:
+    - ActionProposal classification
+    - Approval validation
+    - Governed action decision
+  redaction_required: true
+tests:
+  unit:
+    - backend/tests/BlueprintOS.UnitTests/Core/AI/Governance/AIGovernancePolicyEngineTests.cs
+    - backend/tests/BlueprintOS.UnitTests/Core/AI/Governance/ApprovalPolicyTests.cs
+    - backend/tests/BlueprintOS.UnitTests/Core/AI/Governance/GovernedActionDemoFlowTests.cs
+  integration: []
+  safety:
+    - backend/tests/BlueprintOS.UnitTests/Core/AI/Governance/AIGovernancePolicyEngineTests.cs
+  contract:
+    - tools/agents/validate-agent-manifests.js
+relationships:
+  upstream_agents:
+    - wise-agent
+    - showcase-agent
+    - linx-erp-specialist-agent
+    - linx-database-specialist-agent
+    - knowledge-agent
+  downstream_agents: []
+  workflows:
+    - AI Governance Onda 1 governed action demo flow
+    - Future Tool Gateway
+  conflicts_with:
+    - Nao substitui AIGovernancePolicyEngine.
+    - Nao substitui ApprovalPolicy.
+    - Nao substitui Tool Gateway futuro.
+catalog:
+  summary: Agent consultivo de seguranca, privacidade e LGPD integrado a fundacao de AI Governance.
+  display_order: 30

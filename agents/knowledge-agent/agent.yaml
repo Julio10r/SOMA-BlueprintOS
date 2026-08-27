@@ -1,0 +1,117 @@
+schema_version: 1
+id: knowledge-agent
+name: KnowledgeAgent
+version: 1.0.0
+type: knowledge
+status: active
+owner: engineering
+responsibility:
+  objective: Enriquecer perguntas com conhecimento organizacional recuperado via KnowledgeService antes de chamar o IA Runtime.
+  responsibilities:
+    - Consultar IKnowledgeService usando a entrada do AgentContext.
+    - Construir prompt com contexto relevante e pergunta.
+    - Retornar resposta textual do IA Runtime.
+  non_goals:
+    - Nao curar ou aprovar conhecimento.
+    - Nao executar SQL.
+    - Nao executar escrita em sistemas externos.
+    - Nao substituir specialists de dominio como Linx, WISE ou Showcase.
+  escalation_rules:
+    - Escalar para engenharia quando KnowledgeService ou IA Runtime falhar.
+    - Escalar para curadoria de conhecimento quando a fonte recuperada for insuficiente ou conflitante.
+implementation:
+  code_paths:
+    - backend/src/BlueprintOS.Core/Agents/KnowledgeAgent.cs
+    - backend/src/BlueprintOS.Core/Agents/Contracts/IAgent.cs
+    - backend/src/BlueprintOS.Core/Agents/BaseAgent.cs
+    - backend/src/BlueprintOS.Core/Agents/AgentFactory.cs
+  prompt_paths: []
+  context_paths:
+    - .ai/context/agents.md
+    - .ai/context/runtime.md
+    - .ai/context/knowledge.md
+  runbook_paths: []
+  script_paths: []
+  docs_paths:
+    - docs/agents/Agents.md
+  di_registration: null
+runtime:
+  implemented: true
+  interface: BlueprintOS.Core.Agents.Contracts.IAgent
+  factory_supported: true
+  constructor_dependencies:
+    - IAIRuntime
+    - IKnowledgeService
+  dependencies:
+    - BlueprintOS.Core.AI.Contracts.IAIRuntime
+    - BlueprintOS.Core.Knowledge.Contracts.IKnowledgeService
+capabilities:
+  tools:
+    - IAIRuntime
+    - IKnowledgeService
+  allowed_operations:
+    - Buscar conhecimento indexado.
+    - Injetar snippets recuperados como contexto.
+    - Responder em texto via IA Runtime.
+  forbidden_operations:
+    - Alterar conhecimento.
+    - Aprovar conhecimento.
+    - Executar operacao destrutiva.
+    - Acessar segredos.
+data:
+  systems:
+    - KnowledgeService
+    - IA Runtime configurado
+  resources:
+    - Knowledge documents indexed by the configured provider
+    - AgentContext.Input
+    - AgentResult.Output
+  classifications:
+    - Internal
+    - Unknown
+  pii_allowed: false
+  sensitive_pii_allowed: false
+  secrets_allowed: false
+governance:
+  read_only: true
+  can_propose_write: false
+  can_execute_write: false
+  can_execute_destructive_operation: false
+  policy_engine_required: false
+  requires_action_proposal_for:
+    - Qualquer evolucao futura que adicione escrita, exportacao material, dados pessoais, segredos ou chamada externa com efeito material.
+  approval_required_for: []
+  audit_required: false
+  default_risk: Green
+  enforcement_status: PARTIAL
+knowledge:
+  memory_paths:
+    - .ai/context/knowledge.md
+  provenance_labels: []
+  update_rules:
+    - Nao altera conhecimento; apenas consulta KnowledgeService.
+observability:
+  logs: []
+  metrics: []
+  audit_events: []
+  redaction_required: true
+tests:
+  unit:
+    - backend/tests/BlueprintOS.UnitTests/Core/Agents/KnowledgeAgentTests.cs
+  integration: []
+  safety: []
+  contract:
+    - tools/agents/validate-agent-manifests.js
+relationships:
+  upstream_agents: []
+  downstream_agents: []
+  workflows:
+    - BlueprintOS.Core.Workflows.WorkflowRunner can execute this Agent when explicitly composed.
+  conflicts_with:
+    - Nao substitui LinxErpSpecialistAgent.
+    - Nao substitui LinxDatabaseSpecialistAgent.
+    - Nao substitui WISE Agent.
+    - Nao substitui Showcase Agent.
+catalog:
+  summary: Agent de conhecimento generico que consulta KnowledgeService antes do IA Runtime.
+  display_order: 20

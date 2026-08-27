@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soma-blueprintos.local/agents/agent.schema.json",
+  "title": "SOMA BlueprintOS Agent Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "name",
+    "version",
+    "type",
+    "status",
+    "owner",
+    "responsibility",
+    "implementation",
+    "runtime",
+    "capabilities",
+    "data",
+    "governance",
+    "knowledge",
+    "observability",
+    "tests",
+    "relationships",
+    "catalog"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["runtime", "knowledge", "operational", "hybrid"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "planned", "deprecated", "retired"]
+    },
+    "owner": { "type": "string", "minLength": 1 },
+    "responsibility": { "$ref": "#/$defs/responsibility" },
+    "implementation": { "$ref": "#/$defs/implementation" },
+    "runtime": { "$ref": "#/$defs/runtime" },
+    "capabilities": { "$ref": "#/$defs/capabilities" },
+    "data": { "$ref": "#/$defs/data" },
+    "governance": { "$ref": "#/$defs/governance" },
+    "knowledge": { "$ref": "#/$defs/knowledge" },
+    "observability": { "$ref": "#/$defs/observability" },
+    "tests": { "$ref": "#/$defs/tests" },
+    "relationships": { "$ref": "#/$defs/relationships" },
+    "catalog": { "$ref": "#/$defs/catalog" }
+  },
+  "$defs": {
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "pattern": "(?i)(password|passwd|secret|token|cookie|api[_-]?key|connection[_-]?string)\\s*[:=]"
+      }
+    },
+    "stringList": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "pathList": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/path" },
+      "uniqueItems": true
+    },
+    "responsibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective", "responsibilities", "non_goals", "escalation_rules"],
+      "properties": {
+        "objective": { "type": "string", "minLength": 1 },
+        "responsibilities": { "$ref": "#/$defs/stringList" },
+        "non_goals": { "$ref": "#/$defs/stringList" },
+        "escalation_rules": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "implementation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code_paths", "prompt_paths", "context_paths", "runbook_paths", "script_paths", "docs_paths", "di_registration"],
+      "properties": {
+        "code_paths": { "$ref": "#/$defs/pathList" },
+        "prompt_paths": { "$ref": "#/$defs/pathList" },
+        "context_paths": { "$ref": "#/$defs/pathList" },
+        "runbook_paths": { "$ref": "#/$defs/pathList" },
+        "script_paths": { "$ref": "#/$defs/pathList" },
+        "docs_paths": { "$ref": "#/$defs/pathList" },
+        "di_registration": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implemented", "interface", "factory_supported", "constructor_dependencies", "dependencies"],
+      "properties": {
+        "implemented": { "type": "boolean" },
+        "interface": { "type": ["string", "null"] },
+        "factory_supported": { "type": "boolean" },
+        "constructor_dependencies": { "$ref": "#/$defs/stringList" },
+        "dependencies": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tools", "allowed_operations", "forbidden_operations"],
+      "properties": {
+        "tools": { "$ref": "#/$defs/stringList" },
+        "allowed_operations": { "$ref": "#/$defs/stringList" },
+        "forbidden_operations": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["systems", "resources", "classifications", "pii_allowed", "sensitive_pii_allowed", "secrets_allowed"],
+      "properties": {
+        "systems": { "$ref": "#/$defs/stringList" },
+        "resources": { "$ref": "#/$defs/stringList" },
+        "classifications": { "$ref": "#/$defs/stringList" },
+        "pii_allowed": { "type": "boolean" },
+        "sensitive_pii_allowed": { "type": "boolean" },
+        "secrets_allowed": { "type": "boolean" }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "read_only",
+        "can_propose_write",
+        "can_execute_write",
+        "can_execute_destructive_operation",
+        "policy_engine_required",
+        "requires_action_proposal_for",
+        "approval_required_for",
+        "audit_required",
+        "default_risk",
+        "enforcement_status"
+      ],
+      "properties": {
+        "read_only": { "type": "boolean" },
+        "can_propose_write": { "type": "boolean" },
+        "can_execute_write": { "type": "boolean" },
+        "can_execute_destructive_operation": { "type": "boolean" },
+        "policy_engine_required": { "type": "boolean" },
+        "requires_action_proposal_for": { "$ref": "#/$defs/stringList" },
+        "approval_required_for": { "$ref": "#/$defs/stringList" },
+        "audit_required": { "type": "boolean" },
+        "default_risk": {
+          "type": "string",
+          "enum": ["Green", "Yellow", "Red", "Unknown"]
+        },
+        "enforcement_status": {
+          "type": "string",
+          "enum": ["ENFORCED", "DOCUMENTAL", "PARTIAL", "PLANNED"]
+        }
+      }
+    },
+    "knowledge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["memory_paths", "provenance_labels", "update_rules"],
+      "properties": {
+        "memory_paths": { "$ref": "#/$defs/pathList" },
+        "provenance_labels": { "$ref": "#/$defs/stringList" },
+        "update_rules": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "observability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["logs", "metrics", "audit_events", "redaction_required"],
+      "properties": {
+        "logs": { "$ref": "#/$defs/stringList" },
+        "metrics": { "$ref": "#/$defs/stringList" },
+        "audit_events": { "$ref": "#/$defs/stringList" },
+        "redaction_required": { "type": "boolean" }
+      }
+    },
+    "tests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit", "integration", "safety", "contract"],
+      "properties": {
+        "unit": { "$ref": "#/$defs/pathList" },
+        "integration": { "$ref": "#/$defs/pathList" },
+        "safety": { "$ref": "#/$defs/pathList" },
+        "contract": { "$ref": "#/$defs/pathList" }
+      }
+    },
+    "relationships": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["upstream_agents", "downstream_agents", "workflows", "conflicts_with"],
+      "properties": {
+        "upstream_agents": { "$ref": "#/$defs/stringList" },
+        "downstream_agents": { "$ref": "#/$defs/stringList" },
+        "workflows": { "$ref": "#/$defs/stringList" },
+        "conflicts_with": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary", "display_order"],
+      "properties": {
+        "summary": { "type": "string", "minLength": 1 },
+        "display_order": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

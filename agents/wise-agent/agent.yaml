@@ -1,0 +1,146 @@
+schema_version: 1
+id: wise-agent
+name: WISE Agent
+version: 1.0.0
+type: operational
+status: active
+owner: product-owner
+responsibility:
+  objective: Especialista reutilizavel em consulta, leitura e interpretacao do ambiente WISE, campanhas, estoque, produto/cor, grades, saldos e integracao com Showcase.
+  responsibilities:
+    - Consultar e interpretar conhecimento WISE persistido.
+    - Apoiar leitura de campanhas e saldos por PRODUTO + COR_PRODUTO.
+    - Relacionar dados WISE com catalogo Showcase quando solicitado.
+    - Preservar precedencia do runbook diario Linx/WISE para fluxos de escrita autorizados.
+    - Registrar novo conhecimento confirmado nas fontes operacionais apropriadas.
+  non_goals:
+    - Nao escrever no WISE por conta propria.
+    - Nao escolher ID_CAMPANHA sozinho.
+    - Nao executar integracao diaria Linx/WISE fora do runbook proprio.
+    - Nao duplicar responsabilidade do Agent Linx.
+    - Nao persistir senha, token, cookie ou connection string.
+  escalation_rules:
+    - Perguntar ao Product Owner quando ID_CAMPANHA nao estiver informado.
+    - Encaminhar escrita ou integracao real para o runbook diario Linx/WISE.
+    - Escalar para Security/LGPD e AI Governance quando houver escrita, exportacao material, dados pessoais ou segredos.
+implementation:
+  code_paths: []
+  prompt_paths:
+    - .ai/prompts/consultar-wise.md
+  context_paths:
+    - .ai/context/wise-knowledge.md
+    - .ai/context/linx-wise-daily-integration.md
+    - .ai/context/knowledge.md
+  runbook_paths:
+    - docs/operations/WiseAgentRunbook.md
+    - docs/operations/LinxWiseDailyIntegrationRunbook.md
+  script_paths:
+    - scripts/linx_wise_daily_integration.py
+  docs_paths:
+    - docs/agents/Agents.md
+  di_registration: null
+runtime:
+  implemented: false
+  interface: null
+  factory_supported: false
+  constructor_dependencies: []
+  dependencies: []
+capabilities:
+  tools:
+    - SQL Server read-only access through existing Linx production connection and WISE_AZURE linked server when available
+    - Showcase API read-only context when provided by an authenticated session
+  allowed_operations:
+    - SELECT e consultas de metadata/schema.
+    - Leitura de WS_ESTOQUE_PRODUTOS por campanha informada pelo Product Owner.
+    - Analise e comparacao de PRODUTO + COR_PRODUTO.
+    - Propor alteracao para fluxo autorizado, sem executar por conta propria.
+  forbidden_operations:
+    - Escolher ID_CAMPANHA sem instrucao.
+    - Executar INSERT, UPDATE, DELETE, TRUNCATE, MERGE, ALTER, DROP ou CREATE automaticamente.
+    - Executar procedures de escrita automaticamente.
+    - Imprimir ou persistir senha, token, cookie ou connection string.
+    - Duplicar logica do Agent Linx.
+data:
+  systems:
+    - WISE
+    - WISE_AZURE linked server
+    - SOMA_LINX
+    - ERP Visual Linx as related source
+    - Showcase as related source
+  resources:
+    - WS_ESTOQUE_PRODUTOS
+    - ID_CAMPANHA
+    - PRODUTO
+    - COR_PRODUTO
+    - ESTOQUE
+    - ES1..ES16
+  classifications:
+    - Internal
+    - Confidential
+    - Unknown
+  pii_allowed: false
+  sensitive_pii_allowed: false
+  secrets_allowed: false
+governance:
+  read_only: true
+  can_propose_write: true
+  can_execute_write: false
+  can_execute_destructive_operation: false
+  policy_engine_required: false
+  requires_action_proposal_for:
+    - Escrita no WISE.
+    - Exportacao material.
+    - Acesso ou exposicao de dado pessoal.
+    - Uso ou exposicao de segredo.
+    - Chamada externa com efeito material.
+  approval_required_for:
+    - Qualquer escrita real fora de leitura.
+    - Qualquer operacao Yellow quando conectada ao Policy Engine.
+  audit_required: true
+  default_risk: Green
+  enforcement_status: DOCUMENTAL
+knowledge:
+  memory_paths:
+    - .ai/context/wise-knowledge.md
+    - .ai/context/linx-wise-daily-integration.md
+  provenance_labels:
+    - CONFIRMADO
+    - DECISAO_PO
+    - INFERIDO
+    - HISTORICO_EXECUCAO
+    - AINDA_NAO_MAPEADO
+    - NAO_USAR
+  update_rules:
+    - Atualizar wise-knowledge.md somente com conhecimento novo e confirmado.
+    - Nunca promover INFERIDO ou AINDA_NAO_MAPEADO para CONFIRMADO sem verificacao direta.
+    - Em conflito com integracao diaria, prevalecem linx-wise-daily-integration.md e LinxWiseDailyIntegrationRunbook.md.
+observability:
+  logs:
+    - Evidencia de consultas e fontes em respostas operacionais.
+  metrics: []
+  audit_events:
+    - Future ActionProposal for write/export flows.
+  redaction_required: true
+tests:
+  unit: []
+  integration: []
+  safety: []
+  contract:
+    - tools/agents/validate-agent-manifests.js
+relationships:
+  upstream_agents:
+    - linx-erp-specialist-agent
+    - linx-database-specialist-agent
+    - showcase-agent
+    - security-lgpd-agent
+  downstream_agents: []
+  workflows:
+    - Linx/WISE daily integration is a related governable operational workflow, not an independent Agent.
+    - Showcase stock enrichment flow.
+  conflicts_with:
+    - Nao substitui Agent Linx.
+    - Nao substitui Showcase Agent.
+    - Nao substitui o runbook diario Linx/WISE.
+catalog:
+  summary: Especialista operacional de consulta e interpretacao do ambiente WISE.
+  display_order: 60
