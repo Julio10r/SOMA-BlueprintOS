@@ -3,6 +3,22 @@
   "timestamp": "2026-08-27T00:00:00Z",
   "task": "AgentLearningV1-LinxProgOpPed",
   "reclassification_note": "Per Database Connection Policy v1.1 (agents/DATABASE_CONNECTION_POLICY.md sections 17-22): every CONFIRMED_BY_SCHEMA / CONFIRMED_BY_DATA_VALIDATION / CONFIRMED_BY_CODE_INSPECTION label in this file was obtained exclusively on SOMA_DESENV (Development), never confronted with Production (SOMA). Production is now the authoritative source for current-state ERP investigation; SOMA_DESENV is a development/test lab that can be stale relative to Production. The size-34-vs-grade-36-44 gap (knowledge_gaps[3]) is reclassified from AWAITING_PRODUCT_OWNER_ANSWER to DEVELOPMENT_PRODUCTION_DRIFT_SUSPECTED + PENDING_PRODUCTION_VALIDATION and is no longer treated as a confirmed functional problem. No prior evidence was deleted.",
+  "production_investigation_attempt": {
+    "date": "2026-08-27",
+    "profile": "linx-production",
+    "expected_server": "192.168.0.200",
+    "expected_database": "SOMA",
+    "connection_status": "CONNECTIVITYUNAVAILABLE",
+    "recovered_after_retry": false,
+    "attempts": 2,
+    "retry_per_attempt": 1,
+    "credential_configured": true,
+    "error": "SqlException, TCP Provider error 35 - server not found or not accessible",
+    "conclusion_drawn": "network/VPN reachability issue to 192.168.0.200 specifically; linx-development and +Compras (both 192.168.9.98) remained READY in the same runs, so general VPN connectivity is not conclusively down",
+    "soma_desenv_used_as_substitute": false,
+    "report": "docs/audits/LinxProgOpPed-ProductionInvestigation.md",
+    "outcome": "Session stopped per explicit task instruction; no production schema/procedure/data investigation performed this round; all items in section 7 of AgentLearningV1-LinxProgOpPed.md remain labeled CONFIRMED_IN_DEVELOPMENT, none promoted to CONFIRMED_IN_PRODUCTION"
+  },
   "baseline": {
     "agents_total": { "expected_by_user": 8, "confirmed": 8, "divergence": false },
     "capabilities_total": { "expected_by_user": 15, "confirmed": 15, "divergence": false },
