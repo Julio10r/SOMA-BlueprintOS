@@ -1,0 +1,118 @@
+{
+  "contract_version": "1.1",
+  "generated_at": "2026-08-27",
+  "contexts_tested": [
+    "soma-production-update",
+    "showcase-read-only-collection",
+    "wise-read-only-analysis",
+    "fictional-production-pii-export",
+    "fictional-production-destructive-operation",
+    "insufficient-structured-context",
+    "routing-conflict-fixture"
+  ],
+  "routing_plans": {
+    "soma-production-update": {
+      "capabilities": ["linx-database-analysis", "soma-database-write"],
+      "primary_agents": ["linx-database-specialist-agent"],
+      "cross_cutting_agents": ["security-lgpd-agent"],
+      "execution_status": "BLOCKED_CAPABILITY_GAP",
+      "execution_performed": false,
+      "direct_bypass_allowed": false
+    },
+    "showcase-read-only-collection": {
+      "capabilities": ["showcase-read-only-collection"],
+      "primary_agents": ["showcase-agent"],
+      "cross_cutting_agents": [],
+      "enforcement_status": "DOCUMENTAL",
+      "execution_status": "READ_ONLY_PLAN",
+      "execution_performed": false
+    },
+    "wise-read-only-analysis": {
+      "capabilities": ["wise-operational-analysis"],
+      "primary_agents": ["wise-agent"],
+      "cross_cutting_agents": [],
+      "enforcement_status": "DOCUMENTAL",
+      "execution_status": "READ_ONLY_PLAN",
+      "execution_performed": false
+    },
+    "fictional-production-pii-export": {
+      "capabilities": ["fictional-pii-export"],
+      "primary_agents": [],
+      "cross_cutting_agents": ["security-lgpd-agent"],
+      "execution_status": "BLOCKED_CAPABILITY_GAP",
+      "execution_performed": false
+    },
+    "fictional-production-destructive-operation": {
+      "capabilities": ["fictional-destructive-operation"],
+      "primary_agents": [],
+      "cross_cutting_agents": ["security-lgpd-agent"],
+      "execution_status": "BLOCKED_CAPABILITY_GAP",
+      "execution_performed": false
+    }
+  },
+  "cross_cutting_resolutions": [
+    {
+      "context": "soma-production-update",
+      "agents": ["security-lgpd-agent"],
+      "reasons": ["WRITE_OR_EXTERNAL_EFFECT"]
+    },
+    {
+      "context": "fictional-production-pii-export",
+      "agents": ["security-lgpd-agent"],
+      "reasons": ["MATERIAL_OR_SENSITIVE_EXPORT", "PERSONAL_DATA"]
+    },
+    {
+      "context": "fictional-production-destructive-operation",
+      "agents": ["security-lgpd-agent"],
+      "reasons": ["DESTRUCTIVE_OPERATION", "WRITE_OR_EXTERNAL_EFFECT"]
+    }
+  ],
+  "capability_gaps": [
+    "soma-database-write",
+    "fictional-pii-export",
+    "fictional-destructive-operation"
+  ],
+  "context_gaps": [
+    {
+      "context": "insufficient-structured-context",
+      "codes": [
+        "OPERATION_INTENT_UNKNOWN",
+        "DATA_CLASSIFICATION_MISSING",
+        "CAPABILITY_RESOLUTION_CONTEXT_GAP"
+      ]
+    },
+    {
+      "context": "export-impact-unknown",
+      "codes": ["EXPECTED_IMPACT_UNKNOWN", "CROSS_CUTTING_EXPORT_IMPACT_UNKNOWN"]
+    }
+  ],
+  "conflicts": [
+    {
+      "context": "routing-conflict-fixture",
+      "status": "BLOCKED_ROUTING_CONFLICT",
+      "automatic_resolution_allowed": false
+    }
+  ],
+  "action_proposal_requirements": {
+    "soma-production-update": true,
+    "showcase-read-only-collection": false,
+    "wise-read-only-analysis": false,
+    "fictional-production-pii-export": true,
+    "fictional-production-destructive-operation": true
+  },
+  "execution_statuses": {
+    "READ_ONLY_PLAN": 2,
+    "BLOCKED_CAPABILITY_GAP": 3,
+    "BLOCKED_CONTEXT_GAP": 2,
+    "BLOCKED_ROUTING_CONFLICT": 1
+  },
+  "reaudit_summary": {
+    "status": "WARN",
+    "warnings_before": 12,
+    "warnings_after": 12,
+    "findings": {
+      "AFV2-GOV-001": 8,
+      "AFV2-GATEWAY-001": 4
+    }
+  }
+}
