@@ -31,6 +31,7 @@ Mesma convenção de [linx-wise-daily-integration.md](./linx-wise-daily-integrat
 - `CONFIRMADO`: verificado por consulta somente-leitura executada, resposta de API observada diretamente, ou schema/documento oficial.
 - `DECISAO_PO`: definido explicitamente pelo Product Owner.
 - `INFERIDO`: hipótese razoável a partir do que foi observado, ainda não verificada diretamente — nunca tratar como regra definitiva.
+- `HISTORICO_EXECUCAO`: fato histórico de uma execução específica; pode orientar diagnóstico e comparação, mas nunca vira regra permanente.
 - `AINDA_NAO_MAPEADO`: conhecimento que este agente sabe que não sabe; deve consultar banco/código/documentação ou perguntar ao Product Owner antes de agir.
 - `NAO_USAR`: comportamento legado ou tentado que não deve ser reproduzido.
 
@@ -59,6 +60,9 @@ Mesma convenção de [linx-wise-daily-integration.md](./linx-wise-daily-integrat
   ```
 - `CONFIRMADO` (via [linx-wise-daily-integration.md](./linx-wise-daily-integration.md#ws_estoque_produtos)): chave operacional da tabela é `ID_CAMPANHA + PRODUTO + COR_PRODUTO`. `DT_EXCLUSAO IS NULL` identifica registro ativo; `DT_EXCLUSAO` preenchido é inativação lógica — a tabela nunca sofre `DELETE` físico.
 - `CONFIRMADO` (mesma fonte): colunas de grade confirmadas na tabela são `ES1..ES16` (saldo por posição de tamanho) e `ESTOQUE` (saldo total), alimentadas a partir de `SALDO_DISPONIVEL` e `D1..D16` retornados pela function `FN_CONSULTA_SALDO_WEB_WISE('%','%',NULL,NULL)`. Ou seja: **a fonte correta de saldo para escrita é a function, não uma leitura direta e isolada da tabela** — mas para leitura/consulta (o que este agente faz), a leitura direta de `WS_ESTOQUE_PRODUTOS` filtrada por `ID_CAMPANHA` e `DT_EXCLUSAO IS NULL` é o caminho correto e já usado como consulta de referência pelo Product Owner.
+- `CONFIRMADO` (via rotina diária Linx/WISE): para escrita autorizada no fluxo diário, o conjunto ativo da campanha deve ser reconciliado antes de qualquer atualização de saldo/grade. Ordem obrigatória: (1) inserir ou reativar produto/cor aprovado que esteja ausente/inativo; (2) inativar registros ativos da campanha fora do conjunto aprovado com `DT_EXCLUSAO = GETDATE()`; (3) reler e validar que o conjunto ativo coincide com o conjunto aprovado; (4) só então atualizar `ESTOQUE`, `ES1..ES16`, `LIBERAR_GRADE_WEB`, `DATA_PARA_TRANSFERENCIA` e `DT_INTEGRACAO`. O WISE Agent não executa esse fluxo automaticamente; ele deve apontar para [linx-wise-daily-integration.md](./linx-wise-daily-integration.md#required-execution-order) quando a tarefa pedir integração real.
+- `CONFIRMADO` (via rotina diária Linx/WISE): produtos fora da planilha ou que não passaram pela validação/elegibilidade do fluxo diário não devem permanecer ativos na campanha WISE; quando estiverem ativos no destino, a regra validada é inativação lógica por `DT_EXCLUSAO = GETDATE()`, nunca `DELETE`.
+- `CONFIRMADO` (via rotina diária Linx/WISE): a execução de escrita deve sempre restringir `ID_CAMPANHA` fornecido pelo Product Owner; valores históricos ou hardcoded em procedures legadas não autorizam nova execução.
 - `AINDA_NAO_MAPEADO`: mapeamento explícito de `ES1..ES16` para os rótulos de tamanho de venda (PP/P/M/G/GG etc.) não foi verificado diretamente nesta sessão — não presumir que `ES1..ES16` correspondem em ordem direta a PP/P/M/G/GG sem confirmar contra a grade real de cada produto (mesma cautela documentada na rotina diária, onde `TAM_1..TAM_7` mapeiam para `EX1..EX7` da tabela **`MB_PROD_EXTRA_WEB`**, uma tabela Linx diferente de `WS_ESTOQUE_PRODUTOS`; não confundir os dois conjuntos de colunas `EXn`/`ESn`, que pertencem a tabelas e sistemas diferentes).
 - `CONFIRMADO` (via API do Showcase, ver abaixo): quando o saldo é obtido pelo endpoint `stock` do Showcase, ele já vem com o tamanho nomeado (`"size":"PP"`, `"size":"P"`, etc.), sem exigir esse mapeamento — via alternativa útil quando a leitura direta de `ES1..ES16` não estiver disponível ou não estiver mapeada.
 - `AINDA_NAO_MAPEADO`: schema completo de colunas de `WS_ESTOQUE_PRODUTOS` (tipos, todas as colunas além das citadas acima) não foi lido diretamente nesta sessão — antes de uma tarefa que dependa de outras colunas, consultar `INFORMATION_SCHEMA.COLUMNS` via `[WISE_AZURE].[SOMA_LINX]` ou pedir ao Product Owner.
@@ -67,7 +71,28 @@ Mesma convenção de [linx-wise-daily-integration.md](./linx-wise-daily-integrat
 
 - `DECISAO_PO`: `ID_CAMPANHA` nunca deve ser escolhido pelo agente — sempre perguntar ao Product Owner, a menos que já tenha sido informado explicitamente na tarefa (ex.: "consulte a campanha 54").
 - `CONFIRMADO`: campanha usada como exemplo de trabalho nesta sessão: `ID_CAMPANHA = '54'` (valor fornecido pelo Product Owner, não escolhido pelo agente).
+- `HISTORICO_EXECUCAO` (informado pelo Product Owner na consolidação de 2026-08-27, não regra permanente): em uma execução anterior da campanha `54`, o conjunto foi reconciliado até chegar a `446` produto/cores ativos no WISE, equivalente ao conjunto validado da planilha. Esse número serve apenas como exemplo histórico de validação de cardinalidade; a regra permanente é reconciliar o conjunto ativo contra o conjunto aprovado da execução corrente, não buscar sempre `446`.
 - `CONFIRMADO`: no Showcase (camada de aplicação), o conceito equivalente de "sessão de compra" aparece como `collection_Id` (ex.: `332`) e `order_Id`/`orderId` (carrinho, ex.: `949493`) — não confirmado se há correspondência 1:1 entre `collection_Id` do Showcase e `ID_CAMPANHA` do WISE; tratar como `AINDA_NAO_MAPEADO` até validação direta.
+
+## Dependências Linx que Impactam o WISE — CONFIRMADO
+
+O WISE Agent deve conhecer estas dependências para interpretar integrações, mas não deve assumir responsabilidade primária pela semântica ERP. Quando a tarefa envolver elegibilidade de produto, o fluxo correto é: **Agent Linx valida ERP → Agent WISE interpreta/reconcilia o destino WISE**.
+
+- `CONFIRMADO` (Agent Linx / rotina diária): antes de qualquer escrita do fluxo diário, validar existência de cada `PRODUTO` em `PRODUTOS`.
+- `CONFIRMADO` (Agent Linx / rotina diária): validar existência de cada combinação `PRODUTO + COR_PRODUTO` em `PRODUTO_CORES`.
+- `CONFIRMADO` (Agent Linx / rotina diária): garantir `PRODUTOS.ENVIA_ATACADO_INTERNET = 1` para produtos da planilha; se diferente de `1`, o fluxo diário corrige apenas esse campo antes da integração.
+- `CONFIRMADO` (Agent Linx / rotina diária): verificar `PRODUTOS_PRECOS.CODIGO_TAB_PRECO = 'DL'`; produto sem `DL` não integra como ativo no WISE no fluxo validado, embora isso não bloqueie `MB_PROD_EXTRA_WEB` nem `ENVIA_ATACADO_INTERNET`.
+- `NAO_USAR`: o WISE Agent não deve inserir/alterar `PRODUTOS_PRECOS`, `PRODUTO_CORES` ou demais tabelas Linx para "consertar" elegibilidade; deve encaminhar a validação/regra ao Agent Linx ou ao runbook da rotina diária.
+
+## `MB_PROD_EXTRA_WEB` — Referência Cruzada Linx
+
+`MB_PROD_EXTRA_WEB` é responsabilidade primária do Agent Linx e da rotina diária Linx/WISE, não do WISE Agent. O WISE Agent deve apenas referenciar esta regra quando uma integração de planilha afetar a interpretação do conjunto WISE.
+
+- `CONFIRMADO` (Agent Linx / rotina diária): chave operacional `PRODUTO + COR_PRODUTO + DATA_LIMITE`.
+- `CONFIRMADO` (Agent Linx / rotina diária): mapeamento de planilha validado: `DATA -> DATA_LIMITE`; `TAM_1..TAM_7 -> EX1..EX7`.
+- `CONFIRMADO` (Agent Linx / rotina diária): `TOTAL ARGENTINA` é usado apenas para validar o `TOTAL` calculado.
+- `CONFIRMADO` (schema Linx): `MB_PROD_EXTRA_WEB.TOTAL` é coluna computada a partir de `EX1..EX48`.
+- `NAO_USAR`: nunca executar `INSERT`, `UPDATE` ou `SET` direto em `MB_PROD_EXTRA_WEB.TOTAL`.
 
 ## Showcase — API HTTP Confirmada (Compuwise/WiseCommerce)
 
@@ -107,6 +132,27 @@ Padrão herdado de [linx-wise-daily-integration.md](./linx-wise-daily-integratio
 - `NAO_USAR`: nunca transformar uma consulta aparentemente simples em operação destrutiva (ex.: nunca "corrigir" um dado percebido como errado sem autorização explícita).
 - `NAO_USAR`: nunca imprimir token, senha, connection string ou conteúdo de `.env`/segredo em qualquer saída, log, arquivo versionado ou memória textual.
 
+## Erros e Lições Aprendidas — CONFIRMADO / NAO_USAR
+
+- `CONFIRMADO` (via [linx-wise-daily-integration.md](./linx-wise-daily-integration.md#wise-destination)): uma tentativa anterior de `INSERT` remoto por nome de quatro partes em `[WISE_AZURE].[SOMA_LINX].[dbo].[WS_ESTOQUE_PRODUTOS]` falhou com provider `SQLNCLI11` / SQL Server `7399`. Contexto: tentativa de criar linha remota ausente durante integração diária. Investigação: o fluxo passou a identificar previamente linhas remotas ausentes e tratá-las como erro/pendência quando o script atual não tem caminho seguro de `INSERT` via Linked Server. Status: não transformar em limitação universal do WISE; o erro é conhecimento diagnóstico e o caminho validado para a execução atual foi atualização/inativação de linhas existentes com validação por releitura.
+- `CONFIRMADO`: updates direcionados por nome de quatro partes contra `WS_ESTOQUE_PRODUTOS` foram usados com sucesso para reativar (`DT_EXCLUSAO = NULL`), inativar (`DT_EXCLUSAO = GETDATE()`) e atualizar saldo/grade, sempre restritos por `ID_CAMPANHA` e chave `PRODUTO + COR_PRODUTO`.
+- `CONFIRMADO`: `FN_CONSULTA_SALDO_WEB_WISE('%','%',NULL,NULL)` é a chamada validada como fonte de saldo no fluxo diário; uma chamada com `NULL,NULL,NULL,NULL` retornou zero linhas nesse ambiente e não deve ser usada como default.
+
+## Procedures Legadas — LEGADO / NAO_USAR
+
+`LEGADO` identificado em [linx-wise-daily-integration.md](./linx-wise-daily-integration.md#legacy-procedures-studied). Servem como referência de regra, mapeamentos, chaves, destino e semântica histórica; não são autorização para execução.
+
+- `dbo.PROC_INTEGRACAO_LINX_WISE_TB_AUXILIARES_COM_ESTOQUE`
+- `dbo.PROC_INTEGRACAO_LINX_WISE_PRODUTOS`
+- `dbo.PROC_INTEGRACAO_LINX_WISE_ESTOQUE`
+
+Regras:
+
+- `NAO_USAR`: não executar automaticamente essas procedures durante rotinas atuais.
+- `NAO_USAR`: não reproduzir a estratégia legada ampla de `DELETE + INSERT` / recarga completa de campanha.
+- `NAO_USAR`: não usar `ID_CAMPANHA = 99` ou filtros hardcoded legados fora de escopo explicitamente aprovado pelo Product Owner.
+- `CONFIRMADO`: a procedure de estoque ajudou a confirmar a origem `FN_CONSULTA_SALDO_WEB_WISE('%','%',NULL,NULL)` e o mapeamento `SALDO_DISPONIVEL -> ESTOQUE`, `D1..D16 -> ES1..ES16`.
+
 ## Relação com o Agent Linx
 
 - **Agent Linx** (`LinxErpSpecialistAgent` / `LinxDatabaseSpecialistAgent`, ver [backend/src/BlueprintOS.Application/Knowledge/Linx/LinxSpecialistAgents.cs](../../backend/src/BlueprintOS.Application/Knowledge/Linx/LinxSpecialistAgents.cs)): especialista no ERP Visual Linx — suas tabelas, regras funcionais e schema estrutural (`SOMA_DESENV`). Consultado quando a pergunta é sobre produto, cor, preço, grade ou regra de negócio do lado Linx/ERP.
@@ -131,4 +177,5 @@ Um WISE Agent que carregou este documento deve conseguir responder, sem consulta
 4. Qual chave usar para relacionar produto/cor: `PRODUTO + COR_PRODUTO` (WISE) ↔ `REF + COR` (Showcase) — nunca descrição.
 5. Quais operações pode realizar automaticamente: `SELECT`, metadados, chamadas de leitura à API do Showcase.
 6. Quais operações exigem autorização explícita: qualquer escrita (`INSERT`/`UPDATE`/`DELETE`/`TRUNCATE`/`MERGE`/`ALTER`/`DROP`/`CREATE`/procedures de escrita) e escolha de `ID_CAMPANHA`.
-7. O que ainda não está mapeado e não deve ser tratado como certo: mapeamento `ES1..ES16` → PP/P/M/G/GG na tabela WISE; correspondência `collection_Id` do Showcase ↔ `ID_CAMPANHA` do WISE; validação linha a linha do cruzamento Showcase × `WS_ESTOQUE_PRODUTOS`; schema completo de `WS_ESTOQUE_PRODUTOS` além das colunas já citadas.
+7. Em uma integração autorizada da campanha 54, qual sequência conceitual seguir: Agent Linx valida `PRODUTOS`, `PRODUTO_CORES`, `ENVIA_ATACADO_INTERNET` e `DL`; Agent WISE usa o conjunto aprovado para reconciliar atividade (`DT_EXCLUSAO`) antes de atualizar saldos/grades.
+8. O que ainda não está mapeado e não deve ser tratado como certo: mapeamento `ES1..ES16` → PP/P/M/G/GG na tabela WISE; correspondência `collection_Id` do Showcase ↔ `ID_CAMPANHA` do WISE; validação linha a linha do cruzamento Showcase × `WS_ESTOQUE_PRODUTOS`; schema completo de `WS_ESTOQUE_PRODUTOS` além das colunas já citadas.
