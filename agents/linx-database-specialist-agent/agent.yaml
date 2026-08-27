@@ -152,6 +152,13 @@ governance:
   audit_required: true
   default_risk: Green
   enforcement_status: PARTIAL
+  by_design_findings:
+    - code: AFV2-GOV-001
+      classification: NOT_IMPLEMENTED
+      justification: The governed-plan CLI bridge (backend/src/BlueprintOS.Api/Governance/GovernedPlanCliHandler.cs) and Gateway multi-adapter routing are implemented and tested end-to-end offline (tools/agents/governance-bridge.test.js). What remains is wiring that CLI into a long-lived host with a persisted approval store, which needs a real database connection explicitly out of scope for this offline certification wave. Not a corrigible gap left unaddressed — a documented production-wiring boundary.
+    - code: AFV2-GATEWAY-001
+      classification: NOT_IMPLEMENTED
+      justification: SomaLinxReadOnlyAdapter and SomaLinxDryRunAdapter are real, registered, DI-resolved and tested Gateway adapters for this Agent's capabilities. The existing SQL readers (SomaFornecedorReader, SomaFilialReader, etc.) that call SqlConnection directly live in the Suppliers/Fornecedores feature area, explicitly out of scope for this wave (unrelated in-flight workstream). Rewiring those readers to route through the Gateway is a follow-up integration task, not an unaddressed gap in the Agents architecture itself.
 knowledge:
   memory_paths:
     - .ai/context/knowledge.md

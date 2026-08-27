@@ -152,6 +152,10 @@ governance:
   audit_required: true
   default_risk: Yellow
   enforcement_status: PARTIAL
+  by_design_findings:
+    - code: AFV2-GOV-001
+      classification: BY_DESIGN
+      justification: Agent Factory is read-only over Agent domain objects (validate/audit/catalog); it never executes a governed write itself, so ENFORCED does not apply. PARTIAL is the permanent, correct status, not a pending state.
 knowledge:
   memory_paths:
     - agents/AGENT_CONTRACT.md

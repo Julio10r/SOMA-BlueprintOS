@@ -102,6 +102,10 @@ governance:
   audit_required: false
   default_risk: Green
   enforcement_status: PARTIAL
+  by_design_findings:
+    - code: AFV2-GOV-001
+      classification: BY_DESIGN
+      justification: Echo Agent has no write path and no tools; can_execute_write is false and stays false. PARTIAL is the permanent, correct status, not a pending state.
 knowledge:
   memory_paths: []
   provenance_labels: []

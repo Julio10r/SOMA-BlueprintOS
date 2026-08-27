@@ -127,6 +127,13 @@ governance:
   audit_required: true
   default_risk: Green
   enforcement_status: PARTIAL
+  by_design_findings:
+    - code: AFV2-GOV-001
+      classification: NOT_IMPLEMENTED
+      justification: The governed-plan CLI bridge and Gateway routing are implemented and tested offline for this Agent's capability. Promoting to ENFORCED requires wiring that CLI into a long-lived host with a persisted approval store, which needs a real database connection explicitly out of scope for this offline certification wave.
+    - code: AFV2-GATEWAY-001
+      classification: NOT_IMPLEMENTED
+      justification: LinxKnowledgeStoreReadOnlyAdapter (backend/src/BlueprintOS.Core/AI/Governance/LinxKnowledgeStoreReadOnlyAdapter.cs) is a real, registered, DI-resolved and tested Gateway adapter for the linx-knowledge-store profile (ConnectionStrings:MaisComprasConnection). The existing reader (B1ConnectivityValidator) that opens this connection directly is a live connectivity-check utility outside Agents governance scope; rewiring it to route through the Gateway is a follow-up integration task, not an unaddressed architectural gap.
 knowledge:
   memory_paths:
     - .ai/context/knowledge.md

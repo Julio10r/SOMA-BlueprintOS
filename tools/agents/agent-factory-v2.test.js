@@ -63,6 +63,51 @@ const audit = factory.audit();
 assert.equal(audit.agents.length, 8);
 assert(audit.agents.some((item) => item.findings.length > 0), "Audit must generate objective findings");
 assert.deepEqual(manifestHashes(), beforeAudit, "AUDIT must not modify Agent files");
+
+// Semantic classification (Agents v1 final certification wave): every WARNING finding must
+// carry a machine-readable classification, and it must never default to hiding a real gap —
+// ACTION_REQUIRED is the default when the manifest declares nothing for that finding code.
+const allWarnings = audit.agents.flatMap((item) => item.findings).filter((f) => f.severity === "WARNING");
+assert(allWarnings.length >= 12, "classification must not remove or hide any pre-existing WARNING finding");
+for (const item of allWarnings) {
+  assert(["ACTION_REQUIRED", "BY_DESIGN", "NOT_IMPLEMENTED"].includes(item.classification), `unexpected classification ${item.classification}`);
+  if (item.classification !== "ACTION_REQUIRED") {
+    assert(item.classification_justification && item.classification_justification.trim().length > 0, `${item.agent_id}/${item.id} classification requires a non-empty justification`);
+  }
+}
+assert.equal(audit.classification_summary.ACTION_REQUIRED, 0, "this canonical repository state must have zero unclassified/unaddressed architectural WARNING findings");
+assert(audit.classification_summary.BY_DESIGN + audit.classification_summary.NOT_IMPLEMENTED >= 12);
+
+// An agent with no by_design_findings declared at all must still get ACTION_REQUIRED, not a
+// silent pass-through — classification is opt-in evidence, never an opt-out from scrutiny.
+// Uses an isolated tmpdir fixture built from echoRecord's raw text (never touches the real
+// committed agents/echo-agent/agent.yaml, and never round-trips it through toYaml, which
+// would silently drop hand-written comments).
+const undeclaredText = echoRecord.text.replace(/\n {2}by_design_findings:\n(?: {4}-[^\n]*\n(?: {6}[^\n]*\n)*)+/, "\n");
+assert(!undeclaredText.includes("by_design_findings"), "fixture text must actually have the block removed");
+const classificationFixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), "agent-factory-classification-"));
+try {
+  fs.mkdirSync(path.join(classificationFixtureRoot, "agents/echo-agent"), { recursive: true });
+  fs.copyFileSync(path.join(repoRoot, "agents/agent.schema.json"), path.join(classificationFixtureRoot, "agents/agent.schema.json"));
+  fs.writeFileSync(path.join(classificationFixtureRoot, "agents/echo-agent/agent.yaml"), undeclaredText);
+  for (const declaredPath of [
+    ...echoRecord.manifest.implementation.code_paths, ...echoRecord.manifest.implementation.prompt_paths,
+    ...echoRecord.manifest.implementation.context_paths, ...echoRecord.manifest.implementation.runbook_paths,
+    ...echoRecord.manifest.implementation.script_paths, ...echoRecord.manifest.implementation.docs_paths,
+    ...echoRecord.manifest.knowledge.memory_paths, ...echoRecord.manifest.tests.unit, ...echoRecord.manifest.tests.integration,
+    ...echoRecord.manifest.tests.safety, ...echoRecord.manifest.tests.contract,
+  ]) {
+    const target = path.join(classificationFixtureRoot, declaredPath);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    if (!fs.existsSync(target)) fs.writeFileSync(target, "fixture\n");
+  }
+  const reaudited = new AgentFactoryV2({ repoRoot: classificationFixtureRoot }).audit();
+  const echoGov = reaudited.agents.find((item) => item.id === "echo-agent").findings.find((f) => f.id === "AFV2-GOV-001");
+  assert.equal(echoGov.classification, "ACTION_REQUIRED");
+  assert.equal(echoGov.classification_justification, null);
+} finally {
+  fs.rmSync(classificationFixtureRoot, { recursive: true, force: true });
+}
 assert.equal(statusFromFindings([]), "PASS");
 assert.equal(statusFromFindings([{ severity: "WARNING" }]), "WARN");
 assert.equal(statusFromFindings([{ severity: "ERROR" }]), "FAIL");

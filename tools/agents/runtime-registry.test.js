@@ -56,8 +56,17 @@ assert.equal(linx.delegation_required, true);
 assert(linx.cross_cutting_candidates.some((candidate) => candidate.agent_id === "security-lgpd-agent"));
 assert.equal(linx.cross_cutting_agents.length, 0);
 assert(linx.relationships.workflows.some((workflow) => workflow.includes("Linx/WISE")));
-assert.equal(linx.connection_profiles["linx-erp-read-only"].access_intent, "read-only");
-assert.equal("password" in linx.connection_profiles["linx-erp-read-only"], false);
+// "linx-erp-read-only"/"linx-erp-governed-write" were the pre-DatabaseConnectionPolicyV1 manifest
+// profile names (both pointing at the same undifferentiated ErpConnection string — see
+// docs/audits/DatabaseConnectionPolicyV1.md "Baseline"). They were replaced by environment-scoped
+// profiles ("linx-development" / "linx-production", each with its own connection string) as part of
+// that canonical migration; this assertion was never updated to match. "linx-erp-governed-write"
+// lives on, unambiguously, as a *different* concept: the Tool Gateway's governed-write profile
+// (backend/src/BlueprintOS.Core/AI/Governance/SomaLinxDryRunAdapter.cs), which is a Gateway/adapter
+// routing identifier, not a physical connection profile — it never belonged in this manifest-level
+// assertion in the first place.
+assert.equal(linx.connection_profiles["linx-development"].access_intent, "read-only");
+assert.equal("password" in linx.connection_profiles["linx-development"], false);
 
 const security = registry.resolveCapability("security-privacy-review");
 assert.equal(security.status, "CAPABILITY_GAP", "Complementary ownership alone must not become primary");

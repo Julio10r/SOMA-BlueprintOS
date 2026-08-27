@@ -6,27 +6,25 @@ using BlueprintOS.Core.AI.Governance.Models;
 namespace BlueprintOS.Core.AI.Governance;
 
 /// <summary>
-/// Formal Gateway-registered adapter for read-only Linx/SOMA access
-/// (schema discovery, vendor/filial/centro-de-custo lookups). The underlying
-/// SQL readers in BlueprintOS.Infrastructure.Integrations.ERP.Soma remain
-/// SELECT-only by construction; this adapter is the governed front door that
-/// makes that access routable/auditable through the same Tool Gateway used
-/// for governed writes, without requiring approval for a plain read when the
-/// Policy Engine does not demand it.
+/// Governed Gateway front door for linx-erp-specialist-agent's real external
+/// access path: ConnectionStrings:MaisComprasConnection (manifest profile
+/// "linx-knowledge-store", agents/linx-erp-specialist-agent/agent.yaml), used
+/// today by BlueprintOS.Infrastructure.Persistence.B1ConnectivityValidator for
+/// read-only connectivity checks (the `validate-maiscompras` CLI command).
+/// This adapter does not replace that reader — it gives the Gateway a
+/// routable/auditable entry for the same read-only capability, resolving the
+/// AFV2-GATEWAY-001 finding for this Agent as a real (not fabricated) adapter,
+/// since the underlying external access genuinely exists and is read-only by
+/// construction (SELECT 1 / SUSER_SNAME() connectivity probes only).
 /// </summary>
-public sealed class SomaLinxReadOnlyAdapter : IGovernedToolAdapter
+public sealed class LinxKnowledgeStoreReadOnlyAdapter : IGovernedToolAdapter
 {
-    public const string Capability = "soma-database-read-proposal";
-    public const string OwnerAgent = "linx-database-specialist-agent";
+    public const string Capability = "linx-erp-knowledge-read-proposal";
+    public const string OwnerAgent = "linx-erp-specialist-agent";
 
     string IGovernedToolAdapter.Capability => Capability;
     string IGovernedToolAdapter.OwnerAgent => OwnerAgent;
-    // "linx-erp-governed-read" is a Tool Gateway routing profile, not a physical DB connection
-    // profile — do not confuse it with the manifest-level "linx-development"/"linx-production"
-    // profiles (agents/DATABASE_CONNECTION_POLICY.md), which describe real connection strings.
-    // Named for symmetry with the pre-existing "linx-erp-governed-write" Gateway profile used by
-    // SomaLinxDryRunAdapter. See docs/audits/AgentsV1-FinalCertification.md for the full rationale.
-    public IReadOnlyList<string> AllowedConnectionProfiles { get; } = ["linx-erp-governed-read", "linx-erp-governed-write"];
+    public IReadOnlyList<string> AllowedConnectionProfiles { get; } = ["linx-knowledge-store"];
 
     public Task<SomaLinxDryRunPreview> DryRunAsync(ToolGatewayRequest request, CancellationToken cancellationToken = default)
     {

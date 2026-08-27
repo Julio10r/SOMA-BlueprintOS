@@ -11,6 +11,7 @@ const allowedTypes = new Set(["runtime", "knowledge", "operational", "hybrid"]);
 const allowedStatus = new Set(["active", "planned", "deprecated", "retired"]);
 const allowedRisks = new Set(["Green", "Yellow", "Red", "Unknown"]);
 const allowedEnforcement = new Set(["ENFORCED", "DOCUMENTAL", "PARTIAL", "PLANNED"]);
+const allowedByDesignClassifications = new Set(["BY_DESIGN", "NOT_IMPLEMENTED", "ACTION_REQUIRED"]);
 const allowedOwnership = new Set(["primary", "complementary"]);
 const allowedCredentialStrategies = new Set(["none", "user-managed", "service-identity-managed"]);
 const allowedAccessIntents = new Set(["read-only", "governed-write", "AINDA_NAO_MAPEADO"]);
@@ -49,7 +50,28 @@ function parseManifest(text, filePath = "manifest") {
 
     if (line.startsWith("- ")) {
       if (!Array.isArray(parent)) throw new Error(`${filePath}:${index + 1}: list item without list parent`);
-      parent.push(parseScalar(line.slice(2)));
+      const rest = line.slice(2);
+      // "- key: value" / "- key:" starts a list-of-objects item (e.g. governance.by_design_findings).
+      // Deliberately narrow (bare identifier immediately followed by ':') so it never misfires on a
+      // quoted or free-text scalar list item (the only kind of list this parser has supported so far)
+      // that happens to contain a colon further in the string.
+      const inlineKey = rest.match(/^([A-Za-z_][A-Za-z0-9_]*):(?:\s+(.*)|)$/);
+      if (inlineKey) {
+        const [, key, inlineValue] = inlineKey;
+        const obj = {};
+        parent.push(obj);
+        if (inlineValue !== undefined && inlineValue !== "") {
+          obj[key] = parseScalar(inlineValue);
+        } else {
+          const nextLine = lines.slice(index + 1).find((candidate) => candidate.trim() && !candidate.trim().startsWith("#"));
+          const child = nextLine && nextLine.trim().startsWith("- ") ? [] : {};
+          obj[key] = child;
+          stack.push({ indent, value: child });
+        }
+        stack.push({ indent, value: obj });
+        continue;
+      }
+      parent.push(parseScalar(rest));
       continue;
     }
 
@@ -167,6 +189,18 @@ function validateManifest(manifest, text, relativePath, knownAgentIds, options =
   if (typeof manifest.governance?.audit_required !== "boolean") add("governance.audit_required must be boolean");
   if (!allowedRisks.has(manifest.governance?.default_risk)) add(`invalid default_risk ${manifest.governance?.default_risk}`);
   if (!allowedEnforcement.has(manifest.governance?.enforcement_status)) add(`invalid enforcement_status ${manifest.governance?.enforcement_status}`);
+  if (manifest.governance?.by_design_findings !== undefined) {
+    if (!Array.isArray(manifest.governance.by_design_findings)) {
+      add("governance.by_design_findings must be an array");
+    } else {
+      for (const entry of manifest.governance.by_design_findings) {
+        if (!entry || typeof entry !== "object" || Array.isArray(entry)) { add("governance.by_design_findings entries must be objects"); continue; }
+        if (!entry.code || typeof entry.code !== "string") add("governance.by_design_findings entry missing code");
+        if (!allowedByDesignClassifications.has(entry.classification)) add(`governance.by_design_findings entry has invalid classification ${entry.classification}`);
+        if (!entry.justification || typeof entry.justification !== "string" || !entry.justification.trim()) add(`governance.by_design_findings entry for ${entry.code} is missing a non-empty justification`);
+      }
+    }
+  }
   if (typeof manifest.observability?.redaction_required !== "boolean") add("observability.redaction_required must be boolean");
   if (typeof manifest.catalog?.display_order !== "number") add("catalog.display_order must be number");
 

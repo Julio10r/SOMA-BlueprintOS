@@ -127,6 +127,10 @@ governance:
   audit_required: true
   default_risk: Unknown
   enforcement_status: PARTIAL
+  by_design_findings:
+    - code: AFV2-GOV-001
+      classification: BY_DESIGN
+      justification: Security/LGPD is cross-cutting and consultative by design (agents/EXECUTION_POLICY.md); it interprets risk but the deterministic decision belongs to AIGovernancePolicyEngine, so it never becomes the sole ENFORCED authority itself. PARTIAL is the permanent, correct status, not a pending state.
 knowledge:
   memory_paths:
     - .ai/context/security.md

@@ -132,6 +132,13 @@ governance:
   audit_required: true
   default_risk: Green
   enforcement_status: DOCUMENTAL
+  by_design_findings:
+    - code: AFV2-GOV-001
+      classification: NOT_IMPLEMENTED
+      justification: The pyodbc write bypass in scripts/linx_wise_daily_integration.py has been contained (plan-only by default; real writes require --execute plus a hash-bound local approval record) and now consults the real AIGovernancePolicyEngine via the governed-plan CLI bridge before any write path check, verified offline in scripts/test_linx_wise_daily_integration_governance.py. A Blocked/Red verdict from that engine cannot be overridden locally. What remains is a persisted, cross-process approval store shared with the real ApprovalPolicy, which needs a real database connection explicitly out of scope for this offline certification wave.
+    - code: AFV2-GATEWAY-001
+      classification: NOT_IMPLEMENTED
+      justification: WiseGovernedAdapter (backend/src/BlueprintOS.Core/AI/Governance/WiseGovernedAdapter.cs) is a real, registered, DI-resolved and tested DryRun-only Gateway adapter for this Agent's write capability, sharing the exact wire contract with the WISE script's plan-only output. Full ENFORCED status needs the same persisted cross-process approval store described above.
 knowledge:
   memory_paths:
     - .ai/context/wise-knowledge.md

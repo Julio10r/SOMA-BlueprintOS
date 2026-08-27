@@ -33,6 +33,18 @@
   "$defs": {
     "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
     "stringList": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "byDesignFindingList": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["code", "classification", "justification"],
+        "properties": {
+          "code": { "type": "string", "minLength": 1 },
+          "classification": { "enum": ["BY_DESIGN", "NOT_IMPLEMENTED", "ACTION_REQUIRED"] },
+          "justification": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "path": { "type": "string", "minLength": 1, "not": { "pattern": "(?i)(password|passwd|secret|token|cookie|api[_-]?key|connection[_-]?string)\\s*[:=]" } },
     "pathList": { "type": "array", "items": { "$ref": "#/$defs/path" }, "uniqueItems": true },
     "responsibility": {
@@ -98,7 +110,7 @@
     "governance": {
       "type": "object", "additionalProperties": false,
       "required": ["read_only", "can_propose_write", "can_execute_write", "can_execute_destructive_operation", "policy_engine_required", "requires_action_proposal_for", "approval_required_for", "audit_required", "default_risk", "enforcement_status"],
-      "properties": { "read_only": { "type": "boolean" }, "can_propose_write": { "type": "boolean" }, "can_execute_write": { "type": "boolean" }, "can_execute_destructive_operation": { "type": "boolean" }, "policy_engine_required": { "type": "boolean" }, "requires_action_proposal_for": { "$ref": "#/$defs/stringList" }, "approval_required_for": { "$ref": "#/$defs/stringList" }, "audit_required": { "type": "boolean" }, "default_risk": { "enum": ["Green", "Yellow", "Red", "Unknown"] }, "enforcement_status": { "enum": ["ENFORCED", "DOCUMENTAL", "PARTIAL", "PLANNED"] } }
+      "properties": { "read_only": { "type": "boolean" }, "can_propose_write": { "type": "boolean" }, "can_execute_write": { "type": "boolean" }, "can_execute_destructive_operation": { "type": "boolean" }, "policy_engine_required": { "type": "boolean" }, "requires_action_proposal_for": { "$ref": "#/$defs/stringList" }, "approval_required_for": { "$ref": "#/$defs/stringList" }, "audit_required": { "type": "boolean" }, "default_risk": { "enum": ["Green", "Yellow", "Red", "Unknown"] }, "enforcement_status": { "enum": ["ENFORCED", "DOCUMENTAL", "PARTIAL", "PLANNED"] }, "by_design_findings": { "$ref": "#/$defs/byDesignFindingList" } }
     },
     "knowledge": { "type": "object", "additionalProperties": false, "required": ["memory_paths", "provenance_labels", "update_rules"], "properties": { "memory_paths": { "$ref": "#/$defs/pathList" }, "provenance_labels": { "$ref": "#/$defs/stringList" }, "update_rules": { "$ref": "#/$defs/stringList" } } },
     "observability": { "type": "object", "additionalProperties": false, "required": ["logs", "metrics", "audit_events", "redaction_required"], "properties": { "logs": { "$ref": "#/$defs/stringList" }, "metrics": { "$ref": "#/$defs/stringList" }, "audit_events": { "$ref": "#/$defs/stringList" }, "redaction_required": { "type": "boolean" } } },

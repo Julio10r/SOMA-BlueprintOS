@@ -138,6 +138,13 @@ governance:
   audit_required: true
   default_risk: Green
   enforcement_status: DOCUMENTAL
+  by_design_findings:
+    - code: AFV2-GOV-001
+      classification: NOT_IMPLEMENTED
+      justification: No real Showcase access code exists anywhere in this repository (confirmed by repo-wide search in docs/audits/AUDITORIA_AGENTS_FINALIZATION.md and reconfirmed this wave) — there is nothing to enforce yet. DOCUMENTAL is honest, not a gap left unaddressed.
+    - code: AFV2-GATEWAY-001
+      classification: NOT_IMPLEMENTED
+      justification: No real Showcase API/browser access code exists to adapt. A fabricated adapter with no real external call behind it would be worse than the warning — it would misrepresent enforcement. This finding stays open and visible until real Showcase access code exists to govern.
 knowledge:
   memory_paths:
     - .ai/context/showcase-knowledge.md

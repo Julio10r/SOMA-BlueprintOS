@@ -43,6 +43,22 @@ function finding(agentId, id, severity, category, criterion, evidence, actual, e
   };
 }
 
+// Attaches a machine-readable classification to a finding using the manifest's own
+// governance.by_design_findings declarations — never changes severity or removes the
+// finding (it still counts, still shows up, still requires the same human review). This
+// is the semantic distinction the AUDIT report needs between "nobody looked at this yet"
+// (ACTION_REQUIRED, the default when nothing is declared) and "looked at, and here is why
+// it is intentionally not ENFORCED / not implementable yet" (BY_DESIGN / NOT_IMPLEMENTED
+// with an explicit, evidenced justification the manifest author is accountable for).
+function classifyFinding(manifestFinding, byDesignDeclarations) {
+  const declared = (byDesignDeclarations || []).find((entry) => entry.code === manifestFinding.id);
+  return {
+    ...manifestFinding,
+    classification: declared ? declared.classification : "ACTION_REQUIRED",
+    classification_justification: declared ? declared.justification : null,
+  };
+}
+
 function statusFromFindings(findings) {
   if (findings.some((item) => item.severity === "ERROR")) return "FAIL";
   if (findings.some((item) => item.severity === "WARNING")) return "WARN";
@@ -151,20 +167,33 @@ class AgentFactoryV2 {
       if (Object.keys(manifest.connections.profiles).length > 0 && manifest.governance.enforcement_status !== "ENFORCED") {
         findings.push(finding(manifest.id, "AFV2-GATEWAY-001", "WARNING", "SECURITY", "External access must eventually be mediated by governed tools", `${record.relativePath}:connections`, "Connection profile exists without universal Tool Gateway enforcement", "Governed adapter plus policy, approval and audit where applicable", "Address in the future Tool Gateway; do not bypass the responsible Agent.", { requiresHumanApproval: false }));
       }
-      return { id: manifest.id, status: statusFromFindings(findings), findings };
+      // Classification never changes severity/status or removes a finding — it only adds
+      // machine-readable evidence about whether a WARNING is still actionable
+      // (ACTION_REQUIRED, the default when the manifest declares nothing) or has been
+      // reviewed and is intentionally BY_DESIGN/NOT_IMPLEMENTED with a stated reason.
+      const classifiedFindings = findings.map((item) => classifyFinding(item, manifest.governance.by_design_findings));
+      return { id: manifest.id, status: statusFromFindings(classifiedFindings), findings: classifiedFindings };
     });
 
     const repositoryFindings = (validationByAgent.get("repository") || []).map((error) =>
-      finding("repository", "AFV2-REG-001", "ERROR", "REGISTRATION", "Canonical Agent set must validate as a repository", "agents/*/agent.yaml", error, "Repository validation passes", "Repair registration inconsistency after review."));
-    repositoryFindings.push(...this.canonicalPolicyFindings());
+      classifyFinding(finding("repository", "AFV2-REG-001", "ERROR", "REGISTRATION", "Canonical Agent set must validate as a repository", "agents/*/agent.yaml", error, "Repository validation passes", "Repair registration inconsistency after review."), null));
+    repositoryFindings.push(...this.canonicalPolicyFindings().map((item) => classifyFinding(item, null)));
+
+    const allFindings = [...repositoryFindings, ...agents.flatMap((item) => item.findings)];
+    const classificationSummary = { ACTION_REQUIRED: 0, BY_DESIGN: 0, NOT_IMPLEMENTED: 0 };
+    for (const item of allFindings) {
+      if (item.severity !== "WARNING") continue; // classification is meaningful for WARNING findings; ERRORs are never BY_DESIGN.
+      classificationSummary[item.classification] = (classificationSummary[item.classification] || 0) + 1;
+    }
 
     return {
       contract_version: "1.1",
       timestamp: this.clock().toISOString(),
       operation: "AUDIT",
-      status: statusFromFindings([...repositoryFindings, ...agents.flatMap((item) => item.findings)]),
+      status: statusFromFindings(allFindings),
       agents,
       findings: repositoryFindings,
+      classification_summary: classificationSummary,
     };
   }
 

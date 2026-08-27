@@ -346,9 +346,10 @@ const AGENTS = [
       { alvo: "Showcase Agent", nota: "Transversal: exportações locais sensíveis devem ser avaliadas quando conectadas." },
     ],
     pendencias: [
-      "Tool Gateway universal ainda planejado.",
-      "Persistência de approvals/auditoria ainda planejada.",
-      "WISE/Showcase scripts ainda não passam tecnicamente pelo Policy Engine.",
+      "Tool Gateway multi-adapter implementado e testado (SomaLinxDryRunAdapter, SomaLinxReadOnlyAdapter, WiseGovernedAdapter, LinxKnowledgeStoreReadOnlyAdapter); Showcase segue sem adapter por não existir ainda código de acesso real a governar.",
+      "Persistência de approvals/auditoria real via EF Core implementada (GovernedWriteStack + EfApprovalStore/EfGovernanceAuditStore); ver docs/audits/AgentsV1-FinalCertification.md.",
+      "WISE agora consulta o AIGovernancePolicyEngine real via bridge antes de qualquer escrita (scripts/linx_wise_daily_integration.py); Showcase permanece sem código de acesso real a passar por qualquer engine.",
+      "Persistência de approval ainda não é compartilhada entre o processo Python/CLI e um host de longa duração — depende de conexão real de banco, fora do escopo desta certificação offline.",
     ],
     exemplo: "AÇÃO REQUER AUTORIZAÇÃO: Ambiente, Sistema, Recurso, Operação, Campos, Filtro, Registros, Finalidade, Dados pessoais, Reversibilidade e Risco.",
   },

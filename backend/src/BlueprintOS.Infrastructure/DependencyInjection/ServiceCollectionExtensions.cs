@@ -154,6 +154,7 @@ public static class ServiceCollectionExtensions
         // referenciasse BlueprintOS.Application, invertendo a direção de dependência das camadas.
         services.AddScoped<LinxErpSpecialistAgent>();
         services.AddScoped<LinxDatabaseSpecialistAgent>();
+        services.AddGovernedWriteStack();
 
         services.Configure<NegotiationScoreOptions>(configuration.GetSection(NegotiationScoreOptions.SectionName));
         services.AddSingleton<INegotiationMemoryStore, InMemoryNegotiationMemoryStore>();

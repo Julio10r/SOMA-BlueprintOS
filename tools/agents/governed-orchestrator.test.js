@@ -73,7 +73,7 @@ const update = orchestrator.orchestrate(base({
   reversibility: "PartiallyReversible",
   runbook_reference: "logical-runbook-reference",
   workflow_reference: "Linx/WISE daily integration",
-  connection_profile: "linx-erp-read-only",
+  connection_profile: "linx-erp-governed-read",
 }));
 assert.equal(update.execution_status, "BLOCKED_CAPABILITY_GAP");
 assert.equal(update.routes[0].primary_agent, "linx-database-specialist-agent");
@@ -86,7 +86,7 @@ assert.equal(update.approval_granted, false);
 assert.equal(update.direct_bypass_allowed, false);
 assert.equal(update.runbook_reference, "logical-runbook-reference");
 assert(update.workflows.includes("Linx/WISE daily integration"));
-assert(update.connection_profiles.includes("linx-erp-read-only"));
+assert(update.connection_profiles.includes("linx-erp-governed-read"));
 assert.equal(update.credential_resolution_required, true);
 
 const governedUpdate = orchestrator.orchestrate(base({

@@ -241,7 +241,7 @@ public sealed class GovernedWriteStackTests
         var context = Context(OperationIntent.Read) with
         {
             RequestedCapabilities = [SomaLinxReadOnlyAdapter.Capability],
-            ConnectionProfile = "linx-erp-read-only",
+            ConnectionProfile = "linx-erp-governed-read",
         };
         var routing = new RoutingEvidence(true, SomaLinxReadOnlyAdapter.OwnerAgent, [], [], [], []);
         var analysis = new AgentWriteAnalysis(SomaLinxReadOnlyAdapter.OwnerAgent, SomaLinxReadOnlyAdapter.Capability, [], null, null, ActionReversibility.Reversible);
@@ -253,11 +253,39 @@ public sealed class GovernedWriteStackTests
         var request = new ToolGatewayRequest(
             SomaLinxReadOnlyAdapter.Capability, SomaLinxReadOnlyAdapter.OwnerAgent, true,
             preparation.ProposalBuild.Proposal!, preparation.PolicyDecision!, null,
-            [], "linx-erp-read-only",
+            [], "linx-erp-governed-read",
             new IdentityPermissionContext("subject-executor-001", HasEffectivePermission: true),
             GovernedExecutionMode.DryRun);
         var result = await fixture.Stack.DryRunAsync(request);
         Assert.Equal(ToolGatewayStatus.DryRunCompleted, result.Status);
+    }
+
+    [Fact]
+    public async Task LinxKnowledgeStore_ReadOnly_Adapter_Routes_Through_Gateway_Without_Approval()
+    {
+        await using var fixture = CreateFixture(includeReadOnlyAndWiseAdapters: true);
+        var context = Context(OperationIntent.Read) with
+        {
+            RequestedCapabilities = [LinxKnowledgeStoreReadOnlyAdapter.Capability],
+            System = "ERP Visual Linx",
+            ConnectionProfile = "linx-knowledge-store",
+        };
+        var routing = new RoutingEvidence(true, LinxKnowledgeStoreReadOnlyAdapter.OwnerAgent, [], [], [], []);
+        var analysis = new AgentWriteAnalysis(LinxKnowledgeStoreReadOnlyAdapter.OwnerAgent, LinxKnowledgeStoreReadOnlyAdapter.Capability, [], null, null, ActionReversibility.Reversible);
+        var preparation = await fixture.Stack.PrepareAsync(context, routing, analysis);
+
+        Assert.Equal(PolicyDecisionStatus.Allowed, preparation.PolicyDecision!.Status);
+        Assert.Null(preparation.ApprovalRequest);
+
+        var request = new ToolGatewayRequest(
+            LinxKnowledgeStoreReadOnlyAdapter.Capability, LinxKnowledgeStoreReadOnlyAdapter.OwnerAgent, true,
+            preparation.ProposalBuild.Proposal!, preparation.PolicyDecision!, null,
+            [], "linx-knowledge-store",
+            new IdentityPermissionContext("subject-executor-001", HasEffectivePermission: true),
+            GovernedExecutionMode.DryRun);
+        var result = await fixture.Stack.DryRunAsync(request);
+        Assert.Equal(ToolGatewayStatus.DryRunCompleted, result.Status);
+        Assert.False(result.Preview!.ExternalExecutionPerformed);
     }
 
     [Fact]
@@ -282,7 +310,7 @@ public sealed class GovernedWriteStackTests
         var audit = new EfGovernanceAuditStore(db);
         var clock = new FixedTimeProvider(Now);
         IGovernedToolAdapter[] adapters = includeReadOnlyAndWiseAdapters
-            ? [new SomaLinxDryRunAdapter(), new SomaLinxReadOnlyAdapter(), new WiseGovernedAdapter()]
+            ? [new SomaLinxDryRunAdapter(), new SomaLinxReadOnlyAdapter(), new WiseGovernedAdapter(), new LinxKnowledgeStoreReadOnlyAdapter()]
             : [new SomaLinxDryRunAdapter()];
         var gateway = new ToolGateway(adapters, new ApprovalPolicy(), audit, clock);
         var stack = new GovernedWriteStack(new StructuredActionProposalAdapter(), new AIGovernancePolicyEngine(), approvals, audit, gateway, clock);

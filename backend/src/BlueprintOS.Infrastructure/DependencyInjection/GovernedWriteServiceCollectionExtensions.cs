@@ -16,6 +16,7 @@ public static class GovernedWriteServiceCollectionExtensions
         services.AddScoped<IGovernedToolAdapter, SomaLinxDryRunAdapter>();
         services.AddScoped<IGovernedToolAdapter, SomaLinxReadOnlyAdapter>();
         services.AddScoped<IGovernedToolAdapter, WiseGovernedAdapter>();
+        services.AddScoped<IGovernedToolAdapter, LinxKnowledgeStoreReadOnlyAdapter>();
         services.AddScoped<IToolGateway, ToolGateway>();
         services.AddScoped<GovernedWriteStack>();
         services.AddScoped<GovernedPlanBridge>();

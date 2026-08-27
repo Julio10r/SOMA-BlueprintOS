@@ -59,6 +59,11 @@ if (args.Length > 0 && args[0] == "investigate-linx-prog-op-ped")
     return await InvestigateLinxProgOpPedAsync(args);
 }
 
+if (args.Length > 0 && args[0] == "governed-plan")
+{
+    return await BlueprintOS.Api.Governance.GovernedPlanCliHandler.RunAsync(Console.In, Console.Out);
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // CORS — libera a origem do frontend (+Compras Web) em dev/demo.

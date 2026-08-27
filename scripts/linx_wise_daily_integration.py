@@ -60,6 +60,7 @@ import hashlib
 import json
 import os
 import shutil
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -72,9 +73,10 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / ".ai" / "local-output" / "mb_prod_extra_web" / "current"
 APPROVALS_DIR = ROOT / ".ai" / "local-output" / "governance" / "wise_approvals"
 
-CONNECTION_PROFILE = "linx-wise-governed-write"
-CAPABILITY = "wise.daily_integration.write"
-AGENT_ID = "wise-agent"
+CONNECTION_PROFILE = "wise-governed-write"  # must match WiseGovernedAdapter.AllowedConnectionProfiles
+CAPABILITY = "wise-database-write-proposal"  # must match WiseGovernedAdapter.Capability
+AGENT_ID = "wise-agent"  # must match WiseGovernedAdapter.OwnerAgent
+GOVERNED_PLAN_CLI_DLL = ROOT / "backend/src/BlueprintOS.Api/bin/Debug/net9.0/BlueprintOS.Api.dll"
 
 
 def load_env():
@@ -282,31 +284,100 @@ def _plan_hash(plan: dict) -> str:
 
 
 def build_governed_plan(args, rows, diff_summary: dict) -> dict:
-    """Build the plan contract consumed by the .NET GovernedPlanBridge
-    (see backend/src/BlueprintOS.Application/Governance/GovernedPlanBridge.cs
-    and tools/agents/governed-orchestrator.js `buildGovernedPlan`)."""
+    """Build the exact GovernedPlanPayload contract consumed by the .NET
+    GovernedPlanBridge (backend/src/BlueprintOS.Application/Governance/GovernedPlanBridge.cs),
+    field-for-field identical to what GovernedOrchestrator.buildActionProposalPayload()
+    emits on the JS side (tools/agents/governed-orchestrator.js) — this script is a
+    second, independent producer of the same wire contract, not a parallel one."""
     request_id = f"wise-daily-{args.id_campanha}-{args.data_limite}"
     return {
         "requestId": request_id,
+        "requestedBy": "linx-wise-daily-integration-script",
         "agentId": AGENT_ID,
         "capability": CAPABILITY,
         "environment": "Production",
+        "system": "WISE",
+        "resourceType": "DatabaseTable",
         "resource": "MB_PROD_EXTRA_WEB;PRODUTOS;WS_ESTOQUE_PRODUTOS;WS_PRODUTOS_PRECOS",
-        "intent": "Update",
-        "filter": f"ID_CAMPANHA={args.id_campanha};DATA_LIMITE={args.data_limite}",
+        "operationIntent": "UPDATE",
+        "fields": ["DATA_LIMITE", "ENVIA_ATACADO_INTERNET"],
+        "filterSummary": f"ID_CAMPANHA={args.id_campanha};DATA_LIMITE={args.data_limite}",
         "expectedAffectedRows": len(rows),
-        "dataClassification": "Internal",
         "purpose": "Daily Linx->WISE stock/price/grade synchronization",
+        "dataClassification": "Internal",
+        "containsPersonalData": False,
+        "containsSensitivePersonalData": False,
+        "containsSecrets": False,
+        "reversibility": "PartiallyReversible",
+        "runbookReference": "docs/operations/LinxWiseDailyIntegrationRunbook.md",
         "connectionProfile": CONNECTION_PROFILE,
+        "additionalContext": None,
+        "crossCuttingAgents": ["security-lgpd-agent"],
         "diffSummary": diff_summary,
         "generatedAt": datetime.now(timezone.utc).isoformat(),
     }
 
 
-def check_execution_approval(plan: dict) -> tuple[bool, str]:
-    """Returns (approved, reason). Never itself grants approval — only checks
-    for a locally mirrored grant record plus a matching env var hash, per the
-    WAVE 0 containment design documented at module level."""
+def consult_governed_plan_bridge(plan: dict) -> dict:
+    """Sends the plan to the real .NET governance pipeline (GovernedPlanBridge,
+    via the `governed-plan` CLI — same process boundary used by
+    tools/agents/governance-bridge.js) and returns its parsed JSON response.
+
+    This is the single authority for the plan's risk classification and
+    approval requirement — AIGovernancePolicyEngine, not this script and not
+    the local approval mirror. A "Blocked" verdict from here cannot be
+    overridden by anything in check_execution_approval(). No external
+    connection is made: the CLI runs entirely in-memory (see
+    InMemoryGovernedPlanStores.cs) and never opens a live WISE/SQL connection.
+    """
+    payload = {k: v for k, v in plan.items() if k not in ("diffSummary", "generatedAt", "planHash")}
+    if not GOVERNED_PLAN_CLI_DLL.exists():
+        return {"error": "GOVERNED_PLAN_BRIDGE_NOT_BUILT", "path": str(GOVERNED_PLAN_CLI_DLL)}
+    try:
+        result = subprocess.run(
+            ["dotnet", str(GOVERNED_PLAN_CLI_DLL), "governed-plan"],
+            input=json.dumps(payload), capture_output=True, text=True, timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return {"error": f"GOVERNED_PLAN_BRIDGE_UNREACHABLE: {e}"}
+    lines = [line for line in result.stdout.splitlines() if line.strip()]
+    if not lines:
+        return {"error": "GOVERNED_PLAN_BRIDGE_EMPTY_OUTPUT", "stderr": result.stderr}
+    try:
+        return json.loads(lines[-1])
+    except json.JSONDecodeError:
+        return {"error": "GOVERNED_PLAN_BRIDGE_INVALID_OUTPUT", "stdout": result.stdout, "stderr": result.stderr}
+
+
+def check_execution_approval(plan: dict, bridge_response: dict) -> tuple[bool, str]:
+    """Returns (approved, reason). The single authority for risk/approval
+    classification is bridge_response (the real AIGovernancePolicyEngine
+    decision via consult_governed_plan_bridge) — this function can only ever
+    narrow that decision further, never override a Blocked verdict from it.
+    The local approval mirror (APPROVALS_DIR) is the last-mile check for
+    "did a human actually grant *this* request", which still cannot be
+    verified synchronously against the real persisted ApprovalPolicy without
+    a live database connection this script must not make (documented
+    limitation — see docs/audits/AgentsV1-FinalCertification.md)."""
+    if bridge_response.get("error"):
+        return False, f"governed plan bridge unreachable/invalid: {bridge_response['error']}"
+
+    proposal_build = bridge_response.get("proposalBuild") or {}
+    if not proposal_build.get("succeeded"):
+        return False, f"governed plan bridge rejected the proposal context: {proposal_build.get('contextGaps')}"
+
+    policy = bridge_response.get("policyDecision") or {}
+    if policy.get("status") == "Blocked" or policy.get("riskClassification") == "Red":
+        return False, f"AIGovernancePolicyEngine blocked this plan: {policy.get('reasons')}"
+    if policy.get("status") not in ("RequiresApproval", "Allowed"):
+        return False, f"unexpected policy status from bridge: {policy.get('status')!r}"
+
+    if policy.get("status") == "Allowed":
+        return True, "policy engine allowed without approval requirement"
+
+    # RequiresApproval: the bridge's own in-memory approval request is not
+    # persisted across process invocations, so the last-mile grant check
+    # still falls back to the local mirror plus the exact plan-hash binding.
     approved_hash = os.environ.get("GOVERNANCE_APPROVED_EXECUTION", "").strip()
     if not approved_hash:
         return False, "GOVERNANCE_APPROVED_EXECUTION env var not set"
@@ -441,22 +512,31 @@ def run(args):
         summary["governed_write_plan"] = str(plan_path)
         summary["plan_hash"] = plan["planHash"]
 
+        bridge_response = consult_governed_plan_bridge(plan)
+        bridge_path = OUT / "governed_plan_bridge_response.json"
+        bridge_path.write_text(json.dumps(bridge_response, indent=2, default=str))
+        summary["governed_plan_bridge_response"] = str(bridge_path)
+
         if not args.execute:
             cn.rollback()
             summary["status"] = "plan_only"
             print(
                 "PLAN_ONLY: nenhuma escrita foi executada. "
                 f"Plano governado emitido em {plan_path} (hash={plan['planHash']}). "
-                "Para executar de verdade, obtenha aprovação real via GovernedWriteStack/ApprovalPolicy, "
-                "exporte o grant para "
+                f"Decisao real do AIGovernancePolicyEngine (via GovernedPlanBridge) em {bridge_path}. "
+                "Para executar de verdade: a decisao de aprovacao/bloqueio e sempre a do "
+                "AIGovernancePolicyEngine acima; se RequiresApproval, exporte o grant para "
                 f"{APPROVALS_DIR / (plan['requestId'] + '.json')}, e rode novamente com --execute e "
                 "GOVERNANCE_APPROVED_EXECUTION=<hash acima>."
             )
             return
 
-        # --execute was passed: still gate on real approval before touching
-        # anything mutating.
-        approved, reason = check_execution_approval(plan)
+        # --execute was passed: still gate on the real AIGovernancePolicyEngine
+        # decision (via the bridge) before touching anything mutating. The
+        # local approval mirror is never itself the authority — it is only the
+        # last-mile grant check once the bridge has confirmed the plan is not
+        # Blocked.
+        approved, reason = check_execution_approval(plan, bridge_response)
         if not approved:
             cn.rollback()
             summary["status"] = "governance_blocked"
