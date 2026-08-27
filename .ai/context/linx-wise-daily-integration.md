@@ -12,6 +12,10 @@ Use this workflow when the Product Owner provides an Excel spreadsheet and asks 
 
 The agent must still confirm the production environment and must still ask the Product Owner for `ID_CAMPANHA` before remote WISE integration.
 
+## Precedence
+
+`DECISAO_PO`: For the trigger `Executar integração diária Linx/WISE desta planilha`, this document and [LinxWiseDailyIntegrationRunbook.md](../../docs/operations/LinxWiseDailyIntegrationRunbook.md) are the source of truth. The WISE Agent knowledge base is complementary only. If WISE Agent guidance conflicts with this daily workflow during a daily integration, this document and the daily runbook take precedence.
+
 ## Provenance Labels
 
 Use these labels when extending this knowledge:

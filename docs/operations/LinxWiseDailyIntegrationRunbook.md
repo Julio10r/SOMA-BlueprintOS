@@ -12,6 +12,10 @@ Executar integração diária Linx/WISE desta planilha.
 
 Conhecimento canônico: [`.ai/context/linx-wise-daily-integration.md`](../../.ai/context/linx-wise-daily-integration.md).
 
+## Precedência
+
+Para o gatilho `Executar integração diária Linx/WISE desta planilha`, este runbook e [`.ai/context/linx-wise-daily-integration.md`](../../.ai/context/linx-wise-daily-integration.md) são a fonte de verdade operacional. O WISE Agent pode fornecer conhecimento complementar sobre o destino WISE, mas não pode substituir, reordenar ou reinterpretar silenciosamente este fluxo diário. Em caso de conflito durante a integração diária, este runbook diário tem precedência.
+
 ## Pré-Requisitos
 
 - `.env` local na raiz do projeto, ignorado pelo Git.

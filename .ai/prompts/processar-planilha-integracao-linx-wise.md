@@ -19,6 +19,8 @@ Siga o workflow canônico em:
 - `.ai/context/linx-wise-daily-integration.md`
 - `docs/operations/LinxWiseDailyIntegrationRunbook.md`
 
+Para este gatilho, o runbook diário e o contexto diário têm precedência sobre qualquer conhecimento complementar do WISE Agent. O WISE Agent pode apoiar a interpretação do destino WISE, mas não pode substituir, reordenar ou reinterpretar silenciosamente o fluxo diário validado.
+
 Resumo obrigatório:
 
 1. Ler e validar a planilha.
