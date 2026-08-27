@@ -481,21 +481,32 @@ static async Task<int> ProbeErpSupplierIntegrityAsync()
     return 0;
 }
 
-/// <summary>Investigação read-only do caso PROG/OP/PED (docs/audits/AgentLearningV1-LinxProgOpPed.md) no
-/// profile <c>linx-development</c> (SOMA_DESENV). Emite apenas SELECT/metadata (INFORMATION_SCHEMA,
-/// sys.*, OBJECT_DEFINITION) — nenhum INSERT/UPDATE/DELETE/MERGE/DDL/EXEC de procedure mutável. Modos:
-/// "schema" (colunas/PK/índices das 5 tabelas + definição das 4 procedures + busca por tabelas/colunas de
-/// grade/tamanho) e "crossref" (cruza produto/cor/programação da planilha, lida de um JSON local fora do
-/// Git, contra PRODUCAO_PROG_PROD/PRODUCAO_ORDEM(_COR)/COMPRAS(_PRODUTO)).</summary>
+/// <summary>Investigação read-only do caso PROG/OP/PED (docs/audits/AgentLearningV1-LinxProgOpPed.md),
+/// contra o profile Development (SOMA_DESENV) ou Production (SOMA) — selecionável via <c>--env=production</c>
+/// em qualquer posição dos argumentos (default: Development, para não mudar o comportamento de invocações
+/// anteriores). Emite apenas SELECT/metadata (INFORMATION_SCHEMA, sys.*, OBJECT_DEFINITION) — nenhum
+/// INSERT/UPDATE/DELETE/MERGE/DDL/EXEC de procedure mutável. Modos: "schema" (colunas/PK/índices das 5
+/// tabelas + definição das 4 procedures + busca por tabelas/colunas de grade/tamanho), "grade" (mecanismo
+/// PRODUTOS/PRODUTOS_TAMANHOS para os produtos da planilha) e "crossref" (cruza produto/cor/programação da
+/// planilha, lida de um JSON local fora do Git, contra PRODUCAO_PROG_PROD/PRODUCAO_ORDEM(_COR)/COMPRAS(_PRODUTO)).</summary>
 static async Task<int> InvestigateLinxProgOpPedAsync(string[] args)
 {
-    var mode = args.Length > 1 ? args[1] : "schema";
+    var positional = args.Where(a => !a.StartsWith("--env=", StringComparison.Ordinal)).ToArray();
+    var envArg = args.FirstOrDefault(a => a.StartsWith("--env=", StringComparison.Ordinal))?["--env=".Length..];
+    var environment = string.Equals(envArg, "production", StringComparison.OrdinalIgnoreCase)
+        ? BlueprintOS.Infrastructure.Persistence.LinxEnvironment.Production
+        : BlueprintOS.Infrastructure.Persistence.LinxEnvironment.Development;
+    var profile = BlueprintOS.Infrastructure.Persistence.LinxConnectionProfiles.Resolve(environment);
+
+    var mode = positional.Length > 1 ? positional[1] : "schema";
     var configuration = BuildDatabaseConfiguration();
-    var connectionString = BlueprintOS.Infrastructure.Persistence.LinxConnectionStringResolver.Resolve(
-        configuration, BlueprintOS.Infrastructure.Persistence.LinxConnectionProfiles.Development);
+    var connectionString = BlueprintOS.Infrastructure.Persistence.LinxConnectionStringResolver.Resolve(configuration, profile);
+
+    Console.WriteLine($"[investigate-linx-prog-op-ped] profile={profile.Label} server={profile.ExpectedServer} database={profile.ExpectedDatabase}");
 
     await using var connection = new SqlConnection(connectionString);
     await connection.OpenAsync();
+    args = positional;
 
     if (mode == "schema")
     {
@@ -736,7 +747,127 @@ static async Task<int> InvestigateLinxProgOpPedAsync(string[] args)
         return 0;
     }
 
-    Console.WriteLine($"Modo desconhecido: {mode}. Use 'schema', 'grade' ou 'crossref'.");
+    if (mode == "grade-detail")
+    {
+        Console.WriteLine("===== PRODUTOS_TAMANHOS: QUEBRA_1..5 e detalhe completo para GRADE='36-44' =====");
+        await using var detail = connection.CreateCommand();
+        detail.CommandText = "SELECT GRADE, NUMERO_TAMANHOS, NUMERO_QUEBRAS, QUEBRA_1, QUEBRA_2, QUEBRA_3, QUEBRA_4, QUEBRA_5, TAMANHOS_DIGITADOS, GRADE_BASE, GRADE_CODIGO, INATIVO FROM dbo.PRODUTOS_TAMANHOS WHERE GRADE = '36-44'";
+        await using (var reader = await detail.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                var pairs = new List<string>();
+                for (var i = 0; i < reader.FieldCount; i++) pairs.Add($"{reader.GetName(i)}={reader.GetValue(i)}");
+                Console.WriteLine(string.Join("; ", pairs));
+            }
+        }
+
+        Console.WriteLine("===== Grades distintas cadastradas que contenham '34' em algum TAMANHO_1..8 =====");
+        await using var scan = connection.CreateCommand();
+        scan.CommandText = @"SELECT DISTINCT GRADE, TAMANHO_1, TAMANHO_2, TAMANHO_3, TAMANHO_4, TAMANHO_5, TAMANHO_6, TAMANHO_7, TAMANHO_8
+            FROM dbo.PRODUTOS_TAMANHOS
+            WHERE '34' IN (TAMANHO_1, TAMANHO_2, TAMANHO_3, TAMANHO_4, TAMANHO_5, TAMANHO_6, TAMANHO_7, TAMANHO_8)";
+        await using (var reader = await scan.ExecuteReaderAsync())
+        {
+            var any = false;
+            while (await reader.ReadAsync())
+            {
+                any = true;
+                var pairs = new List<string>();
+                for (var i = 0; i < reader.FieldCount; i++) pairs.Add($"{reader.GetName(i)}={reader.GetValue(i)}");
+                Console.WriteLine(string.Join("; ", pairs));
+            }
+            if (!any) Console.WriteLine("(nenhuma grade cadastrada contem o tamanho '34' em TAMANHO_1..8)");
+        }
+
+        Console.WriteLine("===== PO 1741979 (produto 15.29765, cores 09204 e 5465) em COMPRAS/COMPRAS_PRODUTO =====");
+        await using var poCmd = connection.CreateCommand();
+        poCmd.CommandText = @"SELECT A.PEDIDO, A.PROGRAMACAO, A.STATUS_COMPRA, B.PRODUTO, B.COR_PRODUTO, B.ENTREGA, B.QTDE_ORIGINAL, B.QTDE_ENTREGUE, B.QTDE_ENTREGAR,
+                B.CO1, B.CO2, B.CO3, B.CO4, B.CO5
+            FROM dbo.COMPRAS A LEFT JOIN dbo.COMPRAS_PRODUTO B ON A.PEDIDO = B.PEDIDO
+            WHERE A.PEDIDO = '1741979' OR B.PRODUTO = '15.29765'";
+        await using (var reader = await poCmd.ExecuteReaderAsync())
+        {
+            var any = false;
+            while (await reader.ReadAsync())
+            {
+                any = true;
+                var pairs = new List<string>();
+                for (var i = 0; i < reader.FieldCount; i++) pairs.Add($"{reader.GetName(i)}={reader.GetValue(i)}");
+                Console.WriteLine(string.Join("; ", pairs));
+            }
+            if (!any) Console.WriteLine("(nenhum registro encontrado para PEDIDO=1741979 nem PRODUTO=15.29765 em COMPRAS/COMPRAS_PRODUTO)");
+        }
+
+        return 0;
+    }
+
+    if (mode == "delta")
+    {
+        var jsonPath = positional.Length > 2 ? positional[2] : "downloads/showcase_produtos/planilha_rows.json";
+        if (!File.Exists(jsonPath))
+        {
+            Console.WriteLine($"Arquivo nao encontrado: {jsonPath}");
+            return 1;
+        }
+        var json = await File.ReadAllTextAsync(jsonPath);
+        var rows = System.Text.Json.JsonDocument.Parse(json).RootElement;
+
+        long totalRequested36a44 = 0, totalCurrent36a44 = 0, totalRequested34 = 0;
+        int zeroDelta = 0, changeRequired = 0, notFound = 0, blockedSize34 = 0;
+
+        foreach (var row in rows.EnumerateArray())
+        {
+            var produto = row.GetProperty("produto").GetString();
+            var programacao = row.GetProperty("programacao").GetString();
+            var cor = row.GetProperty("cor").GetString();
+            var po = row.GetProperty("po").GetInt64().ToString();
+            int q34 = row.GetProperty("q34").GetInt32(), q36 = row.GetProperty("q36").GetInt32(), q38 = row.GetProperty("q38").GetInt32();
+            int q40 = row.GetProperty("q40").GetInt32(), q42 = row.GetProperty("q42").GetInt32(), q44 = row.GetProperty("q44").GetInt32();
+
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT CO1, CO2, CO3, CO4, CO5 FROM dbo.COMPRAS_PRODUTO WHERE PEDIDO = @po AND PRODUTO = @prod AND COR_PRODUTO = @cor";
+            cmd.Parameters.Add(new SqlParameter("@po", po));
+            cmd.Parameters.Add(new SqlParameter("@prod", produto));
+            cmd.Parameters.Add(new SqlParameter("@cor", cor));
+            await using var reader = await cmd.ExecuteReaderAsync();
+            if (!await reader.ReadAsync())
+            {
+                notFound++;
+                Console.WriteLine($"NAO_ENCONTRADO_EM_COMPRAS_PRODUTO; PRODUTO={produto}; PROGRAMACAO={programacao}; COR={cor}; PO={po}");
+                continue;
+            }
+
+            int co1 = reader.IsDBNull(0) ? 0 : reader.GetInt32(0);
+            int co2 = reader.IsDBNull(1) ? 0 : reader.GetInt32(1);
+            int co3 = reader.IsDBNull(2) ? 0 : reader.GetInt32(2);
+            int co4 = reader.IsDBNull(3) ? 0 : reader.GetInt32(3);
+            int co5 = reader.IsDBNull(4) ? 0 : reader.GetInt32(4);
+
+            int d36 = q36 - co1, d38 = q38 - co2, d40 = q40 - co3, d42 = q42 - co4, d44 = q44 - co5;
+            var delta = d36 + d38 + d40 + d42 + d44;
+            totalRequested36a44 += q36 + q38 + q40 + q42 + q44;
+            totalCurrent36a44 += co1 + co2 + co3 + co4 + co5;
+            totalRequested34 += q34;
+            if (q34 != 0) blockedSize34++;
+
+            var status = delta == 0 && q34 == 0 ? "ZERO_DELTA" : "CHANGE_REQUIRED";
+            if (status == "ZERO_DELTA") zeroDelta++; else changeRequired++;
+
+            Console.WriteLine($"{status}; PRODUTO={produto}; PROGRAMACAO={programacao}; COR={cor}; PO={po}; " +
+                $"ATUAL(36,38,40,42,44)=({co1},{co2},{co3},{co4},{co5}); SOLICITADO(36,38,40,42,44)=({q36},{q38},{q40},{q42},{q44}); " +
+                $"DELTA(36,38,40,42,44)=({d36},{d38},{d40},{d42},{d44}); Q_34_SEM_POSICAO_VALIDA={q34}");
+        }
+
+        Console.WriteLine("===== RESUMO =====");
+        Console.WriteLine($"ZERO_DELTA={zeroDelta}; CHANGE_REQUIRED={changeRequired}; NAO_ENCONTRADO={notFound}");
+        Console.WriteLine($"Linhas com Q_34 nao-zero (sem posicao valida na grade '36-44')={blockedSize34}; total de unidades Q_34={totalRequested34}");
+        Console.WriteLine($"Total solicitado (tamanhos 36-44)={totalRequested36a44}; Total atual (tamanhos 36-44)={totalCurrent36a44}; Delta liquido (36-44)={totalRequested36a44 - totalCurrent36a44}");
+
+        return 0;
+    }
+
+    Console.WriteLine($"Modo desconhecido: {mode}. Use 'schema', 'grade', 'grade-detail', 'crossref' ou 'delta'.");
     return 1;
 }
 

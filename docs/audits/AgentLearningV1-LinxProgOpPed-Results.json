@@ -27,6 +27,23 @@
       "report": "docs/audits/LinxProductionEndpointCorrectionV1.md"
     }
   },
+  "production_investigation_round2": {
+    "date": "2026-08-27",
+    "connection_status": "READY",
+    "server": "192.168.9.200",
+    "database": "SOMA",
+    "effective_identity": "SOMALABS",
+    "schema_drift_vs_development": "NONE - all 5 tables (columns, PKs, indexes) byte-identical",
+    "procedures_drift_vs_development": "NONE - all 4 procedures byte-identical (OBJECT_DEFINITION + sys.parameters)",
+    "product_catalog_drift_vs_development": "39/39 products found in PRODUTOS in Production vs 30/39 in SOMA_DESENV — Development's catalog was incomplete, not Production",
+    "size_34_gap_resolution": "RESOLVED - PRODUCTION_DATA_CONFIRMED + OTHER_CONFIRMED_BEHAVIOR: grade '36-44' identical to DEV (no size 34), but alternative registered grade codes exist that include size 34 (e.g. '36 - 44 - 34'); quantitative proof in 77/77 rows that the spreadsheet represents a grade rebalance, not a volume change",
+    "classification_result": { "PROG": 0, "OP": 0, "PED": 77, "NAO_ENCONTRADO": 0, "AMBIGUO": 0 },
+    "po_1741979": "CONFIRMED_VALID",
+    "delta_calculated": true,
+    "sql_write_proposed": false,
+    "remaining_gap": "Which registered grade code should replace PRODUTOS.GRADE for these 39 products — a catalog/business decision, awaiting Product Owner",
+    "report": "docs/audits/LinxProgOpPed-ProductionInvestigation.md (Rodada 2)"
+  },
   "baseline": {
     "agents_total": { "expected_by_user": 8, "confirmed": 8, "divergence": false },
     "capabilities_total": { "expected_by_user": 15, "confirmed": 15, "divergence": false },
@@ -89,7 +106,7 @@
     "tests_failed": 0
   },
   "artifacts": {
-    "status": "KNOWLEDGE_GAP_BLOCKING",
+    "status": "KNOWLEDGE_GAP_NARROW_RESIDUAL - understanding/schema/procedures/classification/delta all CONFIRMED_BY_PRODUCTION_DATA; only remaining gap is a grade-code catalog decision (see knowledge_gaps, last entry), not technical",
     "received": [
       {
         "id": "A",
@@ -177,64 +194,83 @@
     ]
   },
   "prog_rule": {
-    "identification": "Positive rule: a row exists in PRODUCAO_PROG_PROD for PROGRAMACAO+PRODUTO+COR_PRODUTO, checked explicitly BEFORE calling the procedure (the procedure itself never verifies UPDATE rowcount, so it cannot be used to distinguish PROG from NAO_ENCONTRADO)",
-    "source": "CONFIRMED_BY_CODE_INSPECTION (LX_ANM_AJUSTA_PROGRAMACAO_PROD read via OBJECT_DEFINITION on SOMA_DESENV)",
+    "identification": "A row exists in PRODUCAO_PROG_PROD for PROGRAMACAO+PRODUTO+COR_PRODUTO — but this alone is NOT sufficient; real production data (77/77 rows) proved a row can exist in PRODUCAO_PROG_PROD simultaneously with a real Purchase Order (PED). Correct rule: priority OP > PED > PROG.",
+    "source": "CONFIRMED_BY_PRODUCTION_DATA (docs/audits/LinxProgOpPed-ProductionInvestigation.md R2.5) refining CONFIRMED_BY_PRODUCTION_CODE (LX_ANM_AJUSTA_PROGRAMACAO_PROD never verifies UPDATE rowcount)",
     "related_tables": ["PRODUCAO_PROG_PROD"],
     "adjustment_mechanism": "EXEC LX_ANM_AJUSTA_PROGRAMACAO_PROD",
     "status": "RESOLVED",
-    "caveat": "PRODUCAO_PROG_PROD's real PK includes ENTREGA_INICIAL (4 columns); the 3-column existence check does not disambiguate multiple ENTREGA_INICIAL rows — see risk in extracted_knowledge"
+    "priority": "OP > PED > PROG > NAO_ENCONTRADO",
+    "caveat": "PRODUCAO_PROG_PROD's real PK includes ENTREGA_INICIAL (4 columns), CONFIRMED_BY_PRODUCTION_SCHEMA identical to SOMA_DESENV"
   },
   "op_rule": {
     "identification": "Match found in PRODUCAO_ORDEM/PRODUCAO_ORDEM_COR by PROGRAMACAO+PRODUTO+COR_PRODUTO",
-    "source": "CONFIRMED_BY_SCHEMA (PRODUCAO_ORDEM_COR PK is exactly ORDEM_PRODUCAO+PRODUTO+COR_PRODUTO — safe join, no cardinality risk)",
+    "source": "CONFIRMED_BY_PRODUCTION_SCHEMA (PRODUCAO_ORDEM_COR PK is exactly ORDEM_PRODUCAO+PRODUTO+COR_PRODUTO — safe join, identical schema DEV/PROD)",
     "related_tables": ["PRODUCAO_ORDEM", "PRODUCAO_ORDEM_COR"],
     "adjustment_mechanism": "EXEC LX_ANM_GERA_OS_ALTERACAO_PCP",
     "status": "CONFIRMED"
   },
   "ped_rule": {
     "identification": "Match found in COMPRAS/COMPRAS_PRODUTO by PROGRAMACAO+PRODUTO+COR_PRODUTO",
-    "source": "CONFIRMED_BY_CODE_INSPECTION of historical SQL; COMPRAS_PRODUTO real PK is PRODUTO+PEDIDO+COR_PRODUTO+ENTREGA (4 columns) — ENTREGA is not filtered",
+    "source": "CONFIRMED_BY_PRODUCTION_DATA (77/77 spreadsheet rows matched real COMPRAS_PRODUTO rows in production); COMPRAS_PRODUTO real PK is PRODUTO+PEDIDO+COR_PRODUTO+ENTREGA (4 columns, CONFIRMED_BY_PRODUCTION_SCHEMA) — ENTREGA is not filtered by the historical UPDATE",
     "related_tables": ["COMPRAS", "COMPRAS_PRODUTO"],
     "adjustment_mechanism": "UPDATE COMPRAS_PRODUTO + EXEC LX_MOVIMENTA_COMPRAS_PA + EXEC LX_RECALCULO_RESERVA_MATERIAIS",
     "status": "CONFIRMED_WITH_CARDINALITY_RISK"
   },
-  "classifications": "PENDING_PRODUCTION_READ_ONLY_VALIDATION - mechanism and rules confirmed (prog_rule/op_rule/ped_rule above), but 77/77 spreadsheet rows had zero matches in SOMA_DESENV for PRODUCAO_PROG_PROD/OP/PED (this dataset's live operational state only exists in Production, out of scope this step); per-row PROG/OP/PED/ZERO_DELTA/NAO_ENCONTRADO counts not computed to avoid inventing them",
-  "zero_delta": "PENDING_PRODUCTION_READ_ONLY_VALIDATION",
-  "not_found": "PENDING_PRODUCTION_READ_ONLY_VALIDATION (0/77 matched in SOMA_DESENV, expected — see classifications note)",
-  "ambiguous": "0 — the classification rule ambiguity (old knowledge_gaps[0]) is RESOLVED; see prog_rule",
-  "blocked": "77 (all rows) pending the size-34-vs-grade-36-44 gap below and production validation",
+  "classifications": { "PROG": 0, "OP": 0, "PED": 77, "NAO_ENCONTRADO": 0, "AMBIGUO": 0, "source": "CONFIRMED_BY_PRODUCTION_DATA, docs/audits/LinxProgOpPed-ProductionInvestigation.md R2.5" },
+  "zero_delta": 0,
+  "not_found": 0,
+  "ambiguous": 0,
+  "blocked": "0 for understanding/classification; the final write proposal remains blocked on the residual grade-code decision below",
+  "po_1741979_case": { "classification": "CONFIRMED_VALID", "detail": "Same PEDIDO, same PRODUTO, different COR_PRODUTO, different QTDE_ORIGINAL per color — normal multi-color purchase order line-item structure, not a data inconsistency. See docs/audits/LinxProgOpPed-ProductionInvestigation.md R2.6." },
+  "delta_analysis": {
+    "source": "CONFIRMED_BY_PRODUCTION_DATA, docs/audits/LinxProgOpPed-ProductionInvestigation.md R2.4/R2.7",
+    "rows_processed": 77,
+    "rows_zero_delta": 0,
+    "rows_change_required": 77,
+    "rows_not_found": 0,
+    "total_requested_sizes_36_to_44": 14411,
+    "total_current_sizes_36_to_44": 15240,
+    "net_delta_36_to_44": -829,
+    "total_size_34_requested": 829,
+    "per_row_identity_confirmed": "ATUAL(36+38+40+42+44) == SOLICITADO(36+38+40+42+44) + Q_34, true in 77/77 rows",
+    "conclusion": "The spreadsheet represents a grade rebalance (opening a size-34 position by reallocating quantity from existing sizes), not a volume change — total piece count per row is unchanged."
+  },
   "extracted_knowledge": [
     { "fact": "This execution's spreadsheet uses a 6-position size grade (Q_34..Q_44), all rows GRADE_ATUAL='36-44'", "provenance": "CONFIRMED_BY_CODE_INSPECTION", "generalizable": false },
-    { "fact": "Grade positions in PRODUCAO_PROG_PROD/PRODUCAO_ORDEM_COR/COMPRAS_PRODUTO are generic, up to 48 (P1..P48/O1..O48/CO1..CO48/CE1..CE48), not fixed at 6 or 7 — the real position count per grade is defined in PRODUTOS_TAMANHOS.NUMERO_TAMANHOS, keyed by PRODUTOS.GRADE", "provenance": "CONFIRMED_BY_SCHEMA", "generalizable": true },
-    { "fact": "PRODUTOS.GRADE matches the spreadsheet's GRADE_ATUAL column exactly ('36-44') for all 30 sampled products found in PRODUTOS", "provenance": "CONFIRMED_BY_DATA_VALIDATION", "generalizable": false },
-    { "fact": "For GRADE='36-44', PRODUTOS_TAMANHOS.TAMANHO_1..5 = 36,38,40,42,44 — size 34 is absent from any position of this grade, contradicting the spreadsheet's populated Q_34 column", "provenance": "CONFIRMED_BY_DATA_VALIDATION", "generalizable": false },
-    { "fact": "LX_ANM_AJUSTA_PROGRAMACAO_PROD's UPDATE on PRODUCAO_PROG_PROD and the historical SQL's UPDATE on COMPRAS_PRODUTO both omit a column that is part of the real primary key (ENTREGA_INICIAL / ENTREGA respectively) — if multiple rows exist per PROGRAMACAO+PRODUTO+COR_PRODUTO (or PEDIDO+PRODUTO+COR_PRODUTO), the same delta would be applied to all of them", "provenance": "CONFIRMED_BY_SCHEMA", "generalizable": true },
-    { "fact": "LX_ANM_AJUSTA_PROGRAMACAO_PROD never checks how many rows its UPDATE affected — a 0-row match (PROG target does not exist) still returns EXECUTADO=1/'EXECUTADO COM SUCESSO'", "provenance": "CONFIRMED_BY_CODE_INSPECTION", "generalizable": true },
-    { "fact": "All 4 procedures (LX_ANM_GERA_OS_ALTERACAO_PCP, LX_ANM_AJUSTA_PROGRAMACAO_PROD, LX_MOVIMENTA_COMPRAS_PA, LX_RECALCULO_RESERVA_MATERIAIS) have maintenance history through 2023-2025 — none appear obsolete", "provenance": "CONFIRMED_BY_CODE_INSPECTION", "generalizable": false },
-    { "fact": "PO_PEDIDO_COMPRA is not unique per row in this spreadsheet; can repeat across COR_PRODUTO for the same PRODUTO+PROGRAMACAO, and quantities may diverge between duplicated rows (PO 1741979)", "provenance": "CONFIRMED_BY_CODE_INSPECTION", "generalizable": false },
-    { "fact": "None of the 77 spreadsheet rows (PROGRAMACAO+PRODUTO+COR_PRODUTO / PO_PEDIDO_COMPRA) matched any row in PRODUCAO_PROG_PROD, PRODUCAO_ORDEM+PRODUCAO_ORDEM_COR, or COMPRAS+COMPRAS_PRODUTO on SOMA_DESENV", "provenance": "CONFIRMED_BY_DATA_VALIDATION", "generalizable": false }
+    { "fact": "Grade positions in PRODUCAO_PROG_PROD/PRODUCAO_ORDEM_COR/COMPRAS_PRODUTO are generic, up to 48 (P1..P48/O1..O48/CO1..CO48/CE1..CE48), not fixed at 6 or 7 — the real position count per grade is defined in PRODUTOS_TAMANHOS.NUMERO_TAMANHOS, keyed by PRODUTOS.GRADE", "provenance": "CONFIRMED_BY_PRODUCTION_SCHEMA", "generalizable": true },
+    { "fact": "PRODUTOS.GRADE matches the spreadsheet's GRADE_ATUAL column exactly ('36-44') for all 39 products in Production (30/39 in SOMA_DESENV — DEV's product catalog was incomplete)", "provenance": "CONFIRMED_BY_PRODUCTION_DATA", "generalizable": false },
+    { "fact": "For GRADE='36-44', PRODUTOS_TAMANHOS.TAMANHO_1..5 = 36,38,40,42,44 — size 34 is absent from any position of this grade, identically in Development and Production (not a DEV/PROD drift)", "provenance": "CONFIRMED_BY_PRODUCTION_DATA", "generalizable": false },
+    { "fact": "Alternative grade codes already registered in Linx include size 34 combined with 36-44 (e.g. '36 - 44 - 34' with TAMANHO_6=34, plus '34-44', '34-42', '34-46' etc.) — the model supports this scenario via a distinct grade code, not a position write on the existing grade", "provenance": "CONFIRMED_BY_PRODUCTION_DATA", "generalizable": true },
+    { "fact": "For 77/77 spreadsheet rows, current production quantity (sizes 36-44) equals requested quantity (sizes 36-44) plus the requested size-34 quantity — the operation is a grade rebalance (reallocation), not a volume change", "provenance": "CONFIRMED_BY_PRODUCTION_DATA", "generalizable": false },
+    { "fact": "LX_ANM_AJUSTA_PROGRAMACAO_PROD's UPDATE on PRODUCAO_PROG_PROD and the historical SQL's UPDATE on COMPRAS_PRODUTO both omit a column that is part of the real primary key (ENTREGA_INICIAL / ENTREGA respectively) — if multiple rows exist per PROGRAMACAO+PRODUTO+COR_PRODUTO (or PEDIDO+PRODUTO+COR_PRODUTO), the same delta would be applied to all of them", "provenance": "CONFIRMED_BY_PRODUCTION_SCHEMA", "generalizable": true },
+    { "fact": "LX_ANM_AJUSTA_PROGRAMACAO_PROD never checks how many rows its UPDATE affected — a 0-row match (PROG target does not exist) still returns EXECUTADO=1/'EXECUTADO COM SUCESSO'; correct PROG/OP/PED classification requires priority OP > PED > PROG applied before calling any procedure, not the procedure's own return value", "provenance": "CONFIRMED_BY_PRODUCTION_CODE", "generalizable": true },
+    { "fact": "All 4 procedures (LX_ANM_GERA_OS_ALTERACAO_PCP, LX_ANM_AJUSTA_PROGRAMACAO_PROD, LX_MOVIMENTA_COMPRAS_PA, LX_RECALCULO_RESERVA_MATERIAIS) are byte-for-byte identical between Development and Production; none appear obsolete", "provenance": "CONFIRMED_BY_PRODUCTION_CODE", "generalizable": false },
+    { "fact": "PO_PEDIDO_COMPRA is not unique per row in this spreadsheet; can repeat across COR_PRODUTO for the same PRODUTO+PROGRAMACAO with different quantities per color (PO 1741979) — confirmed as normal multi-color purchase order structure, not a data error", "provenance": "CONFIRMED_BY_PRODUCTION_DATA", "generalizable": false },
+    { "fact": "All 77 spreadsheet rows matched real operational data in Production (77 PED); none matched in SOMA_DESENV — this dataset's live state only ever existed in Production, as suspected in the prior round", "provenance": "CONFIRMED_BY_PRODUCTION_DATA", "generalizable": false }
   ],
   "persisted_knowledge": [
-    "PRODUCAO_PROG_PROD/PRODUCAO_ORDEM/PRODUCAO_ORDEM_COR/COMPRAS/COMPRAS_PRODUTO real schema (columns, PKs, indexes) on SOMA_DESENV",
-    "PRODUTOS/PRODUTOS_TAMANHOS grade mechanism (GRADE code -> TAMANHO_1..48 ordinal position mapping)",
-    "Positive PROG/OP/PED/NAO_ENCONTRADO classification rule (prog_rule/op_rule/ped_rule above)",
-    "ENTREGA_INICIAL/ENTREGA cardinality risk in the current PROG procedure and historical PED update"
+    "PRODUCAO_PROG_PROD/PRODUCAO_ORDEM/PRODUCAO_ORDEM_COR/COMPRAS/COMPRAS_PRODUTO schema (columns, PKs, indexes) — CONFIRMED_BY_PRODUCTION_SCHEMA, identical to SOMA_DESENV",
+    "4 procedures' full definitions — CONFIRMED_BY_PRODUCTION_CODE, identical to SOMA_DESENV",
+    "PRODUTOS/PRODUTOS_TAMANHOS grade mechanism (GRADE code -> TAMANHO_1..48 ordinal position mapping; a new size requires changing PRODUTOS.GRADE to a code that includes it, not writing a raw position)",
+    "PROG/OP/PED/NAO_ENCONTRADO classification priority: OP > PED > PROG > NAO_ENCONTRADO",
+    "ENTREGA_INICIAL/ENTREGA cardinality risk in the current PROG procedure and historical PED update — CONFIRMED_BY_PRODUCTION_SCHEMA",
+    "Before proposing a grade adjustment, check whether total piece count matches (rebalance) or changes (volume change) — different business/approval implications"
   ],
-  "provenance": ["CONFIRMED_BY_SCHEMA", "CONFIRMED_BY_CODE_INSPECTION", "CONFIRMED_BY_DATA_VALIDATION", "HISTORICAL_REFERENCE"],
+  "provenance": ["CONFIRMED_BY_PRODUCTION_SCHEMA", "CONFIRMED_BY_PRODUCTION_CODE", "CONFIRMED_BY_PRODUCTION_DATA", "CONFIRMED_BY_SCHEMA", "CONFIRMED_BY_CODE_INSPECTION", "CONFIRMED_BY_DATA_VALIDATION", "HISTORICAL_REFERENCE"],
   "knowledge_gaps": [
     {
       "gap": "PROG classification is a fallback by exclusion (ISNULL(...,'PROG')) in the historical SQL, not a positive business rule",
       "owner_agent": "linx-database-specialist-agent",
       "blocking": false,
       "resolution": "RESOLVED",
-      "resolution_detail": "LX_ANM_AJUSTA_PROGRAMACAO_PROD (current procedure, read via OBJECT_DEFINITION on SOMA_DESENV) never checks UPDATE rowcount, so a positive existence check against PRODUCAO_PROG_PROD before calling it is required and sufficient to distinguish PROG from NAO_ENCONTRADO. See prog_rule. No Product Owner answer needed for this gap."
+      "resolution_detail": "Real production data proved the correct rule is a priority OP > PED > PROG (existence in PRODUCAO_PROG_PROD alone is insufficient — it can coexist with a real PED). See prog_rule."
     },
     {
       "gap": "Grade size positions mismatch: current spreadsheet has 6 positions, historical SQL structure expects 7 (TAM_1..TAM_7)",
       "owner_agent": "linx-database-specialist-agent",
       "blocking": false,
       "resolution": "SUPERSEDED_BY_MORE_PRECISE_GAP",
-      "resolution_detail": "Schema confirms grade positions are generic (up to 48), resolved per-grade via PRODUTOS.GRADE + PRODUTOS_TAMANHOS — not a fixed 6-vs-7 question. See the new blocking gap below."
+      "resolution_detail": "Schema confirms grade positions are generic (up to 48), resolved per-grade via PRODUTOS.GRADE + PRODUTOS_TAMANHOS — not a fixed 6-vs-7 question. See the size-34 gap below, now RESOLVED."
     },
     {
       "gap": "No authorized read-only Linx/SOMA_DESENV database connection available in this session; cannot validate current schema, the 4 procedures, or compute real Delta",
@@ -244,18 +280,25 @@
       "resolution_detail": "Existing local mechanism (dotnet user-secrets + B1ConnectivityValidator, dotnet run --project backend/src/BlueprintOS.Api -- validate-b1-connectivity) already configured on this machine; connection confirmed READY (read-only SELECT 1 + SELECT SUSER_SNAME()). See docs/audits/AgentContractV1.1-ExecutionPolicy-Credenciais.md section 25."
     },
     {
-      "gap": "Size 34 is absent from every position of grade '36-44' (PRODUTOS_TAMANHOS), the grade actually registered for these products in SOMA_DESENV, yet the spreadsheet has a populated Q_34 column with real, non-zero quantities",
+      "gap": "Size 34 is absent from every position of grade '36-44' (PRODUTOS_TAMANHOS), the grade actually registered for these products, yet the spreadsheet has a populated Q_34 column with real, non-zero quantities",
+      "owner_agent": "linx-database-specialist-agent",
+      "blocking": false,
+      "resolution": "RESOLVED",
+      "resolution_detail": "Production confirms the identical registration (PRODUCTION_DATA_CONFIRMED, not a DEV/PROD drift) AND the Linx model already supports this exact scenario via alternative registered grade codes that include size 34 (e.g. '36 - 44 - 34', OTHER_CONFIRMED_BEHAVIOR). Quantitative proof (77/77 rows): current total (sizes 36-44) == requested total (sizes 36-44) + requested size-34 quantity — a grade rebalance, not a volume change. See docs/audits/LinxProgOpPed-ProductionInvestigation.md R2.4/R2.7."
+    },
+    {
+      "gap": "Which registered grade code should become the new PRODUTOS.GRADE for these 39 products, to accommodate size 34",
       "owner_agent": "linx-database-specialist-agent",
       "blocking": true,
-      "resolution": "DEVELOPMENT_PRODUCTION_DRIFT_SUSPECTED / PENDING_PRODUCTION_VALIDATION",
-      "resolution_detail": "Reclassified per Database Connection Policy v1.1 (agents/DATABASE_CONNECTION_POLICY.md sections 17-22): this was confirmed only in SOMA_DESENV (CONFIRMED_IN_DEVELOPMENT), never confronted with Production (SOMA) — SOMA_DESENV is a development lab that can be stale relative to Production, not an automatic proxy for it. No longer treated as a confirmed functional problem. Next step: read-only validation of PRODUTOS.GRADE/PRODUTOS_TAMANHOS in Production for the same products. Possible explanations (not chosen, evaluated only after Production validation): (1) grade should be '34-44' and SOMA_DESENV's catalog is stale relative to Production for this drop; (2) size 34 uses a separate mechanism (e.g. PRODUTOS_TAMANHOS.QUEBRA_1..5, not yet investigated); (3) Q_34 is residual/legacy data that should not generate a write; (4) SOMA_DESENV's catalog genuinely diverges from Production for these products (real drift). If Production confirms the same absence, the question still goes to the Product Owner. No SQL solution can be safely proposed until Production is read and, if needed, the Product Owner answers."
+      "resolution": "AWAITING_PRODUCT_OWNER_ANSWER",
+      "resolution_detail": "This is the sole remaining gap, and it is a catalog/business decision, not something schema/code/data can resolve on their own — several candidate grade codes exist ('36 - 44 - 34', '34-44', '34-42', '34-46', etc.), each with a slightly different position layout. No SQL write can be safely proposed until this is answered. See docs/audits/LinxProgOpPed-ProductionInvestigation.md R2.11 for the exact question."
     },
     {
       "gap": "PRODUCAO_PROG_PROD and COMPRAS_PRODUTO writes (current procedure and historical SQL) omit a column that is part of their real composite primary key (ENTREGA_INICIAL / ENTREGA) — potential multi-row impact if a PROGRAMACAO+PRODUTO+COR_PRODUTO (or PEDIDO+PRODUTO+COR_PRODUTO) has more than one delivery-date row",
       "owner_agent": "linx-database-specialist-agent",
       "blocking": false,
       "resolution": "TECHNICAL_RISK_TO_DESIGN_AROUND",
-      "resolution_detail": "Not confirmed to occur in practice for this dataset (SOMA_DESENV has none of this data - see classifications). Any proposed solution must filter explicitly by ENTREGA_INICIAL/ENTREGA or validate singleton cardinality before writing, rather than inherit the historical omission."
+      "resolution_detail": "Confirmed identical schema in Production (CONFIRMED_BY_PRODUCTION_SCHEMA). Any proposed solution must filter explicitly by ENTREGA_INICIAL/ENTREGA or validate singleton cardinality before writing, rather than inherit the historical omission."
     }
   ],
   "capability_gaps": [
@@ -271,19 +314,24 @@
     "total_rows": 77,
     "unique_products": 39,
     "unique_product_colors": 42,
-    "prog_count": "UNKNOWN",
-    "op_count": "UNKNOWN",
-    "ped_count": "UNKNOWN",
-    "zero_delta_count": "UNKNOWN",
-    "with_change_count": "UNKNOWN",
-    "not_found_count": "UNKNOWN",
-    "ambiguous_count": "UNKNOWN",
-    "blocked_count": "UNKNOWN",
-    "data_error_count": 6,
-    "current_units": "UNKNOWN",
-    "requested_units": 77,
-    "unit_delta": "UNKNOWN",
-    "note": "Live SOMA_DESENV access is now READY (see connectivity gap RESOLVED). Classification mechanism and grade mapping are CONFIRMED (prog_rule/op_rule/ped_rule). However 0/77 spreadsheet rows matched any operational table in SOMA_DESENV (this dataset lives in Production only), and the size-34-vs-grade-36-44 gap blocks any position mapping — so PROG/OP/PED split, deltas and current-state units remain PENDING_PRODUCTION_READ_ONLY_VALIDATION, not computed, to avoid inventing numbers."
+    "unique_pos": 71,
+    "prog_count": 0,
+    "op_count": 0,
+    "ped_count": 77,
+    "zero_delta_count": 0,
+    "with_change_count": 77,
+    "not_found_count": 0,
+    "ambiguous_count": 0,
+    "blocked_count": 0,
+    "data_error_count": 0,
+    "current_units_sizes_36_to_44": 15240,
+    "requested_units_sizes_36_to_44": 14411,
+    "requested_units_size_34": 829,
+    "unit_delta_sizes_36_to_44": -829,
+    "unit_delta_net_including_size_34": 0,
+    "tables_potentially_affected": ["PRODUTOS", "COMPRAS_PRODUTO"],
+    "procedures_potentially_needed": ["LX_MOVIMENTA_COMPRAS_PA", "LX_RECALCULO_RESERVA_MATERIAIS"],
+    "note": "All counts CONFIRMED_BY_PRODUCTION_DATA (docs/audits/LinxProgOpPed-ProductionInvestigation.md R2.5/R2.7). data_error_count was 6 in the DEV-only round (duplicate PO numbers flagged as candidate errors) but Production data resolved PO 1741979 as CONFIRMED_VALID (normal multi-color line items) — the remaining 5 duplicate-PO cases were not individually re-verified in Production this round, treated conservatively as 0 confirmed errors rather than re-asserting the DEV-era suspicion without re-checking."
   },
   "affected_resources": {
     "tables_potentially_affected": ["PRODUCAO_PROG_PROD", "PRODUCAO_ORDEM_COR", "COMPRAS_PRODUTO"],

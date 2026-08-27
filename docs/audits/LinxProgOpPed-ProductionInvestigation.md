@@ -1,8 +1,12 @@
 # Linx PROG/OP/PED — Investigacao Authoritative Em Producao
 
-Status: **BLOCKED_ON_CONNECTIVITY** (superado — ver correcao abaixo; retomada em `docs/audits/LinxProductionEndpointCorrectionV1.md`)
+Status: **CONCLUDED — investigacao read-only completa; 1 Knowledge Gap residual, muito mais estreito, aguardando decisao de catalogacao do Product Owner (secao 8)**
 Data: 2026-08-27
-Escopo: investigacao read-only em `linx-production` (`SOMA`, endpoint entao configurado `192.168.0.200`) para o caso PROG/OP/PED. Nenhuma escrita, nenhum EXEC mutavel, nenhuma migration.
+Escopo: investigacao read-only em `linx-production` (`SOMA`, `192.168.9.200:1433`) para o caso PROG/OP/PED. Nenhuma escrita, nenhum EXEC mutavel, nenhuma migration.
+
+> **Nota de leitura:** este documento tem duas rodadas. A secao "Rodada 1" abaixo (preservada integralmente) documenta a tentativa inicial, bloqueada por um endpoint mal configurado (`192.168.0.200`) — ver a correcao em `docs/audits/LinxProductionEndpointCorrectionV1.md`. A **Rodada 2** (secao 6 em diante) documenta a investigacao completa apos a correcao do endpoint e a confirmacao de `READY` pelo Product Owner.
+
+## Rodada 1 (Historico — Bloqueada Por Endpoint Incorreto)
 
 > **CORRECAO (2026-08-27, etapa posterior):** o diagnostico abaixo concluiu, corretamente com base na evidencia disponivel na epoca, que `192.168.0.200:1433` estava bloqueado/filtrado (`CONNECTIVITYUNAVAILABLE`). Evidencia posterior — uma conexao real e funcional ao `SOMA` fornecida pelo Product Owner — provou que **`192.168.0.200` nunca foi o endpoint SQL real de producao**: o endpoint correto e `192.168.9.200:1433` (`@@SERVERNAME`=`SRV-SOMADB`, TCP, sem instancia nomeada). Ou seja, **nao havia bloqueio de firewall/VPN especifico de porta** — a porta 1433 realmente nao respondia em `192.168.0.200` porque **esse nao e o servidor de producao**. O diagnostico de rede (ping OK, TCP 1433 fechado, TCP 443 aberto) permanece tecnicamente correto para o host `192.168.0.200` testado, mas a **conclusao de causa raiz muda**: nao era "firewall bloqueando a porta certa no host certo", era "testando a porta certa no host errado". Nada abaixo foi apagado — preservado como registro exato do diagnostico feito antes da correcao. Ver `docs/audits/LinxProductionEndpointCorrectionV1.md` para o endpoint corrigido e a nova validacao.
 
@@ -109,4 +113,172 @@ Por transparencia, o conhecimento previamente obtido em `SOMA_DESENV` (`docs/aud
 - Nenhuma credencial exposta (secret scan a ser executado antes do commit).
 - `SOMA_DESENV` nao foi usado como substituto de producao.
 - Nenhuma reproducao PROD->DEV foi realizada ou proposta (nao ha dados de PROD para propor reproduzir).
+- Nenhum push realizado.
+
+---
+
+## Rodada 2 — Investigacao Completa Apos Correcao Do Endpoint
+
+### R2.1 Conectividade — READY
+
+Apos a correcao do endpoint (`docs/audits/LinxProductionEndpointCorrectionV1.md`) e a confirmacao do Product Owner de que o secret local `ConnectionStrings:LinxProductionConnection` foi atualizado para `192.168.9.200`, a validacao read-only foi reexecutada:
+
+```
+ERP Linx SOMA (Production) ........ READY
+  Servidor: 192.168.9.200
+  Banco: SOMA
+  Identidade efetiva: SOMALABS
+```
+
+**CONNECTION STATUS: READY.** Identidade efetiva `SOMALABS` — assim como `ti.n8n` em Development, parece ser uma identidade de servico/integracao, nao necessariamente individual; registrado como observacao, nao como bloqueio (mesmo criterio aplicado anteriormente a Development).
+
+### R2.2 Schema Em Producao — IDENTICO Ao DEV
+
+Investigacao read-only (`investigate-linx-prog-op-ped schema --env=production`) das 5 tabelas (`PRODUCAO_PROG_PROD`, `PRODUCAO_ORDEM`, `PRODUCAO_ORDEM_COR`, `COMPRAS`, `COMPRAS_PRODUTO`): colunas, tipos, nulabilidade, chaves primarias e indices comparados byte-a-byte com o dump equivalente de `SOMA_DESENV` (sessao anterior). **Diff: vazio em todas as 5 tabelas.**
+
+| Objeto | DEV | PROD | Status |
+|---|---|---|---|
+| `PRODUCAO_PROG_PROD` (colunas/PK/indices) | capturado | capturado | **IDENTICAL** |
+| `PRODUCAO_ORDEM` (colunas/PK/indices) | capturado | capturado | **IDENTICAL** |
+| `PRODUCAO_ORDEM_COR` (colunas/PK/indices) | capturado | capturado | **IDENTICAL** |
+| `COMPRAS` (colunas/PK/indices) | capturado | capturado | **IDENTICAL** |
+| `COMPRAS_PRODUTO` (colunas/PK/indices) | capturado | capturado | **IDENTICAL** |
+
+O risco de multiplicidade `ENTREGA_INICIAL`/`ENTREGA` identificado na rodada DEV (`docs/audits/AgentLearningV1-LinxProgOpPed.md` secao 7.6.1) e portanto **CONFIRMED_BY_PRODUCTION_SCHEMA** — as mesmas chaves primarias de 4 colunas existem em producao.
+
+### R2.3 Procedures Em Producao — IDENTICAS Ao DEV
+
+Definicao completa (`OBJECT_DEFINITION`) e parametros (`sys.parameters`) das 4 procedures comparados byte-a-byte com DEV. **Diff: vazio nas 4.**
+
+| Procedure | DEV | PROD | Status |
+|---|---|---|---|
+| `LX_ANM_GERA_OS_ALTERACAO_PCP` | capturada | capturada | **IDENTICAL** |
+| `LX_ANM_AJUSTA_PROGRAMACAO_PROD` | capturada | capturada | **IDENTICAL** |
+| `LX_MOVIMENTA_COMPRAS_PA` | capturada | capturada | **IDENTICAL** |
+| `LX_RECALCULO_RESERVA_MATERIAIS` | capturada | capturada | **IDENTICAL** |
+
+Toda a mecanica descrita em `docs/audits/AgentLearningV1-LinxProgOpPed.md` secao 7.6 (comportamento de `LX_ANM_AJUSTA_PROGRAMACAO_PROD` nao verificar rowcount, pre-validacao de saldo em `LX_ANM_GERA_OS_ALTERACAO_PCP`, etc.) e portanto **CONFIRMED_BY_PRODUCTION_CODE** — nao apenas `CONFIRMED_IN_DEVELOPMENT`.
+
+### R2.4 Gap Do Tamanho 34 — RESOLVIDO (classificacao B + D da tarefa)
+
+Investigacao dedicada (`investigate-linx-prog-op-ped grade` e `grade-detail --env=production`):
+
+1. **`PRODUTOS.GRADE` e `PRODUTOS_TAMANHOS` para os 39 produtos da planilha em producao:** `GRADE='36-44'` em 100% dos casos (identico a DEV), com `TAMANHO_1..5 = 36,38,40,42,44` — **tamanho 34 continua ausente desta grade em producao**. Isto descarta a hipotese A (`DEVELOPMENT_DRIFT_CONFIRMED`): producao replica exatamente o que foi observado em DEV.
+
+2. **Diferenca real encontrada em relacao a DEV:** em producao, **os 39 produtos existem em `PRODUTOS`** (em DEV, apenas 30 de 39 existiam — 9 nao encontrados). Isto e um **drift real DEV->PROD**, mas na direcao oposta a suspeitada: DEV tinha um catalogo de produtos **incompleto**, nao producao.
+
+3. **Achado decisivo — existe uma grade alternativa que inclui o tamanho 34:** a busca por todas as grades cadastradas que contêm `'34'` em qualquer posicao (`TAMANHO_1..8`) encontrou, entre outras, a grade **`"36 - 44 - 34"`**, com `TAMANHO_1..6 = 36,38,40,42,44,34` — ou seja, o Linx **ja possui um mecanismo comprovado** para acomodar exatamente esta situacao (uma grade de 6 posicoes que estende `36-44` com o tamanho 34 na 6a posicao). Tambem existem outras grades correlatas cadastradas havendo `34` (`34-44`, `34-42`, `34-46`, etc.), cada uma com um layout de posicoes diferente.
+
+4. **Prova quantitativa definitiva (nao suposicao) de que a operacao pretendida e um rebalanceamento de grade, nao uma alteracao de volume:** para as 77 linhas da planilha, comparando `COMPRAS_PRODUTO.CO1..CO5` (quantidade atual real em producao, tamanhos 36-44) contra `Q_36..Q_44` (planilha) e `Q_34` (planilha):
+
+   ```
+   ATUAL(36+38+40+42+44) == SOLICITADO(36+38+40+42+44) + Q_34   —   verdadeiro em 77 de 77 linhas (100%)
+   ```
+
+   Exemplo real (`PO 1741628`, produto `15.29433`): atual `(26,44,40,20,6)` soma `136`; solicitado `(27,42,36,17,6)` soma `128`; `Q_34=8`; `128+8=136`. **Nenhuma unidade e criada nem destruida** — a planilha pede para retirar uma pequena quantidade de cada tamanho existente (36-44) e realocar exatamente essa quantidade para uma nova posicao de tamanho 34, mantendo o total de pecas por produto/cor/programacao **identico** ao que ja esta comprado/programado em producao.
+
+**Classificacao final do Gap 34: `PRODUCTION_DATA_CONFIRMED` (opcao B) + `OTHER_CONFIRMED_BEHAVIOR` (opcao D).** Producao confirma a mesma configuracao de DEV (nao e drift de cadastro incompleto) **e** o modelo Linx comprovadamente suporta o cenario via grades alternativas ja cadastradas que incluem o tamanho 34. **Nao e mais um problema tecnico nem uma duvida sobre "o Linx consegue representar isso" — o Linx consegue, e ha pelo menos 6 grades candidatas cadastradas que incluem o tamanho 34 combinado com 36-44 de formas ligeiramente diferentes** (`"36 - 44 - 34"`, `34-44`, `34-42`, `34-46`, `34-44 TP`, `34-48`, etc.).
+
+**Residual, estreito, genuinamente para o Product Owner (nao redutivel por schema/codigo/dado):** qual das grades cadastradas com tamanho 34 deve ser usada como a nova `PRODUTOS.GRADE` destes 39 produtos, e se essa mudanca de cadastro deve ser feita antes de qualquer escrita de quantidade. Esta pergunta e puramente de catalogacao/negocio (qual codigo de grade e o certo para esta colecao), nao uma duvida tecnica sobre o mecanismo.
+
+### R2.5 Regra PROG / OP / PED — Confirmada Com Dados Reais De Producao
+
+Cruzamento completo (`investigate-linx-prog-op-ped crossref --env=production`) das 77 linhas contra `PRODUCAO_PROG_PROD`, `PRODUCAO_ORDEM`+`PRODUCAO_ORDEM_COR` e `COMPRAS`+`COMPRAS_PRODUTO`:
+
+| Metrica | Resultado |
+|---|---|
+| Linhas com match em `PRODUCAO_PROG_PROD` | **77/77** |
+| Linhas com match em OP (`PRODUCAO_ORDEM`+`PRODUCAO_ORDEM_COR`) | **0/77** |
+| Linhas com match em PED (`COMPRAS`+`COMPRAS_PRODUTO`, por programacao) | **77/77** |
+| Linhas sem nenhuma correspondencia (`NAO_ENCONTRADO`) | **0/77** |
+
+**Refinamento importante da regra positiva (secao 7.6.4 do relatorio DEV):** a regra anterior tratava a existencia em `PRODUCAO_PROG_PROD` como suficiente para classificar `PROG`. Os dados reais de producao mostram que isso e **incompleto**: todas as 77 linhas existem simultaneamente em `PRODUCAO_PROG_PROD` **e** em `COMPRAS`/`COMPRAS_PRODUTO` — ou seja, `PRODUCAO_PROG_PROD` guarda o planejamento/programacao de producao (que continua existindo mesmo depois que um Pedido de Compra real e emitido), e nao e, por si so, prova de que a linha deveria ser tratada como "PROG" para fins deste ajuste. A regra correta, alinhada a construcao original do SQL historico (`UNION ALL` de OP e PED, com `PROG` apenas quando nenhum dos dois bate), e uma **prioridade**: **OP > PED > PROG**. Aplicando essa prioridade aos dados reais: **77 linhas = PED, 0 = OP, 0 = PROG, 0 = NAO_ENCONTRADO.**
+
+| Tipo | Contagem (dados reais de producao) |
+|---|---|
+| PED | **77** |
+| OP | 0 |
+| PROG | 0 |
+| NAO_ENCONTRADO | 0 |
+| AMBIGUO | 0 |
+
+### R2.6 PO 1741979 — CONFIRMED_VALID
+
+Consulta read-only a `COMPRAS`+`COMPRAS_PRODUTO` para `PEDIDO=1741979` e `PRODUTO=15.29765` em producao. Resultado real:
+
+```
+PEDIDO=1741979; PRODUTO=15.29765; COR=09204; QTDE_ORIGINAL=162; CO1..CO5=(31,67,39,22,3)
+PEDIDO=1741979; PRODUTO=15.29765; COR=5465;  QTDE_ORIGINAL=206; CO1..CO5=(39,85,49,29,4)
+```
+
+**Classificacao: `CONFIRMED_VALID`.** Mesmo `PEDIDO`, mesmo `PRODUTO`, cores diferentes (`09204`/`5465`), quantidades diferentes por cor — esta e a estrutura normal de um Pedido de Compra com multiplos itens de linha (uma linha por combinacao produto+cor), nao uma inconsistencia de dados. A consulta tambem revelou, como contexto adicional (nao solicitado mas relevante), que o mesmo produto tem **outros 3 pedidos distintos** (`1741976`, `1741977`, `1741978`) para programacoes diferentes (`PA_ATC_MF_INV27_IMP_FE`, `PA_FRA_MF_INV27_IMP_FE`, `PA_MOST_MF_INV27_FE_IMP`) — consistente com o mesmo produto/cor sendo comprado para canais de distribuicao distintos (atacado, um canal adicional "FRA", e uma programacao de mostruario/amostra).
+
+### R2.7 Delta Real — Calculado
+
+Ver R2.4 para a prova quantitativa central. Resumo agregado (`investigate-linx-prog-op-ped delta --env=production`, 77/77 linhas processadas, nenhuma `NAO_ENCONTRADO`):
+
+| Metrica | Valor |
+|---|---|
+| Linhas processadas | 77 |
+| `ZERO_DELTA` (tamanhos 36-44 identicos, sem Q_34) | 0 |
+| `CHANGE_REQUIRED` | 77 |
+| `NAO_ENCONTRADO` | 0 |
+| Total solicitado (tamanhos 36,38,40,42,44) | 14.411 unidades |
+| Total atual em producao (tamanhos 36,38,40,42,44) | 15.240 unidades |
+| Delta liquido (36-44) | **-829** |
+| Total unidades no tamanho 34 (planilha) | **829** |
+| Linhas com Q_34 != 0 | 77/77 |
+
+**O delta liquido negativo de 829 nos tamanhos 36-44 e exatamente compensado pelas 829 unidades do tamanho 34** — confirmando, em nivel agregado e por linha (R2.4), que nenhuma unidade e adicionada ou removida do total: e uma realocacao interna da grade.
+
+### R2.8 PROD x DEV Drift Report (Consolidado)
+
+| Item | DEV (`SOMA_DESENV`) | PROD (`SOMA`) | Status |
+|---|---|---|---|
+| Schema das 5 tabelas (colunas/PK/indices) | capturado (sessao anterior) | capturado (esta sessao) | **IDENTICAL** |
+| Definicao das 4 procedures | capturada | capturada | **IDENTICAL** |
+| `PRODUTOS.GRADE` dos produtos da planilha | `36-44` (30/39 produtos encontrados) | `36-44` (**39/39 produtos encontrados**) | **DRIFT_DETECTED** — DEV tinha catalogo de produto incompleto (9 produtos ausentes); PROD tem o catalogo completo |
+| `PRODUTOS_TAMANHOS` para `GRADE='36-44'` | `TAMANHO_1..5=36,38,40,42,44`, sem 34 | `TAMANHO_1..5=36,38,40,42,44`, sem 34 | **IDENTICAL** |
+| Dados PROG/OP/PED (77 linhas da planilha) | 0/77 encontrados em qualquer tabela | 77/77 encontrados (77 PED, 0 OP, 0 PROG) | **PROD_ONLY** — os dados operacionais desta planilha simplesmente nao existem em DEV, exatamente como suspeitado na rodada anterior |
+| PO 1741979 | nao encontrado em DEV | encontrado, `CONFIRMED_VALID` | **PROD_ONLY** |
+| Delta real (36-44 vs 34) | nao calculavel (`PENDING_PRODUCTION_VALIDATION`) | calculado: -829/+829, rebalanceamento comprovado | **PROD_ONLY** (calculo so possivel com dados de producao) |
+
+### R2.9 Knowledge Provenance — Promovido A `CONFIRMED_IN_PRODUCTION`
+
+Todo o conhecimento abaixo, anteriormente rotulado `CONFIRMED_IN_DEVELOPMENT` (`docs/audits/AgentLearningV1-LinxProgOpPed.md` secao 7.6), foi confrontado com producao e confirmado **identico** — promovido:
+
+- Schema das 5 tabelas (colunas, PK, indices), incluindo o risco de multiplicidade `ENTREGA_INICIAL`/`ENTREGA` — `CONFIRMED_BY_PRODUCTION_SCHEMA`.
+- Definicao e comportamento das 4 procedures (incluindo `LX_ANM_AJUSTA_PROGRAMACAO_PROD` nao verificar rowcount do `UPDATE`) — `CONFIRMED_BY_PRODUCTION_CODE`.
+- Mecanismo `PRODUTOS.GRADE` + `PRODUTOS_TAMANHOS` (posicoes genericas ate 48, uma grade por codigo) — `CONFIRMED_BY_PRODUCTION_SCHEMA` + `CONFIRMED_BY_PRODUCTION_DATA`.
+- Regra de classificacao PROG/OP/PED com prioridade `OP > PED > PROG` — `CONFIRMED_BY_PRODUCTION_DATA` (refinada nesta rodada; a versao anterior, apenas "existe em `PRODUCAO_PROG_PROD`", ficou provada **incompleta** pelos dados reais).
+- Existencia de grades alternativas cadastradas que incluem o tamanho 34 (`"36 - 44 - 34"` e outras) — `CONFIRMED_BY_PRODUCTION_DATA`.
+- Natureza de rebalanceamento de grade da operacao representada pela planilha (total inalterado, apenas realocacao entre tamanhos) — `CONFIRMED_BY_PRODUCTION_DATA` (prova quantitativa em 77/77 linhas).
+
+**Nada foi promovido por inferencia ou extrapolacao de DEV** — cada item acima foi obtido por uma consulta read-only real contra `SOMA` nesta sessao.
+
+### R2.10 Conhecimento Incorporado Ao Agent Linx (Modelo, Nao O Caso)
+
+Generalizavel (persistido como conhecimento reutilizavel do dominio Linx, nao como fato desta planilha):
+
+- Prioridade de classificacao de ajuste de grade Linx: **OP (existe Ordem de Producao) > PED (existe Pedido de Compra) > PROG (existe apenas registro de programacao em `PRODUCAO_PROG_PROD`) > NAO_ENCONTRADO**.
+- A existencia isolada de um registro em `PRODUCAO_PROG_PROD` **nao** implica que a linha deva ser tratada como "apenas programacao" — um Pedido de Compra real pode coexistir com o registro de programacao.
+- O Linx representa grade via um campo `GRADE` (codigo) no cadastro de produto e uma tabela `PRODUTOS_TAMANHOS` (chave `GRADE`) que mapeia posicoes 1..48 a tamanhos fisicos reais — **para adicionar um tamanho a uma linha de produto, o codigo de grade do produto precisa ser alterado para um codigo que inclua esse tamanho**, nao apenas escrever na posicao numerica.
+- Antes de propor qualquer ajuste de grade, e valido e util verificar se o total de pecas solicitado bate com o total atual — isso distingue uma operacao de **rebalanceamento** (total constante) de uma operacao de **alteracao de volume** (total muda), que tem implicacoes de negocio e de aprovacao muito diferentes.
+
+**Nao generalizado / mantido como particularidade desta execucao:** os 39 produtos especificos, a grade `36-44` especifica, os numeros 829/14.411/15.240, o PO `1741979`, e as programacoes especificas (`PA_ATC_MF_INV27_IMP_JAS` etc.) — tudo isso e evidencia do caso, nao regra do modelo Linx.
+
+## R2.11 Estrategia Tecnica — Nao Proposta Ainda (Gap Residual Bloqueante)
+
+Apesar do progresso substancial (schema/procedures/mecanismo de grade/regra PROG-OP-PED/Delta todos confirmados com dados reais de producao), **uma decisao de negocio ainda bloqueia a proposta de solucao final**: qual codigo de grade cadastrado (`"36 - 44 - 34"`, `34-44`, ou outro) deve ser atribuido a estes 39 produtos para acomodar o tamanho 34. Gerar SQL sem essa decisao seria adivinhar um valor de catalogo, violando o principio desta tarefa.
+
+**Pergunta objetiva final ao Product Owner:** confirmado que a operacao e um rebalanceamento de grade (total de pecas inalterado, comprovado em 77/77 linhas) e que o Linx ja possui grades cadastradas que incluem o tamanho 34 combinado com 36-44 (`"36 - 44 - 34"` entre outras) — **qual codigo de grade deve ser usado como o novo `PRODUTOS.GRADE` destes produtos?** Se a resposta for `"36 - 44 - 34"` (a correspondencia mais direta com a grade atual), o Agent pode entao projetar a estrategia tecnica completa (mudanca de cadastro de grade + redistribuicao de quantidade + procedures aplicaveis) na proxima etapa.
+
+## R2.12 Confirmacoes Finais Desta Rodada
+
+- Nenhuma escrita executada em producao ou em qualquer outro ambiente.
+- Nenhum EXEC de procedure mutavel — apenas `SELECT`, `OBJECT_DEFINITION`, `sys.parameters`, `INFORMATION_SCHEMA`.
+- Nenhuma migration.
+- Nenhuma credencial exposta.
+- `LIVE_EXECUTION` permanece desabilitado.
+- Nenhuma reproducao PROD->DEV foi realizada.
 - Nenhum push realizado.
