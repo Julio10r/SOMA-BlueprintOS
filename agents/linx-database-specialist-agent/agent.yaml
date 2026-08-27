@@ -95,15 +95,19 @@ gap_policy:
   explicit_human_approval_required_for_new_agent: true
   material_capability_change_requires_human_approval: true
 connections:
+  # Ambientes/profiles canonicos definidos em agents/DATABASE_CONNECTION_POLICY.md. Profile logico !=
+  # credencial: server/database sao metadados versionaveis, usuario/senha permanecem locais e separados
+  # por ambiente. linx-development e o padrao para analise/schema discovery; linx-production so deve ser
+  # assumido com contexto explicito ou pedido claro do usuario, nunca por inferencia.
   profiles:
-    linx-erp-read-only:
-      configuration_reference: ConnectionStrings:ErpConnection
-      environment: SOMA_DESENV
+    linx-development:
+      configuration_reference: ConnectionStrings:LinxDevelopmentConnection
+      environment: Development
       access_intent: read-only
       classification: Confidential
-    linx-erp-governed-write:
-      configuration_reference: ConnectionStrings:ErpConnection
-      environment: configured-runtime-environment
+    linx-production:
+      configuration_reference: ConnectionStrings:LinxProductionConnection
+      environment: Production
       access_intent: governed-write
       classification: Confidential
   credential_policy:

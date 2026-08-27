@@ -267,3 +267,15 @@ Isso usa a identidade/permissao real do usuario que configurou o secret — o Bl
 - Nenhuma connection string ou senha foi impressa, logada ou commitada.
 - Secret scan no diff desta etapa (`B1ConnectivityValidator.cs`, `Program.cs`, teste novo): **limpo** — nenhuma credencial, IP ou identidade real encontrados.
 - `linx-database-specialist-agent` (o Agent .NET real, nao esta sessao de chat) ja possuia, antes desta tarefa, o mecanismo correto para chegar a `READY`; o gap era de uso/descoberta na sessao de chat anterior, nao de arquitetura. Nenhuma mudanca foi necessaria no `agent.yaml` do Linx Database Specialist.
+
+### 25.7 Atualizacao — separacao DEV/PROD (ver agents/DATABASE_CONNECTION_POLICY.md)
+
+A conexao generica `ErpConnection` unica descrita acima (25.1-25.6) foi substituida pela separacao
+explicita de ambientes Linx/SOMA: `ConnectionStrings:LinxDevelopmentConnection`
+(`192.168.9.98`/`SOMA_DESENV`) e `ConnectionStrings:LinxProductionConnection`
+(`192.168.0.200`/`SOMA`), cada uma com profile logico, protecao contra environment mismatch e
+identidade/credencial estritamente local e separada por ambiente. `ErpConnection` permanece como
+fallback DEPRECATED apenas para o profile Development, para nao quebrar consumidores existentes
+silenciosamente. Detalhes completos, incluindo o comando de configuracao local para os dois
+ambientes, estao em `agents/DATABASE_CONNECTION_POLICY.md` e `docs/audits/DatabaseConnectionPolicyV1.md` —
+esta secao 25 permanece como registro historico da investigacao original.

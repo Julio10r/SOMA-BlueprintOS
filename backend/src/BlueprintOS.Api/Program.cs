@@ -379,11 +379,15 @@ static async Task<int> ValidateB1ConnectivityAsync()
 #pragma warning restore ASP0000
     var validator = provider.GetRequiredService<B1ConnectivityValidator>();
     var maisCompras = await validator.ValidateMaisComprasAsync();
-    var erp = await validator.ValidateErpAsync();
+    var erpDev = await validator.ValidateErpAsync(LinxEnvironment.Development);
+    var erpProd = await validator.ValidateErpAsync(LinxEnvironment.Production);
 
     WriteConnectivityResult(maisCompras);
-    WriteConnectivityResult(erp);
-    return maisCompras.IsSuccess && erp.IsSuccess ? 0 : 1;
+    WriteConnectivityResult(erpDev);
+    WriteConnectivityResult(erpProd);
+    // Production não é exigida para o comando genérico ter sucesso: um dev pode não ter (nem precisa
+    // ter) a credencial de Production configurada localmente para trabalhar em Development.
+    return maisCompras.IsSuccess && erpDev.IsSuccess ? 0 : 1;
 }
 
 static async Task<int> ProbeErpSuppliersAsync(string[] args)
@@ -488,6 +492,14 @@ static void WriteConnectivityResult(DatabaseConnectivityResult result)
         Console.WriteLine($"  Servidor: {result.Server ?? "não disponível"}");
         Console.WriteLine($"  Banco: {result.Database ?? "não disponível"}");
         Console.WriteLine($"  Identidade efetiva: {result.EffectiveIdentity ?? "não disponível"}");
+    }
+    if (result.Status == ConnectivityStatus.VpnRequired)
+    {
+        Console.WriteLine("  Conecte-se à VPN corporativa e tente novamente.");
+    }
+    if (result.Status == ConnectivityStatus.EnvironmentMismatch)
+    {
+        Console.WriteLine("  Bloqueado: a connection string configurada não corresponde ao profile esperado.");
     }
     WriteConnectivityError(result);
 }
