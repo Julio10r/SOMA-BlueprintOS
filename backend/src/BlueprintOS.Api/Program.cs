@@ -508,6 +508,10 @@ static void WriteConnectivityError(DatabaseConnectivityResult result)
 {
     if (result.IsSuccess || result.Exception is null) return;
     Console.WriteLine($"  Exceção: {result.Exception.GetType().FullName}");
+    if (result.Exception is Microsoft.Data.SqlClient.SqlException sqlException)
+    {
+        Console.WriteLine($"  Código SQL: {sqlException.Number}");
+    }
     Console.WriteLine($"  Mensagem: {SanitizeConnectivityMessage(result.Exception.Message)}");
     Console.WriteLine($"  Servidor: {result.Server ?? "não disponível"}");
     Console.WriteLine($"  Banco: {result.Database ?? "não disponível"}");

@@ -265,3 +265,60 @@ passando sem alteração após a migração dos readers.
 - `Program.cs` (`ProbeErpSupplierIntegrityAsync`, ferramenta CLI de diagnóstico) continua lendo
   `ErpConnection`/validação própria — não migrado nesta etapa por não ser um dos 7 consumidores de
   produção auditados; considerar na remoção final do fallback.
+
+---
+
+## Atualização 2026-08-27 (continuação) — validação read-only de PROD
+
+### PROD secret
+
+O usuário confirmou ter configurado `ConnectionStrings:LinxProductionConnection` localmente. O
+valor **não foi exibido nem registrado** em nenhum momento desta etapa.
+
+### Resultado real (read-only)
+
+`dotnet run --project backend/src/BlueprintOS.Api -- validate-b1-connectivity`:
+
+- **servidor efetivo**: `192.168.0.200` (bate com o profile `linx-production`).
+- **banco efetivo**: `SOMA` (bate com o profile `linx-production`).
+- **ENVIRONMENT_MISMATCH**: não ocorreu — servidor e banco resolvidos batem exatamente com o
+  esperado, então o guard de mismatch (que roda antes de qualquer tentativa de rede) deixou a
+  tentativa de conexão prosseguir.
+- **Conexão de rede**: falhou. `SqlException` (`Number = 0`, mensagem "A network-related or
+  instance-specific error occurred... The server was not found or was not accessible... (provider:
+  TCP Provider, error: 35)"). Um teste independente de rede (`nc -z -w 3 192.168.0.200 1433`) nesta
+  mesma máquina confirma a porta **inacessível** — coerente com VPN corporativa não conectada
+  (ou não roteável) nesta sessão de execução.
+- **CONNECTION STATUS = VPN_REQUIRED** (não `READY`, não `PermissionDenied`) — a classificação
+  correta segundo a política: rede indisponível nunca deve ser confundida com credencial inválida.
+
+### Gap de classificação encontrado e corrigido
+
+A primeira execução real classificou essa falha como `Failed` genérico, não como `VpnRequired`: o
+driver `Microsoft.Data.SqlClient` reporta essa família de erro de rede com `SqlException.Number ==
+0` (nenhum código nativo do SQL Server — a conexão TCP nunca chegou a se estabelecer), fora da lista
+de números já tratados (`53, -2, -1, 2, 258, 10060`). Corrigido em
+`B1ConnectivityValidator.IsNetworkUnreachable`: quando `Number == 0`, a mensagem é inspecionada para
+os textos característicos desse cenário (`network-related`, `TCP Provider`,
+`was not found or was not accessible`) antes de classificar como `VpnRequired`. Também adicionado
+`Código SQL: {sqlException.Number}` na saída do CLI (`Program.cs`) — não é segredo, é apenas o
+número de erro nativo do SQL Server, útil para diagnosticar VPN vs. credencial no futuro. Suíte
+completa revalidada: **910/910**, sem regressão.
+
+### Conclusão desta etapa
+
+`linx-production` **não pode ser marcado READY** ainda — o profile está correto (servidor/banco
+batem, sem mismatch, credencial aceita pelo guard de configuração), mas a rede/VPN não está
+alcançável a partir desta sessão de execução do agente. Isto não é uma falha de configuração da
+policy nem da credencial: é exatamente o estado `VPN_REQUIRED` que a política pede para reportar
+sem inventar sucesso. Para concluir a validação real de PROD, é necessário rodar
+`validate-b1-connectivity` (ou o app) a partir de uma máquina/sessão com a VPN corporativa
+efetivamente conectada e roteando até `192.168.0.200:1433`.
+
+### Arquivos alterados nesta etapa
+
+- `backend/src/BlueprintOS.Infrastructure/Persistence/B1ConnectivityValidator.cs` — classifica
+  `SqlException` com `Number == 0` e mensagem de rede como `VpnRequired` em vez de `Failed`.
+- `backend/src/BlueprintOS.Api/Program.cs` — imprime o código de erro SQL nativo (não sensível) na
+  saída de diagnóstico de conectividade.
+- `docs/audits/DatabaseConnectionPolicyV1.md` (este arquivo).

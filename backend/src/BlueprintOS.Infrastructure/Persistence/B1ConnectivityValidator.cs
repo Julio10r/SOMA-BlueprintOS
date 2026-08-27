@@ -123,14 +123,23 @@ public sealed class B1ConnectivityValidator(IConfiguration configuration)
         exception.Number is 18456 or 229 or 230 or 262 or 4060;
 
     /// <summary>Distingue "VPN desconectada / rede inacessível" de "credencial inválida": erros de
-    /// resolução de rede/timeout de handshake nunca devem ser classificados como falha de credencial.</summary>
+    /// resolução de rede/timeout de handshake nunca devem ser classificados como falha de credencial.
+    /// O driver SqlClient frequentemente reporta indisponibilidade de rede/servidor com
+    /// <c>SqlException.Number == 0</c> (sem código SQL nativo — a conexão TCP nunca chegou a existir),
+    /// então a mensagem também é inspecionada para os textos característicos desse cenário.</summary>
     private static bool IsNetworkUnreachable(Exception exception) => exception switch
     {
-        SqlException sql => sql.Number is 53 or -2 or -1 or 2 or 258 or 10060,
+        SqlException { Number: 53 or -2 or -1 or 2 or 258 or 10060 } => true,
+        SqlException { Number: 0 } sql when IsNetworkUnreachableMessage(sql.Message) => true,
         System.Net.Sockets.SocketException => true,
         TimeoutException => true,
         _ => false,
     };
+
+    private static bool IsNetworkUnreachableMessage(string message) =>
+        message.Contains("network-related", StringComparison.OrdinalIgnoreCase)
+        || message.Contains("TCP Provider", StringComparison.OrdinalIgnoreCase)
+        || message.Contains("was not found or was not accessible", StringComparison.OrdinalIgnoreCase);
 }
 
 public enum ConnectivityStatus
