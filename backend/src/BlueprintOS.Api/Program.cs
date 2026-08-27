@@ -381,10 +381,8 @@ static async Task<int> ValidateB1ConnectivityAsync()
     var maisCompras = await validator.ValidateMaisComprasAsync();
     var erp = await validator.ValidateErpAsync();
 
-    Console.WriteLine($"+Compras ........ {(maisCompras.IsSuccess ? "SUCESSO" : "FALHA")}");
-    Console.WriteLine($"ERP SOMA_DESENV . {(erp.IsSuccess ? "SUCESSO" : "FALHA")}");
-    WriteConnectivityError(maisCompras);
-    WriteConnectivityError(erp);
+    WriteConnectivityResult(maisCompras);
+    WriteConnectivityResult(erp);
     return maisCompras.IsSuccess && erp.IsSuccess ? 0 : 1;
 }
 
@@ -484,7 +482,13 @@ static IConfiguration BuildDatabaseConfiguration() => new ConfigurationBuilder()
 
 static void WriteConnectivityResult(DatabaseConnectivityResult result)
 {
-    Console.WriteLine($"{result.Label} ........ {(result.IsSuccess ? "SUCESSO" : "FALHA")}");
+    Console.WriteLine($"{result.Label} ........ {result.Status.ToString().ToUpperInvariant()}");
+    if (result.IsSuccess)
+    {
+        Console.WriteLine($"  Servidor: {result.Server ?? "não disponível"}");
+        Console.WriteLine($"  Banco: {result.Database ?? "não disponível"}");
+        Console.WriteLine($"  Identidade efetiva: {result.EffectiveIdentity ?? "não disponível"}");
+    }
     WriteConnectivityError(result);
 }
 

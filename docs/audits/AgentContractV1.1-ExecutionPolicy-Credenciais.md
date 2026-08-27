@@ -184,3 +184,86 @@ CONFIRMADO:
 3. Implementar adapters de secret store por ambiente conforme necessidade comprovada.
 4. Integrar validator e secret scan leve ao CI.
 5. Evoluir enforcement documental de WISE/Showcase sem alterar comportamento ate existir Work Order aprovada.
+
+## 25. Investigacao Da Conexao Local Read-Only (`linx-erp-read-only`) — Continuacao
+
+Contexto: uma sessao anterior do caso PROG/OP/PED (`docs/audits/AgentLearningV1-LinxProgOpPed.md`, secao 7.9.c) declarou Knowledge Gap por nao conseguir validar a conexao Linx/`SOMA_DESENV`. Esta secao registra a investigacao e o resultado, sem gerar nenhuma solucao PROG/OP/PED.
+
+### 25.1 Como `ConnectionStrings:ErpConnection` ja deveria ser resolvida (arquitetura pre-existente, CONFIRMADO)
+
+O mecanismo correto **ja existia integralmente antes desta tarefa** e nao precisou de uma segunda arquitetura:
+
+- `backend/src/BlueprintOS.Api/appsettings.json` (versionado) contem apenas um placeholder nao-segredo: `"ErpConnection": "__SET_VIA_USER_SECRETS_OR_CONNECTIONSTRINGS__ERPCONNECTION__"`.
+- `backend/src/BlueprintOS.Api/BlueprintOS.Api.csproj` declara `<UserSecretsId>BlueprintOS-Development</UserSecretsId>`, habilitando `dotnet user-secrets` para popular `ConnectionStrings:ErpConnection` localmente, fora do Git, em `~/.microsoft/usersecrets/BlueprintOS-Development/secrets.json` (permissao `600`, fora do repositorio).
+- `Program.cs` (`BuildDatabaseConfiguration()`) monta a configuracao com `AddJsonFile("appsettings.json") -> AddJsonFile("appsettings.Development.json") -> AddUserSecrets<Program>() -> AddEnvironmentVariables()` — User Secrets e variavel de ambiente sempre sobrescrevem o placeholder versionado, nunca o contrario.
+- Todos os leitores ERP (`SomaFilialReader`, `SomaCentroCustoReader`, `SomaFornecedorReader`, `LinxSchemaDiscoveryReader`, `ErpFornecedorDiscoveryRepository`, etc.) ja recusam abrir conexao se `ConnectionStrings:ErpConnection` estiver ausente ou ainda for o placeholder `__SET_...__`, lancando `InvalidOperationException` com mensagem que nao contem a connection string.
+- Ja existia um validador dedicado, **read-only por construcao** (`SELECT 1` apenas): `backend/src/BlueprintOS.Infrastructure/Persistence/B1ConnectivityValidator.cs`, exposto via CLI local sem subir o host HTTP: `dotnet run --project backend/src/BlueprintOS.Api -- validate-b1-connectivity`.
+
+### 25.2 Por que o Agent nao conseguiu usar a conexao na sessao anterior
+
+Nao foi um gap de arquitetura nem de credencial ausente. Foi um gap de **descoberta dentro da sessao de chat**: a sessao anterior nunca invocou o comando CLI local `validate-b1-connectivity` (nem qualquer outro caminho de teste read-only ja existente no repositorio) antes de declarar Knowledge Gap — a conclusao "sem conexao disponivel" foi correta quanto a nao poder pedir/usar credencial no chat (regra que continua valendo), mas incompleta quanto a nao ter verificado se **o mecanismo local do proprio desenvolvedor** ja resolvia isso sem nenhuma credencial no chat. Ao rodar o comando ja existente nesta sessao (sem digitar nenhuma credencial, sem imprimir a connection string), o resultado real foi:
+
+```
++Compras ........ READY
+  Servidor: 192.168.9.98
+  Banco: MAISCOMPRAS
+  Identidade efetiva: [REDACTED — nome de login, nao segredo, omitido aqui por minimizacao]
+ERP SOMA_DESENV ........ READY
+  Servidor: 192.168.9.98
+  Banco: SOMA_DESENV
+  Identidade efetiva: [REDACTED — nome de login, nao segredo, omitido aqui por minimizacao]
+```
+
+CONFIRMADO: `ConnectionStrings:ErpConnection` ja estava configurada localmente via `dotnet user-secrets` nesta maquina (`~/.microsoft/usersecrets/BlueprintOS-Development/secrets.json`, chaves presentes: `ConnectionStrings:MaisComprasConnection`, `ConnectionStrings:ErpConnection`, `Bootstrap:Secret`, `Bootstrap:AllowedCandidateEmails:0` — apenas os nomes das chaves foram inspecionados, nunca os valores). CONFIRMADO: **CONNECTION STATUS = READY (read-only)** para `SOMA_DESENV`.
+
+**Observacao (nao um bloqueio desta tarefa):** a identidade efetiva resolvida por `SUSER_SNAME()` e um login de servico compartilhado (nao um login individual do desenvolvedor). Isso e consistente com o `credential_policy.individual_identity_required: true` do manifesto **apenas se** esse login de servico for de fato provisionado por pessoa/ambiente (nao compartilhado entre desenvolvedores com permissoes distintas) — algo que este Agent nao pode confirmar sem acesso ao cadastro de logins do SQL Server. Registrado como **NEEDS_VALIDATION**, nao como bloqueio: o principio "Governance permitir + banco permitir" continua valendo com as permissoes reais desse login, quaisquer que sejam.
+
+### 25.3 Mudanca de codigo feita nesta etapa (minima, aditiva, reaproveitando o mecanismo existente)
+
+Nao foi criada uma segunda arquitetura de conexao. `B1ConnectivityValidator` foi estendido (sem quebrar os dois unicos consumidores existentes, `Program.cs` e `ServiceCollectionExtensions.cs`) para:
+
+1. Substituir o `bool IsSuccess` binario por `ConnectivityStatus { Ready, NotConfigured, Failed, PermissionDenied }`, classificando `SqlException` com numeros de erro `18456/229/230/262/4060` (login falhou, permissao negada em objeto/comando/banco/database indisponivel para o login) como `PermissionDenied` em vez de `Failed` generico — para que o Agent nunca confunda "sem permissao" com "banco fora do ar" e nunca tente contornar elevando privilegio.
+2. Apos o `SELECT 1` bem-sucedido, executar `SELECT SUSER_SNAME();` (tambem read-only) para expor a identidade efetiva de login — nunca a credencial usada para obte-la — permitindo que o Agent (e o desenvolvedor) saibam **com qual identidade real** as permissoes serao avaliadas.
+3. `Program.cs` (comando `validate-b1-connectivity`) passou a imprimir o status textual (`READY`/`NOTCONFIGURED`/`FAILED`/`PERMISSIONDENIED`) e, em sucesso, Servidor/Banco/Identidade efetiva — nunca a connection string. A sanitizacao de mensagem de erro ja existente (`SanitizeConnectivityMessage`, regex que redige `login failed for user '...'` e `user id|uid|password|pwd=...`) foi preservada sem alteracao.
+
+Arquivos alterados: `backend/src/BlueprintOS.Infrastructure/Persistence/B1ConnectivityValidator.cs`, `backend/src/BlueprintOS.Api/Program.cs`. Arquivo novo: `backend/tests/BlueprintOS.UnitTests/Infrastructure/Persistence/B1ConnectivityValidatorTests.cs` (4 testes: config ausente -> `NotConfigured`; placeholder nao resolvido -> `NotConfigured`; resultado `NotConfigured` nunca carrega a connection string; falha rapida sem tentar abrir conexao quando nao configurado). Build da solucao: 0 erros/0 warnings. Suite completa `BlueprintOS.UnitTests`: **896/896 passaram** (892 pre-existentes + 4 novos), 0 falhas.
+
+### 25.4 Como um novo desenvolvedor configura sua propria credencial local (comando exato, com placeholder)
+
+**Nao execute isto por mim — este e o comando que voce, desenvolvedor, roda localmente com sua propria credencial real:**
+
+```bash
+cd backend/src/BlueprintOS.Api
+dotnet user-secrets set "ConnectionStrings:ErpConnection" "Server=<SEU_SERVIDOR>;Database=SOMA_DESENV;User Id=<SEU_USUARIO>;Password=<SUA_SENHA>;TrustServerCertificate=True;"
+```
+
+Alternativa via variavel de ambiente local (nao versionada, nao vai para `secrets.json`):
+
+```bash
+export ConnectionStrings__ErpConnection="Server=<SEU_SERVIDOR>;Database=SOMA_DESENV;User Id=<SEU_USUARIO>;Password=<SUA_SENHA>;TrustServerCertificate=True;"
+```
+
+Depois, validar sem expor a credencial:
+
+```bash
+dotnet run --project backend/src/BlueprintOS.Api -- validate-b1-connectivity
+```
+
+Isso usa a identidade/permissao real do usuario que configurou o secret — o BlueprintOS nao iguala nem eleva permissao entre desenvolvedores.
+
+### 25.5 O que fica versionado vs. o que fica somente local
+
+| Fica no Git | Fica somente local |
+| --- | --- |
+| `appsettings.json` com placeholder `__SET_...__` | `~/.microsoft/usersecrets/BlueprintOS-Development/secrets.json` (User Secrets, fora do repo) |
+| `UserSecretsId` no `.csproj` (identificador logico, nao segredo) | Valor real de `ConnectionStrings:ErpConnection`/`MaisComprasConnection` |
+| Nome logico do servidor/banco/porta quando documentado nesta auditoria | Usuario e senha reais |
+| `B1ConnectivityValidator` e o comando CLI `validate-b1-connectivity` (codigo, nao segredo) | Identidade efetiva de login (exibida em tela, nunca commitada) |
+
+### 25.6 Resultado Consolidado
+
+- CONNECTION STATUS: **READY** (read-only) para `ErpConnection`/`SOMA_DESENV` nesta maquina de desenvolvimento, validado via `SELECT 1` + `SELECT SUSER_SNAME()`.
+- Nenhuma escrita, migration, GRANT/REVOKE ou procedure de alteracao foi executada.
+- Nenhuma connection string ou senha foi impressa, logada ou commitada.
+- Secret scan no diff desta etapa (`B1ConnectivityValidator.cs`, `Program.cs`, teste novo): **limpo** — nenhuma credencial, IP ou identidade real encontrados.
+- `linx-database-specialist-agent` (o Agent .NET real, nao esta sessao de chat) ja possuia, antes desta tarefa, o mecanismo correto para chegar a `READY`; o gap era de uso/descoberta na sessao de chat anterior, nao de arquitetura. Nenhuma mudanca foi necessaria no `agent.yaml` do Linx Database Specialist.

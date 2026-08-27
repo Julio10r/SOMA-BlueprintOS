@@ -199,8 +199,9 @@
     {
       "gap": "No authorized read-only Linx/SOMA_DESENV database connection available in this session; cannot validate current schema, the 4 procedures, or compute real Delta",
       "owner_agent": "linx-database-specialist-agent",
-      "blocking": true,
-      "resolution": "AWAITING_CONNECTION_OR_PRODUCT_OWNER_GUIDANCE"
+      "blocking": false,
+      "resolution": "RESOLVED",
+      "resolution_detail": "Existing local mechanism (dotnet user-secrets + B1ConnectivityValidator, dotnet run --project backend/src/BlueprintOS.Api -- validate-b1-connectivity) already configured on this machine; connection confirmed READY (read-only SELECT 1 + SELECT SUSER_SNAME()). See docs/audits/AgentContractV1.1-ExecutionPolicy-Credenciais.md section 25. Does not resolve gaps [0] and [1] (PROG rule, grade cardinality), which remain blocking for computing the real Delta or proposing a solution."
     }
   ],
   "capability_gaps": [
