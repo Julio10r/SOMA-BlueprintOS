@@ -1,6 +1,7 @@
 using BlueprintOS.Domain.Identity;
 using BlueprintOS.Domain.Knowledge.Linx;
 using BlueprintOS.Domain.Procurement.Suppliers;
+using BlueprintOS.Infrastructure.Persistence.Governance;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintOS.Infrastructure.Persistence;
@@ -48,6 +49,10 @@ public sealed class BlueprintOSDbContext(DbContextOptions<BlueprintOSDbContext> 
 
     // O1.13.5 — Fundação dos Agents Especialistas Linx (base de conhecimento persistente e versionada).
     public DbSet<LinxKnowledgeEntry> LinxConhecimentoEntradas => Set<LinxKnowledgeEntry>();
+
+    public DbSet<GovernanceApprovalRequestEntity> AIGovernanceApprovalRequests => Set<GovernanceApprovalRequestEntity>();
+    public DbSet<GovernanceApprovalGrantEntity> AIGovernanceApprovalGrants => Set<GovernanceApprovalGrantEntity>();
+    public DbSet<GovernanceAuditEventEntity> AIGovernanceAuditEvents => Set<GovernanceAuditEventEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

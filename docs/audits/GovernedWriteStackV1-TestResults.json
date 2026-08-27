@@ -1,0 +1,97 @@
+{
+  "task": "GovernedWriteStackV1-Resumption",
+  "timestamp": "2026-08-27T00:00:00Z",
+  "policy_note": "Nenhum comando com conexao real de banco foi executado. Migration validada por inspecao estatica.",
+  "results": [
+    {
+      "name": "dotnet build (backend)",
+      "command": "dotnet build",
+      "status": "PASSED",
+      "observation": "Build succeeded, 0 warnings, 0 errors."
+    },
+    {
+      "name": "GovernedWriteStackTests + Governance suite",
+      "command": "dotnet test tests/BlueprintOS.UnitTests --filter FullyQualifiedName~Governance",
+      "status": "PASSED",
+      "observation": "31 tests passed, incluindo 11 cenarios A-I (GovernedWriteStackTests) mais Live_Execution_Should_Be_Blocked_Even_With_Valid_Yellow_Approval e Proposal_Context_Gap_Should_Not_Create_Proposal_Or_Policy_Decision."
+    },
+    {
+      "name": "Full .NET unit test suite",
+      "command": "dotnet test tests/BlueprintOS.UnitTests",
+      "status": "PASSED",
+      "observation": "877 tests, 0 failures."
+    },
+    {
+      "name": "Integration tests (.NET)",
+      "command": "dotnet test tests/BlueprintOS.IntegrationTests",
+      "status": "NOT_EXECUTED",
+      "observation": "Exige conexao real de banco/infra externa; fora do escopo autorizado nesta retomada por politica explicita de nao abrir conexao real."
+    },
+    {
+      "name": "EF Core migration verification",
+      "command": "N/A - static file inspection only",
+      "status": "PASSED_STATIC_INSPECTION",
+      "observation": "Leitura direta de 20260827173342_AddGovernedWriteStackV1.cs confirma criacao exclusiva de AIGovernanceApprovalRequests, AIGovernanceApprovalGrants, AIGovernanceAuditEvents com FK e indices esperados. Nenhum comando dotnet ef executado."
+    },
+    {
+      "name": "Agent manifest validator",
+      "command": "node tools/agents/validate-agent-manifests.js",
+      "status": "PASSED",
+      "observation": "8 manifests Agent Contract v1.1 validados; capability ownership/delegacao/gap/credenciais validos; sem bypass, escalonamento ou segredo detectado."
+    },
+    {
+      "name": "Agent manifest validator negative scenarios",
+      "command": "node tools/agents/validate-agent-manifests.test.js",
+      "status": "PASSED",
+      "observation": "7 cenarios negativos rejeitados corretamente."
+    },
+    {
+      "name": "Governed Orchestrator tests",
+      "command": "node tools/agents/governed-orchestrator.test.js",
+      "status": "PASSED",
+      "observation": "Inclui novo cenario para soma-database-write-proposal roteado para linx-database-specialist-agent com security-lgpd-agent como cross-cutting."
+    },
+    {
+      "name": "Agent Factory v2 tests",
+      "command": "node tools/agents/agent-factory-v2.test.js",
+      "status": "PASSED",
+      "observation": "Lifecycle, audit e safety tests da Factory v2."
+    },
+    {
+      "name": "Runtime Registry tests",
+      "command": "node tools/agents/runtime-registry.test.js",
+      "status": "PASSED",
+      "observation": "Discovery, routing, gaps, conflicts e safety."
+    },
+    {
+      "name": "Showcase Agent safety tests",
+      "command": "node tools/agents/showcase-agent-safety.test.js",
+      "status": "PASSED",
+      "observation": "Invariantes offline de seguranca do Showcase Agent intactos."
+    },
+    {
+      "name": "WISE Agent safety tests",
+      "command": "node tools/agents/wise-agent-safety.test.js",
+      "status": "PASSED",
+      "observation": "Invariantes offline de seguranca do WISE Agent intactos; fluxo Linx/WISE diario nao alterado por esta tarefa."
+    },
+    {
+      "name": "Agent Factory v2 AUDIT",
+      "command": "node tools/agents/agent-factory-cli.js AUDIT",
+      "status": "COMPLETED",
+      "observation": "Status geral WARN antes e depois. Findings: 18 antes, 12 depois. 6 resolvidos (nao relacionados a esta tarefa: TEST/OBS de echo-agent, knowledge-agent, showcase-agent, wise-agent). Nenhum novo finding introduzido por esta tarefa. linx-database-specialist-agent mantem 2 findings esperados: AFV2-GOV-001 (PARTIAL, honesto) e AFV2-GATEWAY-001 (Tool Gateway ainda nao universal)."
+    },
+    {
+      "name": "Secret scan (dedicated tool)",
+      "command": "gitleaks / trufflehog",
+      "status": "NOT_EXECUTED",
+      "observation": "Nenhuma ferramenta dedicada instalada neste ambiente."
+    },
+    {
+      "name": "Secret scan (manual regex fallback)",
+      "command": "grep -rniE password|pwd|secret|api_key|token|connectionstring ... arquivos da tarefa",
+      "status": "PASSED",
+      "observation": "Nenhuma ocorrencia de segredo literal encontrada nos arquivos novos/alterados desta tarefa."
+    }
+  ]
+}

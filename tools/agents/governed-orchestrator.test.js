@@ -89,6 +89,22 @@ assert(update.workflows.includes("Linx/WISE daily integration"));
 assert(update.connection_profiles.includes("linx-erp-read-only"));
 assert.equal(update.credential_resolution_required, true);
 
+const governedUpdate = orchestrator.orchestrate(base({
+  environment: "Production",
+  system: "SOMA/Linx",
+  resource_type: "DatabaseTable",
+  resource: "PRODUTOS",
+  operation_intent: "UPDATE",
+  requested_capabilities: ["soma-database-write-proposal"],
+  filter_summary: "validated fictional set",
+  expected_affected_rows: 417,
+  purpose: "validated integration",
+  data_classifications: ["Internal"],
+}));
+assert.equal(governedUpdate.execution_status, "READY_FOR_GOVERNANCE");
+assert.deepEqual(governedUpdate.primary_agents, ["linx-database-specialist-agent"]);
+assert.deepEqual(governedUpdate.cross_cutting_agents, ["security-lgpd-agent"]);
+
 const wise = orchestrator.orchestrate(base({
   system: "WISE",
   resource_type: "DatabaseTable",

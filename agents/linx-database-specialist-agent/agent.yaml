@@ -2,17 +2,18 @@ schema_version: 1
 contract_version: 1.1
 id: linx-database-specialist-agent
 name: LinxDatabaseSpecialistAgent
-version: 1.1.0
+version: 1.2.0
 type: hybrid
 status: active
 owner: engineering
 responsibility:
-  objective: Responder perguntas estruturais sobre schema e conhecimento de banco Linx usando conhecimento persistido e versionado.
+  objective: Responder perguntas estruturais sobre schema e conhecimento de banco Linx e produzir propostas estruturadas de escrita governada, sem executar SQL.
   responsibilities:
     - Consumir conhecimento Linx filtrado para o papel LinxDatabaseSpecialist.
     - Apoiar entendimento de tabelas, colunas, chaves e proveniencia estrutural.
     - Responder usando apenas conhecimento recuperado com fonte explicita.
     - Manter separacao entre descoberta/recomendacao e execucao real de SQL.
+    - Produzir ActionProposal estruturada para necessidade de escrita SOMA/Linx quando houver contexto suficiente.
   non_goals:
     - Nao executar SQL arbitrario.
     - Nao executar escrita em banco.
@@ -65,13 +66,20 @@ capabilities:
     - Consultar conhecimento Linx persistido.
     - Responder perguntas sobre schema Linx com proveniencia.
     - Apoiar descoberta read-only quando acionado por componentes autorizados.
+    - Produzir proposta estruturada de escrita para Policy Engine, approval e Tool Gateway em dry-run.
   forbidden_operations:
     - Executar SQL arbitrario.
     - Executar INSERT, UPDATE, DELETE, TRUNCATE, MERGE, ALTER, DROP ou CREATE.
     - Alterar schema.
     - Autoaprovar acao sensivel.
+    - Contornar ActionProposal, Policy Engine, approval, Tool Gateway ou permissao efetiva da identidade.
 capability_ownership:
   linx-database-analysis:
+    responsible_agent_id: linx-database-specialist-agent
+    ownership: primary
+    delegation_required: true
+    direct_execution_by_others_allowed: false
+  soma-database-write-proposal:
     responsible_agent_id: linx-database-specialist-agent
     ownership: primary
     delegation_required: true
@@ -93,6 +101,11 @@ connections:
       environment: SOMA_DESENV
       access_intent: read-only
       classification: Confidential
+    linx-erp-governed-write:
+      configuration_reference: ConnectionStrings:ErpConnection
+      environment: configured-runtime-environment
+      access_intent: governed-write
+      classification: Confidential
   credential_policy:
     strategy: user-managed
     secret_storage:
@@ -112,6 +125,7 @@ data:
     - LinxKnowledgeEntry
     - schema metadata
     - conhecimento filtrado por LinxDatabaseSpecialist
+    - structured SOMA/Linx write proposals
   classifications:
     - Internal
     - Confidential
@@ -124,11 +138,13 @@ governance:
   can_propose_write: true
   can_execute_write: false
   can_execute_destructive_operation: false
-  policy_engine_required: false
+  policy_engine_required: true
   requires_action_proposal_for:
+    - Qualquer proposta de escrita SOMA/Linx.
     - Qualquer futura operacao de escrita, exportacao material, acesso a dado pessoal, segredo ou chamada externa com efeito material.
   approval_required_for:
     - Promocao final de conhecimento para Aprovado exige aprovador humano pelo fluxo Linx Knowledge.
+    - Qualquer escrita SOMA/Linx classificada como Yellow pelo Policy Engine.
   audit_required: true
   default_risk: Green
   enforcement_status: PARTIAL
@@ -150,6 +166,7 @@ observability:
   metrics: []
   audit_events:
     - Historico de conhecimento Linx quando registrado, promovido ou consultado pelos use cases existentes.
+    - Governed write proposal, policy, approval and gateway dry-run events without SQL or secrets.
   redaction_required: true
 tests:
   unit:
