@@ -289,3 +289,118 @@ required to run them.
 
 Ask the user. Never infer, never reuse a credential across environments, and no technical
 capability of a Production credential substitutes for BlueprintOS governance.
+
+## 17. Authoritative source policy (v1.1)
+
+Canonical principle, effective for Codex, Claude, ChatGPT, and every current/future Agent or
+executor: **Production is the authoritative source for investigating the current state of the
+Linx/SOMA ERP. `SOMA_DESENV` is a development/test laboratory, not an automatic proxy for
+production truth.**
+
+`SOMA_DESENV` is usually structurally similar to Production, but its objects and — especially —
+its data can be stale: schema/procedure changes in Development go through validation before they
+reach Production, and objects in Development can be forgotten or left outdated by developers.
+`SOMA_DESENV` alone therefore never settles a question about "what is true today in the real ERP."
+
+When the intent is to understand current schema, a table, a view, a trigger, a procedure, a
+business rule, cardinality, current data, a size grade, a relationship, or any other question about
+the Linx ERP's real, present-day behavior: use `linx-production` (`192.168.0.200` / `SOMA`) by
+default, read-only, per § 18. This supersedes no prior section of this document — § 1–§ 16 already
+establish Production as conservative/governed for writes; this section makes it additionally the
+default read target for investigation.
+
+When the intent is to develop, experiment, reproduce a scenario, test a SQL/procedure change, build
+a staging table, or validate a solution before it goes to Production: use `linx-development`
+(`SOMA_DESENV`) per § 11, unchanged.
+
+## 18. Production read-only investigation
+
+Investigating in Production is not, by itself, authorization to write in Production. Unless a
+write is explicitly requested and governed per § 12, Production investigation is limited to
+operations equivalent to: `SELECT`, object/definition metadata (`sys.tables`, `sys.columns`,
+`sys.indexes`, `sys.procedures`, `sys.sql_modules`, `OBJECT_DEFINITION`, `INFORMATION_SCHEMA.*`),
+and identity/environment probes (`DB_NAME()`, `SUSER_SNAME()`, `SERVERPROPERTY()`). Do not execute a
+mutating procedure just to observe its behavior — inspect its definition instead (as already done
+for the 4 procedures in `docs/audits/AgentLearningV1-LinxProgOpPed.md` § 7.6, on `SOMA_DESENV`; the
+same read-only technique applies to Production).
+
+## 19. Evidence provenance by environment
+
+Every piece of database-derived evidence must carry the environment it came from. Use labels
+equivalent to `CONFIRMED_IN_PRODUCTION` / `CONFIRMED_IN_DEVELOPMENT` (or the existing
+`CONFIRMED_BY_SCHEMA` / `CONFIRMED_BY_DATA_VALIDATION` / `CONFIRMED_BY_CODE_INSPECTION` labels,
+qualified with the environment they were obtained from). Knowledge obtained only in `SOMA_DESENV`
+must never be silently promoted to a claim about Production's current state. If the conclusion
+depends on the ERP's real, current condition, use a status equivalent to
+`CONFIRMED_IN_DEVELOPMENT` + `NEEDS_PRODUCTION_VALIDATION` (or `PENDING_PRODUCTION_VALIDATION`).
+Only evidence confronted against Production may be promoted to authoritative current knowledge of
+the Linx ERP.
+
+## 20. Production unavailable — no silent fallback
+
+If Production is temporarily unreachable, BlueprintOS must **not** silently substitute
+`SOMA_DESENV` as if it answered the same question. Apply the existing single connectivity retry
+(§ 7) first. If Production stays unavailable after that retry, report a status equivalent to
+`PRODUCTION_VALIDATION_PENDING` and inform the user — do not fabricate a Production answer from
+Development data. `SOMA_DESENV` may still be used as auxiliary investigation, but any resulting
+evidence must be explicitly marked as not confirmed in Production (§ 19). This is the same
+`ConnectivityUnavailable` mechanism already implemented by `B1ConnectivityValidator` (§ 7–§ 8) —
+this section only forbids treating that outcome as license to swap environments.
+
+## 21. Preparing Development objects before development/testing
+
+When an existing object needs to be changed and tested, never assume the version currently in
+`SOMA_DESENV` is the latest:
+
+1. investigate the current version in Production (read-only, § 18);
+2. obtain the object's current definition (`OBJECT_DEFINITION`, `sys.sql_modules`);
+3. compare it against the `SOMA_DESENV` definition;
+4. if `SOMA_DESENV` is stale, prepare/sync the needed version into `SOMA_DESENV` in a governed way
+   (explicit context, explicit purpose, traceable);
+5. only then start development/testing in `SOMA_DESENV` (§ 11, § 14).
+
+## 22. Controlled Production -> Development data reproduction
+
+BlueprintOS may propose bringing data from Production into `SOMA_DESENV` when needed to reproduce
+or test a real scenario. This is a distinct, higher-scrutiny capability from ordinary Production
+read-only investigation (§ 18) — it pairs a Production **read** with a Development **write**, and
+Development's permissiveness (§ 11, § 14) does not remove governance over the origin of the data.
+Conceptual flow: identify the minimum necessary dataset in Production -> classify the data ->
+apply Security/LGPD review when personal/sensitive/secret data is involved -> propose the copy,
+with origin, destination, purpose, volume, classification, filters, dependencies, impact, and
+reversibility made explicit -> obtain governance approval -> copy into `SOMA_DESENV` -> validate the
+reproduction -> test.
+
+Minimization: never copy a full production table for convenience. Copy only the records and
+dependencies needed to reproduce the specific scenario (**minimum necessary dataset**) — e.g. for a
+77-row spreadsheet scenario, identify and copy only those 77 rows' dependencies, never the entire
+source table.
+
+LGPD / sensitive data: classify before copying. `PersonalData`, `SensitivePersonalData`, or
+`SecretCredential` (or any other protected classification) triggers Security/LGPD review per
+existing policy; prefer anonymization, masking, pseudonymization, or dropping unnecessary columns.
+Passwords, tokens, secrets, and credentials are never copied into `SOMA_DESENV` under this flow —
+this is an application of § 4, not an exception to it.
+
+This is **on-demand controlled reproduction**, not replication: BlueprintOS does not build an
+automatic mechanism to keep `SOMA_DESENV` mirrored to Production. Production stays authoritative;
+`SOMA_DESENV` receives only what a specific, governed reproduction need requires. When data is
+copied for a temporary/staging purpose, record origin, environment, purpose, filters, quantity,
+tables, timestamp, responsible Agent/use case, and related `ActionProposal` where available, and
+define an explicit cleanup strategy — never assume a `DELETE` is authorized without an explicit
+governed decision for that specific case.
+
+**Status of this section: DOCUMENTED, not yet ENFORCED in code.** No tool, Agent, or code path in
+this repository currently executes a Production -> Development data copy; this section defines the
+policy a future implementation must follow. No copy was performed as part of adding this section
+(§ 26 of the governing task explicitly excluded it).
+
+## 23. Agent Factory / new agents
+
+Any Agent that touches a database, current or future, must be evaluated for whether it knows:
+authoritative environment vs. test environment (§ 17), evidence provenance by environment (§ 19),
+Development/Production drift (§ 19), and controlled PROD->DEV reproduction (§ 22). This is
+inherited today via `agents/AGENT_CONTRACT.md` § "Politicas Canonicas Relacionadas" referencing this
+document, and via each Agent's own `knowledge.update_rules` (see
+`agents/linx-database-specialist-agent/agent.yaml` and
+`agents/linx-erp-specialist-agent/agent.yaml`) — no `agent.schema.json` change was needed for this.

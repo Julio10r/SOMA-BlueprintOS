@@ -2,6 +2,7 @@
   "contract_version": "1.1",
   "timestamp": "2026-08-27T00:00:00Z",
   "task": "AgentLearningV1-LinxProgOpPed",
+  "reclassification_note": "Per Database Connection Policy v1.1 (agents/DATABASE_CONNECTION_POLICY.md sections 17-22): every CONFIRMED_BY_SCHEMA / CONFIRMED_BY_DATA_VALIDATION / CONFIRMED_BY_CODE_INSPECTION label in this file was obtained exclusively on SOMA_DESENV (Development), never confronted with Production (SOMA). Production is now the authoritative source for current-state ERP investigation; SOMA_DESENV is a development/test lab that can be stale relative to Production. The size-34-vs-grade-36-44 gap (knowledge_gaps[3]) is reclassified from AWAITING_PRODUCT_OWNER_ANSWER to DEVELOPMENT_PRODUCTION_DRIFT_SUSPECTED + PENDING_PRODUCTION_VALIDATION and is no longer treated as a confirmed functional problem. No prior evidence was deleted.",
   "baseline": {
     "agents_total": { "expected_by_user": 8, "confirmed": 8, "divergence": false },
     "capabilities_total": { "expected_by_user": 15, "confirmed": 15, "divergence": false },
@@ -219,11 +220,11 @@
       "resolution_detail": "Existing local mechanism (dotnet user-secrets + B1ConnectivityValidator, dotnet run --project backend/src/BlueprintOS.Api -- validate-b1-connectivity) already configured on this machine; connection confirmed READY (read-only SELECT 1 + SELECT SUSER_SNAME()). See docs/audits/AgentContractV1.1-ExecutionPolicy-Credenciais.md section 25."
     },
     {
-      "gap": "Size 34 is absent from every position of grade '36-44' (PRODUTOS_TAMANHOS), the grade actually registered for these products, yet the spreadsheet has a populated Q_34 column with real, non-zero quantities",
+      "gap": "Size 34 is absent from every position of grade '36-44' (PRODUTOS_TAMANHOS), the grade actually registered for these products in SOMA_DESENV, yet the spreadsheet has a populated Q_34 column with real, non-zero quantities",
       "owner_agent": "linx-database-specialist-agent",
       "blocking": true,
-      "resolution": "AWAITING_PRODUCT_OWNER_ANSWER",
-      "resolution_detail": "Confirmed by direct SOMA_DESENV data read, not assumed. Possible explanations (not chosen): (1) grade should be '34-44' and the product catalog is stale for this drop; (2) size 34 uses a separate mechanism (e.g. PRODUTOS_TAMANHOS.QUEBRA_1..5, not yet investigated); (3) Q_34 is residual/legacy data that should not generate a write; (4) SOMA_DESENV's catalog diverges from Production for these products. No SQL solution can be safely proposed until this is answered."
+      "resolution": "DEVELOPMENT_PRODUCTION_DRIFT_SUSPECTED / PENDING_PRODUCTION_VALIDATION",
+      "resolution_detail": "Reclassified per Database Connection Policy v1.1 (agents/DATABASE_CONNECTION_POLICY.md sections 17-22): this was confirmed only in SOMA_DESENV (CONFIRMED_IN_DEVELOPMENT), never confronted with Production (SOMA) — SOMA_DESENV is a development lab that can be stale relative to Production, not an automatic proxy for it. No longer treated as a confirmed functional problem. Next step: read-only validation of PRODUTOS.GRADE/PRODUTOS_TAMANHOS in Production for the same products. Possible explanations (not chosen, evaluated only after Production validation): (1) grade should be '34-44' and SOMA_DESENV's catalog is stale relative to Production for this drop; (2) size 34 uses a separate mechanism (e.g. PRODUTOS_TAMANHOS.QUEBRA_1..5, not yet investigated); (3) Q_34 is residual/legacy data that should not generate a write; (4) SOMA_DESENV's catalog genuinely diverges from Production for these products (real drift). If Production confirms the same absence, the question still goes to the Product Owner. No SQL solution can be safely proposed until Production is read and, if needed, the Product Owner answers."
     },
     {
       "gap": "PRODUCAO_PROG_PROD and COMPRAS_PRODUTO writes (current procedure and historical SQL) omit a column that is part of their real composite primary key (ENTREGA_INICIAL / ENTREGA) — potential multi-row impact if a PROGRAMACAO+PRODUTO+COR_PRODUTO (or PEDIDO+PRODUTO+COR_PRODUTO) has more than one delivery-date row",
