@@ -8,26 +8,27 @@ public enum LinxEnvironment
     Production,
 }
 
-/// <summary>Profile lógico de conexão ao ERP Linx/SOMA: identifica ambiente, chave de User Secrets e o
-/// servidor/banco esperados para proteção contra environment mismatch. Nunca carrega credencial —
-/// usuário e senha permanecem exclusivamente em User Secrets/variável de ambiente locais.</summary>
+/// <summary>Profile lógico de conexão a um banco DEV/PROD (ERP Linx/SOMA ou +Compras): identifica
+/// ambiente, chave de User Secrets e o servidor/banco esperados para proteção contra environment
+/// mismatch. Nunca carrega credencial — usuário e senha permanecem exclusivamente em User
+/// Secrets/variável de ambiente locais. Dois profiles podem legitimamente compartilhar a mesma
+/// identidade local (ex.: <see cref="LinxConnectionProfiles.Development"/> e
+/// <see cref="LinxConnectionProfiles.MaisComprasDevelopment"/> — mesmo servidor DEV, mesma
+/// identidade, bancos diferentes) sem que o profile em si carregue ou duplique o segredo.</summary>
 public sealed record LinxConnectionProfile(
+    string Label,
     LinxEnvironment Environment,
     string ConnectionName,
     string ExpectedServer,
     string ExpectedDatabase,
-    bool VpnRequired)
-{
-    public string Label => Environment == LinxEnvironment.Development
-        ? "ERP Linx SOMA_DESENV (Development)"
-        : "ERP Linx SOMA (Production)";
-}
+    bool VpnRequired);
 
-/// <summary>Profiles canônicos de ambiente Linx/SOMA (agents/DATABASE_CONNECTION_POLICY.md § Profiles).
+/// <summary>Profiles canônicos de ambiente DEV/PROD (agents/DATABASE_CONNECTION_POLICY.md § Profiles).
 /// Servidor e banco são metadados lógicos versionáveis; a credencial nunca aparece aqui.</summary>
 public static class LinxConnectionProfiles
 {
     public static readonly LinxConnectionProfile Development = new(
+        Label: "ERP Linx SOMA_DESENV (Development)",
         Environment: LinxEnvironment.Development,
         ConnectionName: "LinxDevelopmentConnection",
         ExpectedServer: "192.168.9.98",
@@ -35,10 +36,24 @@ public static class LinxConnectionProfiles
         VpnRequired: true);
 
     public static readonly LinxConnectionProfile Production = new(
+        Label: "ERP Linx SOMA (Production)",
         Environment: LinxEnvironment.Production,
         ConnectionName: "LinxProductionConnection",
         ExpectedServer: "192.168.0.200",
         ExpectedDatabase: "SOMA",
+        VpnRequired: true);
+
+    /// <summary>Mesmo servidor DEV (192.168.9.98) do profile <see cref="Development"/>, banco
+    /// diferente (+Compras). Resolve a mesma chave de identidade local
+    /// (<c>ConnectionStrings:MaisComprasConnection</c>) já usada pelo restante da aplicação — não é
+    /// um novo segredo, apenas o profile lógico formalizado para participar da mesma proteção de
+    /// environment mismatch dos demais bancos DEV/PROD.</summary>
+    public static readonly LinxConnectionProfile MaisComprasDevelopment = new(
+        Label: "+Compras (Development)",
+        Environment: LinxEnvironment.Development,
+        ConnectionName: "MaisComprasConnection",
+        ExpectedServer: "192.168.9.98",
+        ExpectedDatabase: "MAISCOMPRAS",
         VpnRequired: true);
 
     /// <summary>Chave de connection string legada, pré-separação DEV/PROD. Mantida apenas como fallback

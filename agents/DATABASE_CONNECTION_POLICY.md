@@ -33,8 +33,12 @@ VPN requirement); user/password are never part of a profile.
   port `1433`, `vpn_required: true`, `credential_source: local`.
 - `linx-production` — environment `Production`, server `192.168.0.200`, database `SOMA`,
   port `1433`, `vpn_required: true`, `credential_source: local`.
+- `maiscompras-development` — environment `Development`, server `192.168.9.98`, database
+  `MAISCOMPRAS`, port `1433`, `vpn_required: true`, `credential_source: local`. Same DEV server as
+  `linx-development`; may resolve the same local identity as `linx-development` without either
+  profile carrying the credential (§ 3.1).
 
-Implemented as `LinxConnectionProfiles.Development` / `LinxConnectionProfiles.Production` in
+Implemented as `LinxConnectionProfiles.Development` / `.Production` / `.MaisComprasDevelopment` in
 [`backend/src/BlueprintOS.Infrastructure/Persistence/LinxConnectionProfile.cs`](../backend/src/BlueprintOS.Infrastructure/Persistence/LinxConnectionProfile.cs).
 
 ## 3. Connection strings
@@ -43,18 +47,50 @@ Canonical keys, semantically separated:
 
 - `ConnectionStrings:LinxDevelopmentConnection`
 - `ConnectionStrings:LinxProductionConnection`
+- `ConnectionStrings:MaisComprasConnection` — DEV-only, same server as `LinxDevelopmentConnection`
+  (`192.168.9.98`), different database (`MAISCOMPRAS`). See § 3.1.
+
+All seven direct Linx/SOMA consumers (`SomaFilialReader`, `SomaFornecedorReader`,
+`SomaCentroCustoReader`, `LinxSchemaDiscoveryReader`, `ErpFornecedorDiscoveryRepository`,
+`SomaGarantirFornecedorErpAdapter`, `SomaDesenvolErpFornecedorAdapter`) now resolve their
+connection string through `LinxConnectionStringResolver.Resolve(configuration,
+LinxConnectionProfiles.Development)` — a single shared resolution point
+(`backend/src/BlueprintOS.Infrastructure/Persistence/LinxConnectionStringResolver.cs`) instead of
+each reader independently calling `configuration.GetConnectionString("ErpConnection")` and
+duplicating its own placeholder/database guard. No consumer decides environment by inspecting the
+connection string's contents — they declare the profile explicitly (`LinxConnectionProfiles.Development`
+today; a future consumer needing Production would pass `LinxConnectionProfiles.Production`
+explicitly, never infer it).
 
 `ConnectionStrings:ErpConnection` is **DEPRECATED / LEGACY**. It is kept as a compatibility
-fallback for the Development profile only (never for Production) so existing consumers
-(`SomaFilialReader`, `SomaFornecedorReader`, `SomaCentroCustoReader`, `LinxSchemaDiscoveryReader`,
-`ErpFornecedorDiscoveryRepository`, `SomaGarantirFornecedorErpAdapter`,
-`SomaDesenvolErpFornecedorAdapter`, and the `ErpIntegration:BusinessUnits:*` config) are not
-broken silently. `B1ConnectivityValidator.ValidateErpAsync(LinxEnvironment.Development)` reads
-`LinxDevelopmentConnection` first and falls back to `ErpConnection` only if the canonical key is
-absent — the fallback is still validated against the Development profile (mismatch protection
-applies identically). New code must use the canonical keys. `ErpConnection` should be migrated out
-of the individual readers in a follow-up, non-functional-scope change; it is not removed here to
-avoid an unrelated, silent break to running consumers.
+fallback inside `LinxConnectionStringResolver`, for the Development profile only (never for
+Production) — read only when `LinxDevelopmentConnection` is absent, and still validated against the
+Development profile (mismatch protection applies identically to the fallback). No consumer reads
+`ErpConnection` directly anymore; nothing decides environment from it. New code must use the
+canonical keys. Planned removal: once every developer machine has `LinxDevelopmentConnection`
+configured (§ 4), drop the fallback and the `ErpConnection` key entirely in a follow-up,
+non-functional-scope change.
+
+### 3.1 MAISCOMPRAS — sharing the DEV identity without duplicating a secret
+
+The DEV server (`192.168.9.98`) hosts two databases: `SOMA_DESENV` (Linx ERP) and `MAISCOMPRAS`
+(+Compras, BlueprintOS's own application database). Both are reachable with the same DEV identity.
+BlueprintOS models this as two logical profiles that legitimately point at the same server and can
+resolve the same local credential, without either profile carrying or duplicating the secret:
+
+- `linx-development` → `ConnectionStrings:LinxDevelopmentConnection` → `192.168.9.98` / `SOMA_DESENV`
+- `maiscompras-development` → `ConnectionStrings:MaisComprasConnection` → `192.168.9.98` / `MAISCOMPRAS`
+
+The .NET stack requires one complete connection string per target database (`SqlConnection` cannot
+target two databases through a single string), so this is implemented as two distinct
+`ConnectionStrings` keys — not two secrets. The credential a developer configures for
+`MaisComprasConnection` is the same DEV login already used for `LinxDevelopmentConnection` (same
+`User Id`/`Password` pasted twice into two separate connection strings, since SQL Server connection
+strings are self-contained); no new identity, no new secret store, no secret duplicated in Git. This
+was already `BlueprintOSDbContext`'s connection (`MaisComprasConnection` pre-dates this policy); this
+section only formalizes it as a first-class profile with the same mismatch/VPN protections as the
+other two, via `LinxConnectionProfiles.MaisComprasDevelopment` and
+`B1ConnectivityValidator.ValidateMaisComprasAsync()`.
 
 ## 4. Credentials
 
@@ -99,13 +135,20 @@ blocked deterministically as `ConnectivityStatus.EnvironmentMismatch`:
 - `environment = Production`, configured target = Development server/database.
 - `environment = Development`, configured target = Production server/database.
 - expected database `SOMA`, configured database `SOMA_DESENV` (or vice versa).
+- expected database `MAISCOMPRAS`, configured database `SOMA_DESENV` (or vice versa) — same DEV
+  server does not exempt a profile from its own database check.
 
-No write, and no SQL Server round-trip, happens before this check passes.
+The same `LinxConnectionStringResolver.Resolve(configuration, profile)` enforces this for every
+consumer, not just the connectivity validator — the guard lives in one place
+(`backend/src/BlueprintOS.Infrastructure/Persistence/LinxConnectionStringResolver.cs`) and every
+Linx/SOMA/+Compras reader/adapter goes through it. No write, and no SQL Server round-trip, happens
+before this check passes.
 
 ## 7. VPN
 
-Both environments require the corporate VPN to already be connected. BlueprintOS does not manage
-the VPN; it must correctly detect its absence rather than misreport it as an invalid credential.
+All three profiles (`linx-development`, `linx-production`, `maiscompras-development`) require the
+corporate VPN to already be connected. BlueprintOS does not manage the VPN; it must correctly
+detect its absence rather than misreport it as an invalid credential.
 
 `ConnectivityStatus.VpnRequired` is returned when the underlying failure is network-level (DNS/TCP
 unreachable, connection timeout — SQL error `53`, socket exceptions, `TimeoutException`) on a
@@ -183,6 +226,11 @@ profile explicitly:
 
 Never prints the connection string or password — only `Server`, `Database`, and
 `EffectiveIdentity` (identity resolved by the DB itself) are exposed on the result.
+`ValidateMaisComprasAsync()` runs the identical procedure against
+`LinxConnectionProfiles.MaisComprasDevelopment`. Both `ValidateErpAsync` and
+`ValidateMaisComprasAsync` are thin wrappers over the same
+`LinxConnectionStringResolver.Resolve` used by every other Linx/SOMA consumer (§ 3), plus the
+network round-trip and identity probe.
 
 ## 14. Agent Factory
 
@@ -197,11 +245,16 @@ needed beyond this manifest update.
 
 `backend/tests/BlueprintOS.UnitTests/Infrastructure/Persistence/B1ConnectivityValidatorTests.cs`
 covers, without any network/DB dependency: Development resolves only Development (never leaks into
-Production and vice versa), missing Development/Production secret → `NotConfigured`, the
-`ErpConnection` legacy fallback is still validated against the Development profile, environment
-mismatch is blocked deterministically before any connection attempt (server- or database-level, in
-both directions), and no result ever carries the connection string or password. All new tests
-complete in milliseconds — no live SQL Server or VPN is required to run them.
+Production and vice versa), missing Development/Production/MaisCompras secret → `NotConfigured`,
+the `ErpConnection` legacy fallback is still validated against the Development profile, environment
+mismatch is blocked deterministically before any connection attempt — SOMA ↔ SOMA_DESENV,
+MAISCOMPRAS ↔ SOMA_DESENV, and DEV server ↔ PROD server, in both directions — and no result ever
+carries the connection string or password. `LinxConnectionStringResolver` itself is covered
+directly (not-configured and mismatch paths, both exception-based and synchronous — no async/DB
+wait needed). `tests/BlueprintOS.UnitTests/Infrastructure/Integrations/ERP/ErpReadersReadOnlyTests.cs`
+continues to pass unchanged after the reader migration (its mismatch-message assertion still holds
+under the new resolver). All tests complete in milliseconds — no live SQL Server or VPN is required
+to run them.
 
 ## 16. On doubt
 

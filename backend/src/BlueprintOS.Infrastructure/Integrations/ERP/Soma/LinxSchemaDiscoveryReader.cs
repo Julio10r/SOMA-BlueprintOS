@@ -1,4 +1,5 @@
 using BlueprintOS.Infrastructure.Integrations.ERP.Contracts;
+using BlueprintOS.Infrastructure.Persistence;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -68,12 +69,7 @@ public sealed class LinxSchemaDiscoveryReader(IConfiguration configuration, ILog
 
     private async Task<SqlConnection> OpenAsync(CancellationToken ct)
     {
-        var connectionString = configuration.GetConnectionString("ErpConnection");
-        if (string.IsNullOrWhiteSpace(connectionString) || connectionString.StartsWith("__SET_", StringComparison.Ordinal))
-            throw new InvalidOperationException("ConnectionStrings:ErpConnection deve ser configurada via User Secrets ou variável de ambiente.");
-        var builder = new SqlConnectionStringBuilder(connectionString);
-        if (!string.Equals(builder.InitialCatalog, "SOMA_DESENV", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException("LinxSchemaDiscoveryReader exige o banco SOMA_DESENV.");
+        var connectionString = LinxConnectionStringResolver.Resolve(configuration, LinxConnectionProfiles.Development);
         var connection = new SqlConnection(connectionString);
         await connection.OpenAsync(ct);
         return connection;

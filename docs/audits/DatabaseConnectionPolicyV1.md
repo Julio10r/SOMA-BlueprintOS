@@ -160,8 +160,108 @@ fora do escopo funcional desta correção de fundação.
 
 ## Próximos passos (fora de escopo desta tarefa)
 
-- Migrar os 7 consumidores diretos de `ErpConnection` para `LinxConnectionProfiles`/chaves
-  canônicas.
 - Adicionar comando CLI dedicado por ambiente (`validate-linx-development`,
   `validate-linx-production`) se o uso separado se mostrar necessário.
+- Remover de vez a chave legada `ErpConnection`/fallback quando toda máquina de desenvolvimento
+  tiver `LinxDevelopmentConnection` configurada.
 - Retomar o caso PROG/OP/PED (gaps 7.9.a/7.9.b) quando o Product Owner responder.
+
+---
+
+## Atualização 2026-08-27 (continuação) — PROD local, MAISCOMPRAS e migração dos consumidores
+
+### PROD secret
+
+`ConnectionStrings:LinxProductionConnection` **não estava configurada** nesta máquina no início
+desta etapa. Por instrução explícita da tarefa, a validação PROD foi pausada e o comando exato foi
+solicitado ao usuário no chat (com placeholder, sem pedir usuário/senha):
+
+```bash
+dotnet user-secrets set "ConnectionStrings:LinxProductionConnection" "Server=192.168.0.200;Database=SOMA;User Id=<SEU_USUARIO_PROD>;Password=<SUA_SENHA_PROD>;Encrypt=True;TrustServerCertificate=True" --project backend/src/BlueprintOS.Api/BlueprintOS.Api.csproj
+```
+
+Nenhum valor foi inventado ou assumido. Resultado nesta etapa: **NOT_CONFIGURED**, igual à etapa
+anterior — aguardando confirmação do usuário para revalidar.
+
+### MAISCOMPRAS formalizado como profile DEV
+
+`LinxConnectionProfiles.MaisComprasDevelopment` (mesmo arquivo `LinxConnectionProfile.cs`): servidor
+`192.168.9.98` (igual a `linx-development`), banco `MAISCOMPRAS`, chave
+`ConnectionStrings:MaisComprasConnection` (já existente, não é nova — é a mesma usada por
+`BlueprintOSDbContext` desde antes desta política). `B1ConnectivityValidator.ValidateMaisComprasAsync()`
+agora aplica a mesma proteção de mismatch dos demais profiles antes de abrir conexão. Nenhum segredo
+novo foi criado nem duplicado — o profile reaproveita a chave/identidade DEV local já configurada.
+Validado read-only nesta máquina: **READY**, servidor `192.168.9.98`, banco `MAISCOMPRAS`,
+identidade `ti.n8n` (mesma identidade efetiva do profile `linx-development`).
+
+### Migração dos consumidores legados
+
+Auditados novamente no código atual (não a partir do relatório anterior) e confirmados: exatamente
+7 consumidores de produção liam `ConnectionStrings:ErpConnection` diretamente —
+`SomaFornecedorReader`, `SomaFilialReader`, `SomaCentroCustoReader`, `LinxSchemaDiscoveryReader`,
+`ErpFornecedorDiscoveryRepository`, `SomaGarantirFornecedorErpAdapter`,
+`SomaDesenvolErpFornecedorAdapter`. Todos os 7 foram migrados para
+`LinxConnectionStringResolver.Resolve(configuration, LinxConnectionProfiles.Development)` — novo
+ponto único de resolução (`backend/src/BlueprintOS.Infrastructure/Persistence/LinxConnectionStringResolver.cs`)
+que centraliza a guarda de placeholder e a checagem de mismatch já usada pelo validator, eliminando
+a duplicação de guarda que existia em cada arquivo. Nenhum consumidor decide ambiente pelo conteúdo
+da connection string — todos declaram o profile explicitamente. `Program.cs` (`ProbeErpSupplierIntegrityAsync`,
+uma ferramenta de diagnóstico CLI, não um consumidor de produção) não foi alterado nesta etapa —
+fora do escopo dos 7 consumidores auditados.
+
+### ErpConnection restante
+
+Único uso restante de `ErpConnection` no código é o fallback de compatibilidade dentro do próprio
+`LinxConnectionStringResolver`, exclusivo do profile `linx-development`, documentado como
+DEPRECATED — nenhum consumidor volta a lê-la diretamente. `appsettings.json` mantém o placeholder da
+chave por compatibilidade.
+
+### Testes
+
+6 testes novos em `B1ConnectivityValidatorTests.cs`: `ValidateMaisComprasAsync` sem secret →
+`NotConfigured`; mismatch MAISCOMPRAS ↔ SOMA_DESENV; mismatch MAISCOMPRAS ↔ servidor PROD;
+profiles `Development`/`MaisComprasDevelopment` compartilham servidor mas têm bancos/chaves
+distintos; `LinxConnectionStringResolver` lança sem conectar quando não configurado; resolver
+rejeita uma connection string de Development passada como Production. Suíte completa:
+**910/910** (era 904), ~2s, sem regressão — incluindo `ErpReadersReadOnlyTests.cs`, que continua
+passando sem alteração após a migração dos readers.
+
+### Validação real (read-only, sem escrita)
+
+- **DEV SOMA_DESENV**: READY — servidor `192.168.9.98`, banco `SOMA_DESENV`, identidade `ti.n8n`.
+- **DEV MAISCOMPRAS**: READY — servidor `192.168.9.98`, banco `MAISCOMPRAS`, identidade `ti.n8n`.
+- **PROD SOMA**: NOT_CONFIGURED — aguardando o usuário configurar o secret localmente.
+
+### Arquivos alterados nesta etapa
+
+- `backend/src/BlueprintOS.Infrastructure/Persistence/LinxConnectionProfile.cs` — adiciona
+  `MaisComprasDevelopment`; `Label` passa a ser campo explícito do record (antes computado só para
+  Linx Development/Production).
+- `backend/src/BlueprintOS.Infrastructure/Persistence/LinxConnectionStringResolver.cs` (novo) —
+  ponto único de resolução/guarda/mismatch reaproveitado por validator e pelos 7 consumidores.
+- `backend/src/BlueprintOS.Infrastructure/Persistence/B1ConnectivityValidator.cs` —
+  `ValidateMaisComprasAsync()` passa a usar `LinxConnectionProfiles.MaisComprasDevelopment` com
+  proteção de mismatch.
+- `backend/src/BlueprintOS.Infrastructure/Integrations/ERP/Soma/SomaFornecedorReader.cs`,
+  `SomaFilialReader.cs`, `SomaCentroCustoReader.cs`, `LinxSchemaDiscoveryReader.cs` — migrados para
+  `LinxConnectionStringResolver`.
+- `backend/src/BlueprintOS.Infrastructure/Persistence/Repositories/ErpFornecedorDiscoveryRepository.cs`,
+  `SomaGarantirFornecedorErpAdapter.cs`, `SomaDesenvolErpFornecedorAdapter.cs` — idem.
+- `backend/tests/BlueprintOS.UnitTests/Infrastructure/Persistence/B1ConnectivityValidatorTests.cs` —
+  6 testes novos.
+- `agents/DATABASE_CONNECTION_POLICY.md` — § 2/3/6/7/13/15 atualizados com MAISCOMPRAS DEV e o
+  resolver compartilhado.
+- `docs/audits/DatabaseConnectionPolicyV1.md` (este arquivo).
+
+### Riscos atualizados
+
+- O item "consumidores não migrados" do relatório anterior está **resolvido** — os 7 arquivos foram
+  migrados.
+- Migração de `SomaGarantirFornecedorErpAdapter` precisou converter a exceção genérica do resolver
+  (`InvalidOperationException`) para o tipo de exceção de domínio esperado
+  (`ErpFornecedorEscritaException`) via `try/catch` — comportamento externo preservado, mas é um
+  ponto de atenção para revisão de código (a mensagem do resolver agora é reaproveitada como
+  mensagem da exceção de domínio).
+- `Program.cs` (`ProbeErpSupplierIntegrityAsync`, ferramenta CLI de diagnóstico) continua lendo
+  `ErpConnection`/validação própria — não migrado nesta etapa por não ser um dos 7 consumidores de
+  produção auditados; considerar na remoção final do fallback.

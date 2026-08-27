@@ -197,4 +197,88 @@ public sealed class B1ConnectivityValidatorTests
         Assert.DoesNotContain("super-secret-password", result.ToString());
         Assert.DoesNotContain("Password", result.Exception?.Message ?? string.Empty);
     }
+
+    [Fact]
+    public async Task ValidateMaisComprasAsync_Should_Report_NotConfigured_When_Secret_Is_Missing()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+        var validator = new B1ConnectivityValidator(configuration);
+
+        var result = await validator.ValidateMaisComprasAsync();
+
+        Assert.Equal(ConnectivityStatus.NotConfigured, result.Status);
+    }
+
+    [Fact]
+    public async Task ValidateMaisComprasAsync_Should_Block_When_Configured_Target_Is_SOMA_DESENV()
+    {
+        // Same DEV server (192.168.9.98) as linx-development is legitimate; a different database under
+        // that server pointing at SOMA_DESENV instead of MAISCOMPRAS is still a mismatch.
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:MaisComprasConnection"] = "Server=192.168.9.98;Database=SOMA_DESENV;User Id=dev;Password=dev;",
+            })
+            .Build();
+        var validator = new B1ConnectivityValidator(configuration);
+
+        var result = await validator.ValidateMaisComprasAsync();
+
+        Assert.Equal(ConnectivityStatus.EnvironmentMismatch, result.Status);
+    }
+
+    [Fact]
+    public async Task ValidateMaisComprasAsync_Should_Block_When_Configured_Target_Is_The_Production_Server()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:MaisComprasConnection"] = "Server=192.168.0.200;Database=MAISCOMPRAS;User Id=x;Password=x;",
+            })
+            .Build();
+        var validator = new B1ConnectivityValidator(configuration);
+
+        var result = await validator.ValidateMaisComprasAsync();
+
+        Assert.Equal(ConnectivityStatus.EnvironmentMismatch, result.Status);
+    }
+
+    [Fact]
+    public void LinxDevelopment_And_MaisComprasDevelopment_Profiles_Should_Share_The_Same_DEV_Server_With_Distinct_Databases()
+    {
+        // Formalizes that the two DEV profiles may resolve to the same local identity (same server,
+        // different ConnectionStrings key/database) without either profile carrying a credential itself.
+        Assert.Equal(LinxConnectionProfiles.Development.ExpectedServer, LinxConnectionProfiles.MaisComprasDevelopment.ExpectedServer);
+        Assert.NotEqual(LinxConnectionProfiles.Development.ExpectedDatabase, LinxConnectionProfiles.MaisComprasDevelopment.ExpectedDatabase);
+        Assert.NotEqual(LinxConnectionProfiles.Development.ConnectionName, LinxConnectionProfiles.MaisComprasDevelopment.ConnectionName);
+        Assert.True(LinxConnectionProfiles.MaisComprasDevelopment.VpnRequired);
+    }
+
+    [Fact]
+    public void LinxConnectionStringResolver_Should_Throw_Without_Connecting_When_Not_Configured()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => LinxConnectionStringResolver.Resolve(configuration, LinxConnectionProfiles.Production));
+
+        Assert.Contains("LinxProductionConnection", exception.Message);
+    }
+
+    [Fact]
+    public void LinxConnectionStringResolver_Should_Reject_A_Development_Connection_String_Passed_As_Production()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:LinxProductionConnection"] = "Server=192.168.9.98;Database=SOMA_DESENV;User Id=x;Password=x;",
+            })
+            .Build();
+
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => LinxConnectionStringResolver.Resolve(configuration, LinxConnectionProfiles.Production));
+
+        Assert.Contains("Environment mismatch", exception.Message);
+        Assert.DoesNotContain("Password", exception.Message);
+    }
 }

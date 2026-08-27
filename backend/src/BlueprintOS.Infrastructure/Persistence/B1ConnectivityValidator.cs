@@ -11,7 +11,8 @@ namespace BlueprintOS.Infrastructure.Persistence;
 public sealed class B1ConnectivityValidator(IConfiguration configuration)
 {
     public Task<DatabaseConnectivityResult> ValidateMaisComprasAsync(CancellationToken cancellationToken = default) =>
-        ValidateAsync("+Compras", "MaisComprasConnection", expectedProfile: null, cancellationToken);
+        ValidateAsync(LinxConnectionProfiles.MaisComprasDevelopment.Label, LinxConnectionProfiles.MaisComprasDevelopment.ConnectionName,
+            LinxConnectionProfiles.MaisComprasDevelopment, cancellationToken);
 
     /// <summary>Mantido por compatibilidade — resolve o profile Development. Prefira
     /// <see cref="ValidateErpAsync(LinxEnvironment, CancellationToken)"/> explícito.

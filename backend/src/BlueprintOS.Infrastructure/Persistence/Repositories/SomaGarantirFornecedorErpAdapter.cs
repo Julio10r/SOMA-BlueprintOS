@@ -1,4 +1,5 @@
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
+using BlueprintOS.Infrastructure.Persistence;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -240,12 +241,15 @@ public sealed class SomaGarantirFornecedorErpAdapter(IConfiguration configuratio
 
     private async Task<SqlConnection> OpenAsync(CancellationToken ct)
     {
-        var connectionString = configuration.GetConnectionString("ErpConnection");
-        if (string.IsNullOrWhiteSpace(connectionString) || connectionString.StartsWith("__SET_", StringComparison.Ordinal))
-            throw new ErpFornecedorEscritaException(ErpFornecedorErro.Validacao, "ERP não configurado.");
-        var builder = new SqlConnectionStringBuilder(connectionString);
-        if (!string.Equals(builder.InitialCatalog, "SOMA_DESENV", StringComparison.OrdinalIgnoreCase))
-            throw new ErpFornecedorEscritaException(ErpFornecedorErro.Validacao, "O adaptador exige o banco SOMA_DESENV.");
+        string connectionString;
+        try
+        {
+            connectionString = LinxConnectionStringResolver.Resolve(configuration, LinxConnectionProfiles.Development);
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new ErpFornecedorEscritaException(ErpFornecedorErro.Validacao, ex.Message);
+        }
         try
         {
             var connection = new SqlConnection(connectionString);
