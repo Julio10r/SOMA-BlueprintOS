@@ -14,6 +14,14 @@ Escopo: investigacao read-only em `linx-production` (`SOMA`, `192.168.9.200:1433
 
 Repetir em producao, somente leitura, a investigacao anteriormente realizada em `SOMA_DESENV` (`docs/audits/AgentLearningV1-LinxProgOpPed.md`, secao 7.6): validar schema, procedures, dados reais da planilha, resolver o gap do tamanho 34, confirmar regras PROG/OP/PED, comparar PROD x DEV, calcular o Delta e produzir uma estrategia de escrita proposta (nao executada). Por `docs/audits/ProductionAuthoritativeInvestigationPolicyV1.md`, producao responde "como e hoje" e e authoritative sobre DEV.
 
+> **Nota (2026-08-27, correcao de politica posterior):** a comparacao PROD x DEV feita nesta rodada
+> (R2.8) foi util para validar a arquitetura authoritative-in-production e detectar o unico caso de
+> possivel drift encontrado ate hoje (catalogo de produto incompleto em DEV). Ela permanece registrada
+> como historico. Ela **nao** deve ser lida como precedente de que toda investigacao futura deve repetir
+> uma comparacao PROD x DEV — `agents/DATABASE_CONNECTION_POLICY.md` § 19a agora declara essa
+> comparacao como `COMPARE_ON_DEMAND` (somente quando houver razao explicita), nao um passo automatico.
+> Ver `docs/audits/ProductionDevComparisonOnDemandV1.md`.
+
 ## 2. Ambiente Authoritative Desta Rodada
 
 | Item | Valor |

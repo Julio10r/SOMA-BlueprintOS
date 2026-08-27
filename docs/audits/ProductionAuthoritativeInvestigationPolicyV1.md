@@ -70,6 +70,14 @@ Nenhum teste artificial foi criado para as regras puramente documentais desta ta
 - Grades 36-44, ausencia do tamanho 34, procedures, schema e dados encontrados em `SOMA_DESENV` (secoes 7.6-7.6.5) permanecem no documento como `CONFIRMED_IN_DEVELOPMENT` — validos como leitura de Development, apenas nao mais equiparados a verdade de producao.
 - O zero-delta / nao-encontrados (77/77 sem correspondencia em `SOMA_DESENV`, secao 7.6.5) ja usava `PENDING_PRODUCTION_READ_ONLY_VALIDATION`, alinhado com o espirito da politica nova; mantido.
 
+## 8a. Correção posterior (2026-08-27): comparação PROD × DEV passa a ser on-demand
+
+A comparação PROD × DEV feita na investigação authoritative-in-production subsequente
+(`docs/audits/LinxProgOpPed-ProductionInvestigation.md`, R2.8) foi útil, mas não deve ser lida como
+regra de que toda investigação futura precisa repetir uma comparação de ambientes. Ver
+`docs/audits/ProductionDevComparisonOnDemandV1.md` e `agents/DATABASE_CONNECTION_POLICY.md` § 19a:
+comparação PROD × DEV é `COMPARE_ON_DEMAND`, não um passo automático desta política.
+
 ## 9. Gaps Futuros
 
 - Nenhum mecanismo de codigo hoje seleciona automaticamente Producao como padrao de investigacao — depende do Agent/orquestrador seguir a politica documentada. Um Capability/Tool Gateway futuro que padronize "investigar estado atual" poderia enforced isso automaticamente, mas nao existe ainda.

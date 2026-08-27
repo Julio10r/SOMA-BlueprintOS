@@ -346,6 +346,34 @@ depends on the ERP's real, current condition, use a status equivalent to
 Only evidence confronted against Production may be promoted to authoritative current knowledge of
 the Linx ERP.
 
+This provenance rule answers "where did this evidence come from", not "must DEV also be queried".
+When a question is about the ERP's current state and Production answered it directly (§ 17-18),
+the evidence is already `CONFIRMED_IN_PRODUCTION` and the investigation is complete — there is no
+additional requirement to also query `SOMA_DESENV` for the same fact, compare schemas/procedures
+between environments, or produce a drift report. § 19a defines when a PROD×DEV comparison is
+actually warranted.
+
+### 19a. PROD × DEV comparison is on-demand, not a default step
+
+Comparing Production against `SOMA_DESENV` is a valid tool, not a mandatory step of every
+investigation. Do not treat any of the following as implied by this policy:
+
+- every investigation must compare Production and Development;
+- every procedure, view, trigger, or schema object must be checked in both environments;
+- every data analysis must produce a drift report;
+- knowledge confirmed in Production requires an equivalent lookup in Development.
+
+None of that is required. Production is already authoritative for "what is true today" (§ 17); an
+answer obtained there does not need Development corroboration.
+
+Run a PROD×DEV comparison (`COMPARE_ON_DEMAND`) only when there is an explicit reason, for example:
+concrete suspicion that `SOMA_DESENV` is stale; preparing to modify an existing object (§ 21, where
+comparison is scoped to only the object being changed — never a full audit); needing to reproduce
+Production behavior for a test that depends on matching procedure/view/trigger/schema versions;
+an explicit drift investigation; the user asking for a comparison; or the Agent finding concrete
+evidence that an environment difference could affect the current task. Outside those triggers,
+comparison stays `COMPARE_BY_DEFAULT` = never.
+
 ## 20. Production unavailable — no silent fallback
 
 If Production is temporarily unreachable, BlueprintOS must **not** silently substitute
