@@ -5,11 +5,23 @@ using BlueprintOS.Core.AI.Governance.Models;
 
 namespace BlueprintOS.Core.AI.Governance;
 
-public sealed class SomaLinxDryRunAdapter : IGovernedToolAdapter
+/// <summary>
+/// Governed DryRun adapter for the WISE write path. This is the counterpart to
+/// the WAVE 0 containment applied to scripts/linx_wise_daily_integration.py:
+/// the script's plan-only output (governed_write_plan.json) is the same shape
+/// this adapter previews, so a WISE write can be routed through the Gateway
+/// like any other governed capability instead of running pyodbc directly.
+/// Never opens a WISE connection and never generates SQL — DryRun only, same
+/// as every other adapter registered on this Gateway.
+/// </summary>
+public sealed class WiseGovernedAdapter : IGovernedToolAdapter
 {
-    public string Capability => StructuredActionProposalAdapter.Capability;
-    public string OwnerAgent => StructuredActionProposalAdapter.OwnerAgent;
-    public IReadOnlyList<string> AllowedConnectionProfiles { get; } = ["linx-erp-governed-write"];
+    public const string Capability = "wise-database-write-proposal";
+    public const string OwnerAgent = "wise-agent";
+
+    string IGovernedToolAdapter.Capability => Capability;
+    string IGovernedToolAdapter.OwnerAgent => OwnerAgent;
+    public IReadOnlyList<string> AllowedConnectionProfiles { get; } = ["wise-governed-write"];
 
     public Task<SomaLinxDryRunPreview> DryRunAsync(ToolGatewayRequest request, CancellationToken cancellationToken = default)
     {

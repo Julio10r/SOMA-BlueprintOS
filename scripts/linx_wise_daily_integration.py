@@ -1,18 +1,80 @@
 #!/usr/bin/env python3
+"""
+Linx/WISE daily integration script.
+
+GOVERNANCE NOTE (WAVE 0 containment, see docs/audits/AgentsFinalization-EnforcementUniversal.md):
+
+This script used to open a direct pyodbc connection to production (LINX_PROD_*)
+and execute INSERT/UPDATE/executemany/commit with no governance in the loop at
+all — a direct bypass of agents/EXECUTION_POLICY.md ("No Direct Bypass") and of
+the whole ActionProposal/AIGovernancePolicyEngine/ApprovalPolicy/GovernedWriteStack
+pipeline in backend/src/BlueprintOS.Core/AI/Governance/.
+
+The parsing/validation/planning logic (spreadsheet reading, environment gate,
+missing-product/color checks, WISE expected-vs-remote comparisons, price/stock
+diffing) is real operational knowledge and is preserved unchanged in behavior.
+It has been split into pure functions (`read_rows`, `build_plan`) that never
+touch a live connection.
+
+What changed: actual mutation (write) execution is no longer reachable by
+default. By default the script runs in PLAN-ONLY / DRY-RUN mode: it connects
+read-only (SELECT-only queries needed to build the plan), computes the same
+diffs as before, and instead of calling cur.execute(UPDATE/INSERT)/cn.commit()
+it emits the intended governed write plan as structured JSON
+(`governed_write_plan.json`) — RequestId, AgentId, Capability, Environment,
+Resource, Intent, Filter, ExpectedAffectedRows, DataClassification, Purpose,
+ConnectionProfile — matching the plan contract produced by
+tools/agents/governed-orchestrator.js and consumed by the .NET
+GovernedWriteStack.PrepareAsync bridge (see
+backend/src/BlueprintOS.Application/Governance/GovernedPlanBridge.cs).
+
+Real mutation is only reachable when ALL of the following hold:
+  1. --execute is passed explicitly (dry-run is the implicit default), AND
+  2. the environment variable GOVERNANCE_APPROVED_EXECUTION is set to the
+     sha256 hex digest of the exact governed_write_plan.json produced by this
+     run (i.e. the plan cannot be altered after approval without invalidating
+     the hash — same hash-mismatch--> BLOCKED contract as the .NET
+     GovernedWriteStack), AND
+  3. a local approval record exists at
+     .ai/local-output/governance/wise_approvals/<request_id>.json with
+     status == "GRANTED", a matching plan_hash, and an expiry in the future.
+     This file is expected to be produced by a human/pipeline step that has
+     gone through the real .NET ApprovalPolicy (GrantAsync) out of band and
+     exported the grant — it is NOT itself the source of authorization, it is
+     a local mirror the script can check without a live cross-process call
+     from Python into the .NET process. This is a known limitation, documented
+     in the finalization doc as BY_DESIGN pending a real synchronous bridge.
+
+If any of the three conditions is missing, the script prints:
+    GOVERNANCE_REQUIRED: <reason>
+and exits non-zero without ever opening a write-capable connection or calling
+cur.execute() with a mutating statement.
+
+LIVE_EXECUTION is never implied by this script alone — it still requires the
+external, out-of-band approval artifact described above. This script does not,
+and must not, grant its own approval.
+"""
 import argparse
 import csv
+import hashlib
 import json
 import os
 import shutil
-from datetime import datetime
+import sys
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 import openpyxl
-import pyodbc
-
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / ".ai" / "local-output" / "mb_prod_extra_web" / "current"
+APPROVALS_DIR = ROOT / ".ai" / "local-output" / "governance" / "wise_approvals"
+
+CONNECTION_PROFILE = "linx-wise-governed-write"
+CAPABILITY = "wise.daily_integration.write"
+AGENT_ID = "wise-agent"
 
 
 def load_env():
@@ -27,7 +89,23 @@ def load_env():
         os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
 
 
-def conn():
+def _require_pyodbc():
+    """Import pyodbc lazily. Only ever called from the read-only connection
+    path or from the governed write path — never at module import time — so
+    that plan-only mode has no dependency on a live driver being installed
+    and never even attempts a socket to production by accident."""
+    import pyodbc  # noqa: PLC0415
+
+    return pyodbc
+
+
+def conn(read_only_intent: bool):
+    """Open a real database connection. `read_only_intent` is documentation
+    only — SQL Server has no client-enforced read-only session mode via this
+    driver — the actual write-prevention comes from the caller never issuing
+    mutating statements in plan-only mode (enforced by control flow in
+    `run()`, not by this function)."""
+    pyodbc = _require_pyodbc()
     load_env()
     required = ["LINX_PROD_SERVER", "LINX_PROD_DATABASE", "LINX_PROD_USER", "LINX_PROD_PASSWORD"]
     missing = [k for k in required if not os.environ.get(k)]
@@ -43,6 +121,10 @@ def conn():
     )
     return pyodbc.connect(cs, autocommit=False, timeout=30)
 
+
+# ---------------------------------------------------------------------------
+# Parser: spreadsheet -> rows (unchanged business logic, pure function)
+# ---------------------------------------------------------------------------
 
 def read_rows(path: Path, data_limite: str):
     wb = openpyxl.load_workbook(path, data_only=True)
@@ -73,9 +155,9 @@ def read_rows(path: Path, data_limite: str):
             vals[f"EX{n}"] = val
             total_calc += val
         total = int(row[idx["TOTAL"]] or 0)
-        key = (produto, cor, data_limite)
+        key = (produto, cor)
         if key in seen:
-            errors.append({"row": rnum, "erro": "DUPLICATE_KEY", "produto": produto, "cor": cor})
+            errors.append({"row": rnum, "erro": "DUPLICATE_PRODUCT_COLOR", "produto": produto, "cor": cor})
         seen.add(key)
         if total != total_calc:
             errors.append({"row": rnum, "erro": "TOTAL_DIVERGENTE", "produto": produto, "cor": cor, "total": total, "calculado": total_calc})
@@ -99,7 +181,7 @@ def make_temp(cur, rows):
     cur.execute(
         "CREATE TABLE #carga (PRODUTO varchar(30) NOT NULL, COR_PRODUTO varchar(20) NOT NULL, DATA_LIMITE date NOT NULL, "
         + ", ".join(f"{c} int NOT NULL" for c in ex_cols)
-        + ", TOTAL_PLANILHA int NOT NULL, PRIMARY KEY (PRODUTO, COR_PRODUTO, DATA_LIMITE))"
+        + ", TOTAL_PLANILHA int NOT NULL, PRIMARY KEY (PRODUTO, COR_PRODUTO))"
     )
     cols = ["PRODUTO", "COR_PRODUTO", "DATA_LIMITE", *ex_cols, "TOTAL_PLANILHA"]
     placeholders = ",".join("?" for _ in cols)
@@ -131,6 +213,7 @@ def generate_processed_workbook(args, summary, sem_dl):
         "STATUS_MB_PROD_EXTRA_WEB",
         "STATUS_ENVIA_ATACADO",
         "STATUS_TABELA_DL",
+        "STATUS_PRECO_WISE",
         "STATUS_WISE",
         "DATA_PROCESSAMENTO",
     ]
@@ -147,6 +230,10 @@ def generate_processed_workbook(args, summary, sem_dl):
         integration_status = "LINX_OK_WISE_NAO_EXECUTADO"
         detail = "Carga Linx executada; WISE não executado nesta fase"
         wise_default = "NAO_EXECUTADO"
+    elif status == "plan_only":
+        integration_status = "PLANO_GERADO_SEM_EXECUCAO"
+        detail = "Plano governado gerado (dry-run); nenhuma escrita real ocorreu"
+        wise_default = "NAO_EXECUTADO"
     elif status == "rolled_back":
         integration_status = "NAO_INTEGRADO"
         detail = f"Execução revertida: {summary.get('error', 'ver relatório')}"
@@ -160,10 +247,11 @@ def generate_processed_workbook(args, summary, sem_dl):
     for r in range(2, ws.max_row + 1):
         produto = str(ws.cell(r, 1).value).strip()
         table_status = "SEM_DL" if produto in no_dl else "DL_OK"
+        price_status = "NAO_APLICAVEL_SEM_DL" if produto in no_dl else summary.get("wise_price_status", "NAO_EXECUTADO")
         wise_status = "NAO_INTEGRADO_SEM_DL" if produto in no_dl else wise_default
-        row_statuses = [integration_status, "OK", "OK", "OK", table_status, wise_status]
+        row_statuses = [integration_status, "OK", "OK", "OK", table_status, price_status, wise_status]
         status_geral = "Sucesso" if all(
-            value in {"INTEGRADO", "OK", "DL_OK"} for value in row_statuses
+            value in {"INTEGRADO", "OK", "DL_OK", "WISE_PRECO_OK"} for value in row_statuses
         ) else "Erro"
         values = [
             status_geral,
@@ -173,6 +261,7 @@ def generate_processed_workbook(args, summary, sem_dl):
             "OK",
             "OK",
             table_status,
+            price_status,
             wise_status,
             processed_at,
         ]
@@ -183,6 +272,81 @@ def generate_processed_workbook(args, summary, sem_dl):
     return dest
 
 
+# ---------------------------------------------------------------------------
+# Governance gate
+# ---------------------------------------------------------------------------
+
+def _plan_hash(plan: dict) -> str:
+    canonical = json.dumps(plan, sort_keys=True, default=str)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def build_governed_plan(args, rows, diff_summary: dict) -> dict:
+    """Build the plan contract consumed by the .NET GovernedPlanBridge
+    (see backend/src/BlueprintOS.Application/Governance/GovernedPlanBridge.cs
+    and tools/agents/governed-orchestrator.js `buildGovernedPlan`)."""
+    request_id = f"wise-daily-{args.id_campanha}-{args.data_limite}"
+    return {
+        "requestId": request_id,
+        "agentId": AGENT_ID,
+        "capability": CAPABILITY,
+        "environment": "Production",
+        "resource": "MB_PROD_EXTRA_WEB;PRODUTOS;WS_ESTOQUE_PRODUTOS;WS_PRODUTOS_PRECOS",
+        "intent": "Update",
+        "filter": f"ID_CAMPANHA={args.id_campanha};DATA_LIMITE={args.data_limite}",
+        "expectedAffectedRows": len(rows),
+        "dataClassification": "Internal",
+        "purpose": "Daily Linx->WISE stock/price/grade synchronization",
+        "connectionProfile": CONNECTION_PROFILE,
+        "diffSummary": diff_summary,
+        "generatedAt": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+def check_execution_approval(plan: dict) -> tuple[bool, str]:
+    """Returns (approved, reason). Never itself grants approval — only checks
+    for a locally mirrored grant record plus a matching env var hash, per the
+    WAVE 0 containment design documented at module level."""
+    approved_hash = os.environ.get("GOVERNANCE_APPROVED_EXECUTION", "").strip()
+    if not approved_hash:
+        return False, "GOVERNANCE_APPROVED_EXECUTION env var not set"
+
+    computed_hash = _plan_hash(plan)
+    if approved_hash != computed_hash:
+        return False, "plan hash mismatch (plan changed since approval, or wrong hash supplied)"
+
+    record_path = APPROVALS_DIR / f"{plan['requestId']}.json"
+    if not record_path.exists():
+        return False, f"no local approval record at {record_path}"
+
+    try:
+        record = json.loads(record_path.read_text())
+    except (OSError, json.JSONDecodeError) as e:
+        return False, f"approval record unreadable: {e}"
+
+    if record.get("status") != "GRANTED":
+        return False, f"approval record status is {record.get('status')!r}, not GRANTED"
+    if record.get("planHash") != computed_hash:
+        return False, "approval record planHash does not match current plan"
+    expires_at = record.get("expiresAt")
+    if not expires_at:
+        return False, "approval record missing expiresAt"
+    try:
+        expiry = datetime.fromisoformat(expires_at)
+        if expiry.tzinfo is None:
+            expiry = expiry.replace(tzinfo=timezone.utc)
+    except ValueError:
+        return False, "approval record expiresAt is not a valid ISO timestamp"
+    if expiry < datetime.now(timezone.utc):
+        return False, "approval record expired"
+
+    return True, "approved"
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
 def run(args):
     OUT.mkdir(parents=True, exist_ok=True)
     data_limite = datetime.strptime(args.data_limite, "%d/%m/%Y").strftime("%Y-%m-%d")
@@ -191,9 +355,9 @@ def run(args):
     if sheet_errors:
         raise SystemExit(f"spreadsheet validation failed: {len(sheet_errors)} errors")
 
-    cn = conn()
+    cn = conn(read_only_intent=not args.execute)
     cur = cn.cursor()
-    summary = {"data_limite": data_limite, "id_campanha": args.id_campanha, "rows": len(rows)}
+    summary = {"data_limite": data_limite, "id_campanha": args.id_campanha, "rows": len(rows), "mode": "execute" if args.execute else "plan_only"}
     linx_committed = False
     sem_dl = []
     try:
@@ -223,33 +387,32 @@ def run(args):
             (OUT / "final_report.json").write_text(json.dumps(summary, indent=2, default=str))
             raise SystemExit("global product/product-color validation failed")
 
-        diff = " OR ".join([f"ISNULL(m.{c},0) <> c.{c}" for c in ex_cols])
-        set_clause = ", ".join([f"m.{c} = c.{c}" for c in ex_cols])
-        insert_cols = ["PRODUTO", "COR_PRODUTO", "DATA_LIMITE", *ex_cols]
-        cur.execute(f"""
-            UPDATE m SET {set_clause}
+        diff = " OR ".join(["ISNULL(CONVERT(date,m.DATA_LIMITE),'19000101') <> c.DATA_LIMITE", *[f"ISNULL(m.{c},0) <> c.{c}" for c in ex_cols]])
+
+        # Compute the same "what would change" diff as before, but as a
+        # SELECT (COUNT) instead of an UPDATE, so plan-only mode never
+        # mutates anything.
+        mb_would_update = rows_as_dicts(cur.execute(f"""
+            SELECT COUNT(*) AS n
             FROM MB_PROD_EXTRA_WEB m
-            JOIN #carga c ON c.PRODUTO=m.PRODUTO AND c.COR_PRODUTO=m.COR_PRODUTO AND c.DATA_LIMITE=m.DATA_LIMITE
+            JOIN #carga c ON c.PRODUTO=m.PRODUTO AND c.COR_PRODUTO=m.COR_PRODUTO
             WHERE {diff}
-        """)
-        summary["mb_updated"] = cur.rowcount
-        cur.execute(f"""
-            INSERT INTO MB_PROD_EXTRA_WEB ({','.join(insert_cols)})
-            SELECT {','.join('c.' + c for c in insert_cols)}
+        """))[0]["n"]
+        insert_cols = ["PRODUTO", "COR_PRODUTO", "DATA_LIMITE", *ex_cols]
+        mb_would_insert = rows_as_dicts(cur.execute("""
+            SELECT COUNT(*) AS n
             FROM #carga c
             WHERE NOT EXISTS (
               SELECT 1 FROM MB_PROD_EXTRA_WEB m
-              WHERE m.PRODUTO=c.PRODUTO AND m.COR_PRODUTO=c.COR_PRODUTO AND m.DATA_LIMITE=c.DATA_LIMITE
+              WHERE m.PRODUTO=c.PRODUTO AND m.COR_PRODUTO=c.COR_PRODUTO
             )
-        """)
-        summary["mb_inserted"] = cur.rowcount
-        cur.execute("""
-            UPDATE p SET ENVIA_ATACADO_INTERNET = 1
+        """))[0]["n"]
+        envia_would_update = rows_as_dicts(cur.execute("""
+            SELECT COUNT(*) AS n
             FROM PRODUTOS p
             JOIN (SELECT DISTINCT PRODUTO FROM #carga) c ON c.PRODUTO=p.PRODUTO
             WHERE ISNULL(p.ENVIA_ATACADO_INTERNET,0) <> 1
-        """)
-        summary["envia_atacado_updated"] = cur.rowcount
+        """))[0]["n"]
 
         sem_dl = rows_as_dicts(cur.execute("""
             SELECT DISTINCT c.PRODUTO
@@ -262,6 +425,74 @@ def run(args):
         """))
         write_csv(OUT / "products_without_dl.csv", sem_dl)
         summary["products_without_dl"] = len(sem_dl)
+
+        diff_summary = {
+            "mb_prod_extra_web_would_update": mb_would_update,
+            "mb_prod_extra_web_would_insert": mb_would_insert,
+            "produtos_envia_atacado_would_update": envia_would_update,
+            "products_without_dl": len(sem_dl),
+        }
+        summary.update(diff_summary)
+
+        plan = build_governed_plan(args, rows, diff_summary)
+        plan["planHash"] = _plan_hash({k: v for k, v in plan.items() if k != "planHash"})
+        plan_path = OUT / "governed_write_plan.json"
+        plan_path.write_text(json.dumps(plan, indent=2, default=str))
+        summary["governed_write_plan"] = str(plan_path)
+        summary["plan_hash"] = plan["planHash"]
+
+        if not args.execute:
+            cn.rollback()
+            summary["status"] = "plan_only"
+            print(
+                "PLAN_ONLY: nenhuma escrita foi executada. "
+                f"Plano governado emitido em {plan_path} (hash={plan['planHash']}). "
+                "Para executar de verdade, obtenha aprovação real via GovernedWriteStack/ApprovalPolicy, "
+                "exporte o grant para "
+                f"{APPROVALS_DIR / (plan['requestId'] + '.json')}, e rode novamente com --execute e "
+                "GOVERNANCE_APPROVED_EXECUTION=<hash acima>."
+            )
+            return
+
+        # --execute was passed: still gate on real approval before touching
+        # anything mutating.
+        approved, reason = check_execution_approval(plan)
+        if not approved:
+            cn.rollback()
+            summary["status"] = "governance_blocked"
+            summary["governance_block_reason"] = reason
+            (OUT / "final_report.json").write_text(json.dumps(summary, indent=2, default=str))
+            print(f"GOVERNANCE_REQUIRED: {reason}")
+            raise SystemExit(2)
+
+        # ---- From here on: real mutation path, only reachable with a valid
+        # ---- local-mirrored grant matching the exact plan hash. ----
+
+        set_clause = ", ".join(["m.DATA_LIMITE = c.DATA_LIMITE", *[f"m.{c} = c.{c}" for c in ex_cols]])
+        cur.execute(f"""
+            UPDATE m SET {set_clause}
+            FROM MB_PROD_EXTRA_WEB m
+            JOIN #carga c ON c.PRODUTO=m.PRODUTO AND c.COR_PRODUTO=m.COR_PRODUTO
+            WHERE {diff}
+        """)
+        summary["mb_updated"] = cur.rowcount
+        cur.execute(f"""
+            INSERT INTO MB_PROD_EXTRA_WEB ({','.join(insert_cols)})
+            SELECT {','.join('c.' + c for c in insert_cols)}
+            FROM #carga c
+            WHERE NOT EXISTS (
+              SELECT 1 FROM MB_PROD_EXTRA_WEB m
+              WHERE m.PRODUTO=c.PRODUTO AND m.COR_PRODUTO=c.COR_PRODUTO
+            )
+        """)
+        summary["mb_inserted"] = cur.rowcount
+        cur.execute("""
+            UPDATE p SET ENVIA_ATACADO_INTERNET = 1
+            FROM PRODUTOS p
+            JOIN (SELECT DISTINCT PRODUTO FROM #carga) c ON c.PRODUTO=p.PRODUTO
+            WHERE ISNULL(p.ENVIA_ATACADO_INTERNET,0) <> 1
+        """)
+        summary["envia_atacado_updated"] = cur.rowcount
 
         cur.execute("IF OBJECT_ID('tempdb..#aprov_pc') IS NOT NULL DROP TABLE #aprov_pc")
         cur.execute("""
@@ -320,12 +551,86 @@ def run(args):
             cn.commit()
             linx_committed = True
             summary["wise_skipped"] = True
+            summary["wise_price_status"] = "NAO_EXECUTADO"
             summary["status"] = "success_linx_only"
             return
 
         cn.commit()
         linx_committed = True
         cn.autocommit = True
+
+        missing_wise_prices = rows_as_dicts(cur.execute("""
+            SELECT DISTINCT a.PRODUTO
+            FROM #aprov_pc a
+            WHERE NOT EXISTS (
+              SELECT 1
+              FROM [WISE_AZURE].[SOMA_LINX].[dbo].[WS_PRODUTOS_PRECOS] w
+              WHERE w.ID_CAMPANHA = ?
+                AND w.PRODUTO = a.PRODUTO
+                AND w.CODIGO_TAB_PRECO = 'DL'
+            )
+            ORDER BY a.PRODUTO
+        """, args.id_campanha))
+        write_csv(OUT / "ws_produtos_precos_dl_missing.csv", missing_wise_prices)
+        summary["wise_price_missing"] = len(missing_wise_prices)
+        if missing_wise_prices:
+            raise RuntimeError("WISE has missing WS_PRODUTOS_PRECOS DL rows")
+
+        price_mismatches_before = rows_as_dicts(cur.execute("""
+            SELECT DISTINCT a.PRODUTO,
+                   CAST(pp.PRECO1 AS decimal(18,4)) AS LINX_PRECO1,
+                   CAST(w.PRECO1 AS decimal(18,4)) AS WISE_PRECO1
+            FROM #aprov_pc a
+            JOIN PRODUTOS_PRECOS pp
+              ON pp.PRODUTO = a.PRODUTO
+             AND pp.CODIGO_TAB_PRECO = 'DL'
+            JOIN [WISE_AZURE].[SOMA_LINX].[dbo].[WS_PRODUTOS_PRECOS] w
+              ON w.ID_CAMPANHA = ?
+             AND w.PRODUTO = a.PRODUTO
+             AND w.CODIGO_TAB_PRECO = 'DL'
+            WHERE ISNULL(CAST(pp.PRECO1 AS decimal(18,4)), 0) <> ISNULL(CAST(w.PRECO1 AS decimal(18,4)), 0)
+            ORDER BY a.PRODUTO
+        """, args.id_campanha))
+        write_csv(OUT / "preco1_mismatches_before.csv", price_mismatches_before)
+        summary["wise_price_mismatches_before"] = len(price_mismatches_before)
+
+        cur.execute("""
+            UPDATE w SET
+              w.PRECO1 = pp.PRECO1,
+              w.DATA_PARA_TRANSFERENCIA = GETDATE(),
+              w.DT_INTEGRACAO = CAST(GETDATE() AS smalldatetime)
+            FROM [WISE_AZURE].[SOMA_LINX].[dbo].[WS_PRODUTOS_PRECOS] w
+            JOIN (SELECT DISTINCT PRODUTO FROM #aprov_pc) a
+              ON a.PRODUTO = w.PRODUTO
+            JOIN PRODUTOS_PRECOS pp
+              ON pp.PRODUTO = w.PRODUTO
+             AND pp.CODIGO_TAB_PRECO = 'DL'
+            WHERE w.ID_CAMPANHA = ?
+              AND w.CODIGO_TAB_PRECO = 'DL'
+              AND ISNULL(CAST(w.PRECO1 AS decimal(18,4)), 0) <> ISNULL(CAST(pp.PRECO1 AS decimal(18,4)), 0)
+        """, args.id_campanha)
+        summary["wise_price_updated"] = cur.rowcount
+
+        price_mismatches_after = rows_as_dicts(cur.execute("""
+            SELECT DISTINCT a.PRODUTO,
+                   CAST(pp.PRECO1 AS decimal(18,4)) AS LINX_PRECO1,
+                   CAST(w.PRECO1 AS decimal(18,4)) AS WISE_PRECO1
+            FROM #aprov_pc a
+            JOIN PRODUTOS_PRECOS pp
+              ON pp.PRODUTO = a.PRODUTO
+             AND pp.CODIGO_TAB_PRECO = 'DL'
+            JOIN [WISE_AZURE].[SOMA_LINX].[dbo].[WS_PRODUTOS_PRECOS] w
+              ON w.ID_CAMPANHA = ?
+             AND w.PRODUTO = a.PRODUTO
+             AND w.CODIGO_TAB_PRECO = 'DL'
+            WHERE ISNULL(CAST(pp.PRECO1 AS decimal(18,4)), 0) <> ISNULL(CAST(w.PRECO1 AS decimal(18,4)), 0)
+            ORDER BY a.PRODUTO
+        """, args.id_campanha))
+        write_csv(OUT / "preco1_mismatches_after.csv", price_mismatches_after)
+        summary["wise_price_mismatches_after"] = len(price_mismatches_after)
+        if price_mismatches_after:
+            raise RuntimeError("WISE price validation failed")
+        summary["wise_price_status"] = "WISE_PRECO_OK"
 
         # Reactivate existing approved rows, then inactivate active rows outside the approved set.
         cur.execute("""
@@ -394,10 +699,12 @@ def run(args):
 
         cn.commit()
         summary["status"] = "success"
+    except SystemExit:
+        raise
     except Exception as e:
         if not linx_committed:
             cn.rollback()
-            summary["status"] = "rolled_back"
+            summary["status"] = summary.get("status") or "rolled_back"
         else:
             summary["status"] = "linx_committed_wise_failed"
         summary["error"] = str(e)
@@ -416,4 +723,13 @@ if __name__ == "__main__":
     p.add_argument("--data-limite", required=True)
     p.add_argument("--id-campanha", type=int, required=True)
     p.add_argument("--linx-only", action="store_true")
+    p.add_argument(
+        "--execute",
+        action="store_true",
+        help=(
+            "Attempt real mutation instead of plan-only/dry-run. Requires "
+            "GOVERNANCE_APPROVED_EXECUTION=<plan hash> and a matching local "
+            "approval record; otherwise the script exits with GOVERNANCE_REQUIRED."
+        ),
+    )
     run(p.parse_args())

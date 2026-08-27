@@ -172,7 +172,107 @@ public sealed class GovernedWriteStackTests
         Assert.Contains("LIVE_EXECUTION_DISABLED", result.Reasons);
     }
 
-    private static Fixture CreateFixture()
+    [Fact]
+    public async Task Multi_Adapter_Gateway_Should_Route_Unregistered_Capability_To_Capability_Gap()
+    {
+        await using var fixture = CreateFixture(includeReadOnlyAndWiseAdapters: true);
+        var preparation = await fixture.Stack.PrepareAsync(Context(OperationIntent.Update), Routing(), Analysis());
+        var request = Request(preparation, FakeGrant(preparation.ProposalBuild.Proposal!)) with { Capability = "capability-nobody-registered" };
+        var result = await fixture.Stack.DryRunAsync(request);
+        Assert.Equal(ToolGatewayStatus.Blocked, result.Status);
+        Assert.Contains("CAPABILITY_NOT_REGISTERED", result.Reasons);
+    }
+
+    [Fact]
+    public async Task Wise_Adapter_Should_DryRun_Without_Any_Real_Pyodbc_Style_Side_Effect()
+    {
+        await using var fixture = CreateFixture(includeReadOnlyAndWiseAdapters: true);
+        var context = Context(OperationIntent.Update) with
+        {
+            RequestedCapabilities = [WiseGovernedAdapter.Capability],
+            ConnectionProfile = "wise-governed-write",
+        };
+        var routing = new RoutingEvidence(true, WiseGovernedAdapter.OwnerAgent, [], ["security-lgpd-agent"], [], []);
+        var analysis = new AgentWriteAnalysis(WiseGovernedAdapter.OwnerAgent, WiseGovernedAdapter.Capability, ["QTD_ESTOQUE"], "validated fictional set", 12, ActionReversibility.Reversible);
+        var preparation = await fixture.Stack.PrepareAsync(context, routing, analysis);
+        var grant = await fixture.Stack.GrantAsync(preparation.ApprovalRequest!, "subject-product-owner-001", Now.AddMinutes(30), "specific proposal");
+        var request = new ToolGatewayRequest(
+            WiseGovernedAdapter.Capability, WiseGovernedAdapter.OwnerAgent, true,
+            preparation.ProposalBuild.Proposal!, preparation.PolicyDecision!, grant,
+            ["security-lgpd-agent"], "wise-governed-write",
+            new IdentityPermissionContext("subject-executor-001", HasEffectivePermission: true),
+            GovernedExecutionMode.DryRun);
+        var result = await fixture.Stack.DryRunAsync(request);
+
+        Assert.Equal(ToolGatewayStatus.DryRunCompleted, result.Status);
+        Assert.False(result.Preview!.SqlGenerated);
+        Assert.False(result.Preview.ExternalExecutionPerformed);
+    }
+
+    [Fact]
+    public async Task Wise_Adapter_Rejects_Wrong_Connection_Profile()
+    {
+        await using var fixture = CreateFixture(includeReadOnlyAndWiseAdapters: true);
+        var context = Context(OperationIntent.Update) with
+        {
+            RequestedCapabilities = [WiseGovernedAdapter.Capability],
+            ConnectionProfile = "linx-erp-governed-write",
+        };
+        var routing = new RoutingEvidence(true, WiseGovernedAdapter.OwnerAgent, [], ["security-lgpd-agent"], [], []);
+        var analysis = new AgentWriteAnalysis(WiseGovernedAdapter.OwnerAgent, WiseGovernedAdapter.Capability, ["QTD_ESTOQUE"], "validated fictional set", 12, ActionReversibility.Reversible);
+        var preparation = await fixture.Stack.PrepareAsync(context, routing, analysis);
+        var grant = await fixture.Stack.GrantAsync(preparation.ApprovalRequest!, "subject-product-owner-001", Now.AddMinutes(30), "specific proposal");
+        var request = new ToolGatewayRequest(
+            WiseGovernedAdapter.Capability, WiseGovernedAdapter.OwnerAgent, true,
+            preparation.ProposalBuild.Proposal!, preparation.PolicyDecision!, grant,
+            ["security-lgpd-agent"], "linx-erp-governed-write",
+            new IdentityPermissionContext("subject-executor-001", HasEffectivePermission: true),
+            GovernedExecutionMode.DryRun);
+        var result = await fixture.Stack.DryRunAsync(request);
+
+        Assert.Equal(ToolGatewayStatus.Blocked, result.Status);
+        Assert.Contains("CONNECTION_PROFILE_NOT_GOVERNED", result.Reasons);
+    }
+
+    [Fact]
+    public async Task ReadOnly_Adapter_Allows_Select_Without_Approval_When_Policy_Green()
+    {
+        await using var fixture = CreateFixture(includeReadOnlyAndWiseAdapters: true);
+        var context = Context(OperationIntent.Read) with
+        {
+            RequestedCapabilities = [SomaLinxReadOnlyAdapter.Capability],
+            ConnectionProfile = "linx-erp-read-only",
+        };
+        var routing = new RoutingEvidence(true, SomaLinxReadOnlyAdapter.OwnerAgent, [], [], [], []);
+        var analysis = new AgentWriteAnalysis(SomaLinxReadOnlyAdapter.OwnerAgent, SomaLinxReadOnlyAdapter.Capability, [], null, null, ActionReversibility.Reversible);
+        var preparation = await fixture.Stack.PrepareAsync(context, routing, analysis);
+
+        Assert.Equal(PolicyDecisionStatus.Allowed, preparation.PolicyDecision!.Status);
+        Assert.Null(preparation.ApprovalRequest);
+
+        var request = new ToolGatewayRequest(
+            SomaLinxReadOnlyAdapter.Capability, SomaLinxReadOnlyAdapter.OwnerAgent, true,
+            preparation.ProposalBuild.Proposal!, preparation.PolicyDecision!, null,
+            [], "linx-erp-read-only",
+            new IdentityPermissionContext("subject-executor-001", HasEffectivePermission: true),
+            GovernedExecutionMode.DryRun);
+        var result = await fixture.Stack.DryRunAsync(request);
+        Assert.Equal(ToolGatewayStatus.DryRunCompleted, result.Status);
+    }
+
+    [Fact]
+    public async Task Owner_Mismatch_Should_Block_Even_With_Registered_Adapter()
+    {
+        await using var fixture = CreateFixture(includeReadOnlyAndWiseAdapters: true);
+        var preparation = await fixture.Stack.PrepareAsync(Context(OperationIntent.Update), Routing(), Analysis());
+        var grant = await fixture.Stack.GrantAsync(preparation.ApprovalRequest!, "subject-product-owner-001", Now.AddMinutes(30), "specific proposal");
+        var request = Request(preparation, grant) with { RoutedPrimaryAgent = "wise-agent" };
+        var result = await fixture.Stack.DryRunAsync(request);
+        Assert.Equal(ToolGatewayStatus.Blocked, result.Status);
+        Assert.Contains("OWNER_MISMATCH", result.Reasons);
+    }
+
+    private static Fixture CreateFixture(bool includeReadOnlyAndWiseAdapters = false)
     {
         var options = new DbContextOptionsBuilder<BlueprintOSDbContext>()
             .UseInMemoryDatabase($"governed-write-{Guid.NewGuid():N}")
@@ -181,7 +281,10 @@ public sealed class GovernedWriteStackTests
         var approvals = new EfApprovalStore(db);
         var audit = new EfGovernanceAuditStore(db);
         var clock = new FixedTimeProvider(Now);
-        var gateway = new ToolGateway([new SomaLinxDryRunAdapter()], new ApprovalPolicy(), audit, clock);
+        IGovernedToolAdapter[] adapters = includeReadOnlyAndWiseAdapters
+            ? [new SomaLinxDryRunAdapter(), new SomaLinxReadOnlyAdapter(), new WiseGovernedAdapter()]
+            : [new SomaLinxDryRunAdapter()];
+        var gateway = new ToolGateway(adapters, new ApprovalPolicy(), audit, clock);
         var stack = new GovernedWriteStack(new StructuredActionProposalAdapter(), new AIGovernancePolicyEngine(), approvals, audit, gateway, clock);
         return new(db, approvals, audit, stack);
     }

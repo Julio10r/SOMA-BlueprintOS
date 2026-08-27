@@ -105,6 +105,36 @@ assert.equal(governedUpdate.execution_status, "READY_FOR_GOVERNANCE");
 assert.deepEqual(governedUpdate.primary_agents, ["linx-database-specialist-agent"]);
 assert.deepEqual(governedUpdate.cross_cutting_agents, ["security-lgpd-agent"]);
 
+// WAVE A bridge: a READY_FOR_GOVERNANCE plan must serialize into the payload
+// consumed by backend/src/BlueprintOS.Application/Governance/GovernedPlanBridge.cs.
+// The Orchestrator itself still grants no authorization here.
+const governedUpdateInput = base({
+  environment: "Production",
+  system: "SOMA/Linx",
+  resource_type: "DatabaseTable",
+  resource: "PRODUTOS",
+  operation_intent: "UPDATE",
+  requested_capabilities: ["soma-database-write-proposal"],
+  filter_summary: "validated fictional set",
+  expected_affected_rows: 417,
+  purpose: "validated integration",
+  data_classifications: ["Internal"],
+  connection_profile: "linx-erp-governed-write",
+});
+const bridgeResult = orchestrator.buildActionProposalPayload(governedUpdateInput);
+assert.equal(bridgeResult.eligible, true);
+assert.equal(bridgeResult.payload.requestId, "REQ-TEST-001");
+assert.equal(bridgeResult.payload.agentId, "linx-database-specialist-agent");
+assert.equal(bridgeResult.payload.capability, "soma-database-write-proposal");
+assert.equal(bridgeResult.payload.operationIntent, "UPDATE");
+assert.equal(bridgeResult.payload.expectedAffectedRows, 417);
+assert.equal(bridgeResult.payload.connectionProfile, "linx-erp-governed-write");
+assert.deepEqual(bridgeResult.payload.crossCuttingAgents, ["security-lgpd-agent"]);
+
+const nonEligibleBridge = orchestrator.buildActionProposalPayload(base({ requested_capabilities: [] }));
+assert.equal(nonEligibleBridge.eligible, false);
+assert(nonEligibleBridge.reason, "non-eligible plan must state a reason");
+
 const wise = orchestrator.orchestrate(base({
   system: "WISE",
   resource_type: "DatabaseTable",

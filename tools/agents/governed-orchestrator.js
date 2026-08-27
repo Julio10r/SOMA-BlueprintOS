@@ -170,6 +170,51 @@ class GovernedOrchestrator {
     return this.buildGovernedPlan(input);
   }
 
+  // WAVE A bridge: serializes a governed plan into the payload consumed by the
+  // .NET GovernedPlanBridge (backend/src/BlueprintOS.Application/Governance/GovernedPlanBridge.cs),
+  // which converts it into a real ActionProposal via GovernedWriteStack.PrepareAsync.
+  // This method still grants no authorization — it only produces a serializable
+  // plan; the Policy Engine and ApprovalPolicy remain the sole authorities.
+  buildActionProposalPayload(input) {
+    const plan = this.buildGovernedPlan(input);
+    if (plan.execution_status !== "READY_FOR_GOVERNANCE") {
+      return { eligible: false, reason: plan.execution_status, plan };
+    }
+    if (plan.capabilities.length !== 1 || plan.primary_agents.length !== 1) {
+      return { eligible: false, reason: "AMBIGUOUS_CAPABILITY_OR_OWNER", plan };
+    }
+    const context = this.validateActionContext(input).context;
+    return {
+      eligible: true,
+      reason: null,
+      payload: {
+        requestId: context.request_id,
+        requestedBy: context.requested_by,
+        agentId: plan.primary_agents[0],
+        capability: plan.capabilities[0],
+        environment: context.environment,
+        system: context.system,
+        resourceType: context.resource_type,
+        resource: context.resource,
+        operationIntent: context.operation_intent,
+        fields: context.fields,
+        filterSummary: context.filter_summary,
+        expectedAffectedRows: context.expected_affected_rows,
+        purpose: context.purpose,
+        dataClassification: context.data_classifications[0] || "Unknown",
+        containsPersonalData: context.contains_personal_data,
+        containsSensitivePersonalData: context.contains_sensitive_personal_data,
+        containsSecrets: context.contains_secrets,
+        reversibility: context.reversibility,
+        runbookReference: context.runbook_reference,
+        connectionProfile: context.connection_profile,
+        additionalContext: context.additional_context,
+        crossCuttingAgents: plan.cross_cutting_agents,
+      },
+      plan,
+    };
+  }
+
   nextSteps(status) {
     if (status === "BLOCKED_CAPABILITY_GAP") return [
       "Evaluate evolution of an existing Agent.",

@@ -1,3 +1,4 @@
+using BlueprintOS.Application.Governance;
 using BlueprintOS.Core.AI.Governance;
 using BlueprintOS.Core.AI.Governance.Contracts;
 using BlueprintOS.Infrastructure.Persistence.Governance;
@@ -13,8 +14,11 @@ public static class GovernedWriteServiceCollectionExtensions
         services.AddScoped<IApprovalStore, EfApprovalStore>();
         services.AddScoped<IGovernanceAuditStore, EfGovernanceAuditStore>();
         services.AddScoped<IGovernedToolAdapter, SomaLinxDryRunAdapter>();
+        services.AddScoped<IGovernedToolAdapter, SomaLinxReadOnlyAdapter>();
+        services.AddScoped<IGovernedToolAdapter, WiseGovernedAdapter>();
         services.AddScoped<IToolGateway, ToolGateway>();
         services.AddScoped<GovernedWriteStack>();
+        services.AddScoped<GovernedPlanBridge>();
         return services;
     }
 }

@@ -5,11 +5,23 @@ using BlueprintOS.Core.AI.Governance.Models;
 
 namespace BlueprintOS.Core.AI.Governance;
 
-public sealed class SomaLinxDryRunAdapter : IGovernedToolAdapter
+/// <summary>
+/// Formal Gateway-registered adapter for read-only Linx/SOMA access
+/// (schema discovery, vendor/filial/centro-de-custo lookups). The underlying
+/// SQL readers in BlueprintOS.Infrastructure.Integrations.ERP.Soma remain
+/// SELECT-only by construction; this adapter is the governed front door that
+/// makes that access routable/auditable through the same Tool Gateway used
+/// for governed writes, without requiring approval for a plain read when the
+/// Policy Engine does not demand it.
+/// </summary>
+public sealed class SomaLinxReadOnlyAdapter : IGovernedToolAdapter
 {
-    public string Capability => StructuredActionProposalAdapter.Capability;
-    public string OwnerAgent => StructuredActionProposalAdapter.OwnerAgent;
-    public IReadOnlyList<string> AllowedConnectionProfiles { get; } = ["linx-erp-governed-write"];
+    public const string Capability = "soma-database-read-proposal";
+    public const string OwnerAgent = "linx-database-specialist-agent";
+
+    string IGovernedToolAdapter.Capability => Capability;
+    string IGovernedToolAdapter.OwnerAgent => OwnerAgent;
+    public IReadOnlyList<string> AllowedConnectionProfiles { get; } = ["linx-erp-read-only", "linx-erp-governed-write"];
 
     public Task<SomaLinxDryRunPreview> DryRunAsync(ToolGatewayRequest request, CancellationToken cancellationToken = default)
     {

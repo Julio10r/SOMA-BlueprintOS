@@ -28,6 +28,17 @@ public interface IGovernanceAuditStore
 public interface IGovernedToolAdapter
 {
     string Capability { get; }
+
+    /// <summary>
+    /// Agent that owns this capability. The Tool Gateway rejects any request whose
+    /// routed primary agent does not match this value — this is what lets the
+    /// gateway host multiple adapters/profiles without a second competing gateway.
+    /// </summary>
+    string OwnerAgent { get; }
+
+    /// <summary>Connection profiles this adapter is allowed to serve. Never a credential.</summary>
+    IReadOnlyList<string> AllowedConnectionProfiles { get; }
+
     Task<SomaLinxDryRunPreview> DryRunAsync(ToolGatewayRequest request, CancellationToken cancellationToken = default);
 }
 
