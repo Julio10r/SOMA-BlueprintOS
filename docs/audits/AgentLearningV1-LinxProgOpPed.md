@@ -13,7 +13,7 @@ Esta tarefa teve dois objetivos independentes:
 
 Resultado do item 1: **CONFIRMED**. As duas politicas existem como documentos canonicos, sao referenciadas por `AGENT_CONTRACT.md`/`EXECUTION_POLICY.md`, sao verificadas pela Agent Factory v2 em `AUDIT`, e sao implementadas com codigo real em `backend/src/BlueprintOS.Core/AI/Governance/` com 15 testes automatizados cobrindo as 12 regras exigidas.
 
-Resultado do item 2: **WAITING_FOR_EVIDENCE**. Os artefatos reais (planilha de ajuste de grade, SQL historico/modelo, explicacao funcional do Product Owner) nao estao disponiveis nesta sessao e nao foram inventados. Nenhuma analise real do caso PROG/OP/PED foi produzida; apenas um fluxo conceitual, claramente rotulado, e uma avaliacao arquitetural sobre a necessidade de uma capability especifica.
+Resultado do item 2 (atualizado nesta sessao): os dois artefatos reais (planilha `New Way - Size 34 - layout programacao_v2 (1).xlsx` e SQL historico `AJUSTA GRADE OP-PROG-COMPRAS.sql`) foram localizados em `downloads/showcase_produtos/`, lidos integralmente e preservados sem alteracao. A planilha foi analisada programaticamente (estrutura, grade, duplicidades) e o SQL historico foi auditado linha a linha (ver secao 7). O resultado, porem, e **KNOWLEDGE_GAP bloqueante** e nao uma solucao final: a classificacao `PROG` no mecanismo historico e um fallback por exclusao (nao uma regra positiva), a grade da planilha atual tem 6 posicoes contra 7 esperadas pelo SQL historico, e nao ha conexao Linx/SOMA_DESENV disponivel nesta sessao para validar schema/procedures atuais nem calcular o Delta real. Por instrucao explicita da tarefa (nunca escolher silenciosamente diante de ambiguidade funcional), a analise **parou** neste ponto: nenhuma solucao SQL foi gerada, nenhum dado foi inventado, e tres perguntas objetivas foram registradas para o Product Owner (secao 7.9).
 
 ## 2. Baseline (Inspecao Real Do Repositorio)
 
@@ -54,9 +54,82 @@ Decisao: dois documentos canonicos novos ao lado de `AGENT_CONTRACT.md`/`EXECUTI
 
 **CONFIRMED.** Nenhuma classe, metodo ou campo em `UserArtifactLearningPolicy.cs` ou `CapabilityGapAndAgentEvolutionPolicy.cs` recebe ou usa um parametro de "provider"/"executor". O teste `Rule11_Behavior_IsProviderAgnostic` (em `backend/tests/BlueprintOS.UnitTests/Core/AI/Governance/UserArtifactLearningAndCapabilityGapPolicyTests.cs`) verifica isso estruturalmente por reflexao (nenhum membro publico contem "provider", "codex", "claude", "chatgpt", "openai" ou "anthropic" no nome) e comportamentalmente (mesma entrada produz mesma saida em duas instancias independentes). O texto das duas politicas tambem declara explicitamente escopo "qualquer IA, modelo, executor ou Agent... independente de provider".
 
-## 7. Caso Real PROG/OP/PED — WAITING_FOR_EVIDENCE
+## 7. Caso Real PROG/OP/PED — KNOWLEDGE_GAP (bloqueante, ver 7.9)
 
-**CONFIRMED**: nenhum artefato do caso real foi encontrado nesta sessao, em `downloads/` ou em qualquer outro local do repositorio. Nenhum dado de planilha ou SQL historico foi inventado.
+Status anterior (`WAITING_FOR_EVIDENCE`) superado: os dois artefatos foram localizados nesta sessao em `downloads/showcase_produtos/`:
+
+- `New Way - Size 34 - layout programacao_v2 (1).xlsx`
+- `AJUSTA GRADE OP-PROG-COMPRAS.sql`
+
+Ambos foram lidos programaticamente e integralmente, sem alteracao. Classificacao conforme `USER_ARTIFACT_LEARNING_POLICY.md`: **EVIDENCE / KNOWLEDGE SOURCE / USER_PROVIDED_ARTIFACT / HISTORICAL_REFERENCE** — nenhum dos dois constitui approval, runbook ou verdade canonica.
+
+### 7.1 Estrutura real da planilha — CONFIRMED (leitura direta)
+
+Duas abas: `_dados` (15 colunas, `A1:O78`) e `Layout` (10 colunas, `A1:J78`, subconjunto derivado de `_dados`). 77 linhas de dados (sem cabecalho).
+
+Colunas de `_dados`: `PRODUTO`, `DESC_PRODUTO`, `PROGRAMACAO`, `PO_PEDIDO_COMPRA`, `CANAL_ARQUIVO` (`WHOLESALE`/`RETAIL`), `CANAL_TEMP_COD` (`ATACADO`/`VAREJO`), `COR_PRODUTO`, `GRADE_ATUAL`, `Q_34`, `Q_36`, `Q_38`, `Q_40`, `Q_42`, `Q_44`, `TOTAL_ORIGEM`.
+
+Grade detectada nesta execucao: **6 posicoes** (`Q_34..Q_44`, tamanhos 34/36/38/40/42/44), todas com `GRADE_ATUAL = '36-44'` (unico valor distinto na coluna). `TOTAL_ORIGEM` bate exatamente com a soma de `Q_34..Q_44` em 100% das linhas com dado presente (0 divergencias).
+
+Produtos unicos: **39**. Combinacoes produto+cor unicas: **42**. Valores de `PROGRAMACAO`: 5 (`PA_ATC_MF_INV27_IMP_JAS`, `PA_VRJ_MF_INV27_IMP_JAS`, `PA_VRJ_MF_INV27_IMP_JAS_F`, `PA_ATC_MF_INV27_IMP_FE`, `PA_VRJ_MF_INV27_IMP_FE`). Nulos em `PRODUTO`: 0.
+
+**Inconsistencia de dados encontrada (ERRO_DE_DADOS candidato):** `PO_PEDIDO_COMPRA` tem 77 valores nao-nulos mas apenas 71 unicos — 6 numeros de pedido aparecem em 2 linhas cada, sempre para o mesmo produto/programacao mas cores diferentes. Em 5 desses 6 casos as quantidades por tamanho sao identicas nas duas linhas (padrao compativel com "mesmo pedido, linhas de cor diferentes"); em 1 caso (`PO 1741979`, produto `15.29765`, cores `09204` e `5465`) as quantidades **divergem** entre as duas linhas do mesmo PO. Isso e evidencia, nao correcao automatica (regra da secao 7).
+
+### 7.2 SQL historico — leitura integral, classificado `HISTORICAL_REFERENCE` + `USER_PROVIDED_ARTIFACT`
+
+O script tem 3 blocos logicos, todos operando sobre uma tabela `#TEMP_AJUSTE` fisica/temporaria montada a partir de `[192.168.9.98].SOMA_DESENV.DBO.TEMP_AJUSTES_PROG_0710` (nome tratado apenas como referencia historica, **nao reutilizado**):
+
+1. **Montagem de `#TEMP_AJUSTE`**: `JOIN` da tabela de import da planilha com `PRODUCAO_PROG_PROD` (por `PROGRAMACAO+PRODUTO+COR_PRODUTO`) e `LEFT JOIN` com uma uniao `UNION ALL` de duas subconsultas — uma sobre `PRODUCAO_ORDEM`/`PRODUCAO_ORDEM_COR` (rotulada `'OP  '`) e outra sobre `COMPRAS`/`COMPRAS_PRODUTO` (rotulada `'PED'`). O campo `TIPO` do resultado final e `ISNULL(B.TIPO,'PROG')`.
+2. **Bloco "RODAR PARA OP E PROGRAMACAO"**: cursor sobre `#TEMP_AJUSTE` filtrando `TIPO IN ('OP','PROG')` e delta != 0 contra `PRODUCAO_ORDEM_COR`/`PRODUCAO_PROG_PROD`; chama `EXEC LX_ANM_GERA_OS_ALTERACAO_PCP` (quando `TIPO='OP'`) ou `EXEC LX_ANM_AJUSTA_PROGRAMACAO_PROD` (quando `TIPO='PROG'`), ambos dentro de `TRY/CATCH`, atualizando uma coluna de status `AJUSTADO` na propria `#TEMP_AJUSTE`.
+3. **Bloco "RODAR PARA COMPRAS"**: cursor sobre `#TEMP_AJUSTE` filtrando `TIPO='PED'` e delta != 0 contra `COMPRAS_PRODUTO`; faz `UPDATE` direto em `COMPRAS_PRODUTO` (colunas `CO1..CO7`, `CE1..CE7`, `QTDE_ORIGINAL`, `QTDE_ENTREGAR`, `VALOR_ORIGINAL`, `VALOR_ENTREGAR`) e depois `EXEC LX_MOVIMENTA_COMPRAS_PA` + `EXEC LX_RECALCULO_RESERVA_MATERIAIS`, tambem em `TRY/CATCH`.
+
+### 7.3 Auditoria do SQL historico — riscos e padroes suspeitos (achado, nao corrigido automaticamente)
+
+- **`TIPO='PROG'` e um DEFAULT por exclusao, nao uma regra positiva.** `ISNULL(B.TIPO,'PROG')` classifica como `PROG` qualquer linha da planilha que nao encontrou correspondencia em OP nem em Pedido de Compras — nao existe condicao propria que afirme "isto e Programacao". Ver Knowledge Gap 7.9.a.
+- **Grade de 7 posicoes no SQL (`TAM_1..TAM_7`, `CO1..CO7`) vs 6 posicoes na planilha atual (`Q_34..Q_44`).** O `Layout`/`_dados` desta execucao nao possui uma 7a posicao. Ver Knowledge Gap 7.9.b.
+- **`JOIN` (nao `LEFT JOIN`) com `PRODUCAO_PROG_PROD` no passo 1** descarta silenciosamente qualquer linha da planilha sem programacao correspondente ja cadastrada — sem log de "nao encontrado".
+- **`UPDATE` amplo sem transacao explicita nem pre-visualizacao obrigatoria** no bloco 3 (`UPDATE COMPRAS_PRODUTO ... WHERE PEDIDO = @ORDEM_PRODUCAO AND PRODUTO = @PRODUTO AND COR_PRODUTO = @COR_PRODUTO`, dentro de `TRY/CATCH` mas sem `BEGIN TRAN`/`COMMIT`/`ROLLBACK` explicitos, nem `SET XACT_ABORT ON`).
+- **`(NOLOCK)`** nos `JOIN`s de descoberta de OP/PED — leitura suja, risco de dado transitorio incorreto na classificacao (fora de escopo desta tarefa alterar).
+- **Hardcode de tabela de staging** (`TEMP_AJUSTES_PROG_0710`) e de nome anterior (`TEMP_AJUSTES_PROG_MF_0701`, no bloco comentado) — nomenclatura amarrada a uma execucao especifica, sem padrao reutilizavel.
+- **Cursor + `RAISERROR ... WITH NOWAIT` por linha**: mecanismo funcional mas serial, sem lote; aceitavel para volumes pequenos (esta planilha tem 77 linhas) mas nao teve evidencia de limite superior testado.
+- **`CASE WHEN A.TIPO_PROCESSO <> 1 THEN 0 ELSE QTDE_EM_PRODUCAO END`** na subconsulta de OP: regra de negocio implicita (o que e `TIPO_PROCESSO = 1`?) nao documentada no proprio SQL — tratado como `HISTORICAL_REFERENCE`, nao validado.
+- Nao ha `SELECT` de pre-visualizacao nem pos-validacao de cardinalidade explicitos fora dos comentarios (`--select * from #TEMP_AJUSTE ...`), que estao desativados.
+
+### 7.4 Conhecimento atual do Linx Agent — comparacao
+
+Busca em todo o repositorio (`.md`, `.cs`, `.json`, `.ai/context/knowledge.md`) por `PRODUCAO_PROG_PROD`, `PRODUCAO_ORDEM`, `PRODUCAO_ORDEM_COR`, `COMPRAS_PRODUTO`, `LX_ANM_GERA_OS_ALTERACAO_PCP`, `LX_ANM_AJUSTA_PROGRAMACAO_PROD`, `LX_MOVIMENTA_COMPRAS_PA`, `LX_RECALCULO_RESERVA_MATERIAIS`: **zero ocorrencias**. Nao ha conhecimento previo persistido no `linx-database-specialist-agent` sobre nenhuma dessas tabelas/procedures. Classificacao: **UNKNOWN** (nao apenas `NEEDS_VALIDATION`) para todo o schema/procedures citados no SQL historico.
+
+### 7.5 Validacao no Linx (secao 9 da tarefa) — bloqueada
+
+`agents/linx-database-specialist-agent/agent.yaml` declara `connections.profiles.linx-erp-read-only` com `configuration_reference: ConnectionStrings:ErpConnection` e `credential_policy.prompt_for_secret_allowed: false`. Nesta sessao **nao ha conexao configurada/autorizada disponivel para uso**, e por politica nenhuma credencial pode ser solicitada no chat. **Nao foi feita nenhuma tentativa de conexao.** Resultado: **KNOWLEDGE GAP** declarado (secao 7.9.c), nao contornado.
+
+### 7.6 Procedures citadas — tratadas como evidencia, nao validadas
+
+`LX_ANM_GERA_OS_ALTERACAO_PCP`, `LX_ANM_AJUSTA_PROGRAMACAO_PROD`, `LX_MOVIMENTA_COMPRAS_PA`, `LX_RECALCULO_RESERVA_MATERIAIS`: conhecidas apenas pela assinatura de chamada visivel no SQL historico (parametros posicionais + `@EXECUTADO OUTPUT`/`@RETORNO OUTPUT` nas duas primeiras). Definicao atual, efeitos colaterais, comportamento transacional e se continuam sendo o mecanismo correto: **UNKNOWN**, por falta de acesso ao schema (7.5). Nenhuma foi executada.
+
+### 7.7 PROG / OP / PED — regras extraidas (com proveniencia) e ambiguidade bloqueante
+
+| Tipo | Regra de identificacao (conforme SQL historico) | Fonte | Tabelas relacionadas | Mecanismo de ajuste aparente |
+|---|---|---|---|---|
+| OP | Existe `PRODUCAO_ORDEM`/`PRODUCAO_ORDEM_COR` cujo `PROGRAMACAO+PRODUTO+COR_PRODUTO` bate com a linha da planilha | `HISTORICAL_REFERENCE` (linhas 22-25 do SQL) | `PRODUCAO_ORDEM`, `PRODUCAO_ORDEM_COR` | `EXEC LX_ANM_GERA_OS_ALTERACAO_PCP` |
+| PED | Existe `COMPRAS`/`COMPRAS_PRODUTO` cujo `PROGRAMACAO+PRODUTO+COR_PRODUTO` bate com a linha da planilha | `HISTORICAL_REFERENCE` (linhas 27-29 do SQL) | `COMPRAS`, `COMPRAS_PRODUTO` | `UPDATE COMPRAS_PRODUTO` direto + `EXEC LX_MOVIMENTA_COMPRAS_PA` + `EXEC LX_RECALCULO_RESERVA_MATERIAIS` |
+| PROG | **Nao existe regra positiva propria no SQL historico** — e o valor `ISNULL(...,'PROG')` quando a linha nao bateu nem com OP nem com PED | `HISTORICAL_REFERENCE`, `INFERRED` (por exclusao) | `PRODUCAO_PROG_PROD` | `EXEC LX_ANM_AJUSTA_PROGRAMACAO_PROD` |
+
+**Esta classificacao permanece AMBIGUA para PROG** por definicao da propria tarefa (secao 11: "se alguma classificacao continuar ambigua, PARE e pergunte ao Product Owner"). Ver pergunta objetiva em 7.9.a.
+
+### 7.8 Dataset funcional (modelo conceitual, sem SQL) — CONFIRMED por leitura direta
+
+Cada linha da planilha pode ser modelada como: `Produto`, `Cor`, `Programacao`, `Identificador funcional` (`OP` / `Pedido de Compra` / nenhum -> `PROG`), `Grade atual detectada` (6 posicoes: `Q_34..Q_44`), `Grade solicitada` (mesma planilha — nao ha, nesta execucao, uma "grade atual do sistema" capturada localmente; ela so existe no banco Linx, inacessivel por 7.5), `Delta` (so calculavel apos 7.5), `Mecanismo Linx aplicavel` (conforme 7.7), `Status`, `Observacao`. **Sem acesso ao banco (7.5), o Delta real nao pode ser calculado nesta sessao** — apenas a estrutura da planilha (lado "solicitado") esta confirmada; o lado "atual" (banco) e `UNKNOWN`.
+
+### 7.9 Knowledge Gaps bloqueantes — PARADO aqui, aguardando resposta do Product Owner
+
+**a) Classificacao PROG.** O que sabemos: no SQL historico, `TIPO='PROG'` e o resultado de `ISNULL(B.TIPO,'PROG')` — ou seja, e um fallback aplicado a qualquer linha da planilha sem OP nem Pedido de Compras correspondente, e nao uma regra positiva. O que nao sabemos: se isso e intencional (toda linha sem OP/Pedido aberto e, por definicao de negocio, apenas um ajuste de programacao futura) ou se deveria existir uma condicao propria (ex.: existir registro em `PRODUCAO_PROG_PROD` sem OP emitida) que hoje so funciona "por acaso" porque cobre os casos restantes. Evidencia: linhas 17-32 do SQL. Impacto: se a suposicao estiver errada, uma linha que na verdade e "nao encontrado" (produto/programacao sem cadastro correspondente em nenhuma das 3 tabelas) seria classificada erroneamente como `PROG` em vez de `NAO_ENCONTRADO`. **Pergunta objetiva:** confirma que "sem OP e sem Pedido correspondente" deve sempre significar "PROG", mesmo quando `PRODUCAO_PROG_PROD` tambem nao tiver o registro (hoje a JOIN nao-LEFT com `PRODUCAO_PROG_PROD` no passo 1 do SQL historico ja filtraria esse caso antes de chegar em `TIPO`, mas isso nao esta confirmado como intencional)?
+
+**b) Grade de 6 vs 7 posicoes.** O que sabemos: a planilha desta execucao tem exatamente 6 posicoes de grade (`Q_34..Q_44` / `TAM_1..TAM_6` na aba `Layout`). O SQL historico e escrito para 7 posicoes (`TAM_1..TAM_7`, `CO1..CO7`). O que nao sabemos: se a 7a posicao deve ser tratada como zero/inexistente nesta execucao especifica, ou se existe um tamanho adicional (ex. 46) que deveria constar da planilha e nao consta. Evidencia: aba `Layout`, linha 1 (`TAM_1..TAM_6`, sem `TAM_7`) vs SQL linhas 10-16 (`TAM_1..TAM_7`). Impacto: qualquer solucao nova que reaproveite a mesma convencao posicional do SQL historico pode gravar/comparar a posicao errada de tamanho se a correspondencia `TAM_1..TAM_6 -> quais tamanhos reais` nao for a mesma assumida pelo mecanismo Linx atual. **Pergunta objetiva:** a grade `36-44` desta planilha (6 tamanhos) deve mapear para `TAM_1..TAM_6` deixando `TAM_7=0`, ou existe uma tabela de correspondencia tamanho->posicao vigente no Linx que precisa ser consultada (e nesse caso, onde)?
+
+**c) Acesso ao banco.** Nao ha conexao Linx/SOMA_DESENV autorizada disponivel nesta sessao (7.5). Sem ela, nao e possivel confirmar schema atual, existencia/definicao das 4 procedures, nem calcular o Delta real (grade atual no banco vs grade solicitada na planilha) exigido pela secao 13 da tarefa. **Pergunta objetiva:** existe uma forma de disponibilizar acesso read-only (ex. connection string ja configurada via `dotnet user-secrets` no ambiente onde este Agent roda, ou um dump/export de schema das tabelas citadas) sem que uma credencial precise ser digitada no chat?
+
+Enquanto (a), (b) e (c) nao forem respondidas, **nao e seguro produzir a solucao propria (secao 19-21 da tarefa)** nem calcular o impact analysis quantitativo completo (secao 16) — os numeros que dependem do banco (Delta, zero-delta, nao encontrados, ambiguos, bloqueados, unidades atuais) ficam **UNKNOWN**, nao inventados.
 
 Artefatos necessarios para desbloquear a analise (todos ausentes — `UNKNOWN`):
 
@@ -186,7 +259,9 @@ Nenhum outro arquivo do escopo desta tarefa foi alterado. `agents/agent.schema.j
 
 ## 15. Proximos Passos
 
-1. Obter os 3 artefatos do caso PROG/OP/PED (planilha real, SQL historico/modelo, explicacao funcional do PO) para sair de `WAITING_FOR_EVIDENCE`.
-2. Apos os artefatos chegarem, reavaliar a necessidade da capability `linx-production-purchase-grade-adjustment` (secao 7.2) com evidencia real, e submeter a decisao (evoluir `linx-database-specialist-agent` ou reaproveitar `soma-database-write-proposal`) para autorizacao humana explicita antes de qualquer `Agent Factory UPDATE`.
-3. Investigar por que o snapshot estatico `docs/audits/AgentFactoryV2-AuditResults.json` (18 findings) diverge do resultado ao vivo atual do mesmo comando (12 findings) — fora do escopo desta tarefa, mas registrado como divergencia a esclarecer.
-4. Confirmar com o dono do trabalho nao relacionado (`.ai/context/linx-wise-daily-integration.md`, `docs/operations/LinxWiseDailyIntegrationRunbook.md`, `scripts/linx_wise_daily_integration.py`) se essas mudancas devem ser commitadas separadamente — esta tarefa deliberadamente as deixou intocadas e fora do commit.
+1. **Bloqueante:** obter resposta do Product Owner as 3 perguntas objetivas da secao 7.9 (classificacao PROG por exclusao, grade de 6 vs 7 posicoes, acesso read-only ao banco Linx/SOMA_DESENV).
+2. Somente apos 7.9 resolvido: calcular o Delta real (planilha vs banco), completar o impact analysis quantitativo da secao 16 da tarefa, e projetar a solucao propria do Agent (SQL novo, `PROPOSED — NOT EXECUTED`) para submissao ao Governed Write Stack (`ActionProposal -> Policy Engine -> Approval -> Tool Gateway -> DRY_RUN`).
+3. Apos a solucao propria existir, reavaliar a necessidade da capability `linx-production-purchase-grade-adjustment` com evidencia real, e submeter a decisao (evoluir `linx-database-specialist-agent` ou reaproveitar `soma-database-write-proposal`) para autorizacao humana explicita antes de qualquer `Agent Factory UPDATE`.
+4. Investigar a divergencia de duplicidade de `PO_PEDIDO_COMPRA` na planilha (secao 7.1) com quem gerou o arquivo — em especial o caso `PO 1741979` com quantidades divergentes entre as duas linhas do mesmo pedido.
+5. Investigar por que o snapshot estatico `docs/audits/AgentFactoryV2-AuditResults.json` (18 findings) diverge do resultado ao vivo atual do mesmo comando (12 findings) — fora do escopo desta tarefa, mas registrado como divergencia a esclarecer.
+6. Confirmar com o dono do trabalho nao relacionado (`.ai/context/linx-wise-daily-integration.md`, `docs/operations/LinxWiseDailyIntegrationRunbook.md`, `scripts/linx_wise_daily_integration.py`) se essas mudancas devem ser commitadas separadamente — esta tarefa deliberadamente as deixou intocadas e fora do commit.

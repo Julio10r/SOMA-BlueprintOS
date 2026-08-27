@@ -64,22 +64,143 @@
     "tests_failed": 0
   },
   "artifacts": {
-    "status": "WAITING_FOR_EVIDENCE",
-    "received": [],
+    "status": "KNOWLEDGE_GAP_BLOCKING",
+    "received": [
+      {
+        "id": "A",
+        "path": "downloads/showcase_produtos/New Way - Size 34 - layout programacao_v2 (1).xlsx",
+        "classification": ["EVIDENCE", "USER_PROVIDED_ARTIFACT"],
+        "read_only": true,
+        "modified": false
+      },
+      {
+        "id": "B",
+        "path": "downloads/showcase_produtos/AJUSTA GRADE OP-PROG-COMPRAS.sql",
+        "classification": ["HISTORICAL_REFERENCE", "USER_PROVIDED_ARTIFACT"],
+        "read_only": true,
+        "modified": false,
+        "executed": false
+      }
+    ],
     "required": [
-      { "id": "A", "description": "Planilha real de ajustes de grade (PROG/OP/PED)", "received": false },
-      { "id": "B", "description": "SQL historico/modelo de referencia do ajuste de grade", "received": false },
-      { "id": "C", "description": "Explicacao funcional do Product Owner sobre PROG/OP/PED", "received": false }
+      { "id": "A", "description": "Planilha real de ajustes de grade (PROG/OP/PED)", "received": true },
+      { "id": "B", "description": "SQL historico/modelo de referencia do ajuste de grade", "received": true },
+      { "id": "C", "description": "Explicacao funcional do Product Owner sobre PROG/OP/PED", "received": "partial_via_task_prompt_sections_3_and_11" }
     ]
   },
-  "extracted_knowledge": [],
-  "provenance": [],
+  "spreadsheet_analysis": {
+    "sheet_names": ["_dados", "Layout"],
+    "data_sheet": "_dados",
+    "row_count": 77,
+    "columns": ["PRODUTO", "DESC_PRODUTO", "PROGRAMACAO", "PO_PEDIDO_COMPRA", "CANAL_ARQUIVO", "CANAL_TEMP_COD", "COR_PRODUTO", "GRADE_ATUAL", "Q_34", "Q_36", "Q_38", "Q_40", "Q_42", "Q_44", "TOTAL_ORIGEM"],
+    "unique_products": 39,
+    "unique_product_colors": 42,
+    "unique_programacao_values": ["PA_ATC_MF_INV27_IMP_JAS", "PA_VRJ_MF_INV27_IMP_JAS", "PA_VRJ_MF_INV27_IMP_JAS_F", "PA_ATC_MF_INV27_IMP_FE", "PA_VRJ_MF_INV27_IMP_FE"],
+    "canal_arquivo_values": ["WHOLESALE", "RETAIL"],
+    "canal_temp_cod_values": ["ATACADO", "VAREJO"],
+    "detected_sizes": {
+      "grade_atual_distinct_values": ["36-44"],
+      "size_positions_in_file": 6,
+      "columns": ["Q_34", "Q_36", "Q_38", "Q_40", "Q_42", "Q_44"],
+      "note": "Specific to this execution's spreadsheet only; not generalized to a canonical Linx grade rule."
+    },
+    "null_produto_count": 0,
+    "total_origem_vs_sum_qtys_mismatches": 0,
+    "duplicate_po_pedido_compra": {
+      "count_duplicated_po_numbers": 6,
+      "pos": [1742019, 1742022, 1741968, 1741971, 1741976, 1741979],
+      "pattern": "same PO number repeated across 2 rows for same PRODUTO+PROGRAMACAO, different COR_PRODUTO",
+      "quantity_divergence_found": true,
+      "divergent_case": { "po": 1741979, "produto": "15.29765", "cores": ["09204", "5465"], "quantities_differ": true },
+      "classification": "ERRO_DE_DADOS_CANDIDATE / NEEDS_VALIDATION_WITH_PRODUCT_OWNER"
+    }
+  },
+  "historical_sql_analysis": {
+    "path": "downloads/showcase_produtos/AJUSTA GRADE OP-PROG-COMPRAS.sql",
+    "classification": ["HISTORICAL_REFERENCE", "USER_PROVIDED_ARTIFACT"],
+    "staging_source_table_referenced": "[192.168.9.98].SOMA_DESENV.DBO.TEMP_AJUSTES_PROG_0710",
+    "staging_table_reused": false,
+    "blocks": [
+      { "name": "build #TEMP_AJUSTE", "tables": ["PRODUCAO_PROG_PROD", "PRODUCAO_ORDEM", "PRODUCAO_ORDEM_COR", "COMPRAS", "COMPRAS_PRODUTO"] },
+      { "name": "RODAR PARA OP E PROGRAMACAO", "procedures": ["LX_ANM_GERA_OS_ALTERACAO_PCP", "LX_ANM_AJUSTA_PROGRAMACAO_PROD"] },
+      { "name": "RODAR PARA COMPRAS", "tables_written": ["COMPRAS_PRODUTO"], "procedures": ["LX_MOVIMENTA_COMPRAS_PA", "LX_RECALCULO_RESERVA_MATERIAIS"] }
+    ],
+    "suspicious_patterns": [
+      "TIPO='PROG' is ISNULL(...,'PROG') fallback by exclusion, not a positive rule",
+      "Grade size positions in SQL are TAM_1..TAM_7 (7) vs 6 in current spreadsheet",
+      "Non-LEFT JOIN with PRODUCAO_PROG_PROD silently drops unmatched spreadsheet rows",
+      "UPDATE on COMPRAS_PRODUTO without explicit BEGIN TRAN/COMMIT/ROLLBACK or SET XACT_ABORT ON",
+      "NOLOCK hints on OP/PED discovery joins (dirty read risk)",
+      "Hardcoded staging table name tied to a specific historical run",
+      "Row-by-row cursor with no batch/upper-bound evidence",
+      "TIPO_PROCESSO <> 1 business rule in OP subquery is undocumented in the SQL itself"
+    ],
+    "procedures_analyzed": [
+      { "name": "LX_ANM_GERA_OS_ALTERACAO_PCP", "current_definition_confirmed": false, "status": "UNKNOWN" },
+      { "name": "LX_ANM_AJUSTA_PROGRAMACAO_PROD", "current_definition_confirmed": false, "status": "UNKNOWN" },
+      { "name": "LX_MOVIMENTA_COMPRAS_PA", "current_definition_confirmed": false, "status": "UNKNOWN" },
+      { "name": "LX_RECALCULO_RESERVA_MATERIAIS", "current_definition_confirmed": false, "status": "UNKNOWN" }
+    ],
+    "tables_analyzed": [
+      { "name": "PRODUCAO_PROG_PROD", "current_schema_confirmed": false, "status": "UNKNOWN" },
+      { "name": "PRODUCAO_ORDEM", "current_schema_confirmed": false, "status": "UNKNOWN" },
+      { "name": "PRODUCAO_ORDEM_COR", "current_schema_confirmed": false, "status": "UNKNOWN" },
+      { "name": "COMPRAS", "current_schema_confirmed": false, "status": "UNKNOWN" },
+      { "name": "COMPRAS_PRODUTO", "current_schema_confirmed": false, "status": "UNKNOWN" }
+    ]
+  },
+  "prog_rule": {
+    "identification": "Fallback: ISNULL(B.TIPO, 'PROG') when no match found in OP or PED union",
+    "source": "HISTORICAL_REFERENCE, INFERRED (by exclusion)",
+    "related_tables": ["PRODUCAO_PROG_PROD"],
+    "adjustment_mechanism": "EXEC LX_ANM_AJUSTA_PROGRAMACAO_PROD",
+    "status": "AMBIGUOUS_BLOCKING"
+  },
+  "op_rule": {
+    "identification": "Match found in PRODUCAO_ORDEM/PRODUCAO_ORDEM_COR by PROGRAMACAO+PRODUTO+COR_PRODUTO",
+    "source": "HISTORICAL_REFERENCE",
+    "related_tables": ["PRODUCAO_ORDEM", "PRODUCAO_ORDEM_COR"],
+    "adjustment_mechanism": "EXEC LX_ANM_GERA_OS_ALTERACAO_PCP",
+    "status": "CONFIRMED_BY_CODE_INSPECTION_OF_HISTORICAL_SQL_ONLY"
+  },
+  "ped_rule": {
+    "identification": "Match found in COMPRAS/COMPRAS_PRODUTO by PROGRAMACAO+PRODUTO+COR_PRODUTO",
+    "source": "HISTORICAL_REFERENCE",
+    "related_tables": ["COMPRAS", "COMPRAS_PRODUTO"],
+    "adjustment_mechanism": "UPDATE COMPRAS_PRODUTO + EXEC LX_MOVIMENTA_COMPRAS_PA + EXEC LX_RECALCULO_RESERVA_MATERIAIS",
+    "status": "CONFIRMED_BY_CODE_INSPECTION_OF_HISTORICAL_SQL_ONLY"
+  },
+  "classifications": "UNKNOWN - cannot compute PROG/OP/PED/ZERO_DELTA/NAO_ENCONTRADO/AMBIGUO/BLOQUEADO/ERRO_DE_DADOS counts without live database access (see knowledge_gaps[2])",
+  "zero_delta": "UNKNOWN",
+  "not_found": "UNKNOWN",
+  "ambiguous": "UNKNOWN - PROG classification rule itself is ambiguous (see knowledge_gaps[0])",
+  "blocked": "UNKNOWN",
+  "extracted_knowledge": [
+    { "fact": "This execution's spreadsheet uses a 6-position size grade (Q_34..Q_44), all rows GRADE_ATUAL='36-44'", "provenance": "CONFIRMED_BY_CODE_INSPECTION", "generalizable": false },
+    { "fact": "Historical SQL structure expects a 7-position grade (TAM_1..TAM_7)", "provenance": "CONFIRMED_BY_CODE_INSPECTION", "generalizable": false },
+    { "fact": "Historical SQL classifies TIPO='PROG' as a default/fallback (ISNULL), not a positive match", "provenance": "CONFIRMED_BY_CODE_INSPECTION", "generalizable": false },
+    { "fact": "PO_PEDIDO_COMPRA is not unique per row in this spreadsheet; can repeat across COR_PRODUTO for the same PRODUTO+PROGRAMACAO, and quantities may diverge between duplicated rows", "provenance": "CONFIRMED_BY_CODE_INSPECTION", "generalizable": false }
+  ],
+  "persisted_knowledge": [],
+  "provenance": ["CONFIRMED_BY_CODE_INSPECTION (of the two provided artifacts only)", "HISTORICAL_REFERENCE"],
   "knowledge_gaps": [
     {
-      "gap": "Regra de negocio real de ajuste de grade PROG/OP/PED",
+      "gap": "PROG classification is a fallback by exclusion (ISNULL(...,'PROG')) in the historical SQL, not a positive business rule; unconfirmed whether this is intentional",
       "owner_agent": "linx-database-specialist-agent",
       "blocking": true,
-      "resolution": "WAITING_FOR_EVIDENCE"
+      "resolution": "AWAITING_PRODUCT_OWNER_ANSWER"
+    },
+    {
+      "gap": "Grade size positions mismatch: current spreadsheet has 6 positions, historical SQL structure expects 7 (TAM_1..TAM_7)",
+      "owner_agent": "linx-database-specialist-agent",
+      "blocking": true,
+      "resolution": "AWAITING_PRODUCT_OWNER_ANSWER"
+    },
+    {
+      "gap": "No authorized read-only Linx/SOMA_DESENV database connection available in this session; cannot validate current schema, the 4 procedures, or compute real Delta",
+      "owner_agent": "linx-database-specialist-agent",
+      "blocking": true,
+      "resolution": "AWAITING_CONNECTION_OR_PRODUCT_OWNER_GUIDANCE"
     }
   ],
   "capability_gaps": [
@@ -91,15 +212,46 @@
       "created": false
     }
   ],
-  "spreadsheet_analysis": null,
-  "detected_sizes": null,
-  "classifications": null,
-  "impact_analysis": "UNKNOWN",
-  "affected_resources": null,
-  "procedures_analyzed": null,
+  "impact_analysis": {
+    "total_rows": 77,
+    "unique_products": 39,
+    "unique_product_colors": 42,
+    "prog_count": "UNKNOWN",
+    "op_count": "UNKNOWN",
+    "ped_count": "UNKNOWN",
+    "zero_delta_count": "UNKNOWN",
+    "with_change_count": "UNKNOWN",
+    "not_found_count": "UNKNOWN",
+    "ambiguous_count": "UNKNOWN",
+    "blocked_count": "UNKNOWN",
+    "data_error_count": 6,
+    "current_units": "UNKNOWN",
+    "requested_units": 77,
+    "unit_delta": "UNKNOWN",
+    "note": "PROG/OP/PED split, deltas and current-state units require live database access (knowledge_gaps[2]); not computed to avoid inventing numbers."
+  },
+  "affected_resources": {
+    "tables_potentially_affected": ["PRODUCAO_PROG_PROD", "PRODUCAO_ORDEM_COR", "COMPRAS_PRODUTO"],
+    "procedures_potentially_involved": ["LX_ANM_GERA_OS_ALTERACAO_PCP", "LX_ANM_AJUSTA_PROGRAMACAO_PROD", "LX_MOVIMENTA_COMPRAS_PA", "LX_RECALCULO_RESERVA_MATERIAIS"],
+    "estimated_records_affected_per_resource": "UNKNOWN - blocked by knowledge_gaps[2]"
+  },
+  "proposed_strategy": null,
+  "staging_strategy": {
+    "evaluated": true,
+    "recommendation_finalized": false,
+    "reason": "Blocked pending resolution of knowledge_gaps (PROG rule, grade cardinality, DB access) before a staging approach can be safely chosen",
+    "historical_approach_reused": false,
+    "physical_staging_table_created": false
+  },
   "security_review": {
-    "real_case_applicable": false,
-    "reason": "No ActionProposal generated for the real case; no real data evaluated.",
+    "real_case_applicable": true,
+    "reviewed": true,
+    "findings": [
+      "PO_PEDIDO_COMPRA and PRODUTO/COR_PRODUTO values from the spreadsheet are internal business identifiers, not PII",
+      "No password, token, secret or connection string present in either artifact",
+      "No data from the spreadsheet or SQL was persisted as canonical knowledge; only structural facts about this execution's file were recorded"
+    ],
+    "reason": "No ActionProposal generated for the real case yet (blocked by knowledge gaps); no write, export or execution performed.",
     "canonical_policies_review": {
       "secrets_found_in_new_or_changed_files": false,
       "bypass_added": false,
@@ -109,6 +261,7 @@
   },
   "policy_decision": {
     "real_case_applicable": false,
+    "reason": "No ActionProposal submitted for the PROG/OP/PED case this session — blocked by knowledge_gaps before a safe proposal could be constructed.",
     "canonical_policies": "structural_compliance_verified_by_automated_tests"
   },
   "approval_requirement": {
@@ -117,10 +270,12 @@
     "future_capability_proposal": "requires_explicit_human_approval_before_agent_factory_update"
   },
   "sql_proposed": null,
+  "proposed_sql_generated": false,
   "sql_executed": false,
   "dry_run": {
     "conceptual_only": true,
-    "no_action_proposal_generated_for_real_case": true
+    "no_action_proposal_generated_for_real_case": true,
+    "reason": "Analysis stopped at knowledge gap per task instructions; no proposal exists yet to dry-run"
   },
   "execution_performed": false,
   "live_execution_enabled": false,

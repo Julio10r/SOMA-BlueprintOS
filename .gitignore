@@ -173,3 +173,8 @@ scripts/*.pid
 # Objetos LinxERO
 # ==========================================================
 docs/linxERP
+
+# ==========================================================
+# Artefatos de trabalho fornecidos pelo usuario (evidencia, nao codigo)
+# ==========================================================
+downloads/
