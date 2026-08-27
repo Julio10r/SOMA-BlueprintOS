@@ -322,3 +322,78 @@ efetivamente conectada e roteando até `192.168.0.200:1433`.
 - `backend/src/BlueprintOS.Api/Program.cs` — imprime o código de erro SQL nativo (não sensível) na
   saída de diagnóstico de conectividade.
 - `docs/audits/DatabaseConnectionPolicyV1.md` (este arquivo).
+
+---
+
+## Atualização 2026-08-27 (continuação) — retry único e `CONNECTIVITY_UNAVAILABLE`
+
+### Ajuste solicitado
+
+O status `VpnRequired` estava específico demais: uma única falha de rede não prova "VPN
+desconectada" — a VPN corporativa pode estar conectada e a conectividade com o SQL Server cair
+momentaneamente (precisa apenas ser restabelecida). Ajuste pedido: ao detectar falha de
+rede/conectividade, não concluir a causa; fazer exatamente 1 retry automático (com pequeno
+intervalo) antes de reportar qualquer coisa ao usuário.
+
+### Mudança implementada
+
+- `ConnectivityStatus.VpnRequired` → renomeado para `ConnectivityStatus.ConnectivityUnavailable`
+  (fato observável — "conectividade não pôde ser restabelecida" — não mais um diagnóstico de causa).
+- `vpn_required` continua existindo nos profiles (`LinxConnectionProfiles`) como característica do
+  profile (este banco depende de VPN), não como diagnóstico automático de causa de falha — exatamente
+  como pedido no item 7 da tarefa.
+- Retry único: ao detectar falha de rede/conectividade (nunca para `PermissionDenied`,
+  `NotConfigured` ou `EnvironmentMismatch` — esses retornam antes de qualquer tentativa de rede ou
+  são erros de credencial/config, nunca de rede), aguarda 750ms e tenta novamente exatamente 1 vez.
+  - Retry bem-sucedido → `Ready`, `RecoveredAfterRetry = true` (registrado internamente; CLI mostra
+    uma nota discreta, sem incomodar o usuário).
+  - Retry também falha → `ConnectivityUnavailable`, mensagem exata solicitada: "Não foi possível
+    acessar o servidor após uma tentativa de restabelecimento. Verifique/reconecte a VPN ou a
+    conexão com o servidor e tente novamente."
+  - Nenhum loop: no máximo 1 retry por chamada de validação, sempre.
+- Para tornar o retry testável sem SQL Server real, a abertura de conexão foi extraída para
+  `ISqlConnectivityProbe` (produção: `SqlConnectivityProbe`, o comportamento real inalterado) e um
+  seam de teste `ISimulatedSqlFailure` permite que um fake anuncie "isto é permissão negada" sem
+  precisar construir um `SqlException` real (construtores internos ao driver).
+
+### Testes novos
+
+6 testes cobrindo exatamente os cenários pedidos: primeira tentativa falha + retry funciona →
+`Ready`/`RecoveredAfterRetry`; duas tentativas falham → `ConnectivityUnavailable`; permission denied
+→ zero chamadas ao probe (zero retry); not configured → zero chamadas (nunca chega a tentar rede);
+environment mismatch → zero chamadas; guarda adicional confirmando no máximo 2 chamadas ao probe
+mesmo que o fake seja configurado para falhar repetidamente (trava contra um futuro loop de retry).
+Suíte completa: **916/916** (era 910), sem regressão — o teste de retry bem-sucedido é o único que
+paga o delay fixo de 750ms; os demais continuam em milissegundos.
+
+### Revalidação read-only de `linx-production`
+
+`dotnet run --project backend/src/BlueprintOS.Api -- validate-b1-connectivity`:
+
+- **servidor efetivo**: `192.168.0.200` — correto, sem mismatch.
+- **banco efetivo**: `SOMA` — correto, sem mismatch.
+- Primeira tentativa falhou por rede (mesmo `SqlException` "network-related..., TCP Provider, error:
+  35"); o validator aguardou 750ms e tentou novamente automaticamente — segunda tentativa também
+  falhou pelo mesmo motivo de rede.
+- **CONNECTION STATUS = CONNECTIVITY_UNAVAILABLE** (não `READY`, não inventado). Mensagem exibida:
+  "Não foi possível acessar o servidor após uma tentativa de restabelecimento. Verifique/reconecte a
+  VPN ou a conexão com o servidor e tente novamente."
+- Nenhuma escrita, nenhuma migration — a falha ocorreu antes de qualquer SQL além de `SELECT 1`
+  (que nem chegou a ser emitido, pois a conexão TCP não se estabeleceu).
+
+O resultado confirma que este ambiente de execução do agente continua sem rota de rede até
+`192.168.0.200:1433` mesmo após o retry — condição de rede da sessão do agente, não do secret nem
+do profile (ambos corretos). Para concluir `linx-production` como `READY`, a validação precisa
+rodar a partir de uma máquina/sessão com VPN corporativa efetivamente conectada.
+
+### Arquivos alterados nesta etapa
+
+- `backend/src/BlueprintOS.Infrastructure/Persistence/B1ConnectivityValidator.cs` — retry único,
+  `ConnectivityStatus.ConnectivityUnavailable`, `RecoveredAfterRetry`, `ISqlConnectivityProbe`,
+  `ISimulatedSqlFailure`.
+- `backend/src/BlueprintOS.Api/Program.cs` — mensagem `CONNECTIVITY_UNAVAILABLE` e nota de
+  recuperação após retry.
+- `backend/tests/BlueprintOS.UnitTests/Infrastructure/Persistence/B1ConnectivityValidatorTests.cs` —
+  6 testes novos de retry.
+- `agents/DATABASE_CONNECTION_POLICY.md` — § 7/8/13/15 reescritos para o comportamento de retry único.
+- `docs/audits/DatabaseConnectionPolicyV1.md` (este arquivo).

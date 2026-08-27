@@ -8,8 +8,24 @@ namespace BlueprintOS.Infrastructure.Persistence;
 /// segredo) e, em caso de sucesso, a identidade efetiva de login resolvida pelo próprio banco
 /// (<c>SUSER_SNAME()</c>) — nunca a credencial usada para obtê-la. Único comando de escrita: nenhum;
 /// os dois comandos emitidos são <c>SELECT 1</c> e <c>SELECT SUSER_SNAME()</c>.</summary>
-public sealed class B1ConnectivityValidator(IConfiguration configuration)
+public sealed class B1ConnectivityValidator
 {
+    /// <summary>Intervalo antes da única tentativa automática de reconexão quando a falha é classificada
+    /// como conectividade indisponível (nunca para credencial/permissão/mismatch/not-configured). VPN
+    /// corporativa oscila mesmo já conectada; um retry único e rápido absorve essa instabilidade sem
+    /// declarar "VPN desconectada" prematuramente e sem criar um loop de retries.</summary>
+    private static readonly TimeSpan RetryDelay = TimeSpan.FromMilliseconds(750);
+
+    private readonly IConfiguration configuration;
+    private readonly ISqlConnectivityProbe probe;
+
+    public B1ConnectivityValidator(IConfiguration configuration, ISqlConnectivityProbe? probe = null)
+    {
+        this.configuration = configuration;
+        this.probe = probe ?? new SqlConnectivityProbe();
+    }
+
+
     public Task<DatabaseConnectivityResult> ValidateMaisComprasAsync(CancellationToken cancellationToken = default) =>
         ValidateAsync(LinxConnectionProfiles.MaisComprasDevelopment.Label, LinxConnectionProfiles.MaisComprasDevelopment.ConnectionName,
             LinxConnectionProfiles.MaisComprasDevelopment, cancellationToken);
@@ -57,52 +73,58 @@ public sealed class B1ConnectivityValidator(IConfiguration configuration)
             return DatabaseConnectivityResult.NotConfigured(label, connectionName);
         }
 
-        SqlConnectionStringBuilder? builder = null;
+        SqlConnectionStringBuilder builder;
         try
         {
             builder = new SqlConnectionStringBuilder(connectionString);
-
-            if (expectedProfile is not null && IsEnvironmentMismatch(builder, expectedProfile))
-            {
-                return DatabaseConnectivityResult.EnvironmentMismatch(label, builder.DataSource, builder.InitialCatalog, expectedProfile);
-            }
-
-            await using var connection = new SqlConnection(connectionString);
-            await connection.OpenAsync(cancellationToken);
-
-            await using (var probe = connection.CreateCommand())
-            {
-                probe.CommandText = "SELECT 1;";
-                probe.CommandTimeout = 15;
-                await probe.ExecuteScalarAsync(cancellationToken);
-            }
-
-            string? effectiveIdentity = null;
-            try
-            {
-                await using var identity = connection.CreateCommand();
-                identity.CommandText = "SELECT SUSER_SNAME();";
-                identity.CommandTimeout = 15;
-                effectiveIdentity = (await identity.ExecuteScalarAsync(cancellationToken)) as string;
-            }
-            catch
-            {
-                // A identidade efetiva é informativa; falhar em obtê-la não deve derrubar uma conexão já validada por SELECT 1.
-            }
-
-            return DatabaseConnectivityResult.Success(label, builder.DataSource, builder.InitialCatalog, effectiveIdentity);
-        }
-        catch (SqlException exception) when (IsPermissionDenied(exception))
-        {
-            return DatabaseConnectivityResult.PermissionDenied(label, builder?.DataSource, builder?.InitialCatalog, exception);
-        }
-        catch (Exception exception) when (expectedProfile is { VpnRequired: true } && IsNetworkUnreachable(exception))
-        {
-            return DatabaseConnectivityResult.VpnRequired(label, builder?.DataSource, builder?.InitialCatalog, exception);
         }
         catch (Exception exception)
         {
-            return DatabaseConnectivityResult.Failure(label, builder?.DataSource, builder?.InitialCatalog, exception);
+            return DatabaseConnectivityResult.Failure(label, null, null, exception);
+        }
+
+        if (expectedProfile is not null && IsEnvironmentMismatch(builder, expectedProfile))
+        {
+            return DatabaseConnectivityResult.EnvironmentMismatch(label, builder.DataSource, builder.InitialCatalog, expectedProfile);
+        }
+
+        try
+        {
+            var effectiveIdentity = await probe.ProbeAsync(connectionString, cancellationToken);
+            return DatabaseConnectivityResult.Success(label, builder.DataSource, builder.InitialCatalog, effectiveIdentity);
+        }
+        catch (Exception exception) when (IsPermissionDenied(exception))
+        {
+            // Nunca elegível para retry: credencial/permissão negada não é instabilidade de rede.
+            return DatabaseConnectivityResult.PermissionDenied(label, builder.DataSource, builder.InitialCatalog, exception);
+        }
+        catch (Exception exception) when (IsNetworkUnreachable(exception))
+        {
+            // Exatamente 1 tentativa automática adicional — VPN corporativa conectada pode oscilar
+            // momentaneamente; isto não prova "VPN desconectada", então não presumimos a causa.
+            await Task.Delay(RetryDelay, cancellationToken);
+            try
+            {
+                var effectiveIdentity = await probe.ProbeAsync(connectionString, cancellationToken);
+                return DatabaseConnectivityResult.Success(label, builder.DataSource, builder.InitialCatalog, effectiveIdentity) with { RecoveredAfterRetry = true };
+            }
+            catch (Exception retryException) when (IsPermissionDenied(retryException))
+            {
+                return DatabaseConnectivityResult.PermissionDenied(label, builder.DataSource, builder.InitialCatalog, retryException);
+            }
+            catch (Exception retryException) when (IsNetworkUnreachable(retryException))
+            {
+                // Segunda tentativa também falhou por conectividade — parar aqui, sem novo retry.
+                return DatabaseConnectivityResult.ConnectivityUnavailable(label, builder.DataSource, builder.InitialCatalog, retryException);
+            }
+            catch (Exception retryException)
+            {
+                return DatabaseConnectivityResult.Failure(label, builder.DataSource, builder.InitialCatalog, retryException);
+            }
+        }
+        catch (Exception exception)
+        {
+            return DatabaseConnectivityResult.Failure(label, builder.DataSource, builder.InitialCatalog, exception);
         }
     }
 
@@ -118,9 +140,14 @@ public sealed class B1ConnectivityValidator(IConfiguration configuration)
 
     /// <summary>Classes de erro do SQL Server tipicamente associadas a autenticação/autorização negada
     /// (login falhou, permissão negada no objeto/comando, usuário sem acesso ao banco) — nunca tratadas
-    /// como "banco fora do ar", para que o Agent nunca tente contornar com privilégio elevado.</summary>
-    private static bool IsPermissionDenied(SqlException exception) =>
-        exception.Number is 18456 or 229 or 230 or 262 or 4060;
+    /// como "banco fora do ar", para que o Agent nunca tente contornar com privilégio elevado. Nunca
+    /// elegível para o retry único de conectividade.</summary>
+    private static bool IsPermissionDenied(Exception exception) => exception switch
+    {
+        SqlException sql => sql.Number is 18456 or 229 or 230 or 262 or 4060,
+        ISimulatedSqlFailure simulated => simulated.IsPermissionDenied,
+        _ => false,
+    };
 
     /// <summary>Distingue "VPN desconectada / rede inacessível" de "credencial inválida": erros de
     /// resolução de rede/timeout de handshake nunca devem ser classificados como falha de credencial.
@@ -142,6 +169,55 @@ public sealed class B1ConnectivityValidator(IConfiguration configuration)
         || message.Contains("was not found or was not accessible", StringComparison.OrdinalIgnoreCase);
 }
 
+/// <summary>Seam de teste: exceções de fake/teste implementam esta interface para se anunciar como
+/// "permissão negada" sem precisar construir um <see cref="SqlException"/> real (cujos construtores são
+/// internos ao driver Microsoft.Data.SqlClient). Nunca implementada por código de produção — a
+/// classificação real usa sempre <see cref="SqlException.Number"/>.</summary>
+public interface ISimulatedSqlFailure
+{
+    bool IsPermissionDenied { get; }
+}
+
+/// <summary>Seam de teste: encapsula a única operação de rede real (abrir conexão + <c>SELECT 1</c> +
+/// <c>SELECT SUSER_SNAME()</c>) para que o retry único de <see cref="B1ConnectivityValidator"/> possa
+/// ser exercitado em teste sem depender de um SQL Server real ou de VPN.</summary>
+public interface ISqlConnectivityProbe
+{
+    /// <summary>Abre a conexão e executa a prova read-only. Retorna a identidade efetiva
+    /// (<c>SUSER_SNAME()</c>), ou <c>null</c> se ela não puder ser obtida. Lança em qualquer falha de
+    /// conexão/permissão — nunca engole a exceção original.</summary>
+    Task<string?> ProbeAsync(string connectionString, CancellationToken cancellationToken);
+}
+
+internal sealed class SqlConnectivityProbe : ISqlConnectivityProbe
+{
+    public async Task<string?> ProbeAsync(string connectionString, CancellationToken cancellationToken)
+    {
+        await using var connection = new SqlConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+
+        await using (var probe = connection.CreateCommand())
+        {
+            probe.CommandText = "SELECT 1;";
+            probe.CommandTimeout = 15;
+            await probe.ExecuteScalarAsync(cancellationToken);
+        }
+
+        try
+        {
+            await using var identity = connection.CreateCommand();
+            identity.CommandText = "SELECT SUSER_SNAME();";
+            identity.CommandTimeout = 15;
+            return (await identity.ExecuteScalarAsync(cancellationToken)) as string;
+        }
+        catch
+        {
+            // A identidade efetiva é informativa; falhar em obtê-la não deve derrubar uma conexão já validada por SELECT 1.
+            return null;
+        }
+    }
+}
+
 public enum ConnectivityStatus
 {
     Ready,
@@ -149,7 +225,10 @@ public enum ConnectivityStatus
     Failed,
     PermissionDenied,
     EnvironmentMismatch,
-    VpnRequired,
+    /// <summary>Rede/servidor inacessível após a tentativa inicial e exatamente 1 retry automático.
+    /// Não é um diagnóstico de causa (VPN desconectada, firewall, servidor fora do ar) — apenas o fato
+    /// observável de que a conectividade não pôde ser restabelecida em uma tentativa adicional.</summary>
+    ConnectivityUnavailable,
 }
 
 public sealed record DatabaseConnectivityResult(
@@ -161,6 +240,11 @@ public sealed record DatabaseConnectivityResult(
     Exception? Exception)
 {
     public bool IsSuccess => Status == ConnectivityStatus.Ready;
+
+    /// <summary>True quando o resultado Ready só foi alcançado após a tentativa inicial falhar por
+    /// conectividade e o retry único ter funcionado. Informativo — não deve incomodar o usuário além de
+    /// um registro discreto; o status final continua Ready.</summary>
+    public bool RecoveredAfterRetry { get; init; }
 
     public static DatabaseConnectivityResult Success(string label, string? server, string? database, string? effectiveIdentity) =>
         new(label, ConnectivityStatus.Ready, server, database, effectiveIdentity, null);
@@ -180,6 +264,6 @@ public sealed record DatabaseConnectivityResult(
             new InvalidOperationException(
                 $"Environment mismatch: profile {expectedProfile.Environment} expects server '{expectedProfile.ExpectedServer}' / database '{expectedProfile.ExpectedDatabase}', but the configured connection string resolves to a different target. Blocked before opening any connection."));
 
-    public static DatabaseConnectivityResult VpnRequired(string label, string? server, string? database, Exception exception) =>
-        new(label, ConnectivityStatus.VpnRequired, server, database, null, exception);
+    public static DatabaseConnectivityResult ConnectivityUnavailable(string label, string? server, string? database, Exception exception) =>
+        new(label, ConnectivityStatus.ConnectivityUnavailable, server, database, null, exception);
 }

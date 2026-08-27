@@ -144,24 +144,42 @@ consumer, not just the connectivity validator — the guard lives in one place
 Linx/SOMA/+Compras reader/adapter goes through it. No write, and no SQL Server round-trip, happens
 before this check passes.
 
-## 7. VPN
+## 7. VPN and transient connectivity — one automatic retry, never a diagnosis
 
 All three profiles (`linx-development`, `linx-production`, `maiscompras-development`) require the
-corporate VPN to already be connected. BlueprintOS does not manage the VPN; it must correctly
-detect its absence rather than misreport it as an invalid credential.
+corporate VPN to already be connected — `vpn_required: true` is a **characteristic of the profile**
+(this database is only reachable over VPN), never an automatic diagnosis of *why* a given
+connection attempt failed. In practice, the corporate VPN can be connected and still drop the SQL
+Server session momentarily (link blip, server-side reset) — a single failed attempt does not prove
+"VPN disconnected", and BlueprintOS must not declare that prematurely.
 
-`ConnectivityStatus.VpnRequired` is returned when the underlying failure is network-level (DNS/TCP
-unreachable, connection timeout — SQL error `53`, socket exceptions, `TimeoutException`) on a
-profile with `vpn_required: true`. It is never conflated with `PermissionDenied` (SQL auth/authz
-error numbers `18456, 229, 230, 262, 4060`). When `VpnRequired` is reported, the operator guidance
-is: **"Conecte-se à VPN corporativa e tente novamente."** — no further connection detail is
-printed.
+Behavior on a network-level failure (DNS/TCP unreachable, connection timeout, socket exception,
+`TimeoutException`, or a `SqlException` whose error text matches a network-unreachable pattern —
+see § 13):
+
+1. The first failure is not reported to the operator yet. Exactly **one** automatic retry is
+   attempted, after a short fixed delay (750ms) — long enough to absorb a momentary blip, short
+   enough to stay fast.
+2. If the retry succeeds: the result is `Ready`, `RecoveredAfterRetry = true` is recorded
+   internally (surfaced as a discreet CLI note), and nothing further is asked of the operator.
+3. If the retry also fails: `ConnectivityStatus.ConnectivityUnavailable` is returned, and the
+   operator guidance is exactly: **"Não foi possível acessar o servidor após uma tentativa de
+   restabelecimento. Verifique/reconecte a VPN ou a conexão com o servidor e tente novamente."**
+   No further retry is attempted from here — see § 13 for what happens next.
+
+There is no loop: at most 1 retry, ever, per validation call. Credential/permission failures
+(`PermissionDenied`), `EnvironmentMismatch`, and `NotConfigured` are **never** eligible for this
+retry — they are not network instability, and retrying them would look like the system politely
+waiting to try the same invalid login twice. `ConnectivityUnavailable` is a statement of observed
+fact ("connectivity could not be reestablished"), not a claim about the root cause — it is never
+conflated with `PermissionDenied` (SQL auth/authz error numbers `18456, 229, 230, 262, 4060`), and
+it never asserts "the VPN is disconnected" as a diagnosis, only that the operator should check it.
 
 ## 8. Connection status
 
 `ConnectivityStatus` (`backend/src/BlueprintOS.Infrastructure/Persistence/B1ConnectivityValidator.cs`):
 
-`Ready | NotConfigured | Failed | PermissionDenied | EnvironmentMismatch | VpnRequired`
+`Ready | NotConfigured | Failed | PermissionDenied | EnvironmentMismatch | ConnectivityUnavailable`
 
 ## 9. Identity and permission
 
@@ -218,11 +236,16 @@ profile explicitly:
 2. Missing/placeholder value → `NotConfigured` (no connection attempt).
 3. Parses the connection string and compares server/database against the profile's expected
    values → mismatch blocks as `EnvironmentMismatch`, before any network I/O.
-4. Opens the connection, runs `SELECT 1;` as a read-only probe.
+4. Opens the connection (via `ISqlConnectivityProbe`, a test seam — the production implementation
+   is `SqlConnectivityProbe`), runs `SELECT 1;` as a read-only probe.
 5. Best-effort `SELECT SUSER_SNAME();` to capture the effective login identity (never the
    credential itself).
-6. Classifies failures: SQL auth/authz error numbers → `PermissionDenied`; network-unreachable
-   errors on a VPN-required profile → `VpnRequired`; anything else → `Failed`.
+6. Classifies failures: SQL auth/authz error numbers → `PermissionDenied` (never retried); a
+   network-unreachable error (DNS/TCP failure, timeout, socket exception, or a `SqlException` whose
+   message matches the network-unreachable pattern — including the `Number == 0` "server not found
+   or not accessible" case some environments raise) → exactly 1 automatic retry after 750ms (§ 7);
+   if the retry succeeds, `Ready` with `RecoveredAfterRetry = true`; if it also fails,
+   `ConnectivityUnavailable`; anything else → `Failed`.
 
 Never prints the connection string or password — only `Server`, `Database`, and
 `EffectiveIdentity` (identity resolved by the DB itself) are exposed on the result.
@@ -253,8 +276,14 @@ carries the connection string or password. `LinxConnectionStringResolver` itself
 directly (not-configured and mismatch paths, both exception-based and synchronous — no async/DB
 wait needed). `tests/BlueprintOS.UnitTests/Infrastructure/Integrations/ERP/ErpReadersReadOnlyTests.cs`
 continues to pass unchanged after the reader migration (its mismatch-message assertion still holds
-under the new resolver). All tests complete in milliseconds — no live SQL Server or VPN is required
-to run them.
+under the new resolver). The single-retry behavior (§ 7) is covered via a fake `ISqlConnectivityProbe`
+(no real SQL Server or VPN involved): first attempt fails + retry succeeds → `Ready` with
+`RecoveredAfterRetry`; both attempts fail → `ConnectivityUnavailable`; permission-denied, mismatch,
+and not-configured are each asserted to make **zero** probe calls (never retried); and a guard test
+asserts at most 2 probe calls regardless of how many failures a misbehaving fake queues, so a future
+change can't accidentally turn the single retry into a loop. All tests complete in milliseconds
+(the one retry test waits out the fixed 750ms delay, nothing more) — no live SQL Server or VPN is
+required to run them.
 
 ## 16. On doubt
 

@@ -281,4 +281,135 @@ public sealed class B1ConnectivityValidatorTests
         Assert.Contains("Environment mismatch", exception.Message);
         Assert.DoesNotContain("Password", exception.Message);
     }
+
+    // --- Retry único de conectividade (nunca VPN "diagnosticada", só CONNECTIVITY_UNAVAILABLE) ---
+
+    private static IConfiguration ProductionConfiguration() => new ConfigurationBuilder()
+        .AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["ConnectionStrings:LinxProductionConnection"] = "Server=192.168.0.200;Database=SOMA;User Id=x;Password=x;",
+        })
+        .Build();
+
+    [Fact]
+    public async Task ValidateErpAsync_Should_Recover_And_Report_Ready_When_The_Single_Retry_Succeeds()
+    {
+        var probe = new FakeSqlConnectivityProbe(
+            new TimeoutException("connectivity blip"),
+            (Func<int, string?>)(_ => "ti.n8n"));
+        var validator = new B1ConnectivityValidator(ProductionConfiguration(), probe);
+
+        var result = await validator.ValidateErpAsync(LinxEnvironment.Production);
+
+        Assert.Equal(ConnectivityStatus.Ready, result.Status);
+        Assert.True(result.RecoveredAfterRetry);
+        Assert.Equal("ti.n8n", result.EffectiveIdentity);
+        Assert.Equal(2, probe.CallCount);
+    }
+
+    [Fact]
+    public async Task ValidateErpAsync_Should_Report_ConnectivityUnavailable_When_Both_Attempts_Fail()
+    {
+        var probe = new FakeSqlConnectivityProbe(
+            new TimeoutException("connectivity blip"),
+            new TimeoutException("still unreachable"));
+        var validator = new B1ConnectivityValidator(ProductionConfiguration(), probe);
+
+        var result = await validator.ValidateErpAsync(LinxEnvironment.Production);
+
+        Assert.Equal(ConnectivityStatus.ConnectivityUnavailable, result.Status);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(2, probe.CallCount);
+    }
+
+    [Fact]
+    public async Task ValidateErpAsync_Should_Never_Retry_On_Permission_Denied()
+    {
+        var probe = new FakeSqlConnectivityProbe(new FakePermissionDeniedException());
+        var validator = new B1ConnectivityValidator(ProductionConfiguration(), probe);
+
+        var result = await validator.ValidateErpAsync(LinxEnvironment.Production);
+
+        Assert.Equal(ConnectivityStatus.PermissionDenied, result.Status);
+        Assert.Equal(1, probe.CallCount);
+    }
+
+    [Fact]
+    public async Task ValidateErpAsync_Should_Never_Retry_On_NotConfigured()
+    {
+        var probe = new FakeSqlConnectivityProbe(new TimeoutException("should never be called"));
+        var validator = new B1ConnectivityValidator(new ConfigurationBuilder().Build(), probe);
+
+        var result = await validator.ValidateErpAsync(LinxEnvironment.Production);
+
+        Assert.Equal(ConnectivityStatus.NotConfigured, result.Status);
+        Assert.Equal(0, probe.CallCount);
+    }
+
+    [Fact]
+    public async Task ValidateErpAsync_Should_Never_Retry_On_EnvironmentMismatch()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:LinxProductionConnection"] = "Server=192.168.9.98;Database=SOMA_DESENV;User Id=x;Password=x;",
+            })
+            .Build();
+        var probe = new FakeSqlConnectivityProbe(new TimeoutException("should never be called"));
+        var validator = new B1ConnectivityValidator(configuration, probe);
+
+        var result = await validator.ValidateErpAsync(LinxEnvironment.Production);
+
+        Assert.Equal(ConnectivityStatus.EnvironmentMismatch, result.Status);
+        Assert.Equal(0, probe.CallCount);
+    }
+
+    [Fact]
+    public async Task ValidateErpAsync_Should_Attempt_At_Most_Two_Probe_Calls_Regardless_Of_Repeated_Failures()
+    {
+        // Guard against a future change accidentally turning this into a retry loop.
+        var probe = new FakeSqlConnectivityProbe(
+            new TimeoutException("first failure"),
+            new TimeoutException("second failure"));
+        var validator = new B1ConnectivityValidator(ProductionConfiguration(), probe);
+
+        await validator.ValidateErpAsync(LinxEnvironment.Production);
+
+        Assert.True(probe.CallCount <= 2, $"Expected at most 2 probe calls (1 initial + 1 retry), got {probe.CallCount}.");
+    }
+
+    private sealed class FakePermissionDeniedException() : Exception("simulated permission denied"), ISimulatedSqlFailure
+    {
+        public bool IsPermissionDenied => true;
+    }
+
+    /// <summary>Fake de <see cref="ISqlConnectivityProbe"/> que reproduz uma sequência fixa de
+    /// resultados/exceções por chamada — nunca abre uma conexão real, então os testes de retry rodam em
+    /// milissegundos e não dependem de rede/VPN/SQL Server.</summary>
+    private sealed class FakeSqlConnectivityProbe : ISqlConnectivityProbe
+    {
+        private readonly Queue<Func<int, string?>> behaviors;
+        public int CallCount { get; private set; }
+
+        public FakeSqlConnectivityProbe(params object[] behaviors)
+        {
+            this.behaviors = new Queue<Func<int, string?>>(behaviors.Select(ToBehavior));
+        }
+
+        private static Func<int, string?> ToBehavior(object behavior) => behavior switch
+        {
+            Exception exception => _ => throw exception,
+            Func<int, string?> func => func,
+            string identity => _ => identity,
+            null => _ => null,
+            _ => throw new ArgumentException($"Unsupported behavior type: {behavior.GetType()}"),
+        };
+
+        public Task<string?> ProbeAsync(string connectionString, CancellationToken cancellationToken)
+        {
+            CallCount++;
+            var behavior = behaviors.Count > 0 ? behaviors.Dequeue() : (_ => throw new InvalidOperationException("FakeSqlConnectivityProbe called more times than configured."));
+            return Task.FromResult(behavior(CallCount));
+        }
+    }
 }

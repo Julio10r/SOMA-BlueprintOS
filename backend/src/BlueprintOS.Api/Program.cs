@@ -493,9 +493,13 @@ static void WriteConnectivityResult(DatabaseConnectivityResult result)
         Console.WriteLine($"  Banco: {result.Database ?? "não disponível"}");
         Console.WriteLine($"  Identidade efetiva: {result.EffectiveIdentity ?? "não disponível"}");
     }
-    if (result.Status == ConnectivityStatus.VpnRequired)
+    if (result.Status == ConnectivityStatus.ConnectivityUnavailable)
     {
-        Console.WriteLine("  Conecte-se à VPN corporativa e tente novamente.");
+        Console.WriteLine("  Não foi possível acessar o servidor após uma tentativa de restabelecimento. Verifique/reconecte a VPN ou a conexão com o servidor e tente novamente.");
+    }
+    if (result.IsSuccess && result.RecoveredAfterRetry)
+    {
+        Console.WriteLine("  (conectividade restabelecida automaticamente após 1 nova tentativa)");
     }
     if (result.Status == ConnectivityStatus.EnvironmentMismatch)
     {
