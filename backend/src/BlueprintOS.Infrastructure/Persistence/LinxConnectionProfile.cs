@@ -35,11 +35,16 @@ public static class LinxConnectionProfiles
         ExpectedDatabase: "SOMA_DESENV",
         VpnRequired: true);
 
+    /// <summary>Endpoint corrigido em 2026-08-27 com base em evidência real de conexão bem-sucedida
+    /// (@@SERVERNAME/CONNECTIONPROPERTY('local_net_address') = SRV-SOMADB / 192.168.9.200, porta 1433,
+    /// TCP, sem instância nomeada). O valor anterior (192.168.0.200) nunca foi o endpoint SQL real de
+    /// produção — nao havia porta bloqueada por firewall, o host configurado estava incorreto. Ver
+    /// docs/audits/LinxProductionEndpointCorrectionV1.md.</summary>
     public static readonly LinxConnectionProfile Production = new(
         Label: "ERP Linx SOMA (Production)",
         Environment: LinxEnvironment.Production,
         ConnectionName: "LinxProductionConnection",
-        ExpectedServer: "192.168.0.200",
+        ExpectedServer: "192.168.9.200",
         ExpectedDatabase: "SOMA",
         VpnRequired: true);
 

@@ -1,8 +1,10 @@
 # Linx PROG/OP/PED — Investigacao Authoritative Em Producao
 
-Status: **BLOCKED_ON_CONNECTIVITY**
+Status: **BLOCKED_ON_CONNECTIVITY** (superado — ver correcao abaixo; retomada em `docs/audits/LinxProductionEndpointCorrectionV1.md`)
 Data: 2026-08-27
-Escopo: investigacao read-only em `linx-production` (`SOMA`, `192.168.0.200`) para o caso PROG/OP/PED. Nenhuma escrita, nenhum EXEC mutavel, nenhuma migration.
+Escopo: investigacao read-only em `linx-production` (`SOMA`, endpoint entao configurado `192.168.0.200`) para o caso PROG/OP/PED. Nenhuma escrita, nenhum EXEC mutavel, nenhuma migration.
+
+> **CORRECAO (2026-08-27, etapa posterior):** o diagnostico abaixo concluiu, corretamente com base na evidencia disponivel na epoca, que `192.168.0.200:1433` estava bloqueado/filtrado (`CONNECTIVITYUNAVAILABLE`). Evidencia posterior — uma conexao real e funcional ao `SOMA` fornecida pelo Product Owner — provou que **`192.168.0.200` nunca foi o endpoint SQL real de producao**: o endpoint correto e `192.168.9.200:1433` (`@@SERVERNAME`=`SRV-SOMADB`, TCP, sem instancia nomeada). Ou seja, **nao havia bloqueio de firewall/VPN especifico de porta** — a porta 1433 realmente nao respondia em `192.168.0.200` porque **esse nao e o servidor de producao**. O diagnostico de rede (ping OK, TCP 1433 fechado, TCP 443 aberto) permanece tecnicamente correto para o host `192.168.0.200` testado, mas a **conclusao de causa raiz muda**: nao era "firewall bloqueando a porta certa no host certo", era "testando a porta certa no host errado". Nada abaixo foi apagado — preservado como registro exato do diagnostico feito antes da correcao. Ver `docs/audits/LinxProductionEndpointCorrectionV1.md` para o endpoint corrigido e a nova validacao.
 
 ## 1. Objetivo Desta Rodada
 

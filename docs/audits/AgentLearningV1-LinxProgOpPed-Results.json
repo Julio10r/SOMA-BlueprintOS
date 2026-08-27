@@ -6,7 +6,7 @@
   "production_investigation_attempt": {
     "date": "2026-08-27",
     "profile": "linx-production",
-    "expected_server": "192.168.0.200",
+    "expected_server_at_the_time": "192.168.0.200",
     "expected_database": "SOMA",
     "connection_status": "CONNECTIVITYUNAVAILABLE",
     "recovered_after_retry": false,
@@ -14,10 +14,18 @@
     "retry_per_attempt": 1,
     "credential_configured": true,
     "error": "SqlException, TCP Provider error 35 - server not found or not accessible",
-    "conclusion_drawn": "network/VPN reachability issue to 192.168.0.200 specifically; linx-development and +Compras (both 192.168.9.98) remained READY in the same runs, so general VPN connectivity is not conclusively down",
+    "conclusion_drawn_at_the_time": "network/VPN reachability issue to 192.168.0.200 specifically; linx-development and +Compras (both 192.168.9.98) remained READY in the same runs, so general VPN connectivity is not conclusively down",
     "soma_desenv_used_as_substitute": false,
     "report": "docs/audits/LinxProgOpPed-ProductionInvestigation.md",
-    "outcome": "Session stopped per explicit task instruction; no production schema/procedure/data investigation performed this round; all items in section 7 of AgentLearningV1-LinxProgOpPed.md remain labeled CONFIRMED_IN_DEVELOPMENT, none promoted to CONFIRMED_IN_PRODUCTION"
+    "outcome": "Session stopped per explicit task instruction; no production schema/procedure/data investigation performed this round; all items in section 7 of AgentLearningV1-LinxProgOpPed.md remain labeled CONFIRMED_IN_DEVELOPMENT, none promoted to CONFIRMED_IN_PRODUCTION",
+    "correction": {
+      "date": "2026-08-27",
+      "finding": "192.168.0.200 was never the real Production SQL endpoint; it was a misconfigured value, not a firewall/VPN block. Real working-connection evidence confirmed the correct endpoint: 192.168.9.200:1433, TCP, no named instance (@@SERVERNAME=SRV-SOMADB).",
+      "root_cause_reclassified_from": "network/VPN port block on the correct host",
+      "root_cause_reclassified_to": "wrong host configured (testing the right port on the wrong server)",
+      "corrected_profile_server": "192.168.9.200",
+      "report": "docs/audits/LinxProductionEndpointCorrectionV1.md"
+    }
   },
   "baseline": {
     "agents_total": { "expected_by_user": 8, "confirmed": 8, "divergence": false },

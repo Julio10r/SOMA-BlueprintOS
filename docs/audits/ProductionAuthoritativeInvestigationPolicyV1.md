@@ -4,6 +4,10 @@ Status: accepted
 Data: 2026-08-27
 Escopo: `agents/DATABASE_CONNECTION_POLICY.md`, `agents/AGENT_CONTRACT.md`, `agents/linx-database-specialist-agent/agent.yaml`, `agents/linx-erp-specialist-agent/agent.yaml`, `docs/audits/AgentLearningV1-LinxProgOpPed.md`, `docs/audits/AgentLearningV1-LinxProgOpPed-Results.json`.
 
+> **Correção (2026-08-27, etapa posterior):** referências a `192.168.0.200` como servidor de produção
+> neste documento estavam incorretas — o endpoint SQL real de produção é `192.168.9.200:1433`. Ver
+> `docs/audits/LinxProductionEndpointCorrectionV1.md`. Nenhum conteúdo abaixo foi apagado.
+
 ## 1. Motivacao
 
 Durante a investigacao do caso PROG/OP/PED (`docs/audits/AgentLearningV1-LinxProgOpPed.md`), o Agent investigou corretamente `SOMA_DESENV` e encontrou um Knowledge Gap real (secao 7.6.3): a grade `36-44` cadastrada para os produtos da planilha nao inclui o tamanho `34`, apesar da planilha ter uma coluna `Q_34` com quantidades reais.

@@ -8,13 +8,23 @@ Consolidates, does not replace: `agents/EXECUTION_POLICY.md` § Credenciais E Co
 credential rules; this document is the canonical source for the Linx/SOMA environment split
 specifically.
 
+> **Correction (2026-08-27):** the Production server was previously documented as `192.168.0.200`.
+> That value was never the real SQL endpoint of production — it was an incorrect configuration, not
+> a firewall/VPN issue. Real evidence from a working connection to `SOMA` (`@@SERVERNAME` =
+> `SRV-SOMADB`, `CONNECTIONPROPERTY('local_net_address')` = `192.168.9.200`, `local_tcp_port` = `1433`,
+> `net_transport` = `TCP`, no named instance) confirms the correct endpoint is `192.168.9.200:1433`.
+> This document, the `LinxConnectionProfiles.Production` profile, and all related tests/audits were
+> updated accordingly. See `docs/audits/LinxProductionEndpointCorrectionV1.md` for the full
+> before/after record — nothing about the earlier `192.168.0.200` history was deleted, only corrected
+> going forward.
+
 ## 1. Environments
 
 Two distinct Linx/SOMA ERP environments exist. Never infer one from the other.
 
 | | Development | Production |
 |---|---|---|
-| Server | `192.168.9.98` | `192.168.0.200` |
+| Server | `192.168.9.98` | `192.168.9.200` |
 | Database | `SOMA_DESENV` | `SOMA` |
 | ASP.NET environment | `Development` | `Production` |
 | VPN | required | required |
@@ -31,7 +41,7 @@ VPN requirement); user/password are never part of a profile.
 
 - `linx-development` — environment `Development`, server `192.168.9.98`, database `SOMA_DESENV`,
   port `1433`, `vpn_required: true`, `credential_source: local`.
-- `linx-production` — environment `Production`, server `192.168.0.200`, database `SOMA`,
+- `linx-production` — environment `Production`, server `192.168.9.200`, database `SOMA`,
   port `1433`, `vpn_required: true`, `credential_source: local`.
 - `maiscompras-development` — environment `Development`, server `192.168.9.98`, database
   `MAISCOMPRAS`, port `1433`, `vpn_required: true`, `credential_source: local`. Same DEV server as
@@ -109,7 +119,7 @@ dotnet user-secrets set "ConnectionStrings:LinxDevelopmentConnection" \
 
 # Production — run locally, only when you actually hold a Production credential
 dotnet user-secrets set "ConnectionStrings:LinxProductionConnection" \
-  "Server=192.168.0.200;Database=SOMA;User Id=<seu-usuario>;Password=<sua-senha>;Encrypt=True;TrustServerCertificate=True" \
+  "Server=192.168.9.200;Database=SOMA;User Id=<seu-usuario>;Password=<sua-senha>;Encrypt=True;TrustServerCertificate=True" \
   --project backend/src/BlueprintOS.Api/BlueprintOS.Api.csproj
 ```
 
@@ -121,7 +131,7 @@ in `backend/src/BlueprintOS.Api/BlueprintOS.Api.csproj`) — no new secret store
 - "Analyze the structure of table X" → `SOMA_DESENV` is acceptable by default.
 - "Update table X" with the target environment unclear and a possible real effect →
   **ask the user**.
-- "Update table X in production" → `SOMA` / `192.168.0.200`, full Production governance.
+- "Update table X in production" → `SOMA` / `192.168.9.200`, full Production governance.
 
 Validation that depends on real data may read Production read-only when necessary and governed.
 Real execution always uses Production with full governance.
@@ -304,7 +314,7 @@ reach Production, and objects in Development can be forgotten or left outdated b
 
 When the intent is to understand current schema, a table, a view, a trigger, a procedure, a
 business rule, cardinality, current data, a size grade, a relationship, or any other question about
-the Linx ERP's real, present-day behavior: use `linx-production` (`192.168.0.200` / `SOMA`) by
+the Linx ERP's real, present-day behavior: use `linx-production` (`192.168.9.200` / `SOMA`) by
 default, read-only, per § 18. This supersedes no prior section of this document — § 1–§ 16 already
 establish Production as conservative/governed for writes; this section makes it additionally the
 default read target for investigation.

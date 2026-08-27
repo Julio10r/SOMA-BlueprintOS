@@ -116,7 +116,7 @@ public sealed class B1ConnectivityValidatorTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:ErpConnection"] = "Server=192.168.0.200;Database=SOMA;User Id=dev;Password=dev;",
+                ["ConnectionStrings:ErpConnection"] = "Server=192.168.9.200;Database=SOMA;User Id=dev;Password=dev;",
             })
             .Build();
         var validator = new B1ConnectivityValidator(configuration);
@@ -134,7 +134,7 @@ public sealed class B1ConnectivityValidatorTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:LinxDevelopmentConnection"] = "Server=192.168.0.200;Database=SOMA;User Id=x;Password=x;",
+                ["ConnectionStrings:LinxDevelopmentConnection"] = "Server=192.168.9.200;Database=SOMA;User Id=x;Password=x;",
             })
             .Build();
         var validator = new B1ConnectivityValidator(configuration);
@@ -151,7 +151,7 @@ public sealed class B1ConnectivityValidatorTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:LinxProductionConnection"] = "Server=192.168.0.200;Database=SOMA_DESENV;User Id=x;Password=x;",
+                ["ConnectionStrings:LinxProductionConnection"] = "Server=192.168.9.200;Database=SOMA_DESENV;User Id=x;Password=x;",
             })
             .Build();
         var validator = new B1ConnectivityValidator(configuration);
@@ -187,7 +187,7 @@ public sealed class B1ConnectivityValidatorTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:LinxDevelopmentConnection"] = "Server=192.168.0.200;Database=SOMA;User Id=super-secret-user;Password=super-secret-password;",
+                ["ConnectionStrings:LinxDevelopmentConnection"] = "Server=192.168.9.200;Database=SOMA;User Id=super-secret-user;Password=super-secret-password;",
             })
             .Build();
         var validator = new B1ConnectivityValidator(configuration);
@@ -233,7 +233,7 @@ public sealed class B1ConnectivityValidatorTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:MaisComprasConnection"] = "Server=192.168.0.200;Database=MAISCOMPRAS;User Id=x;Password=x;",
+                ["ConnectionStrings:MaisComprasConnection"] = "Server=192.168.9.200;Database=MAISCOMPRAS;User Id=x;Password=x;",
             })
             .Build();
         var validator = new B1ConnectivityValidator(configuration);
@@ -287,7 +287,7 @@ public sealed class B1ConnectivityValidatorTests
     private static IConfiguration ProductionConfiguration() => new ConfigurationBuilder()
         .AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["ConnectionStrings:LinxProductionConnection"] = "Server=192.168.0.200;Database=SOMA;User Id=x;Password=x;",
+            ["ConnectionStrings:LinxProductionConnection"] = "Server=192.168.9.200;Database=SOMA;User Id=x;Password=x;",
         })
         .Build();
 

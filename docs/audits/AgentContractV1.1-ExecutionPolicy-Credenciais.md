@@ -273,7 +273,7 @@ Isso usa a identidade/permissao real do usuario que configurou o secret — o Bl
 A conexao generica `ErpConnection` unica descrita acima (25.1-25.6) foi substituida pela separacao
 explicita de ambientes Linx/SOMA: `ConnectionStrings:LinxDevelopmentConnection`
 (`192.168.9.98`/`SOMA_DESENV`) e `ConnectionStrings:LinxProductionConnection`
-(`192.168.0.200`/`SOMA`), cada uma com profile logico, protecao contra environment mismatch e
+(`192.168.9.200`/`SOMA` — corrigido em 2026-08-27; o valor originalmente documentado, `192.168.0.200`, nunca foi o endpoint SQL real de producao, ver `docs/audits/LinxProductionEndpointCorrectionV1.md`), cada uma com profile logico, protecao contra environment mismatch e
 identidade/credencial estritamente local e separada por ambiente. `ErpConnection` permanece como
 fallback DEPRECATED apenas para o profile Development, para nao quebrar consumidores existentes
 silenciosamente. Detalhes completos, incluindo o comando de configuracao local para os dois

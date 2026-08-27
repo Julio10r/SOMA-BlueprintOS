@@ -4,6 +4,15 @@ Data: 2026-08-27
 Escopo: fundação de conexões com bancos Linx/SOMA (DEV/PROD). **Não** retoma o caso funcional
 PROG/OP/PED.
 
+> **Correção (2026-08-27, etapa posterior):** todas as referências a `192.168.0.200` como servidor de
+> produção neste documento **estavam incorretas** — não era um problema de firewall/VPN, era um
+> endpoint mal configurado desde a origem. Evidência real de uma conexão funcional ao `SOMA` confirmou
+> o endpoint correto: `192.168.9.200`, porta `1433`, TCP, sem instância nomeada (`@@SERVERNAME` =
+> `SRV-SOMADB`). O profile `linx-production` (`LinxConnectionProfiles.Production`) e a documentação
+> foram corrigidos. **Nenhum conteúdo abaixo foi apagado** — preserva o registro histórico exato do
+> que foi investigado/observado com o endpoint então configurado. Ver
+> `docs/audits/LinxProductionEndpointCorrectionV1.md` para o relato completo da correção.
+
 ## Baseline (antes desta tarefa)
 
 - Uma única chave `ConnectionStrings:ErpConnection`, sem separação semântica de ambiente.
