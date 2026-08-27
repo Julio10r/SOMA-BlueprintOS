@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOMA BlueprintOS — AI Agents &amp; Knowledge Map</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#ffffff; --border:#e2e5ea; --text:#1c2333; --text-dim:#5b6472;
+    --accent:#2f5aa8; --accent-soft:#eaf0fb; --ok:#1e8e5a; --warn:#b8860b; --draft:#8a8f98;
+    --pill-bg:#eef1f6; --code-bg:#f1f3f7; --shadow:0 1px 2px rgba(20,25,40,.06),0 4px 16px rgba(20,25,40,.04);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.5;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:32px 24px 80px;}
+  header.hero{
+    background:linear-gradient(135deg,#1c2b52,#2f5aa8); color:#fff; border-radius:16px;
+    padding:36px 40px; box-shadow:var(--shadow); margin-bottom:28px;
+  }
+  header.hero .eyebrow{font-size:13px; letter-spacing:.08em; text-transform:uppercase; opacity:.75; margin-bottom:6px;}
+  header.hero h1{margin:0 0 6px; font-size:30px; font-weight:700;}
+  header.hero .sub{font-size:15px; opacity:.85; margin-bottom:18px;}
+  header.hero .meta{display:flex; flex-wrap:wrap; gap:10px 24px; font-size:13px; opacity:.85;}
+  header.hero .meta strong{opacity:1; font-weight:600;}
+
+  .disclaimer{
+    background:#fff8e6; border:1px solid #f0dca0; color:#6b5417; border-radius:10px;
+    padding:14px 18px; font-size:13.5px; margin-bottom:28px;
+  }
+  .disclaimer b{color:#4a3a0d;}
+
+  .summary{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:32px;}
+  .stat{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:18px 20px; box-shadow:var(--shadow);}
+  .stat .num{font-size:28px; font-weight:700; color:var(--accent);}
+  .stat .label{font-size:13px; color:var(--text-dim); margin-top:2px;}
+
+  .search-box{margin-bottom:28px;}
+  .search-box input{
+    width:100%; padding:14px 18px; border-radius:12px; border:1px solid var(--border);
+    background:var(--panel); font-size:15px; box-shadow:var(--shadow); outline:none;
+  }
+  .search-box input:focus{border-color:var(--accent);}
+  .search-hint{font-size:12.5px; color:var(--text-dim); margin-top:6px;}
+  #searchCount{font-weight:600; color:var(--accent);}
+
+  section.section{margin-bottom:40px;}
+  section.section > h2{font-size:20px; margin:0 0 4px;}
+  section.section > .section-sub{font-size:13.5px; color:var(--text-dim); margin-bottom:18px;}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:18px;}
+
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:14px;
+    box-shadow:var(--shadow); padding:20px 22px; display:flex; flex-direction:column; gap:10px;
+  }
+  .card[hidden]{display:none;}
+  .card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+  .card-top h3{margin:0; font-size:17px;}
+  .badges{display:flex; gap:6px; flex-wrap:wrap;}
+  .pill{
+    display:inline-block; font-size:11px; font-weight:600; letter-spacing:.02em;
+    padding:3px 9px; border-radius:999px; background:var(--pill-bg); color:var(--text-dim);
+    white-space:nowrap;
+  }
+  .pill.status-ativo{background:#e4f6ec; color:var(--ok);}
+  .pill.status-evolucao{background:#eaf0fb; color:var(--accent);}
+  .pill.status-planejado{background:#f1f1f3; color:var(--draft);}
+  .pill.tipo{background:#f1f3f7; color:#3a4150;}
+
+  .card .objetivo{font-size:13.5px; color:var(--text-dim);}
+
+  .kv{font-size:13px;}
+  .kv-title{font-weight:600; font-size:12.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--text-dim); margin:10px 0 4px;}
+  .kv ul{margin:0; padding-left:18px;}
+  .kv ul li{margin-bottom:2px;}
+
+  .relates{font-size:13px;}
+  .relates .arrow{color:var(--accent); font-weight:600;}
+
+  details.more{border-top:1px dashed var(--border); margin-top:6px; padding-top:10px;}
+  details.more summary{
+    cursor:pointer; font-size:13px; font-weight:600; color:var(--accent); list-style:none;
+    display:flex; align-items:center; gap:6px;
+  }
+  details.more summary::-webkit-details-marker{display:none;}
+  details.more summary::before{content:"▸"; transition:transform .15s;}
+  details.more[open] summary::before{transform:rotate(90deg);}
+  details.more .more-body{margin-top:12px; display:flex; flex-direction:column; gap:12px;}
+
+  .filebox{background:var(--code-bg); border-radius:8px; padding:8px 12px; font-size:12px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  .filebox div{padding:1px 0; word-break:break-all;}
+
+  .pend-count{
+    display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600;
+    color:var(--warn); background:#fdf3df; padding:3px 9px; border-radius:999px;
+  }
+  .pend-count.zero{color:var(--ok); background:#e4f6ec;}
+
+  .example{background:var(--accent-soft); border-left:3px solid var(--accent); border-radius:6px; padding:8px 12px; font-size:12.5px; font-style:italic; color:#1c2b52;}
+
+  /* Mapa de colaboração */
+  .map-wrap{background:var(--panel); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:28px; overflow-x:auto;}
+  svg{display:block; margin:0 auto;}
+  .node-box{fill:var(--panel); stroke:var(--border); stroke-width:1.5;}
+  .node-box.core{fill:#1c2b52; stroke:#1c2b52;}
+  .node-box.active{fill:#eaf0fb; stroke:var(--accent);}
+  .node-box.planned{fill:#f5f5f6; stroke:#c7cad0; stroke-dasharray:4 3;}
+  .node-text{font-size:13px; font-weight:600; fill:var(--text); font-family:inherit;}
+  .node-text.core-text{fill:#fff;}
+  .node-sub{font-size:10.5px; fill:var(--text-dim); font-family:inherit;}
+  .edge{stroke:#a9b3c4; stroke-width:1.5; fill:none;}
+  .edge.dashed{stroke-dasharray:4 3; stroke:#c7cad0;}
+  .legend{display:flex; gap:18px; flex-wrap:wrap; margin-top:16px; font-size:12px; color:var(--text-dim);}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .swatch{width:12px; height:12px; border-radius:3px; display:inline-block;}
+
+  footer.foot{margin-top:48px; font-size:12.5px; color:var(--text-dim); text-align:center; border-top:1px solid var(--border); padding-top:20px;}
+
+  #noResults{display:none; text-align:center; padding:40px 0; color:var(--text-dim); font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">SOMA BlueprintOS</div>
+    <h1>AI Agents &amp; Knowledge Map</h1>
+    <div class="sub">Catálogo visual do "time de IA" do projeto — quem existe, o que cada um sabe, o que pode fazer e como se relacionam.</div>
+    <div class="meta">
+      <div>Última atualização: <strong>2026-08-27</strong></div>
+      <div>Gerado a partir do SOMA BlueprintOS (auditoria manual da árvore <code>.ai/</code>, <code>docs/</code> e <code>backend/src</code>)</div>
+    </div>
+  </header>
+
+  <div class="disclaimer">
+    <b>Este HTML é uma visão consolidada para humanos, não a fonte canônica.</b>
+    O conhecimento operacional oficial vive em <code>.ai/context/</code>, <code>.ai/prompts/</code>, <code>docs/operations/</code> e nos documentos específicos de cada agente/módulo.
+    Em caso de divergência, a fonte canônica sempre prevalece sobre este arquivo.
+  </div>
+
+  <div class="summary" id="summary">
+    <div class="stat"><div class="num" id="statAtivos">–</div><div class="label">Agents ativos (código)</div></div>
+    <div class="stat"><div class="num" id="statOperacionais">–</div><div class="label">Especialistas operacionais (conhecimento .ai/)</div></div>
+    <div class="stat"><div class="num" id="statPlanejados">–</div><div class="label">Agents planejados (backlog)</div></div>
+    <div class="stat"><div class="num">3</div><div class="label">Prompts-gatilho de agente</div></div>
+    <div class="stat"><div class="num">11</div><div class="label">Conhecimentos ainda não mapeados (AINDA_NAO_MAPEADO)</div></div>
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Pesquisar por nome, conhecimento, capacidade ou domínio (ex.: &quot;estoque&quot;, &quot;fornecedor&quot;, &quot;fotos&quot;)...">
+    <div class="search-hint"><span id="searchCount"></span></div>
+  </div>
+
+  <section class="section">
+    <h2>Agents e Especialistas</h2>
+    <div class="section-sub">Cards resumidos primeiro — clique em "Ver detalhes" para expandir cada um.</div>
+    <div class="grid" id="cardsGrid"></div>
+    <div id="noResults">Nenhum agent encontrado para essa busca.</div>
+  </section>
+
+  <section class="section">
+    <h2>Mapa de Colaboração</h2>
+    <div class="section-sub">Relacionamentos reais encontrados na documentação — nada inventado. Caixas tracejadas são agentes planejados (backlog), ainda sem implementação.</div>
+    <div class="map-wrap">
+      <svg viewBox="0 0 980 460" width="100%" height="460" role="img" aria-label="Mapa de colaboração entre os agents do SOMA BlueprintOS">
+        <!-- Core -->
+        <rect class="node-box core" x="390" y="20" width="200" height="46" rx="10"></rect>
+        <text class="node-text core-text" x="490" y="48" text-anchor="middle">SOMA BlueprintOS</text>
+
+        <!-- Runtime foundation -->
+        <rect class="node-box active" x="60" y="120" width="160" height="52" rx="10"></rect>
+        <text class="node-text" x="140" y="142" text-anchor="middle">Agent Runtime</text>
+        <text class="node-sub" x="140" y="158" text-anchor="middle">EchoAgent · KnowledgeAgent</text>
+
+        <!-- Linx -->
+        <rect class="node-box active" x="270" y="120" width="150" height="52" rx="10"></rect>
+        <text class="node-text" x="345" y="142" text-anchor="middle">Agent Linx</text>
+        <text class="node-sub" x="345" y="158" text-anchor="middle">ERP · Banco (SOMA_DESENV)</text>
+
+        <!-- Showcase -->
+        <rect class="node-box active" x="460" y="120" width="150" height="52" rx="10"></rect>
+        <text class="node-text" x="535" y="142" text-anchor="middle">Showcase Agent</text>
+        <text class="node-sub" x="535" y="158" text-anchor="middle">Catálogo, grade, fotos</text>
+
+        <!-- WISE -->
+        <rect class="node-box active" x="650" y="120" width="150" height="52" rx="10"></rect>
+        <text class="node-text" x="725" y="142" text-anchor="middle">WISE Agent</text>
+        <text class="node-sub" x="725" y="158" text-anchor="middle">Campanhas, WS_*, saldo</text>
+
+        <!-- edges core -> children -->
+        <path class="edge" d="M420,66 C380,90 250,100 140,120"></path>
+        <path class="edge" d="M450,66 C420,90 380,100 345,120"></path>
+        <path class="edge" d="M500,66 C510,90 525,100 535,120"></path>
+        <path class="edge" d="M560,66 C610,90 680,100 725,120"></path>
+
+        <!-- Linx <-> WISE (arqueado por cima, para não cruzar a caixa do Showcase) -->
+        <path class="edge" d="M395,118 C450,80 640,80 700,118"></path>
+        <text class="node-sub" x="547" y="82" text-anchor="middle">valida ERP → reconcilia WISE</text>
+
+        <!-- Showcase <-> WISE -->
+        <path class="edge" d="M610,152 C630,155 640,155 650,152"></path>
+        <text class="node-sub" x="630" y="192" text-anchor="middle">catálogo PRODUTO+COR</text>
+
+        <!-- Linx/WISE daily integration knowledge box -->
+        <rect class="node-box active" x="270" y="230" width="530" height="52" rx="10"></rect>
+        <text class="node-text" x="535" y="252" text-anchor="middle">Rotina diária Linx/WISE (conhecimento operacional)</text>
+        <text class="node-sub" x="535" y="268" text-anchor="middle">MB_PROD_EXTRA_WEB · reconciliação WS_ESTOQUE_PRODUTOS</text>
+        <path class="edge" d="M345,172 C345,200 400,215 420,230"></path>
+        <path class="edge" d="M725,172 C725,200 660,215 640,230"></path>
+
+        <!-- Planejados (backlog) -->
+        <rect class="node-box planned" x="60" y="340" width="180" height="52" rx="10"></rect>
+        <text class="node-text" x="150" y="362" text-anchor="middle">Agente Comprador Sênior</text>
+        <text class="node-sub" x="150" y="378" text-anchor="middle">Backlog A6 · status Parcial</text>
+
+        <rect class="node-box planned" x="270" y="340" width="180" height="52" rx="10"></rect>
+        <text class="node-text" x="360" y="362" text-anchor="middle">Agente de Negociação</text>
+        <text class="node-sub" x="360" y="378" text-anchor="middle">Backlog C3 · status Draft</text>
+
+        <rect class="node-box planned" x="480" y="340" width="180" height="52" rx="10"></rect>
+        <text class="node-text" x="570" y="362" text-anchor="middle">Agente de Compliance</text>
+        <text class="node-sub" x="570" y="378" text-anchor="middle">Backlog D4 · status Draft</text>
+
+        <rect class="node-box planned" x="690" y="340" width="180" height="52" rx="10"></rect>
+        <text class="node-text" x="780" y="362" text-anchor="middle">Agente de Risco</text>
+        <text class="node-sub" x="780" y="378" text-anchor="middle">Backlog E4 · status Draft</text>
+
+        <path class="edge dashed" x1="140" d="M140,172 C140,260 150,300 150,340"></path>
+        <path class="edge dashed" d="M490,66 C490,300 360,320 360,340"></path>
+        <path class="edge dashed" d="M535,172 C560,260 570,300 570,340"></path>
+        <path class="edge dashed" d="M725,172 C760,260 780,300 780,340"></path>
+
+        <text class="node-sub" x="490" y="420" text-anchor="middle" font-style="italic">"Maestro" orquestrador é conceitual (AI_TEAM.md) — ainda não implementado em código.</text>
+      </svg>
+      <div class="legend">
+        <span><span class="swatch" style="background:#eaf0fb;border:1px solid #2f5aa8;"></span> Ativo / em evolução (implementado ou com conhecimento operacional funcional)</span>
+        <span><span class="swatch" style="background:#f5f5f6;border:1px dashed #c7cad0;"></span> Planejado (backlog, sem implementação)</span>
+        <span><span class="swatch" style="background:#1c2b52;"></span> Núcleo do projeto</span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    SOMA BlueprintOS — AI Agents &amp; Knowledge Map · documento de apoio, não canônico · atualizar sempre que um agent for criado, removido, renomeado ou tiver conhecimento relevante alterado.
+  </footer>
+</div>
+
+<script>
+// ============================================================================
+// Dados dos Agents — auditados manualmente em 2026-08-27 contra:
+//   docs/agents/Agents.md, .ai/CLAUDE.md, .ai/context/knowledge.md, .ai/context/*,
+//   .ai/prompts/*, docs/operations/*, backend/src/BlueprintOS.Core/Agents/*,
+//   backend/src/BlueprintOS.Application/Knowledge/Linx/*, .ai/work-orders/backlog/*
+// Nenhum agent aqui é fictício. Atualize este array manualmente quando o
+// conhecimento real mudar (ver seção "Fonte de Verdade" nos comentários abaixo
+// e a regra permanente em .ai/CLAUDE.md).
+// ============================================================================
+const AGENTS = [
+  {
+    id: "agent-runtime",
+    nome: "Agent Runtime (EchoAgent / KnowledgeAgent)",
+    tipo: "Agent Runtime",
+    status: "ativo",
+    statusLabel: "Ativo",
+    objetivo: "Fundação técnica de execução de agentes: EchoAgent encaminha a entrada diretamente ao IAIRuntime (referência/diagnóstico); KnowledgeAgent enriquece a entrada com trechos recuperados do módulo Knowledge antes de chamar o runtime.",
+    conhece: [
+      "Nenhum conhecimento de domínio próprio — são agentes genéricos de fundação.",
+      "KnowledgeAgent consulta o IKnowledgeService (módulo Knowledge) por similaridade textual.",
+    ],
+    podeFazer: [
+      "Encaminhar entrada ao runtime de IA (EchoAgent)",
+      "Buscar e injetar contexto do módulo Knowledge (KnowledgeAgent)",
+    ],
+    naoDeve: [
+      "Executar tarefas de domínio específico (não são especialistas)",
+      "Substituir os agentes especialistas (Linx, WISE, Showcase)",
+    ],
+    quando: [
+      "Uso interno pelo AgentFactory ao instanciar agentes de referência/diagnóstico ou de consulta genérica ao Knowledge.",
+    ],
+    gatilhos: [],
+    fontes: [
+      "backend/src/BlueprintOS.Core/Agents/EchoAgent.cs",
+      "backend/src/BlueprintOS.Core/Agents/KnowledgeAgent.cs",
+      "backend/src/BlueprintOS.Core/Agents/BaseAgent.cs",
+      "backend/src/BlueprintOS.Core/Agents/AgentFactory.cs",
+      "docs/agents/Agents.md",
+    ],
+    relacionamentos: [
+      { alvo: "Todos os especialistas", nota: "BaseAgent/AgentFactory são a fundação técnica que os demais agentes de código (Agent Linx) estendem." },
+    ],
+    pendencias: [],
+    exemplo: null,
+  },
+  {
+    id: "agent-linx",
+    nome: "Agent Linx",
+    tipo: "Especialista de domínio (código + conhecimento)",
+    status: "ativo",
+    statusLabel: "Ativo",
+    objetivo: "Especialista no ERP Visual Linx — dois especialistas complementares: LinxErpSpecialistAgent (regras funcionais/técnicas, fluxos, entidades) e LinxDatabaseSpecialistAgent (schema estrutural do banco SOMA_DESENV: tabelas, views, procedures, colunas, relacionamentos).",
+    conhece: [
+      "Regras funcionais/técnicas do ERP Visual Linx (LinxErpSpecialist)",
+      "Schema estrutural do banco SOMA_DESENV (LinxDatabaseSpecialist)",
+      "Base de conhecimento versionada (LinxKnowledgeEntry) com proveniência Descoberto/Validado/Aprovado",
+      "Rotina diária Linx/WISE: MB_PROD_EXTRA_WEB, PRODUTOS, PRODUTO_CORES, PRODUTOS_PRECOS/DL",
+    ],
+    podeFazer: [
+      "Consultar conhecimento persistido e versionado (RAG-safety: conteúdo recuperado nunca é tratado como instrução)",
+      "Validar produto/produto-cor antes de qualquer escrita",
+      "Atualizar MB_PROD_EXTRA_WEB de forma incremental (na rotina diária aprovada)",
+      "Diferenciar fatos Validado/Aprovado de Descoberto/Inferido na resposta",
+    ],
+    naoDeve: [
+      "Escolher ID_CAMPANHA (sempre pergunta ao Product Owner)",
+      "Escrever em MB_PROD_EXTRA_WEB.TOTAL (coluna computada)",
+      "Escrever em PRODUTOS_PRECOS",
+      "Executar procedures legadas automaticamente",
+      "Executar DELETE ou TRUNCATE",
+    ],
+    quando: [
+      '"Use Agent Linx + Agent WISE para validar esta planilha"',
+      '"Processar planilha de integração diária Linx/WISE"',
+    ],
+    gatilhos: [
+      ".ai/prompts/processar-planilha-integracao-linx-wise.md",
+    ],
+    fontes: [
+      "backend/src/BlueprintOS.Application/Knowledge/Linx/LinxSpecialistAgents.cs",
+      "backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxEspecialista.cs",
+      "backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxKnowledgeEntry.cs",
+      ".ai/context/linx-wise-daily-integration.md",
+      "docs/operations/LinxWiseDailyIntegrationRunbook.md",
+    ],
+    relacionamentos: [
+      { alvo: "WISE Agent", nota: "Agent Linx valida ERP (produto, cor, preço, grade) → WISE Agent interpreta/reconcilia o destino WISE (campanha, saldo)." },
+    ],
+    pendencias: [
+      "Escopo desta primeira fundação é arquitetural, não operação completa automatizada (ver Work Order O1.13.5).",
+    ],
+    exemplo: '"Use Agent Linx + Agent WISE para validar esta planilha"',
+  },
+  {
+    id: "wise-agent",
+    nome: "WISE Agent",
+    tipo: "Especialista de conhecimento operacional (Markdown, sem classe C# própria ainda)",
+    status: "evolucao",
+    statusLabel: "Em evolução",
+    objetivo: "Especialista reutilizável em consulta, leitura e interpretação do ambiente WISE — campanhas, estoque, produto/cor, grades/saldos e integração com o Showcase.",
+    conhece: [
+      "Linked Server WISE_AZURE (SOMA_LINX) acessado a partir da conexão LINX_PROD_* (SRV-SOMADB/SOMA)",
+      "WS_ESTOQUE_PRODUTOS: chave ID_CAMPANHA + PRODUTO + COR_PRODUTO",
+      "DT_EXCLUSAO IS NULL = registro ativo (inativação lógica, nunca DELETE físico)",
+      "Colunas de grade ES1..ES16 e ESTOQUE, alimentadas por FN_CONSULTA_SALDO_WEB_WISE",
+      "API HTTP do Showcase (endpoints showcase/products/productColors/stock)",
+      "Relacionamento Showcase REF/COR ↔ WISE PRODUTO/COR_PRODUTO",
+    ],
+    podeFazer: [
+      "Consultar (SELECT, metadados)",
+      "Validar registros ativos por campanha",
+      "Comparar Showcase × WISE por PRODUTO+COR",
+      "Apoiar a integração diária Linx/WISE como especialista de reconciliação do destino",
+    ],
+    naoDeve: [
+      "Escrever no WISE sem autorização explícita (INSERT/UPDATE/DELETE/TRUNCATE/MERGE/ALTER/DROP/CREATE)",
+      "Escolher ID_CAMPANHA sozinho",
+      "Transformar inferência em regra definitiva sem marcar INFERIDO",
+      "Armazenar token/senha/connection string",
+    ],
+    quando: [
+      '"Use o Agent WISE para consultar a campanha 54"',
+      '"Peça ao Agent WISE para buscar os saldos desses produtos"',
+    ],
+    gatilhos: [
+      ".ai/prompts/consultar-wise.md",
+    ],
+    fontes: [
+      ".ai/context/wise-knowledge.md",
+      "docs/operations/WiseAgentRunbook.md",
+      ".ai/context/linx-wise-daily-integration.md",
+    ],
+    relacionamentos: [
+      { alvo: "Agent Linx", nota: "Nunca decide preço/grade/regra ERP do lado Linx — isso é do Agent Linx." },
+      { alvo: "Showcase Agent", nota: "Recebe catálogo PRODUTO+COR do Showcase Agent para enriquecimento de saldo." },
+    ],
+    pendencias: [
+      "Nesta execução não havia MCP de SQL Server conectado — consulta SQL direta não pôde ser executada (falta de ferramenta, não de acesso).",
+      "Mapeamento ES1..ES16 → PP/P/M/G/GG não verificado diretamente.",
+      "Correspondência collection_Id (Showcase) ↔ ID_CAMPANHA (WISE) ainda não confirmada.",
+      "Cruzamento Showcase × WS_ESTOQUE_PRODUTOS validado só estruturalmente, não linha a linha.",
+      "Schema completo de WS_ESTOQUE_PRODUTOS além das colunas já citadas.",
+      "Não existe ainda uma classe C# WiseSpecialistAgent registrada no Runtime — o especialista existe apenas na camada de conhecimento .ai/.",
+    ],
+    exemplo: '"Use o Agent WISE para consultar a campanha 54"',
+  },
+  {
+    id: "showcase-agent",
+    nome: "Showcase Agent",
+    tipo: "Especialista de conhecimento operacional (Markdown + implementação Node.js)",
+    status: "evolucao",
+    statusLabel: "Em evolução",
+    objetivo: "Especialista reutilizável em acessar o Showcase autenticado, identificar marca/região da sessão corrente, extrair catálogo (produto, cor, descrição, grade) e baixar todas as fotos — genérico para qualquer marca/região, nunca fixado.",
+    conhece: [
+      "Fluxo de login manual + extração de contexto de sessão (token, brand_Id, company_Id, dept_Id, collection_Id, customer_Id, pricelist, payment, order_Id)",
+      "API do Showcase: showcase (catálogo paginado), products, productColors, stock",
+      "Regra produto/cor: REF = PRODUTO; \"CODIGO_COR - DESC_COR\" → COR + DESC_COR",
+      "Padrão de fotos por marca: .../imagens/{MARCA}/produtos/{PRODUTO}-{COR}-{N}.jpg, marca descoberta por item",
+      "Layout de Excel validado (FOTO, PROD, COR_PROD, CHAVE, DESC_PRODUTO, DESC_COR_PRODUTO, GRU, GRUP, LINHA, COMPOSICAO, PRECO_VENDA, GRADE, TAM_1..TAM_N)",
+      "Mecanismo de checkpoint/retomada (coleta_showcase.csv)",
+    ],
+    podeFazer: [
+      "Consultar e paginar o catálogo completo",
+      "Baixar todas as fotos disponíveis por produto/cor",
+      "Gerar checkpoint e retomar coleta interrompida",
+      "Gerar catalogo_showcase.xlsx no layout validado",
+      "Fornecer PRODUTO+COR ao WISE Agent para enriquecimento de saldo",
+    ],
+    naoDeve: [
+      "Preencher login/credenciais/MFA",
+      "Assumir marca/região/collection_Id fixos",
+      "Persistir token/cookie/senha em Git ou memória permanente",
+      "Executar ação de escrita no Showcase (pedido, carrinho, cadastro)",
+      "Duplicar a lógica de saldo/campanha do WISE Agent",
+    ],
+    quando: [
+      '"Executar coleta Showcase com fotos e saldos WISE"',
+    ],
+    gatilhos: [
+      ".ai/prompts/coletar-showcase.md",
+    ],
+    fontes: [
+      ".ai/context/showcase-knowledge.md",
+      "docs/operations/ShowcaseAgentRunbook.md",
+      "scripts/showcase_collector/ (collect.js, enrich.js, build_excel.js, README.md)",
+    ],
+    relacionamentos: [
+      { alvo: "WISE Agent", nota: "Fornece catálogo PRODUTO+COR; nunca interpreta campanha/saldo sozinho." },
+    ],
+    pendencias: [
+      "Não existe endpoint único \"quem sou eu\" confirmado — extração de contexto é por inspeção da aba de rede pós-login.",
+      "\"Mercado/Região\" (ex.: LATAM) é INFERIDO do nome do Agent/cliente logado, não de um campo estruturado.",
+      "Sondagem de fotos por convenção de nome pode não funcionar em marca/região com nomenclatura diferente.",
+      "Cruzamento Showcase × WS_ESTOQUE_PRODUTOS validado só estruturalmente.",
+      "Nenhuma particularidade de marca/região registrada ainda além da sessão FARM/LATAM de 2026-08-27.",
+      "Não existe ainda uma classe C# ShowcaseSpecialistAgent registrada no Runtime — só conhecimento .ai/ + script Node.js.",
+    ],
+    exemplo: '"Executar coleta Showcase com fotos e saldos WISE"',
+  },
+  {
+    id: "comprador-senior",
+    nome: "Agente Comprador Sênior",
+    tipo: "Especialista de domínio (planejado)",
+    status: "planejado",
+    statusLabel: "Planejado (Parcial)",
+    objetivo: "Implementar estratégias de negociação, análise de contexto, memória de negociação e recomendações de compra.",
+    conhece: [
+      "Fundação parcial já existe em código: INegotiationMemory (memória de negociação) e INegotiationStrategy (motor de estratégia baseado em regras) — módulo AI.Negotiation.",
+      "Não há, no código atual, um agente concreto Buyer sênior implementado.",
+    ],
+    podeFazer: [
+      "(Planejado) Recomendar estratégia de negociação a partir de contexto e histórico.",
+    ],
+    naoDeve: [
+      "Ser tratado como implementado — é fundação parcial, não um agente executável de ponta a ponta.",
+    ],
+    quando: [
+      "Ainda não aplicável — backlog sem priorização confirmada pelo Product Owner.",
+    ],
+    gatilhos: [],
+    fontes: [
+      ".ai/work-orders/backlog/fase-a/A6-agente-comprador-senior.md",
+      "backend/src/BlueprintOS.Core/AI/Negotiation/",
+      "backend/src/BlueprintOS.Core/AI/Memory/NegotiationMemory.cs",
+      "backend/src/BlueprintOS.Application/Procurement/Negotiations/",
+    ],
+    relacionamentos: [],
+    pendencias: [
+      "Priorização pendente do Product Owner (Work Order A6, status Parcial).",
+      "Dependências: A2 e A3.",
+    ],
+    exemplo: null,
+  },
+  {
+    id: "agente-negociacao",
+    nome: "Agente de Negociação",
+    tipo: "Especialista de domínio (planejado)",
+    status: "planejado",
+    statusLabel: "Planejado (Draft)",
+    objetivo: "Executar negociações assistidas ou automatizadas por canais controlados, mantendo contexto e regras de autonomia.",
+    conhece: ["Nenhum conhecimento operacional persistido ainda — apenas a Work Order de backlog."],
+    podeFazer: ["(Planejado) Negociar por canais controlados, dentro de regras de autonomia a definir."],
+    naoDeve: ["Ser considerado implementado."],
+    quando: ["Ainda não aplicável — status Draft, não aprovado."],
+    gatilhos: [],
+    fontes: [".ai/work-orders/backlog/fase-c/C3-agente-de-negociacao.md"],
+    relacionamentos: [],
+    pendencias: ["Work Order C3: status Draft, não aprovada. Dependências: C2 e C5."],
+    exemplo: null,
+  },
+  {
+    id: "agente-compliance",
+    nome: "Agente de Compliance",
+    tipo: "Especialista de domínio (planejado)",
+    status: "planejado",
+    statusLabel: "Planejado (Draft)",
+    objetivo: "Avaliar processos de compra, explicar inconsistências e recomendar correções antes da aprovação.",
+    conhece: ["Nenhum conhecimento operacional persistido ainda — apenas a Work Order de backlog."],
+    podeFazer: ["(Planejado) Avaliar e explicar inconsistências de processo de compra."],
+    naoDeve: ["Ser considerado implementado."],
+    quando: ["Ainda não aplicável — status Draft, não aprovado."],
+    gatilhos: [],
+    fontes: [".ai/work-orders/backlog/fase-d/D4-agente-de-compliance.md"],
+    relacionamentos: [],
+    pendencias: ["Work Order D4: status Draft, não aprovada. Dependências: D3, Knowledge e AI Runtime."],
+    exemplo: null,
+  },
+  {
+    id: "agente-risco",
+    nome: "Agente de Risco",
+    tipo: "Especialista de domínio (planejado)",
+    status: "planejado",
+    statusLabel: "Planejado (Draft)",
+    objetivo: "Interpretar sinais, produzir análise explicável e recomendar mitigação ou bloqueio (risco de fornecedor/ESG).",
+    conhece: ["Nenhum conhecimento operacional persistido ainda — apenas a Work Order de backlog."],
+    podeFazer: ["(Planejado) Analisar sinais de risco e recomendar mitigação/bloqueio, de forma explicável."],
+    naoDeve: ["Ser considerado implementado."],
+    quando: ["Ainda não aplicável — status Draft, não aprovado."],
+    gatilhos: [],
+    fontes: [".ai/work-orders/backlog/fase-e/E4-agente-de-risco.md"],
+    relacionamentos: [],
+    pendencias: ["Work Order E4: status Draft, não aprovada. Dependências: E1 a E3; AI Runtime."],
+    exemplo: null,
+  },
+];
+
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+function renderList(items) {
+  if (!items || !items.length) return '<span style="color:var(--text-dim)">— nenhum registrado —</span>';
+  return '<ul>' + items.map(i => `<li>${i}</li>`).join('') + '</ul>';
+}
+
+function renderFiles(files) {
+  if (!files || !files.length) return '';
+  return `<div class="filebox">${files.map(f => `<div>${f}</div>`).join('')}</div>`;
+}
+
+function renderCard(agent) {
+  const card = el('article', 'card');
+  card.dataset.id = agent.id;
+  card.dataset.search = [
+    agent.nome, agent.tipo, agent.objetivo,
+    (agent.conhece || []).join(' '), (agent.podeFazer || []).join(' '),
+    (agent.relacionamentos || []).map(r => r.alvo).join(' '),
+  ].join(' ').toLowerCase();
+
+  const statusClass = agent.status === 'ativo' ? 'status-ativo' : agent.status === 'evolucao' ? 'status-evolucao' : 'status-planejado';
+  const pendCount = (agent.pendencias || []).length;
+
+  card.innerHTML = `
+    <div class="card-top">
+      <h3>${agent.nome}</h3>
+    </div>
+    <div class="badges">
+      <span class="pill tipo">${agent.tipo}</span>
+      <span class="pill ${statusClass}">${agent.statusLabel}</span>
+    </div>
+    <div class="objetivo">${agent.objetivo}</div>
+
+    <div class="kv">
+      <div class="kv-title">Conhece</div>
+      ${renderList((agent.conhece || []).slice(0, 4))}
+    </div>
+    <div class="kv">
+      <div class="kv-title">Pode fazer</div>
+      ${renderList(agent.podeFazer)}
+    </div>
+    ${agent.relacionamentos && agent.relacionamentos.length ? `
+    <div class="kv relates">
+      <div class="kv-title">Integra com</div>
+      ${agent.relacionamentos.map(r => `<div><span class="arrow">→</span> ${r.alvo}</div>`).join('')}
+    </div>` : ''}
+    <div>
+      <span class="pend-count ${pendCount === 0 ? 'zero' : ''}">${pendCount} pendência${pendCount === 1 ? '' : 's'}</span>
+    </div>
+
+    <details class="more">
+      <summary>Ver detalhes</summary>
+      <div class="more-body">
+        ${agent.exemplo ? `<div class="example">${agent.exemplo}</div>` : ''}
+        <div class="kv">
+          <div class="kv-title">O que não deve fazer</div>
+          ${renderList(agent.naoDeve)}
+        </div>
+        <div class="kv">
+          <div class="kv-title">Quando utilizar</div>
+          ${renderList(agent.quando)}
+        </div>
+        <div class="kv">
+          <div class="kv-title">Todo o conhecimento (completo)</div>
+          ${renderList(agent.conhece)}
+        </div>
+        ${agent.gatilhos && agent.gatilhos.length ? `
+        <div class="kv">
+          <div class="kv-title">Gatilhos / prompts associados</div>
+          ${renderFiles(agent.gatilhos)}
+        </div>` : ''}
+        <div class="kv">
+          <div class="kv-title">Fontes de conhecimento</div>
+          ${renderFiles(agent.fontes)}
+        </div>
+        ${agent.relacionamentos && agent.relacionamentos.length ? `
+        <div class="kv">
+          <div class="kv-title">Relacionamentos (detalhe)</div>
+          ${renderList(agent.relacionamentos.map(r => `<b>→ ${r.alvo}:</b> ${r.nota}`))}
+        </div>` : ''}
+        <div class="kv">
+          <div class="kv-title">Pendências / ainda não mapeado</div>
+          ${renderList(agent.pendencias)}
+        </div>
+      </div>
+    </details>
+  `;
+  return card;
+}
+
+function renderAll() {
+  const grid = document.getElementById('cardsGrid');
+  AGENTS.forEach(a => grid.appendChild(renderCard(a)));
+
+  document.getElementById('statAtivos').textContent = AGENTS.filter(a => a.status === 'ativo').length;
+  document.getElementById('statOperacionais').textContent = AGENTS.filter(a => a.status === 'evolucao').length;
+  document.getElementById('statPlanejados').textContent = AGENTS.filter(a => a.status === 'planejado').length;
+}
+
+function applySearch() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const cards = document.querySelectorAll('#cardsGrid .card');
+  let visible = 0;
+  cards.forEach(c => {
+    const match = !q || c.dataset.search.includes(q);
+    c.hidden = !match;
+    if (match) visible++;
+  });
+  document.getElementById('searchCount').textContent = q ? `${visible} de ${cards.length} agents correspondem a "${q}"` : `${cards.length} agents no total`;
+  document.getElementById('noResults').style.display = (q && visible === 0) ? 'block' : 'none';
+}
+
+renderAll();
+applySearch();
+document.getElementById('searchInput').addEventListener('input', applySearch);
+</script>
+</body>
+</html>

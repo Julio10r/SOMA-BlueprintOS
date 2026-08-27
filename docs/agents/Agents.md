@@ -26,6 +26,12 @@ Além dos agentes de runtime acima, o BlueprintOS mantém especialistas de conhe
 
 Os três nunca duplicam responsabilidade entre si (ver detalhe em `wise-knowledge.md`, seção "Relação com o Agent Linx", e em `showcase-knowledge.md`, seção "Colaboração com o WISE Agent").
 
+## Catálogo Visual dos Agents
+
+[`docs/agents/AgentsCatalog.html`](./AgentsCatalog.html) é o catálogo visual consolidado de todos os agents/especialistas do projeto — abre direto no navegador, sem servidor/build. É uma **visão para humanos**, não a fonte canônica: em caso de divergência, os documentos linkados nele (`.ai/context/`, `.ai/prompts/`, `docs/operations/`) sempre prevalecem.
+
+**Regra permanente:** sempre que um agent/especialista for criado, removido, renomeado, tiver responsabilidade alterada, ou receber conhecimento persistente relevante (nova entrada `.ai/context/`, novo prompt-gatilho, novo runbook), revisar e atualizar `docs/agents/AgentsCatalog.html` na mesma mudança — não deixar para depois.
+
 ## AI Factory — fundamentos internos
 
 Os documentos abaixo (migrados de `docs/AI Factory/`) descrevem a arquitetura conceitual interna da AI Factory — o conjunto de capacidades (orquestração, memória, protocolo de tarefas, observabilidade) que sustenta os agentes descritos acima. Alguns descrevem arquitetura-alvo ainda não implementada; não são evidência de código existente.
