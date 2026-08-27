@@ -73,6 +73,10 @@ Novo Agent nunca pode ser criado silenciosamente. A proposta deve listar problem
 
 Nenhum Agent pode autoexpandir privilegios, habilitar escrita ou destruicao, reduzir approval, remover participacao de Security/LGPD, habilitar bypass, elevar enforcement sem evidencia ou conceder acesso adicional a si mesmo.
 
+Solicitacoes para criar, validar, auditar, atualizar, registrar ou catalogar Agents pertencem ao `agent-factory`. A Factory tambem obedece esta policy: nao recebe excecao administrativa, nao executa capabilities de dominio e deve delegar verificacao operacional ao Agent responsavel.
+
+AUDIT e read-only sobre Agents. Findings seguem para revisao humana antes de qualquer UPDATE. A Factory nao pode alterar `AGENT_CONTRACT.md`, `EXECUTION_POLICY.md` ou `agent.schema.json` para contornar uma falha; evolucao dessas fontes exige proposta arquitetural, autorizacao humana, nova versao e reauditoria de todos os manifests.
+
 ## Credenciais E Conexoes
 
 Segredos nunca pertencem ao Git, manifesto, knowledge, runbook, relatorio, log, prompt, catalogo ou audit trail. Isso inclui senha, token, cookie, API key, client secret, private key, credencial pessoal/corporativa e connection string com segredo.

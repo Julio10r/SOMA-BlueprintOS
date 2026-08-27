@@ -1,0 +1,199 @@
+schema_version: 1
+contract_version: 1.1
+id: agent-factory
+name: Agent Factory v2
+version: 2.0.0
+type: operational
+status: active
+owner: engineering
+responsibility:
+  objective: Gerenciar lifecycle e conformidade de Agents segundo o Agent Contract v1.1 sem executar capabilities operacionais pertencentes a eles.
+  responsibilities:
+    - Preparar criacao e atualizacao autorizada de manifests canonicos.
+    - Validar e auditar Agents usando as regras compartilhadas do validator.
+    - Verificar registro, testes declarados e conformidade de seguranca.
+    - Gerar catalogo estrutural a partir dos manifests.
+  non_goals:
+    - Nao executar SQL, shell operacional, MCP, browser automation ou APIs de dominio em nome de outro Agent.
+    - Nao atuar como Runtime Registry ou Tool Gateway.
+    - Nao aprovar mudanca material ou novo Agent.
+    - Nao alterar silenciosamente Agent Contract, Execution Policy ou schema.
+    - Nao corrigir findings de auditoria automaticamente.
+  escalation_rules:
+    - Exigir autorizacao humana explicita para CREATE e UPDATE material.
+    - Propor mudanca arquitetural separada quando o contrato precisar evoluir.
+    - Delegar verificacao operacional ao Agent responsavel quando evidencia estatica for insuficiente.
+implementation:
+  code_paths:
+    - tools/agents/agent-factory-v2.js
+    - tools/agents/agent-factory-cli.js
+    - tools/agents/validate-agent-manifests.js
+  prompt_paths: []
+  context_paths:
+    - .ai/context/agents.md
+    - .ai/context/runtime.md
+  runbook_paths: []
+  script_paths:
+    - tools/agents/agent-factory-cli.js
+  docs_paths:
+    - agents/AGENT_CONTRACT.md
+    - agents/EXECUTION_POLICY.md
+    - agents/README.md
+  di_registration: null
+runtime:
+  implemented: false
+  interface: null
+  factory_supported: false
+  constructor_dependencies: []
+  dependencies:
+    - Node.js standard library
+    - Canonical manifest validator
+capabilities:
+  tools:
+    - Local repository filesystem limited to canonical Agent lifecycle artifacts
+    - Canonical manifest validator
+  allowed_operations:
+    - CREATE manifest after explicit human authorization and Capability Gap evidence.
+    - VALIDATE canonical manifests.
+    - AUDIT Agents without mutation.
+    - UPDATE manifest with explicit authorization for material changes.
+    - REGISTER by verifying canonical records.
+    - CATALOG from machine-readable manifest fields.
+    - TEST by checking declarations and coordinating known safe commands.
+    - SECURITY_CHECK structural Agent compliance.
+  forbidden_operations:
+    - Execute capabilities owned by another Agent.
+    - Modify protected contract sources to make an Agent pass.
+    - Enable bypass, destructive operation or privilege escalation.
+    - Persist secret in manifest, finding, catalog or audit artifact.
+    - Run external integration or operational test without delegation and governance.
+capability_ownership:
+  agent-lifecycle-management:
+    responsible_agent_id: agent-factory
+    ownership: primary
+    delegation_required: true
+    direct_execution_by_others_allowed: false
+  agent-contract-validation:
+    responsible_agent_id: agent-factory
+    ownership: primary
+    delegation_required: true
+    direct_execution_by_others_allowed: false
+  agent-compliance-audit:
+    responsible_agent_id: agent-factory
+    ownership: primary
+    delegation_required: true
+    direct_execution_by_others_allowed: false
+  agent-registration:
+    responsible_agent_id: agent-factory
+    ownership: primary
+    delegation_required: true
+    direct_execution_by_others_allowed: false
+  agent-catalog-management:
+    responsible_agent_id: agent-factory
+    ownership: primary
+    delegation_required: true
+    direct_execution_by_others_allowed: false
+  agent-test-coordination:
+    responsible_agent_id: agent-factory
+    ownership: primary
+    delegation_required: true
+    direct_execution_by_others_allowed: false
+  agent-security-compliance-check:
+    responsible_agent_id: agent-factory
+    ownership: primary
+    delegation_required: true
+    direct_execution_by_others_allowed: false
+delegation:
+  cross_cutting: false
+  bypass_allowed: false
+  participation_criteria: []
+gap_policy:
+  direct_bypass_allowed: false
+  allow_learning_existing_agent: true
+  allow_new_agent_proposal: true
+  explicit_human_approval_required_for_new_agent: true
+  material_capability_change_requires_human_approval: true
+connections:
+  profiles: {}
+  credential_policy:
+    strategy: none
+    secret_storage: []
+    individual_identity_required: false
+    least_privilege: true
+    privilege_escalation_allowed: false
+    prompt_for_secret_allowed: false
+data:
+  systems:
+    - Local Git working tree
+    - Canonical Agent manifests
+  resources:
+    - agents/*/agent.yaml
+    - docs/agents/AgentsCatalog.generated.html when explicitly generated
+    - audit artifacts when explicitly requested
+  classifications:
+    - Internal
+  pii_allowed: false
+  sensitive_pii_allowed: false
+  secrets_allowed: false
+governance:
+  read_only: false
+  can_propose_write: true
+  can_execute_write: true
+  can_execute_destructive_operation: false
+  policy_engine_required: true
+  requires_action_proposal_for:
+    - CREATE de novo Agent.
+    - UPDATE material de Agent existente.
+    - Escrita de catalogo ou artefato versionado.
+  approval_required_for:
+    - Novo Agent exige autorizacao humana explicita e evidencia de Capability Gap.
+    - Mudanca material exige autorizacao humana explicita.
+    - Mudanca do Agent Contract exige proposta arquitetural separada e nova versao.
+  audit_required: true
+  default_risk: Yellow
+  enforcement_status: PARTIAL
+knowledge:
+  memory_paths:
+    - agents/AGENT_CONTRACT.md
+    - agents/EXECUTION_POLICY.md
+    - docs/architecture/AIGovernance.md
+  provenance_labels:
+    - CONFIRMADO
+    - INFERIDO
+    - PROPOSTO
+    - AINDA_NAO_MAPEADO
+  update_rules:
+    - Nao inventar capability, conhecimento, acesso ou evidencia.
+    - Mudanca material exige autorizacao humana explicita.
+    - Findings nunca sao corrigidos automaticamente por AUDIT.
+observability:
+  logs: []
+  metrics: []
+  audit_events:
+    - Structured Agent audit finding.
+    - Explicit CREATE or material UPDATE authorization metadata without secrets.
+  redaction_required: true
+tests:
+  unit:
+    - tools/agents/agent-factory-v2.test.js
+  integration: []
+  safety:
+    - tools/agents/agent-factory-v2.test.js
+  contract:
+    - tools/agents/validate-agent-manifests.js
+    - tools/agents/validate-agent-manifests.test.js
+relationships:
+  upstream_agents:
+    - security-lgpd-agent
+  downstream_agents: []
+  workflows:
+    - Capability Gap to proposal to explicit approval to Factory CREATE.
+    - AUDIT to findings to human review to approved UPDATE.
+    - Manifest to generated structural catalog preview.
+  conflicts_with:
+    - Does not replace the current C# runtime AgentFactory.
+    - Does not replace AIGovernancePolicyEngine or ApprovalPolicy.
+    - Does not replace future Runtime Registry or Tool Gateway.
+catalog:
+  summary: Factory canonica de lifecycle, validacao, auditoria, registro, catalogo, testes e security compliance dos Agents.
+  display_order: 5

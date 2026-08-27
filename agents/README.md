@@ -51,18 +51,17 @@ Todo Agent deve declarar se e somente leitura, se pode propor escrita, se pode e
 
 Nenhum Agent pode autoaprovar acao sensivel. A decisao bloqueante pertence ao `AIGovernancePolicyEngine`, a validacao de autorizacao pertence ao `ApprovalPolicy`, e auditoria pertence ao `GovernanceAuditRecorder` ou ao mecanismo que vier a substitui-lo.
 
-## Criacao Futura Pela Agent Factory
+## Agent Factory v2
 
-Nesta etapa, a Agent Factory completa ainda nao foi criada. A `AgentFactory` atual do backend continua sendo apenas um instanciador runtime simples.
+O `agent-factory` e o Agent responsavel por lifecycle e conformidade. Sua implementacao em `tools/agents/agent-factory-v2.js` oferece CREATE, VALIDATE, AUDIT, UPDATE, REGISTER, CATALOG, TEST e SECURITY_CHECK reutilizando o validator canonico.
 
-Em etapa posterior, a Future Agent Factory devera usar este contrato para:
+A `AgentFactory` C# existente permanece um instanciador runtime simples. A Factory v2 nao e Runtime Registry, Tool Gateway ou Policy Engine. Operacoes de auditoria nao modificam Agents; novo Agent e mudanca material exigem autorizacao humana explicita.
 
-- criar manifests e scaffolds;
-- validar conformidade;
-- registrar agents;
-- gerar catalogos;
-- auditar seguranca;
-- apontar gaps antes de alteracoes de comportamento.
+```bash
+node tools/agents/agent-factory-cli.js validate
+node tools/agents/agent-factory-cli.js audit
+node tools/agents/agent-factory-cli.js security-check agent-factory
+```
 
 ## Bootstrap Para Humanos E IAs
 

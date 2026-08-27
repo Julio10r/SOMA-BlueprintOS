@@ -11,6 +11,7 @@ const sourceText = fs.readFileSync(sourcePath, "utf8");
 const knownAgentIds = new Set([
   "echo-agent", "knowledge-agent", "security-lgpd-agent", "linx-erp-specialist-agent",
   "linx-database-specialist-agent", "wise-agent", "showcase-agent",
+  "agent-factory",
 ]);
 
 function cloneBase() {

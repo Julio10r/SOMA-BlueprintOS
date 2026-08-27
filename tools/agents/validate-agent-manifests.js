@@ -7,11 +7,6 @@ const repoRoot = path.resolve(__dirname, "../..");
 const agentsRoot = path.join(repoRoot, "agents");
 const schemaPath = path.join(agentsRoot, "agent.schema.json");
 
-const expectedAgentIds = [
-  "echo-agent", "knowledge-agent", "security-lgpd-agent", "linx-erp-specialist-agent",
-  "linx-database-specialist-agent", "wise-agent", "showcase-agent",
-];
-
 const allowedTypes = new Set(["runtime", "knowledge", "operational", "hybrid"]);
 const allowedStatus = new Set(["active", "planned", "deprecated", "retired"]);
 const allowedRisks = new Set(["Green", "Yellow", "Red", "Unknown"]);
@@ -184,42 +179,50 @@ function validateManifest(manifest, text, relativePath, knownAgentIds, options =
       ...(manifest.tests?.integration || []), ...(manifest.tests?.safety || []), ...(manifest.tests?.contract || []),
     ];
     for (const candidate of pathGroups) {
-      if (!fs.existsSync(path.join(repoRoot, candidate))) add(`referenced path does not exist: ${candidate}`);
+      const validationRoot = options.repoRoot || repoRoot;
+      if (!fs.existsSync(path.join(validationRoot, candidate))) add(`referenced path does not exist: ${candidate}`);
     }
   }
   return errors;
 }
 
-function loadRepositoryManifests() {
-  const paths = fs.readdirSync(agentsRoot, { withFileTypes: true })
+function loadRepositoryManifests(validationRoot = repoRoot) {
+  const validationAgentsRoot = path.join(validationRoot, "agents");
+  const paths = fs.readdirSync(validationAgentsRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
-    .map((entry) => path.join(agentsRoot, entry.name, "agent.yaml"))
+    .map((entry) => path.join(validationAgentsRoot, entry.name, "agent.yaml"))
     .filter(fs.existsSync)
     .sort();
   return paths.map((manifestPath) => {
-    const relativePath = path.relative(repoRoot, manifestPath);
+    const relativePath = path.relative(validationRoot, manifestPath);
     const text = fs.readFileSync(manifestPath, "utf8");
     return { manifestPath, relativePath, text, manifest: parseManifest(text, relativePath) };
   });
 }
 
-function main() {
+function validateRepository(validationRoot = repoRoot) {
   const errors = [];
-  if (!fs.existsSync(schemaPath)) errors.push("agents/agent.schema.json is missing");
+  const validationSchemaPath = path.join(validationRoot, "agents/agent.schema.json");
+  if (!fs.existsSync(validationSchemaPath)) errors.push("agents/agent.schema.json is missing");
   else {
-    try { JSON.parse(fs.readFileSync(schemaPath, "utf8")); } catch (error) { errors.push(`invalid schema JSON: ${error.message}`); }
+    try { JSON.parse(fs.readFileSync(validationSchemaPath, "utf8")); } catch (error) { errors.push(`invalid schema JSON: ${error.message}`); }
   }
 
   let records = [];
-  try { records = loadRepositoryManifests(); } catch (error) { errors.push(error.message); }
+  try { records = loadRepositoryManifests(validationRoot); } catch (error) { errors.push(error.message); }
   const ids = new Set(records.map((record) => record.manifest.id));
   if (ids.size !== records.length) errors.push("duplicate Agent id detected");
-  for (const expected of expectedAgentIds) if (!ids.has(expected)) errors.push(`missing manifest for known Agent ${expected}`);
 
   for (const record of records) {
     if (record.manifest.id !== path.basename(path.dirname(record.manifestPath))) errors.push(`${record.relativePath}: manifest id must match directory name`);
-    errors.push(...validateManifest(record.manifest, record.text, record.relativePath, ids, { validatePaths: true }));
+    errors.push(...validateManifest(record.manifest, record.text, record.relativePath, ids, { validatePaths: true, repoRoot: validationRoot }));
   }
+
+  return { records, ids, errors };
+}
+
+function main() {
+  const { records, ids, errors } = validateRepository(repoRoot);
 
   if (errors.length) {
     for (const error of errors) console.error(`FAIL: ${error}`);
@@ -233,5 +236,5 @@ function main() {
   console.log("PASS: no bypass, privilege escalation or secret values detected");
 }
 
-module.exports = { parseManifest, validateManifest, secretPatterns };
+module.exports = { loadRepositoryManifests, parseManifest, validateManifest, validateRepository, secretPatterns };
 if (require.main === module) main();

@@ -120,11 +120,13 @@ Nenhum Agent pode autoexpandir capabilities sensiveis, escrita, destruicao, bypa
 
 Permissao da identidade e aprovacao BlueprintOS sao independentes e ambas obrigatorias. Agents nao pedem segredo no chat, nao procuram credenciais no Git e nao trocam/elevam identidade quando o acesso for negado.
 
-## Relacao Com A AgentFactory Atual
+## Relacao Com As Factories
 
-`backend/src/BlueprintOS.Core/Agents/AgentFactory.cs` continua sendo um instanciador runtime simples.
+`backend/src/BlueprintOS.Core/Agents/AgentFactory.cs` continua sendo o instanciador runtime simples e compativel com seus consumidores existentes.
 
-A Future Agent Factory sera outro nivel de responsabilidade: criacao, validacao, auditoria, registro, catalogo, testes e checagem de seguranca a partir deste contrato.
+`tools/agents/agent-factory-v2.js` e a Factory canonica de lifecycle: CREATE, VALIDATE, AUDIT, UPDATE, REGISTER, CATALOG, TEST e SECURITY_CHECK. Ela reutiliza o validator canonico, nao executa capabilities operacionais e nao substitui Policy Engine, ApprovalPolicy, Runtime Registry ou Tool Gateway.
+
+A Factory v2 e governada por `agents/agent-factory/agent.yaml`. AUDIT nunca corrige findings; CREATE e UPDATE material exigem autorizacao humana explicita; fontes protegidas do contrato nao podem ser alteradas pela Factory para fazer um Agent passar.
 
 ## Evolucao
 
@@ -132,5 +134,6 @@ Mudancas incompativeis no contrato devem criar nova versao de schema ou decisao 
 
 ```text
 CONTRATO -> SCHEMA -> MANIFESTS -> VALIDACAO -> CONFORMIDADE
--> AGENT FACTORY V2 -> REGISTRY -> TOOL GATEWAY -> REORGANIZACAO FISICA
+-> AGENT FACTORY V2 -> AUDITORIA -> ADEQUACAO AUTORIZADA
+-> REGISTRY -> TOOL GATEWAY -> REORGANIZACAO FISICA
 ```
