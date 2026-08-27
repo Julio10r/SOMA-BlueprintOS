@@ -423,5 +423,43 @@
     "docs/operations/LinxWiseDailyIntegrationRunbook.md",
     "scripts/linx_wise_daily_integration.py"
   ],
-  "push_performed": false
+  "push_performed": false,
+  "additional_round_product_owner_functional_knowledge": {
+    "date": "2026-08-27",
+    "source": "agent_task_prompt_relaying_product_owner_verbal_functional_rule",
+    "classification": "PRODUCT_OWNER_KNOWLEDGE_pending_technical_confirmation_where_noted",
+    "production_investigation_tool": "dotnet run --project backend/src/BlueprintOS.Api -- investigate-linx-prog-op-ped schema --env=production",
+    "production_connectivity": "READY (server=192.168.9.200, database=SOMA)",
+    "confirmed_in_production": {
+      "max_grid_positions": 48,
+      "position_columns": {
+        "PRODUCAO_PROG_PROD": ["P1..P48", "S1..S48", "PO1..PO16"],
+        "PRODUCAO_ORDEM_COR": ["O1..O48", "P1..P48"],
+        "COMPRAS_PRODUTO": ["CO1..CO48", "CE1..CE48"],
+        "PRODUTOS_TAMANHOS": ["TAMANHO_1..TAMANHO_48"]
+      },
+      "grade_table": "PRODUTOS_TAMANHOS (key: GRADE, varchar, joined by value equality to PRODUTOS.GRADE — no physical FK verified, logical relationship confirmed by consistent usage)",
+      "procedures": {
+        "LX_ANM_GERA_OS_ALTERACAO_PCP": { "params": "@XORDEM_PRODUCAO, @COR_PRODUTO, @S1..@S10, @RECALCULA_RESERVA=1, @EXECUTADO OUTPUT, @RETORNO OUTPUT", "semantics": "DELTA", "side_effects": "pre-validates balance against PRODUCAO_TAREFAS_SALDO; calls LX_RECALCULO_RESERVA_MATERIAIS" },
+        "LX_ANM_AJUSTA_PROGRAMACAO_PROD": { "params": "@PROGRAMACAO, @PRODUTO, @COR_PRODUTO, @S1..@S10, @EXECUTADO OUTPUT, @RETORNO OUTPUT", "semantics": "DELTA", "side_effects": "does not check UPDATE rowcount; writes textual log to PRODUCAO_PROGRAMA.OBS" },
+        "LX_MOVIMENTA_COMPRAS_PA": { "params": "@PEDIDO", "semantics": "FINAL_QUANTITY (recomputes totals from CE1..CE48/CO1..CO48 already written by caller)", "side_effects": "recomputes QTDE_ENTREGUE/QTDE_ENTREGAR/VALOR_ENTREGAR/VALOR_ENTREGUE using PONTEIRO_PRECO_TAM" },
+        "LX_RECALCULO_RESERVA_MATERIAIS": { "params": "@PRODUTO, @MOSTRA, @XORDEM_PRODUCAO, @XTIPO_PROCESSO, @MOSTRA_BLOCO_K", "semantics": "n/a (material reserve recalculation)", "side_effects": "recalculates TIPO_RESERVA 1..7 reserves" }
+      },
+      "revenda_correlation": {
+        "REVENDA_false_com_op_pct": 89.6,
+        "REVENDA_true_com_pedido_pct": 99.6,
+        "REVENDA_false_com_pedido_pct": 51.2,
+        "interpretation": "strong auxiliary correlation, not an absolute rule — matches Product Owner instruction"
+      }
+    },
+    "needs_validation": [
+      "Exact mapping between each spreadsheet quantity column (Q_34/Q_36/Q_38/Q_40/Q_42/Q_44) and the real numeric grid position (1..N) applicable to these 39 products — positional theory applied naively (1st column = position 1) makes Q_44 (nonzero in all 77 rows, sum=433) fall outside the 5 real positions of grade '36-44', which is inconsistent with the case being a legitimate rebalancing. Requires Product Owner or spreadsheet author confirmation."
+    ],
+    "superseded_conclusion": {
+      "document": "docs/audits/LinxProgOpPed-ProductionInvestigation.md",
+      "section": "R2.11",
+      "old_conclusion": "Swap PRODUTOS.GRADE of these 39 products to a registered grade code that includes the visual label '34' (e.g. \"36 - 44 - 34\")",
+      "correction": "Grade is positional, not by visual label; this conclusion was built from visual-label interpretation and must not be kept as the general rule. Text preserved for history in both docs; correction notes added inline without deletion."
+    }
+  }
 }
