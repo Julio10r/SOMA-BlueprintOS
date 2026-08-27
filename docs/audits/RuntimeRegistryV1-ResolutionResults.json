@@ -1,0 +1,119 @@
+{
+  "contract_version": "1.1",
+  "generated_at": "2026-08-27",
+  "discovered_agents": [
+    "agent-factory",
+    "echo-agent",
+    "knowledge-agent",
+    "linx-database-specialist-agent",
+    "linx-erp-specialist-agent",
+    "security-lgpd-agent",
+    "showcase-agent",
+    "wise-agent"
+  ],
+  "indexed_capabilities": [
+    "agent-catalog-management",
+    "agent-compliance-audit",
+    "agent-contract-validation",
+    "agent-lifecycle-management",
+    "agent-registration",
+    "agent-security-compliance-check",
+    "agent-test-coordination",
+    "ai-runtime-echo",
+    "linx-database-analysis",
+    "linx-erp-functional-analysis",
+    "organizational-knowledge-query",
+    "security-privacy-review",
+    "showcase-read-only-collection",
+    "wise-operational-analysis"
+  ],
+  "ownership_summary": {
+    "primary": 13,
+    "complementary": 1
+  },
+  "cross_cutting_agents": [
+    "security-lgpd-agent"
+  ],
+  "conflicts": [],
+  "invalid_agents": [],
+  "sample_resolutions": {
+    "soma_production_concept": {
+      "requested_capabilities": [
+        "linx-database-analysis",
+        "soma-database-write"
+      ],
+      "routes": [
+        {
+          "capability": "linx-database-analysis",
+          "status": "ROUTING_RESOLVED",
+          "primary_agent": "linx-database-specialist-agent",
+          "complementary_agents": [],
+          "cross_cutting_agents": [],
+          "cross_cutting_candidates": ["security-lgpd-agent"],
+          "delegation_required": true,
+          "runtime_implemented": true,
+          "enforcement_status": "PARTIAL",
+          "direct_bypass_allowed": false
+        },
+        {
+          "capability": "soma-database-write",
+          "status": "CAPABILITY_GAP",
+          "primary_agent": null,
+          "direct_bypass_allowed": false
+        }
+      ],
+      "routing_resolved": false,
+      "execution_performed": false,
+      "authorization_granted": false
+    },
+    "showcase": {
+      "capability": "showcase-read-only-collection",
+      "status": "ROUTING_RESOLVED",
+      "primary_agent": "showcase-agent",
+      "complementary_agents": [],
+      "cross_cutting_candidates": ["security-lgpd-agent"],
+      "runtime_implemented": false,
+      "enforcement_status": "DOCUMENTAL",
+      "workflows": [
+        "Showcase catalog collection flow.",
+        "Showcase to WISE stock enrichment flow."
+      ],
+      "execution_performed": false
+    },
+    "wise": {
+      "capability": "wise-operational-analysis",
+      "status": "ROUTING_RESOLVED",
+      "primary_agent": "wise-agent",
+      "complementary_agents": [],
+      "cross_cutting_candidates": ["security-lgpd-agent"],
+      "runtime_implemented": false,
+      "enforcement_status": "DOCUMENTAL",
+      "related_agents": [
+        "linx-erp-specialist-agent",
+        "linx-database-specialist-agent",
+        "showcase-agent",
+        "security-lgpd-agent"
+      ],
+      "execution_performed": false
+    }
+  },
+  "capability_gaps": [
+    {
+      "requested_capability": "soma-database-write",
+      "reason": "No matching capability is declared.",
+      "similar_capabilities": ["linx-database-analysis"],
+      "direct_bypass_allowed": false,
+      "new_agent_requires_explicit_human_approval": true
+    }
+  ],
+  "reaudit_summary": {
+    "status": "WARN",
+    "agents": 8,
+    "warnings_before": 12,
+    "warnings_after": 12,
+    "findings": {
+      "AFV2-GOV-001": 8,
+      "AFV2-GATEWAY-001": 4
+    }
+  }
+}
