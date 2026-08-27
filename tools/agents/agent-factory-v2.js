@@ -156,6 +156,7 @@ class AgentFactoryV2 {
 
     const repositoryFindings = (validationByAgent.get("repository") || []).map((error) =>
       finding("repository", "AFV2-REG-001", "ERROR", "REGISTRATION", "Canonical Agent set must validate as a repository", "agents/*/agent.yaml", error, "Repository validation passes", "Repair registration inconsistency after review."));
+    repositoryFindings.push(...this.canonicalPolicyFindings());
 
     return {
       contract_version: "1.1",
@@ -165,6 +166,24 @@ class AgentFactoryV2 {
       agents,
       findings: repositoryFindings,
     };
+  }
+
+  canonicalPolicyFindings() {
+    const CANONICAL_POLICIES = [
+      "agents/USER_ARTIFACT_LEARNING_POLICY.md",
+      "agents/CAPABILITY_GAP_AND_AGENT_EVOLUTION_POLICY.md",
+    ];
+    const findings = [];
+    const contractPath = path.join(this.repoRoot, "agents/AGENT_CONTRACT.md");
+    const contractText = fs.existsSync(contractPath) ? fs.readFileSync(contractPath, "utf8") : "";
+    for (const policyPath of CANONICAL_POLICIES) {
+      const exists = fs.existsSync(path.join(this.repoRoot, policyPath));
+      const referenced = contractText.includes(policyPath);
+      if (!exists || !referenced) {
+        findings.push(finding("repository", "AFV2-POLICY-001", "WARNING", "GOVERNANCE", "Canonical learning/evolution policies must exist and be referenced by the Agent Contract", policyPath, exists ? "Not referenced by AGENT_CONTRACT.md" : "File missing", "Policy file present and referenced by agents/AGENT_CONTRACT.md", "Restore the canonical policy file and its reference; these policies must be inherited by every Agent regardless of provider.", { requiresHumanApproval: false }));
+      }
+    }
+    return findings;
   }
 
   securityCheck(manifest) {

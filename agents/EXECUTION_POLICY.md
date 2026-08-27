@@ -4,6 +4,10 @@ Versao: 1.1
 Status: accepted
 Escopo: qualquer IA, modelo, executor, Agent ou ferramenta operando no SOMA BlueprintOS.
 
+## Politicas Canonicas Complementares
+
+`agents/USER_ARTIFACT_LEARNING_POLICY.md` (artefato de usuario e evidencia, nunca comando automatico) e `agents/CAPABILITY_GAP_AND_AGENT_EVOLUTION_POLICY.md` (fluxo Knowledge Gap/Capability Gap e evolucao controlada de Agents) detalham, sem contradizer, as regras de "Capability Gap" e "Evolucao E Criacao De Agents" abaixo. Ambas se aplicam a qualquer IA/executor, sem regra especifica por provider.
+
 ## Regra Global
 
 Toda tarefa pertencente ao dominio ou capability de um Agent registrado deve ser delegada, conduzida ou validada pelo Agent responsavel declarado em `agents/<agent-id>/agent.yaml`.

@@ -1,0 +1,141 @@
+{
+  "task": "AgentLearningV1-LinxProgOpPed",
+  "timestamp": "2026-08-27T00:00:00Z",
+  "policy_note": "Nenhuma escrita real em qualquer banco. Nenhum SQL executado. LIVE_EXECUTION permanece desabilitado (Tool Gateway dry-run only). Caso real PROG/OP/PED parado em WAITING_FOR_EVIDENCE.",
+  "baseline": {
+    "agents_count": { "expected_by_user": 8, "actual": 8, "match": true, "source": "count of agents/*/agent.yaml" },
+    "capabilities_count": { "expected_by_user": 15, "actual": 15, "match": true, "source": "unique keys across capability_ownership of all agents/*/agent.yaml" },
+    "agent_factory_v2_audit_warn_findings": {
+      "expected_by_user": 12,
+      "actual_live_command": 12,
+      "actual_stale_doc_docs_audits_AgentFactoryV2_Implementacao_e_Auditoria_md": 18,
+      "match_live_command": true,
+      "note": "docs/audits/AgentFactoryV2-Implementacao-e-Auditoria.md (secao de totais, linha ~140) reporta 18 WARNING de uma execucao anterior; a execucao real de `node tools/agents/agent-factory-cli.js AUDIT` nesta tarefa (antes e depois das mudancas) retorna 12 findings WARNING no total, com todos os 8 Agents em status WARN. Divergencia entre doc historico e estado atual do repositorio documentada, nao maquiada."
+    },
+    "soma_database_write_proposal_capability_in_linx_database_specialist_agent": { "exists": true, "source": "agents/linx-database-specialist-agent/agent.yaml capability_ownership" },
+    "can_execute_write_false_in_linx_database_specialist_agent": { "value": false, "confirmed": true },
+    "live_execution_disabled_in_toolgateway": { "confirmed": true, "source": "backend/src/BlueprintOS.Core/AI/Governance/ToolGateway.cs, GovernedWriteModels.cs (LiveExecutionEnabled = false default; ExecutionMode.LiveExecution always rejected with LIVE_EXECUTION_DISABLED)" },
+    "tool_gateway_dry_run_only": { "confirmed": true }
+  },
+  "policy_validation": {
+    "user_artifact_learning_policy": {
+      "path": "agents/USER_ARTIFACT_LEARNING_POLICY.md",
+      "referenced_in": ["agents/AGENT_CONTRACT.md", "agents/EXECUTION_POLICY.md"],
+      "implemented_in_code": [
+        "backend/src/BlueprintOS.Core/AI/Governance/UserArtifactLearningPolicy.cs",
+        "backend/src/BlueprintOS.Core/AI/Governance/Models/UserArtifactLearningModels.cs"
+      ]
+    },
+    "capability_gap_and_agent_evolution_policy": {
+      "path": "agents/CAPABILITY_GAP_AND_AGENT_EVOLUTION_POLICY.md",
+      "referenced_in": ["agents/AGENT_CONTRACT.md", "agents/EXECUTION_POLICY.md"],
+      "implemented_in_code": [
+        "backend/src/BlueprintOS.Core/AI/Governance/CapabilityGapAndAgentEvolutionPolicy.cs",
+        "backend/src/BlueprintOS.Core/AI/Governance/Models/CapabilityGapModels.cs"
+      ]
+    },
+    "provider_agnostic": true,
+    "contract_gap_found": false,
+    "schema_changed": false,
+    "agent_contract_md_changed": "prose section added only (Politicas Canonicas Relacionadas / Politicas Canonicas Complementares); no field semantics changed",
+    "rules_tested": 12,
+    "rules_test_file": "backend/tests/BlueprintOS.UnitTests/Core/AI/Governance/UserArtifactLearningAndCapabilityGapPolicyTests.cs"
+  },
+  "artifacts": {
+    "status": "WAITING_FOR_EVIDENCE",
+    "required": [
+      { "id": "A", "description": "Planilha real de ajustes de grade PROG/OP/PED" },
+      { "id": "B", "description": "SQL historico / modelo de referencia da atualizacao de grade" },
+      { "id": "C", "description": "Explicacao funcional do Product Owner sobre a semantica de PROG/OP/PED" }
+    ],
+    "received": [],
+    "invented": false
+  },
+  "extracted_knowledge": [],
+  "provenance": [],
+  "knowledge_gaps": [
+    "Semantica funcional exata de PROG/OP/PED (o que cada campo representa e como se relacionam) - aguardando artefato C",
+    "Estrutura real da grade de ajuste (colunas, granularidade, chave) - aguardando artefato A",
+    "Consulta/SQL historico de referencia usado no ajuste - aguardando artefato B",
+    "Schema real das tabelas envolvidas no caso PROG/OP/PED - nao inspecionado nesta tarefa por falta de escopo/autorizacao de conexao real"
+  ],
+  "capability_gaps": [
+    {
+      "capability_id": "linx-production-purchase-grade-adjustment",
+      "status": "PROPOSAL_ONLY_NOT_CREATED",
+      "evaluation": "Analise arquitetural registrada em docs/audits/AgentLearningV1-LinxProgOpPed.md; nenhuma capability ou Agent foi criado nesta tarefa."
+    }
+  ],
+  "spreadsheet_analysis": null,
+  "detected_sizes": null,
+  "classifications": null,
+  "impact_analysis": "UNKNOWN",
+  "affected_resources": null,
+  "procedures_analyzed": null,
+  "security_review": {
+    "pii_involved": "UNKNOWN - sem evidencia real",
+    "secrets_handled": false,
+    "credentials_requested": false,
+    "lgpd_relevant": "NEEDS_VALIDATION quando artefatos chegarem"
+  },
+  "policy_decision": "BLOCKED_PENDING_EVIDENCE",
+  "approval_requirement": "Qualquer execucao real (mesmo proposta) exigira ActionProposal, AIGovernancePolicyEngine, ApprovalPolicy e Tool/Adapter governado, com LIVE_EXECUTION permanecendo desabilitado ate decisao humana explicita em separado.",
+  "dry_run": true,
+  "execution_performed": false,
+  "live_execution_enabled": false,
+  "sql_proposed": null,
+  "sql_executed": false,
+  "factory_audit_before": {
+    "status": "WARN",
+    "agents": 8,
+    "total_findings": 12
+  },
+  "factory_audit_after": {
+    "status": "WARN",
+    "agents": 8,
+    "total_findings": 12,
+    "new_repository_findings_from_policy_check": 0
+  },
+  "tests": {
+    "dotnet_governance_unit_tests": { "filter": "FullyQualifiedName~Governance", "passed": 46, "failed": 0 },
+    "dotnet_full_unit_test_suite": { "passed": 904, "failed": 0 },
+    "node_agent_factory_v2_test": "PASS",
+    "node_validate_agent_manifests_test": "PASS",
+    "node_governed_orchestrator_test": "PASS",
+    "node_runtime_registry_test": "PASS",
+    "node_showcase_agent_safety_test": "PASS",
+    "node_wise_agent_safety_test": "PASS"
+  },
+  "files_created": [
+    "agents/USER_ARTIFACT_LEARNING_POLICY.md",
+    "agents/CAPABILITY_GAP_AND_AGENT_EVOLUTION_POLICY.md",
+    "backend/src/BlueprintOS.Core/AI/Governance/UserArtifactLearningPolicy.cs",
+    "backend/src/BlueprintOS.Core/AI/Governance/Models/UserArtifactLearningModels.cs",
+    "backend/src/BlueprintOS.Core/AI/Governance/CapabilityGapAndAgentEvolutionPolicy.cs",
+    "backend/src/BlueprintOS.Core/AI/Governance/Models/CapabilityGapModels.cs",
+    "backend/tests/BlueprintOS.UnitTests/Core/AI/Governance/UserArtifactLearningAndCapabilityGapPolicyTests.cs",
+    "docs/audits/AgentLearningV1-LinxProgOpPed.md",
+    "docs/audits/AgentLearningV1-LinxProgOpPed-Results.json"
+  ],
+  "files_modified": [
+    "agents/AGENT_CONTRACT.md",
+    "agents/EXECUTION_POLICY.md",
+    "tools/agents/agent-factory-v2.js"
+  ],
+  "files_explicitly_not_touched": [
+    ".ai/prompts/processar-planilha-integracao-linx-wise.md",
+    ".ai/context/linx-wise-daily-integration.md",
+    "docs/operations/LinxWiseDailyIntegrationRunbook.md",
+    "scripts/linx_wise_daily_integration.py",
+    "agents/agent.schema.json",
+    "docs/agents/AgentsCatalog.html",
+    "Showcase agent/collector files",
+    "frontend/web/src/procurement/suppliers/*",
+    "backend/*/Suppliers/*",
+    "backend/*/Procurement/Suppliers/*",
+    "backend/*/Fornecedor*",
+    "frontend/web/src/core/AppRoutes.tsx",
+    ".ai/dashboard/DASHBOARD_STATE.md"
+  ],
+  "push_performed": false
+}
