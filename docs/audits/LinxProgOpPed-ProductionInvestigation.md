@@ -1,6 +1,6 @@
 # Linx PROG/OP/PED — Investigacao Authoritative Em Producao
 
-Status: **CONCLUDED — investigacao read-only completa; 1 Knowledge Gap residual, muito mais estreito, aguardando decisao de catalogacao do Product Owner (secao 8)**
+Status: **BLOCKED_BY_PREREQUISITE — investigacao read-only concluida; caso pausado aguardando regularizacao cadastral de `PRODUTOS.GRADE` (36-44 -> 34-44) por processo operacional externo ao PROG/OP/PED (R2.13; Resume Checkpoint em `AgentLearningV1-LinxProgOpPed.md`)**
 Data: 2026-08-27
 Escopo: investigacao read-only em `linx-production` (`SOMA`, `192.168.9.200:1433`) para o caso PROG/OP/PED. Nenhuma escrita, nenhum EXEC mutavel, nenhuma migration.
 
@@ -282,6 +282,14 @@ Generalizavel (persistido como conhecimento reutilizavel do dominio Linx, nao co
 Apesar do progresso substancial (schema/procedures/mecanismo de grade/regra PROG-OP-PED/Delta todos confirmados com dados reais de producao), **uma decisao de negocio ainda bloqueia a proposta de solucao final**: qual codigo de grade cadastrado (`"36 - 44 - 34"`, `34-44`, ou outro) deve ser atribuido a estes 39 produtos para acomodar o tamanho 34. Gerar SQL sem essa decisao seria adivinhar um valor de catalogo, violando o principio desta tarefa.
 
 **Pergunta objetiva final ao Product Owner (texto original, ver correcao acima):** confirmado que a operacao e um rebalanceamento de grade (total de pecas inalterado, comprovado em 77/77 linhas) e que o Linx ja possui grades cadastradas que incluem o tamanho 34 combinado com 36-44 (`"36 - 44 - 34"` entre outras) — **qual codigo de grade deve ser usado como o novo `PRODUTOS.GRADE` destes produtos?** Se a resposta for `"36 - 44 - 34"` (a correspondencia mais direta com a grade atual), o Agent pode entao projetar a estrategia tecnica completa (mudanca de cadastro de grade + redistribuicao de quantidade + procedures aplicaveis) na proxima etapa.
+
+### R2.13 Resposta do Product Owner/compradora responsavel (2026-08-27) — pre-requisito confirmado, execucao bloqueada
+
+A duvida de correspondencia coluna-planilha <-> posicao-Linx (`AgentLearningV1-LinxProgOpPed.md` 7.11.6) foi resolvida pelo Product Owner apos consulta a compradora responsavel: **os produtos desta planilha precisam ter `PRODUTOS.GRADE` alterado de `'36-44'` para `'34-44'`**. A divergencia de grade detectada pelo Agent nesta rodada **era um pre-requisito cadastral real**, nao erro de interpretacao nem confusao rotulo-visual/posicional.
+
+**A alteracao de `PRODUTOS.GRADE` fica fora do escopo do ajuste PROG/OP/PED.** Segundo o Product Owner, essa mudanca especifica exige processo proprio (autorizacoes, liberacao/validacao de Auditoria, participacao do time do CD, ajuste de saldo de estoque, demais controles operacionais) — o Agent nao deve propor SQL, ActionProposal, DRY_RUN nem tentar automatizar essa troca de grade dentro deste caso.
+
+**Status final desta rodada: `BLOCKED_BY_PREREQUISITE`** (motivo `PRODUCT_GRADE_REGISTRATION_MISMATCH`). Ver "Resume Checkpoint" em `docs/audits/AgentLearningV1-LinxProgOpPed.md` para os passos de retomada quando a regularizacao cadastral for concluida — o conhecimento canonico ja confirmado nesta investigacao (chave funcional, classificacao PROG/PED/OP, grade posicional, delta vs quantidade final, as 4 procedures) permanece valido e nao precisa ser reconstruido do zero.
 
 ## R2.12 Confirmacoes Finais Desta Rodada
 

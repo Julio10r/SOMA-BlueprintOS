@@ -291,6 +291,41 @@ A aplicacao estrita da regra posicional a este caso especifico, no entanto, **na
 
 **Pergunta objetiva revisada ao Product Owner:** para os produtos desta planilha, qual e a correspondencia exata entre cada coluna `Q_34/Q_36/Q_38/Q_40/Q_42/Q_44` e a posicao numerica (1..N) da grade Linx que deve ser usada — a posicao e definida pela ordem das colunas da planilha, pela ordem de uma grade especifica ja cadastrada (qual codigo?), ou por outro criterio (ex. mapeamento explicito por tamanho fisico, exigindo antes trocar `PRODUTOS.GRADE` para um codigo que contenha as 6 posicoes)? Enquanto isso nao for esclarecido, nenhuma proposta de escrita pode mapear as colunas da planilha com seguranca para posicoes reais do Linx — nem pelo criterio antigo (rotulo visual) nem por um novo criterio posicional assumido sem confirmacao.
 
+#### 7.11.7 Resposta do Product Owner/compradora responsavel (2026-08-27) — gap reclassificado, execucao bloqueada por pre-requisito
+
+A pergunta objetiva de 7.11.6 foi respondida pelo Product Owner apos consulta a compradora responsavel: **os produtos desta planilha realmente precisam ter o cadastro alterado de `PRODUTOS.GRADE = '36-44'` para `PRODUTOS.GRADE = '34-44'`.** A divergencia detectada pelo Agent nao era erro de interpretacao posicional nem confusao de rotulo visual — era um **pre-requisito cadastral real, confirmado pelo especialista funcional**.
+
+**Reclassificacao do Knowledge Gap (7.9, 7.11.6):**
+
+| Antes | Depois |
+|---|---|
+| `NEEDS_VALIDATION` / `KNOWLEDGE_GAP` (correspondencia coluna-planilha <-> posicao-Linx incerta) | `CONFIRMED_PRODUCT_GRADE_CHANGE_REQUIRED` (confirmado por decisao explicita do Product Owner/compradora, nao por inferencia tecnica) |
+
+O gap **nao esta mais aberto como duvida de interpretacao** — a causa raiz e conhecida e confirmada. O que resta e um bloqueio de execucao, nao mais um gap de conhecimento.
+
+**Fora de escopo deste caso (PROG/OP/PED):** a alteracao de `PRODUTOS.GRADE` de `36-44` para `34-44` **nao sera executada, proposta como SQL, nem automatizada dentro deste fluxo**. Segundo o Product Owner, essa mudanca tem processo proprio, com dependencias adicionais: autorizacoes especificas, liberacao/validacao de Auditoria, participacao do time do CD, ajuste de saldo de estoque, e demais controles operacionais. O Agent nao deve tentar contornar ou antecipar esse processo.
+
+**Status do caso: `BLOCKED_BY_PREREQUISITE`** (motivo: `PRODUCT_GRADE_REGISTRATION_MISMATCH`) — ver "Resume Checkpoint" ao final deste documento.
+
+## Resume Checkpoint
+
+```
+STATUS: BLOCKED_BY_PREREQUISITE
+
+BLOCKER: Produtos ainda cadastrados com grade 36-44.
+
+EXPECTED: Grade 34-44 regularizada pelo processo operacional apropriado
+          (autorizacoes, Auditoria, time do CD, ajuste de saldo de estoque).
+
+RESUME WHEN: Product Owner confirmar conclusao da alteracao cadastral
+             (PRODUTOS.GRADE = '34-44' para os produtos desta planilha).
+
+FIRST ACTION ON RESUME: Validar PRODUTOS.GRADE em producao READ-ONLY
+                         (linx-production/SOMA, agents/DATABASE_CONNECTION_POLICY.md secao 18).
+```
+
+Ao retomar, seguir a sequencia: (1) validar `PRODUTOS.GRADE`/`PRODUTOS_TAMANHOS` read-only em producao para os produtos envolvidos; (2) confirmar que o pre-requisito foi de fato resolvido; (3) reler a planilha; (4) validar `PROGRAMACAO+PRODUTO+COR`; (5) classificar PROG/PED/OP; (6) obter quantidades atuais por posicao; (7) calcular DELTA por posicao; (8) gerar Impact Analysis; (9) so entao construir a proposta tecnica de escrita; (10) passar pela governanca normal (`ActionProposal -> Policy Engine -> Approval -> Tool Gateway`) antes de qualquer execucao. O conhecimento canonico ja confirmado (chave funcional, fluxo REVENDA, classificacao PROG/PED/OP, grade posicional, delta vs quantidade final, as 4 procedures — secao 7.11 acima) **nao precisa ser reinvestigado do zero** na retomada, apenas reaplicado ao novo estado apos a mudanca de grade.
+
 ## 8. Governed Write Stack, Security/LGPD, Policy Decision, Approval Requirement
 
 - **Governed Write Stack**: intacto e reutilizado, nao redesenhado. As novas politicas vivem ao lado de `ActionProposal`, `AIGovernancePolicyEngine`, `ApprovalPolicy`, `ToolGateway` sem substitui-los.
