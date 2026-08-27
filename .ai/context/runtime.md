@@ -28,6 +28,23 @@ Ferramentas (tools) são unidades de capacidade que um agente pode invocar duran
 - é executada de forma assíncrona (ARCHITECTURE.md §11);
 - deve registrar logs e, quando aplicável, métricas de uso (ver [observability.md](./observability.md)).
 
+## Governanca no Runtime
+
+A fundacao tecnica de AI Governance foi adicionada em `BlueprintOS.Core.AI.Governance`:
+
+```text
+Agent/Use Case
+-> ActionProposal
+-> AIGovernancePolicyEngine
+-> ApprovalPolicy
+-> GovernanceAuditRecorder
+-> execucao permitida/bloqueada
+```
+
+Nesta onda, esse fluxo existe como `GovernedActionDemoFlow`, sem executar SQL ou efeito externo. Ele prova a regra central: `Yellow` exige `ApprovalGrant` valido e `Red` fica bloqueado.
+
+O futuro Tool Gateway deve tornar esse caminho obrigatorio para qualquer tool agent-driven com efeito externo. Ate la, Linx, WISE e Showcase mantem seus guardrails existentes; apenas fluxos explicitamente integrados ao Policy Engine estao tecnicamente enforced por esta camada.
+
 ## Orquestração
 
 O conceito de "Maestro" definido em AI_TEAM.md é, em nível de produto, o papel de orquestração. No Runtime, esse papel é implementado como um componente de orquestração que:

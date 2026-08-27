@@ -6,6 +6,8 @@ using BlueprintOS.Application.Procurement.Negotiations.Contracts;
 using BlueprintOS.Application.Procurement.Suppliers;
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Core.AI.Contracts;
+using BlueprintOS.Core.AI.Governance;
+using BlueprintOS.Core.AI.Governance.Contracts;
 using BlueprintOS.Core.AI.Memory;
 using BlueprintOS.Core.AI.Memory.Contracts;
 using BlueprintOS.Core.AI.Memory.Models;
@@ -124,6 +126,15 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IKnowledgeService, KnowledgeService>();
 
         services.AddSingleton<AgentFactory>();
+
+        // AI Governance Onda 1 — nucleo deterministico de policy/approval/auditoria para futuras tools.
+        // Nesta onda nao executa SQL nem substitui os runbooks existentes; fornece a base tecnica para que
+        // actions propostas por agents sejam classificadas e vinculadas a aprovacoes especificas.
+        services.AddSingleton<IAIGovernancePolicyEngine, AIGovernancePolicyEngine>();
+        services.AddSingleton<IApprovalPolicy, ApprovalPolicy>();
+        services.AddSingleton<IGovernanceAuditRecorder, InMemoryGovernanceAuditRecorder>();
+        services.AddSingleton<GovernedActionDemoFlow>();
+        services.AddScoped<SecurityLgpdAgent>();
 
         // O1.13.5 — Fundação dos Agents Especialistas Linx (base de conhecimento persistente e versionada).
         // TimeProvider.System já é registrado por AddIdentityAuthCore no host principal; registrado também

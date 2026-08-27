@@ -32,3 +32,20 @@ Regras estruturais de API (DTOs, versionamento, REST) já estão definidas em ST
 - nunca expor mensagens de erro internas (stack trace, detalhes de infraestrutura) diretamente ao cliente.
 
 Ver também [observability.md](./observability.md) para auditoria e rastreamento de acesso.
+
+## AI Governance
+
+A Onda 1 de governanca de Agents esta documentada em `docs/architecture/AIGovernance.md` e implementada no nucleo `BlueprintOS.Core.AI.Governance`.
+
+Separacao obrigatoria:
+
+- **Policy Engine**: regra deterministica e bloqueante quando conectada a um fluxo.
+- **Security/LGPD Agent**: especialista consultivo para interpretar contexto, LGPD, minimizacao, finalidade, exposicao em logs/prompts/planilhas e riscos residuais.
+
+Nenhum Agent de dominio deve autoaprovar operacao potencialmente sensivel. Agents podem propor, explicar e estimar impacto; a aprovacao deve estar vinculada ao `ActionProposal.ProposalHash`.
+
+Quando a classificacao de dados for desconhecida, nao inventar. Usar `Unknown` e tratar com cautela.
+
+Segredos (`senha`, `token`, `cookie`, `connection string`, `API key`, `client secret`) devem ser tratados como risco maximo. Tentativas de persistir, logar, exportar, colocar em prompt, relatorio ou Git devem ser modeladas com `ContainsSecrets = true` ou `DataClassification = SecretCredential`, resultando em `Red`.
+
+Status atual: enforcement tecnico existe no `AIGovernancePolicyEngine`, `ApprovalPolicy` e `GovernedActionDemoFlow`; Tool Gateway universal, persistencia de auditoria/aprovacoes e interceptacao de scripts externos ainda sao planejados.

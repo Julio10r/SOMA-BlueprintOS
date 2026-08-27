@@ -69,6 +69,7 @@ Reexecutar `node collect.js` é seguro: fotos já marcadas `ok` em `coleta_showc
 - Nunca alterar pedido, carrinho, cadastro, configuração ou qualquer dado do portal.
 - Nunca disparar centenas de requisições simultâneas — respeitar a cadência já validada (ver `showcase-knowledge.md`, "Implementação Validada").
 - Nunca persistir token/cookie/senha em Git ou memória permanente.
+- AI Governance Onda 1: exportacao local com dados pessoais, informacao comercial sensivel ou risco de segredo deve ser representada como `ActionProposal` quando o fluxo estiver integrado ao backend. O coletor atual ainda nao passa por Tool Gateway universal.
 
 ## Autoteste Conceitual
 

@@ -31,6 +31,22 @@ Cada agente possui responsabilidade única (AI_TEAM.md, princípio de Especializ
 - altera memória de outro agente ou o trabalho de outro agente;
 - responde diretamente ao usuário sem passar pela orquestração (Maestro/Runtime).
 
+## Governanca de Acoes Sensiveis
+
+Agents de dominio nao autoaprovam operacoes potencialmente sensiveis. Quando um agent precisar propor escrita, exportacao, chamada externa com efeito material, acesso a dado pessoal, uso de segredo ou qualquer operacao destrutiva, a acao deve ser representada como `ActionProposal` e avaliada por `AIGovernancePolicyEngine`.
+
+O `SecurityLgpdAgent` existe como especialista consultivo em seguranca, privacidade e LGPD. Ele interpreta contexto e explica riscos; a decisao bloqueante e deterministica no Policy Engine.
+
+Status de enforcement nesta onda:
+
+- `SecurityLgpdAgent`: implementado em codigo como agent consultivo.
+- `ActionProposal`, `PolicyDecision`, `ApprovalRequest`, `ApprovalGrant`: implementados como modelos imutaveis.
+- `ApprovalPolicy`: valida hash, expiracao e revogacao.
+- `GovernedActionDemoFlow`: demonstra enforcement sem executar operacao real.
+- Tool Gateway universal: planejado.
+
+Nao declarar que um agent passa tecnicamente pelo Policy Engine enquanto ele ainda nao estiver conectado a um adapter/tool governado.
+
 ## Relação com Memory e Planner
 
 - **Memory:** cada agente tem acesso à sua própria memória de curto prazo (contexto de execução da tarefa atual) e pode consultar memória de médio/longo prazo relevante ao seu domínio (ver [memory.md](./memory.md)).

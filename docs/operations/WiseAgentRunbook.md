@@ -104,6 +104,7 @@ Números históricos, como os `446` produto/cores ativos observados em uma execu
 - Nunca executar `INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, `MERGE`, `ALTER`, `DROP`, `CREATE` ou procedure de escrita automaticamente.
 - Se uma tarefa exigir alteração no WISE, seguir [LinxWiseDailyIntegrationRunbook.md](./LinxWiseDailyIntegrationRunbook.md) (se for a rotina diária já coberta) ou explicar a alteração proposta, mostrar os registros afetados via `SELECT` prévio, e aguardar autorização explícita antes de qualquer escrita.
 - Nunca executar automaticamente as procedures legadas `dbo.PROC_INTEGRACAO_LINX_WISE_TB_AUXILIARES_COM_ESTOQUE`, `dbo.PROC_INTEGRACAO_LINX_WISE_PRODUTOS` ou `dbo.PROC_INTEGRACAO_LINX_WISE_ESTOQUE`; elas são referência de regra legada, não rotina atual autorizada.
+- AI Governance Onda 1: quando a operacao estiver conectada ao backend/governance, a escrita deve nascer como `ActionProposal` e passar pelo `AIGovernancePolicyEngine`. Ate o Tool Gateway universal existir, este runbook permanece a barreira operacional para execucoes fora do runtime.
 
 ## Erros Conhecidos
 

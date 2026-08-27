@@ -24,6 +24,7 @@ Segue o mesmo modelo já estabelecido em [linx-wise-daily-integration.md](./linx
 - **Modelo utilizado:** o modelo de IA/agente configurado na sessão corrente no momento da execução (nenhum modelo específico é fixado por este documento).
 - **Memória utilizada:** este arquivo (`showcase-knowledge.md`) é a memória de longo prazo/reutilizável do agente. Contexto de sessão (token, brand_Id, etc.) é memória de curto prazo, válida apenas durante a execução — nunca persistida (ver "Autenticação").
 - **Permissões:** somente leitura no Showcase. Nenhuma permissão de escrita é concedida a este agente.
+- **Governanca Security/LGPD:** exportacoes locais de catalogo/fotos/saldos podem conter informacao comercial sensivel e, quando houver dados pessoais, devem ser modeladas como `ActionProposal`. O Security/LGPD Agent interpreta contexto; o bloqueio tecnico pertence ao `AIGovernancePolicyEngine` quando o fluxo estiver conectado.
 
 ## Rótulos de Proveniência
 
@@ -151,6 +152,7 @@ Abas adicionais confirmadas: `Fotos` (produto, cor, ordem, arquivo local, status
 - Nunca alterar pedidos, produtos, carrinho, configurações, usuários ou qualquer informação do portal.
 - Nunca disparar centenas de requisições simultâneas — cadência controlada (ver "Implementação Validada").
 - Nunca imprimir token, senha ou connection string.
+- AI Governance Onda 1: o Showcase Agent reconhece a camada Security/LGPD. O coletor atual continua fora de um Tool Gateway universal; portanto o enforcement e documental no script/runbook, exceto quando um fluxo futuro encapsular a coleta/exportacao em `ActionProposal`.
 
 ## Memória Evolutiva — Particularidades por Marca/Região
 

@@ -23,6 +23,7 @@ Este documento segue o mesmo modelo já estabelecido em [linx-wise-daily-integra
 - **Modelo utilizado:** o modelo de IA configurado no `IAIRuntime` do BlueprintOS no momento da execução (nenhum modelo específico é fixado por este documento).
 - **Memória utilizada:** este arquivo (`wise-knowledge.md`) é a memória de longo prazo/reutilizável do agente. Memória de curto prazo (contexto da tarefa atual) segue o modelo padrão descrito em [context/memory.md](./memory.md).
 - **Permissões:** somente leitura por padrão no WISE (ver "Segurança"). Nenhuma permissão de escrita é concedida a este agente.
+- **Governanca Security/LGPD:** quando uma tarefa WISE propuser escrita, exportacao material ou contato com dados pessoais/segredos, representar a acao como `ActionProposal` e submeter ao `AIGovernancePolicyEngine`/approval quando o fluxo estiver conectado. Nesta onda, o WISE Agent continua documental/operacional; nao afirmar enforcement tecnico se a execucao estiver fora do Policy Engine.
 
 ## Rótulos de Proveniência
 
@@ -131,6 +132,7 @@ Padrão herdado de [linx-wise-daily-integration.md](./linx-wise-daily-integratio
 - `DECISAO_PO`: se uma tarefa futura exigir alteração no WISE, o agente deve: (1) explicar exatamente a alteração proposta; (2) mostrar quais registros seriam afetados (via `SELECT` prévio); (3) aguardar autorização explícita do Product Owner; (4) seguir as regras específicas já documentadas em [linx-wise-daily-integration.md](./linx-wise-daily-integration.md) quando a alteração for parte da rotina diária Linx/WISE, ou pedir definição de regra nova ao Product Owner caso contrário.
 - `NAO_USAR`: nunca transformar uma consulta aparentemente simples em operação destrutiva (ex.: nunca "corrigir" um dado percebido como errado sem autorização explícita).
 - `NAO_USAR`: nunca imprimir token, senha, connection string ou conteúdo de `.env`/segredo em qualquer saída, log, arquivo versionado ou memória textual.
+- AI Governance Onda 1: `SecurityLgpdAgent` e `AIGovernancePolicyEngine` existem como base tecnica. Para WISE, a regra atual continua: leitura por padrao; escrita real segue o runbook diario ou futuro adapter/tool governado. Exportacao de dados pessoais ou tentativa de expor segredo deve ser classificada como `Red`.
 
 ## Erros e Lições Aprendidas — CONFIRMADO / NAO_USAR
 

@@ -170,6 +170,12 @@
         <rect class="node-box core" x="390" y="20" width="200" height="46" rx="10"></rect>
         <text class="node-text core-text" x="490" y="48" text-anchor="middle">SOMA BlueprintOS</text>
 
+        <!-- AI Governance Onda 1 -->
+        <rect class="node-box active" x="365" y="82" width="250" height="58" rx="10"></rect>
+        <text class="node-text" x="490" y="105" text-anchor="middle">Security / LGPD</text>
+        <text class="node-sub" x="490" y="121" text-anchor="middle">Policy Engine enforced no demo flow</text>
+        <path class="edge" d="M490,66 L490,82"></path>
+
         <!-- Runtime foundation -->
         <rect class="node-box active" x="60" y="120" width="160" height="52" rx="10"></rect>
         <text class="node-text" x="140" y="142" text-anchor="middle">Agent Runtime</text>
@@ -195,6 +201,9 @@
         <path class="edge" d="M450,66 C420,90 380,100 345,120"></path>
         <path class="edge" d="M500,66 C510,90 525,100 535,120"></path>
         <path class="edge" d="M560,66 C610,90 680,100 725,120"></path>
+        <path class="edge dashed" d="M405,140 C390,150 370,155 345,172"></path>
+        <path class="edge dashed" d="M490,140 C500,152 515,160 535,172"></path>
+        <path class="edge dashed" d="M575,140 C610,150 680,158 725,172"></path>
 
         <!-- Linx <-> WISE (arqueado por cima, para não cruzar a caixa do Showcase) -->
         <path class="edge" d="M395,118 C450,80 640,80 700,118"></path>
@@ -296,6 +305,54 @@ const AGENTS = [
     exemplo: null,
   },
   {
+    id: "security-lgpd-agent",
+    nome: "Security/LGPD Agent",
+    tipo: "Especialista transversal (código + Policy Engine)",
+    status: "ativo",
+    statusLabel: "Ativo",
+    objetivo: "Especialista consultivo em segurança, privacidade e LGPD. Interpreta contexto e explica riscos, enquanto o AIGovernancePolicyEngine executa a classificação determinística e bloqueante quando o fluxo está conectado.",
+    conhece: [
+      "Classificação GREEN/YELLOW/RED",
+      "ActionProposal e ProposalHash",
+      "ApprovalRequest e ApprovalGrant",
+      "LGPD: minimização, finalidade, dados pessoais, dados pessoais sensíveis e segredos",
+      "Exposição em logs, prompts, relatórios, planilhas e Git",
+    ],
+    podeFazer: [
+      "Revisar contexto de uma proposta e explicar riscos para o humano",
+      "Apoiar decisões de autorização específica",
+      "Complementar o Policy Engine em casos ambíguos",
+      "Registrar base para futuro Tool Gateway",
+    ],
+    naoDeve: [
+      "Autoaprovar operação de agent de domínio",
+      "Substituir o AIGovernancePolicyEngine",
+      "Executar SQL, API externa ou escrita operacional",
+      "Tratar guardrail documental como enforcement técnico",
+    ],
+    quando: [
+      "Quando uma ação proposta envolver escrita, dados pessoais, segredos, exportação ou risco operacional material.",
+    ],
+    gatilhos: [],
+    fontes: [
+      "backend/src/BlueprintOS.Core/Agents/SecurityLgpdAgent.cs",
+      "backend/src/BlueprintOS.Core/AI/Governance/",
+      "docs/architecture/AIGovernance.md",
+      ".ai/context/security.md",
+    ],
+    relacionamentos: [
+      { alvo: "Agent Linx", nota: "Transversal: Linx propõe ação; governance classifica e exige approval quando conectado." },
+      { alvo: "WISE Agent", nota: "Transversal: WISE continua leitura por padrão; escrita futura deve virar ActionProposal." },
+      { alvo: "Showcase Agent", nota: "Transversal: exportações locais sensíveis devem ser avaliadas quando conectadas." },
+    ],
+    pendencias: [
+      "Tool Gateway universal ainda planejado.",
+      "Persistência de approvals/auditoria ainda planejada.",
+      "WISE/Showcase scripts ainda não passam tecnicamente pelo Policy Engine.",
+    ],
+    exemplo: "AÇÃO REQUER AUTORIZAÇÃO: Ambiente, Sistema, Recurso, Operação, Campos, Filtro, Registros, Finalidade, Dados pessoais, Reversibilidade e Risco.",
+  },
+  {
     id: "agent-linx",
     nome: "Agent Linx",
     tipo: "Especialista de domínio (código + conhecimento)",
@@ -313,6 +370,7 @@ const AGENTS = [
       "Validar produto/produto-cor antes de qualquer escrita",
       "Atualizar MB_PROD_EXTRA_WEB de forma incremental (na rotina diária aprovada)",
       "Diferenciar fatos Validado/Aprovado de Descoberto/Inferido na resposta",
+      "Propor ActionProposal para escritas futuras quando conectado ao AI Governance",
     ],
     naoDeve: [
       "Escolher ID_CAMPANHA (sempre pergunta ao Product Owner)",
@@ -320,6 +378,7 @@ const AGENTS = [
       "Escrever em PRODUTOS_PRECOS",
       "Executar procedures legadas automaticamente",
       "Executar DELETE ou TRUNCATE",
+      "Autoaprovar operação sensível — Security/LGPD e Policy Engine são independentes",
     ],
     quando: [
       '"Use Agent Linx + Agent WISE para validar esta planilha"',
@@ -363,12 +422,14 @@ const AGENTS = [
       "Validar registros ativos por campanha",
       "Comparar Showcase × WISE por PRODUTO+COR",
       "Apoiar a integração diária Linx/WISE como especialista de reconciliação do destino",
+      "Propor ActionProposal para escrita/exportação quando um fluxo governado estiver disponível",
     ],
     naoDeve: [
       "Escrever no WISE sem autorização explícita (INSERT/UPDATE/DELETE/TRUNCATE/MERGE/ALTER/DROP/CREATE)",
       "Escolher ID_CAMPANHA sozinho",
       "Transformar inferência em regra definitiva sem marcar INFERIDO",
       "Armazenar token/senha/connection string",
+      "Declarar enforcement pelo Policy Engine quando a execução ainda estiver fora do gateway",
     ],
     quando: [
       '"Use o Agent WISE para consultar a campanha 54"',
@@ -417,6 +478,7 @@ const AGENTS = [
       "Gerar checkpoint e retomar coleta interrompida",
       "Gerar catalogo_showcase.xlsx no layout validado",
       "Fornecer PRODUTO+COR ao WISE Agent para enriquecimento de saldo",
+      "Classificar exportações locais sensíveis quando conectadas ao AI Governance",
     ],
     naoDeve: [
       "Preencher login/credenciais/MFA",
@@ -424,6 +486,7 @@ const AGENTS = [
       "Persistir token/cookie/senha em Git ou memória permanente",
       "Executar ação de escrita no Showcase (pedido, carrinho, cadastro)",
       "Duplicar a lógica de saldo/campanha do WISE Agent",
+      "Persistir ou imprimir token; esse caso é RED na AI Governance",
     ],
     quando: [
       '"Executar coleta Showcase com fotos e saldos WISE"',
