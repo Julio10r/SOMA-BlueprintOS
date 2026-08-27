@@ -136,72 +136,101 @@
       "TIPO_PROCESSO <> 1 business rule in OP subquery is undocumented in the SQL itself"
     ],
     "procedures_analyzed": [
-      { "name": "LX_ANM_GERA_OS_ALTERACAO_PCP", "current_definition_confirmed": false, "status": "UNKNOWN" },
-      { "name": "LX_ANM_AJUSTA_PROGRAMACAO_PROD", "current_definition_confirmed": false, "status": "UNKNOWN" },
-      { "name": "LX_MOVIMENTA_COMPRAS_PA", "current_definition_confirmed": false, "status": "UNKNOWN" },
-      { "name": "LX_RECALCULO_RESERVA_MATERIAIS", "current_definition_confirmed": false, "status": "UNKNOWN" }
+      { "name": "LX_ANM_GERA_OS_ALTERACAO_PCP", "current_definition_confirmed": true, "status": "CONFIRMED_BY_CODE_INSPECTION", "last_maintenance_comment": "2023-03-29", "note": "Pre-validates grade delta against PRODUCAO_TAREFAS_SALDO before writing; updates PRODUCAO_ORDEM_COR (safe 3-col PK) or generates a new OS; calls LX_RECALCULO_RESERVA_MATERIAIS" },
+      { "name": "LX_ANM_AJUSTA_PROGRAMACAO_PROD", "current_definition_confirmed": true, "status": "CONFIRMED_BY_CODE_INSPECTION", "note": "UPDATE PRODUCAO_PROG_PROD WHERE PROGRAMACAO+PRODUTO+COR_PRODUTO omits ENTREGA_INICIAL (part of the real 4-column PK); never checks UPDATE rowcount, so 0-row matches still report EXECUTADO=1/success" },
+      { "name": "LX_MOVIMENTA_COMPRAS_PA", "current_definition_confirmed": true, "status": "CONFIRMED_BY_CODE_INSPECTION", "last_maintenance_comment": "2025-10-09", "note": "Recalculates QTDE_ENTREGAR/VALOR_ENTREGAR from CO1..CO48/CE1..CE48 (48 generic positions); does not itself write the grade delta" },
+      { "name": "LX_RECALCULO_RESERVA_MATERIAIS", "current_definition_confirmed": true, "status": "CONFIRMED_BY_CODE_INSPECTION", "last_maintenance_comment": "2024-07-01", "note": "Material reservation recalculation; does not touch finished-product grade/quantity directly" }
     ],
     "tables_analyzed": [
-      { "name": "PRODUCAO_PROG_PROD", "current_schema_confirmed": false, "status": "UNKNOWN" },
-      { "name": "PRODUCAO_ORDEM", "current_schema_confirmed": false, "status": "UNKNOWN" },
-      { "name": "PRODUCAO_ORDEM_COR", "current_schema_confirmed": false, "status": "UNKNOWN" },
-      { "name": "COMPRAS", "current_schema_confirmed": false, "status": "UNKNOWN" },
-      { "name": "COMPRAS_PRODUTO", "current_schema_confirmed": false, "status": "UNKNOWN" }
+      { "name": "PRODUCAO_PROG_PROD", "current_schema_confirmed": true, "status": "CONFIRMED_BY_SCHEMA", "primary_key": ["PROGRAMACAO", "PRODUTO", "COR_PRODUTO", "ENTREGA_INICIAL"], "grade_columns": "P1..P48, S1..S48, PO1..PO16 (generic positions, not fixed at 6/7)" },
+      { "name": "PRODUCAO_ORDEM", "current_schema_confirmed": true, "status": "CONFIRMED_BY_SCHEMA", "primary_key": ["ORDEM_PRODUCAO"] },
+      { "name": "PRODUCAO_ORDEM_COR", "current_schema_confirmed": true, "status": "CONFIRMED_BY_SCHEMA", "primary_key": ["ORDEM_PRODUCAO", "PRODUTO", "COR_PRODUTO"], "grade_columns": "O1..O48, P1..P48", "note": "3-column PK matches the JOIN used by both the historical SQL and the current OP procedure — safe, no cardinality risk found" },
+      { "name": "COMPRAS", "current_schema_confirmed": true, "status": "CONFIRMED_BY_SCHEMA", "primary_key": ["PEDIDO"] },
+      { "name": "COMPRAS_PRODUTO", "current_schema_confirmed": true, "status": "CONFIRMED_BY_SCHEMA", "primary_key": ["PRODUTO", "PEDIDO", "COR_PRODUTO", "ENTREGA"], "grade_columns": "CO1..CO48, CE1..CE48" },
+      { "name": "PRODUTOS", "current_schema_confirmed": true, "status": "CONFIRMED_BY_SCHEMA", "note": "Master product table (not 'PRODUTO'); PRODUTOS.GRADE holds the grade code, confirmed by data validation to equal the spreadsheet's GRADE_ATUAL ('36-44') for all 30 sampled products found" },
+      { "name": "PRODUTOS_TAMANHOS", "current_schema_confirmed": true, "status": "CONFIRMED_BY_SCHEMA", "note": "Keyed by GRADE (not PRODUTO); TAMANHO_1..TAMANHO_48 give the real physical size label at each ordinal position. For GRADE='36-44': TAMANHO_1..5 = 36,38,40,42,44 — size 34 is absent from any position" }
     ]
   },
   "prog_rule": {
-    "identification": "Fallback: ISNULL(B.TIPO, 'PROG') when no match found in OP or PED union",
-    "source": "HISTORICAL_REFERENCE, INFERRED (by exclusion)",
+    "identification": "Positive rule: a row exists in PRODUCAO_PROG_PROD for PROGRAMACAO+PRODUTO+COR_PRODUTO, checked explicitly BEFORE calling the procedure (the procedure itself never verifies UPDATE rowcount, so it cannot be used to distinguish PROG from NAO_ENCONTRADO)",
+    "source": "CONFIRMED_BY_CODE_INSPECTION (LX_ANM_AJUSTA_PROGRAMACAO_PROD read via OBJECT_DEFINITION on SOMA_DESENV)",
     "related_tables": ["PRODUCAO_PROG_PROD"],
     "adjustment_mechanism": "EXEC LX_ANM_AJUSTA_PROGRAMACAO_PROD",
-    "status": "AMBIGUOUS_BLOCKING"
+    "status": "RESOLVED",
+    "caveat": "PRODUCAO_PROG_PROD's real PK includes ENTREGA_INICIAL (4 columns); the 3-column existence check does not disambiguate multiple ENTREGA_INICIAL rows — see risk in extracted_knowledge"
   },
   "op_rule": {
     "identification": "Match found in PRODUCAO_ORDEM/PRODUCAO_ORDEM_COR by PROGRAMACAO+PRODUTO+COR_PRODUTO",
-    "source": "HISTORICAL_REFERENCE",
+    "source": "CONFIRMED_BY_SCHEMA (PRODUCAO_ORDEM_COR PK is exactly ORDEM_PRODUCAO+PRODUTO+COR_PRODUTO — safe join, no cardinality risk)",
     "related_tables": ["PRODUCAO_ORDEM", "PRODUCAO_ORDEM_COR"],
     "adjustment_mechanism": "EXEC LX_ANM_GERA_OS_ALTERACAO_PCP",
-    "status": "CONFIRMED_BY_CODE_INSPECTION_OF_HISTORICAL_SQL_ONLY"
+    "status": "CONFIRMED"
   },
   "ped_rule": {
     "identification": "Match found in COMPRAS/COMPRAS_PRODUTO by PROGRAMACAO+PRODUTO+COR_PRODUTO",
-    "source": "HISTORICAL_REFERENCE",
+    "source": "CONFIRMED_BY_CODE_INSPECTION of historical SQL; COMPRAS_PRODUTO real PK is PRODUTO+PEDIDO+COR_PRODUTO+ENTREGA (4 columns) — ENTREGA is not filtered",
     "related_tables": ["COMPRAS", "COMPRAS_PRODUTO"],
     "adjustment_mechanism": "UPDATE COMPRAS_PRODUTO + EXEC LX_MOVIMENTA_COMPRAS_PA + EXEC LX_RECALCULO_RESERVA_MATERIAIS",
-    "status": "CONFIRMED_BY_CODE_INSPECTION_OF_HISTORICAL_SQL_ONLY"
+    "status": "CONFIRMED_WITH_CARDINALITY_RISK"
   },
-  "classifications": "UNKNOWN - cannot compute PROG/OP/PED/ZERO_DELTA/NAO_ENCONTRADO/AMBIGUO/BLOQUEADO/ERRO_DE_DADOS counts without live database access (see knowledge_gaps[2])",
-  "zero_delta": "UNKNOWN",
-  "not_found": "UNKNOWN",
-  "ambiguous": "UNKNOWN - PROG classification rule itself is ambiguous (see knowledge_gaps[0])",
-  "blocked": "UNKNOWN",
+  "classifications": "PENDING_PRODUCTION_READ_ONLY_VALIDATION - mechanism and rules confirmed (prog_rule/op_rule/ped_rule above), but 77/77 spreadsheet rows had zero matches in SOMA_DESENV for PRODUCAO_PROG_PROD/OP/PED (this dataset's live operational state only exists in Production, out of scope this step); per-row PROG/OP/PED/ZERO_DELTA/NAO_ENCONTRADO counts not computed to avoid inventing them",
+  "zero_delta": "PENDING_PRODUCTION_READ_ONLY_VALIDATION",
+  "not_found": "PENDING_PRODUCTION_READ_ONLY_VALIDATION (0/77 matched in SOMA_DESENV, expected — see classifications note)",
+  "ambiguous": "0 — the classification rule ambiguity (old knowledge_gaps[0]) is RESOLVED; see prog_rule",
+  "blocked": "77 (all rows) pending the size-34-vs-grade-36-44 gap below and production validation",
   "extracted_knowledge": [
     { "fact": "This execution's spreadsheet uses a 6-position size grade (Q_34..Q_44), all rows GRADE_ATUAL='36-44'", "provenance": "CONFIRMED_BY_CODE_INSPECTION", "generalizable": false },
-    { "fact": "Historical SQL structure expects a 7-position grade (TAM_1..TAM_7)", "provenance": "CONFIRMED_BY_CODE_INSPECTION", "generalizable": false },
-    { "fact": "Historical SQL classifies TIPO='PROG' as a default/fallback (ISNULL), not a positive match", "provenance": "CONFIRMED_BY_CODE_INSPECTION", "generalizable": false },
-    { "fact": "PO_PEDIDO_COMPRA is not unique per row in this spreadsheet; can repeat across COR_PRODUTO for the same PRODUTO+PROGRAMACAO, and quantities may diverge between duplicated rows", "provenance": "CONFIRMED_BY_CODE_INSPECTION", "generalizable": false }
+    { "fact": "Grade positions in PRODUCAO_PROG_PROD/PRODUCAO_ORDEM_COR/COMPRAS_PRODUTO are generic, up to 48 (P1..P48/O1..O48/CO1..CO48/CE1..CE48), not fixed at 6 or 7 — the real position count per grade is defined in PRODUTOS_TAMANHOS.NUMERO_TAMANHOS, keyed by PRODUTOS.GRADE", "provenance": "CONFIRMED_BY_SCHEMA", "generalizable": true },
+    { "fact": "PRODUTOS.GRADE matches the spreadsheet's GRADE_ATUAL column exactly ('36-44') for all 30 sampled products found in PRODUTOS", "provenance": "CONFIRMED_BY_DATA_VALIDATION", "generalizable": false },
+    { "fact": "For GRADE='36-44', PRODUTOS_TAMANHOS.TAMANHO_1..5 = 36,38,40,42,44 — size 34 is absent from any position of this grade, contradicting the spreadsheet's populated Q_34 column", "provenance": "CONFIRMED_BY_DATA_VALIDATION", "generalizable": false },
+    { "fact": "LX_ANM_AJUSTA_PROGRAMACAO_PROD's UPDATE on PRODUCAO_PROG_PROD and the historical SQL's UPDATE on COMPRAS_PRODUTO both omit a column that is part of the real primary key (ENTREGA_INICIAL / ENTREGA respectively) — if multiple rows exist per PROGRAMACAO+PRODUTO+COR_PRODUTO (or PEDIDO+PRODUTO+COR_PRODUTO), the same delta would be applied to all of them", "provenance": "CONFIRMED_BY_SCHEMA", "generalizable": true },
+    { "fact": "LX_ANM_AJUSTA_PROGRAMACAO_PROD never checks how many rows its UPDATE affected — a 0-row match (PROG target does not exist) still returns EXECUTADO=1/'EXECUTADO COM SUCESSO'", "provenance": "CONFIRMED_BY_CODE_INSPECTION", "generalizable": true },
+    { "fact": "All 4 procedures (LX_ANM_GERA_OS_ALTERACAO_PCP, LX_ANM_AJUSTA_PROGRAMACAO_PROD, LX_MOVIMENTA_COMPRAS_PA, LX_RECALCULO_RESERVA_MATERIAIS) have maintenance history through 2023-2025 — none appear obsolete", "provenance": "CONFIRMED_BY_CODE_INSPECTION", "generalizable": false },
+    { "fact": "PO_PEDIDO_COMPRA is not unique per row in this spreadsheet; can repeat across COR_PRODUTO for the same PRODUTO+PROGRAMACAO, and quantities may diverge between duplicated rows (PO 1741979)", "provenance": "CONFIRMED_BY_CODE_INSPECTION", "generalizable": false },
+    { "fact": "None of the 77 spreadsheet rows (PROGRAMACAO+PRODUTO+COR_PRODUTO / PO_PEDIDO_COMPRA) matched any row in PRODUCAO_PROG_PROD, PRODUCAO_ORDEM+PRODUCAO_ORDEM_COR, or COMPRAS+COMPRAS_PRODUTO on SOMA_DESENV", "provenance": "CONFIRMED_BY_DATA_VALIDATION", "generalizable": false }
   ],
-  "persisted_knowledge": [],
-  "provenance": ["CONFIRMED_BY_CODE_INSPECTION (of the two provided artifacts only)", "HISTORICAL_REFERENCE"],
+  "persisted_knowledge": [
+    "PRODUCAO_PROG_PROD/PRODUCAO_ORDEM/PRODUCAO_ORDEM_COR/COMPRAS/COMPRAS_PRODUTO real schema (columns, PKs, indexes) on SOMA_DESENV",
+    "PRODUTOS/PRODUTOS_TAMANHOS grade mechanism (GRADE code -> TAMANHO_1..48 ordinal position mapping)",
+    "Positive PROG/OP/PED/NAO_ENCONTRADO classification rule (prog_rule/op_rule/ped_rule above)",
+    "ENTREGA_INICIAL/ENTREGA cardinality risk in the current PROG procedure and historical PED update"
+  ],
+  "provenance": ["CONFIRMED_BY_SCHEMA", "CONFIRMED_BY_CODE_INSPECTION", "CONFIRMED_BY_DATA_VALIDATION", "HISTORICAL_REFERENCE"],
   "knowledge_gaps": [
     {
-      "gap": "PROG classification is a fallback by exclusion (ISNULL(...,'PROG')) in the historical SQL, not a positive business rule; unconfirmed whether this is intentional",
+      "gap": "PROG classification is a fallback by exclusion (ISNULL(...,'PROG')) in the historical SQL, not a positive business rule",
       "owner_agent": "linx-database-specialist-agent",
-      "blocking": true,
-      "resolution": "AWAITING_PRODUCT_OWNER_ANSWER"
+      "blocking": false,
+      "resolution": "RESOLVED",
+      "resolution_detail": "LX_ANM_AJUSTA_PROGRAMACAO_PROD (current procedure, read via OBJECT_DEFINITION on SOMA_DESENV) never checks UPDATE rowcount, so a positive existence check against PRODUCAO_PROG_PROD before calling it is required and sufficient to distinguish PROG from NAO_ENCONTRADO. See prog_rule. No Product Owner answer needed for this gap."
     },
     {
       "gap": "Grade size positions mismatch: current spreadsheet has 6 positions, historical SQL structure expects 7 (TAM_1..TAM_7)",
       "owner_agent": "linx-database-specialist-agent",
-      "blocking": true,
-      "resolution": "AWAITING_PRODUCT_OWNER_ANSWER"
+      "blocking": false,
+      "resolution": "SUPERSEDED_BY_MORE_PRECISE_GAP",
+      "resolution_detail": "Schema confirms grade positions are generic (up to 48), resolved per-grade via PRODUTOS.GRADE + PRODUTOS_TAMANHOS — not a fixed 6-vs-7 question. See the new blocking gap below."
     },
     {
       "gap": "No authorized read-only Linx/SOMA_DESENV database connection available in this session; cannot validate current schema, the 4 procedures, or compute real Delta",
       "owner_agent": "linx-database-specialist-agent",
       "blocking": false,
       "resolution": "RESOLVED",
-      "resolution_detail": "Existing local mechanism (dotnet user-secrets + B1ConnectivityValidator, dotnet run --project backend/src/BlueprintOS.Api -- validate-b1-connectivity) already configured on this machine; connection confirmed READY (read-only SELECT 1 + SELECT SUSER_SNAME()). See docs/audits/AgentContractV1.1-ExecutionPolicy-Credenciais.md section 25. Does not resolve gaps [0] and [1] (PROG rule, grade cardinality), which remain blocking for computing the real Delta or proposing a solution."
+      "resolution_detail": "Existing local mechanism (dotnet user-secrets + B1ConnectivityValidator, dotnet run --project backend/src/BlueprintOS.Api -- validate-b1-connectivity) already configured on this machine; connection confirmed READY (read-only SELECT 1 + SELECT SUSER_SNAME()). See docs/audits/AgentContractV1.1-ExecutionPolicy-Credenciais.md section 25."
+    },
+    {
+      "gap": "Size 34 is absent from every position of grade '36-44' (PRODUTOS_TAMANHOS), the grade actually registered for these products, yet the spreadsheet has a populated Q_34 column with real, non-zero quantities",
+      "owner_agent": "linx-database-specialist-agent",
+      "blocking": true,
+      "resolution": "AWAITING_PRODUCT_OWNER_ANSWER",
+      "resolution_detail": "Confirmed by direct SOMA_DESENV data read, not assumed. Possible explanations (not chosen): (1) grade should be '34-44' and the product catalog is stale for this drop; (2) size 34 uses a separate mechanism (e.g. PRODUTOS_TAMANHOS.QUEBRA_1..5, not yet investigated); (3) Q_34 is residual/legacy data that should not generate a write; (4) SOMA_DESENV's catalog diverges from Production for these products. No SQL solution can be safely proposed until this is answered."
+    },
+    {
+      "gap": "PRODUCAO_PROG_PROD and COMPRAS_PRODUTO writes (current procedure and historical SQL) omit a column that is part of their real composite primary key (ENTREGA_INICIAL / ENTREGA) — potential multi-row impact if a PROGRAMACAO+PRODUTO+COR_PRODUTO (or PEDIDO+PRODUTO+COR_PRODUTO) has more than one delivery-date row",
+      "owner_agent": "linx-database-specialist-agent",
+      "blocking": false,
+      "resolution": "TECHNICAL_RISK_TO_DESIGN_AROUND",
+      "resolution_detail": "Not confirmed to occur in practice for this dataset (SOMA_DESENV has none of this data - see classifications). Any proposed solution must filter explicitly by ENTREGA_INICIAL/ENTREGA or validate singleton cardinality before writing, rather than inherit the historical omission."
     }
   ],
   "capability_gaps": [
@@ -229,7 +258,7 @@
     "current_units": "UNKNOWN",
     "requested_units": 77,
     "unit_delta": "UNKNOWN",
-    "note": "PROG/OP/PED split, deltas and current-state units require live database access (knowledge_gaps[2]); not computed to avoid inventing numbers."
+    "note": "Live SOMA_DESENV access is now READY (see connectivity gap RESOLVED). Classification mechanism and grade mapping are CONFIRMED (prog_rule/op_rule/ped_rule). However 0/77 spreadsheet rows matched any operational table in SOMA_DESENV (this dataset lives in Production only), and the size-34-vs-grade-36-44 gap blocks any position mapping — so PROG/OP/PED split, deltas and current-state units remain PENDING_PRODUCTION_READ_ONLY_VALIDATION, not computed, to avoid inventing numbers."
   },
   "affected_resources": {
     "tables_potentially_affected": ["PRODUCAO_PROG_PROD", "PRODUCAO_ORDEM_COR", "COMPRAS_PRODUTO"],

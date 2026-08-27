@@ -54,6 +54,11 @@ if (args.Length > 0 && args[0] == "probe-erp-supplier-integrity")
     return await ProbeErpSupplierIntegrityAsync();
 }
 
+if (args.Length > 0 && args[0] == "investigate-linx-prog-op-ped")
+{
+    return await InvestigateLinxProgOpPedAsync(args);
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // CORS — libera a origem do frontend (+Compras Web) em dev/demo.
@@ -474,6 +479,265 @@ static async Task<int> ProbeErpSupplierIntegrityAsync()
     Console.WriteLine("Reference procedure markers:");
     foreach (var line in definition.Split('\n').Where(x => x.Contains("DATA_PARA_TRANSFERENCIA", StringComparison.OrdinalIgnoreCase) || x.Contains("LX_SEQUENCIAL", StringComparison.OrdinalIgnoreCase) || x.Contains("CLIFOR", StringComparison.OrdinalIgnoreCase)).Take(30)) Console.WriteLine(line.Trim());
     return 0;
+}
+
+/// <summary>Investigação read-only do caso PROG/OP/PED (docs/audits/AgentLearningV1-LinxProgOpPed.md) no
+/// profile <c>linx-development</c> (SOMA_DESENV). Emite apenas SELECT/metadata (INFORMATION_SCHEMA,
+/// sys.*, OBJECT_DEFINITION) — nenhum INSERT/UPDATE/DELETE/MERGE/DDL/EXEC de procedure mutável. Modos:
+/// "schema" (colunas/PK/índices das 5 tabelas + definição das 4 procedures + busca por tabelas/colunas de
+/// grade/tamanho) e "crossref" (cruza produto/cor/programação da planilha, lida de um JSON local fora do
+/// Git, contra PRODUCAO_PROG_PROD/PRODUCAO_ORDEM(_COR)/COMPRAS(_PRODUTO)).</summary>
+static async Task<int> InvestigateLinxProgOpPedAsync(string[] args)
+{
+    var mode = args.Length > 1 ? args[1] : "schema";
+    var configuration = BuildDatabaseConfiguration();
+    var connectionString = BlueprintOS.Infrastructure.Persistence.LinxConnectionStringResolver.Resolve(
+        configuration, BlueprintOS.Infrastructure.Persistence.LinxConnectionProfiles.Development);
+
+    await using var connection = new SqlConnection(connectionString);
+    await connection.OpenAsync();
+
+    if (mode == "schema")
+    {
+        string[] tabelas = ["PRODUCAO_PROG_PROD", "PRODUCAO_ORDEM", "PRODUCAO_ORDEM_COR", "COMPRAS", "COMPRAS_PRODUTO"];
+        foreach (var tabela in tabelas)
+        {
+            Console.WriteLine($"===== TABELA {tabela} =====");
+            await using (var cols = connection.CreateCommand())
+            {
+                cols.CommandText = "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, ORDINAL_POSITION FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @t ORDER BY ORDINAL_POSITION";
+                cols.Parameters.Add(new SqlParameter("@t", tabela));
+                await using var reader = await cols.ExecuteReaderAsync();
+                Console.WriteLine("-- Colunas --");
+                while (await reader.ReadAsync())
+                    Console.WriteLine($"{reader[3]}\t{reader[0]}\t{reader[1]}\tNULL={reader[2]}");
+            }
+
+            await using (var pk = connection.CreateCommand())
+            {
+                pk.CommandText = @"SELECT kcu.COLUMN_NAME, kcu.ORDINAL_POSITION
+                    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+                    JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+                    WHERE tc.TABLE_NAME = @t AND tc.CONSTRAINT_TYPE = 'PRIMARY KEY'
+                    ORDER BY kcu.ORDINAL_POSITION";
+                pk.Parameters.Add(new SqlParameter("@t", tabela));
+                await using var reader = await pk.ExecuteReaderAsync();
+                Console.WriteLine("-- Primary Key --");
+                while (await reader.ReadAsync())
+                    Console.WriteLine($"{reader[1]}\t{reader[0]}");
+            }
+
+            await using (var idx = connection.CreateCommand())
+            {
+                idx.CommandText = @"SELECT i.name AS index_name, i.is_unique, i.type_desc, c.name AS column_name, ic.key_ordinal
+                    FROM sys.indexes i
+                    JOIN sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id
+                    JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+                    WHERE i.object_id = OBJECT_ID(@t) AND i.name IS NOT NULL
+                    ORDER BY i.name, ic.key_ordinal";
+                idx.Parameters.Add(new SqlParameter("@t", $"dbo.{tabela}"));
+                await using var reader = await idx.ExecuteReaderAsync();
+                Console.WriteLine("-- Indexes (uma linha por coluna) --");
+                while (await reader.ReadAsync())
+                    Console.WriteLine($"{reader[0]}\tunique={reader[1]}\t{reader[2]}\tcol#{reader[4]}={reader[3]}");
+            }
+        }
+
+        string[] procedures = ["LX_ANM_GERA_OS_ALTERACAO_PCP", "LX_ANM_AJUSTA_PROGRAMACAO_PROD", "LX_MOVIMENTA_COMPRAS_PA", "LX_RECALCULO_RESERVA_MATERIAIS"];
+        foreach (var proc in procedures)
+        {
+            Console.WriteLine($"===== PROCEDURE {proc} =====");
+            await using var exists = connection.CreateCommand();
+            exists.CommandText = "SELECT OBJECT_ID(@p, 'P')";
+            exists.Parameters.Add(new SqlParameter("@p", $"dbo.{proc}"));
+            var objectId = await exists.ExecuteScalarAsync();
+            if (objectId is null or DBNull)
+            {
+                Console.WriteLine("NAO ENCONTRADA em dbo.");
+                continue;
+            }
+
+            await using (var pars = connection.CreateCommand())
+            {
+                pars.CommandText = @"SELECT p.name, TYPE_NAME(p.user_type_id), p.is_output
+                    FROM sys.parameters p WHERE p.object_id = OBJECT_ID(@p) ORDER BY p.parameter_id";
+                pars.Parameters.Add(new SqlParameter("@p", $"dbo.{proc}"));
+                await using var reader = await pars.ExecuteReaderAsync();
+                Console.WriteLine("-- Parametros --");
+                while (await reader.ReadAsync())
+                    Console.WriteLine($"{reader[0]}\t{reader[1]}\tOUTPUT={reader[2]}");
+            }
+
+            await using var def = connection.CreateCommand();
+            def.CommandText = "SELECT OBJECT_DEFINITION(OBJECT_ID(@p))";
+            def.Parameters.Add(new SqlParameter("@p", $"dbo.{proc}"));
+            var definition = Convert.ToString(await def.ExecuteScalarAsync()) ?? "(definicao nao acessivel/encriptada)";
+            Console.WriteLine("-- Definicao --");
+            Console.WriteLine(definition);
+        }
+
+        Console.WriteLine("===== BUSCA POR TABELAS/COLUNAS DE GRADE/TAMANHO =====");
+        await using (var grade = connection.CreateCommand())
+        {
+            grade.CommandText = @"SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE COLUMN_NAME LIKE '%GRADE%' OR COLUMN_NAME LIKE '%TAMANHO%' OR COLUMN_NAME LIKE '%GRD%'
+                   OR (COLUMN_NAME LIKE 'TAM[_]%' ESCAPE '\')
+                ORDER BY TABLE_NAME, ORDINAL_POSITION";
+            await using var reader = await grade.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+                Console.WriteLine($"{reader[0]}.{reader[1]} ({reader[2]})");
+        }
+
+        return 0;
+    }
+
+    if (mode == "crossref")
+    {
+        var jsonPath = args.Length > 2 ? args[2] : "downloads/showcase_produtos/planilha_rows.json";
+        if (!File.Exists(jsonPath))
+        {
+            Console.WriteLine($"Arquivo nao encontrado: {jsonPath}");
+            return 1;
+        }
+
+        var json = await File.ReadAllTextAsync(jsonPath);
+        var rows = System.Text.Json.JsonDocument.Parse(json).RootElement;
+
+        foreach (var row in rows.EnumerateArray())
+        {
+            var produto = row.GetProperty("produto").GetString();
+            var programacao = row.GetProperty("programacao").GetString();
+            var cor = row.GetProperty("cor").GetString();
+            var po = row.GetProperty("po").GetInt64().ToString();
+
+            await using var progCmd = connection.CreateCommand();
+            progCmd.CommandText = "SELECT COUNT(*) FROM dbo.PRODUCAO_PROG_PROD WHERE PROGRAMACAO = @prog AND PRODUTO = @prod AND COR_PRODUTO = @cor";
+            progCmd.Parameters.Add(new SqlParameter("@prog", programacao));
+            progCmd.Parameters.Add(new SqlParameter("@prod", produto));
+            progCmd.Parameters.Add(new SqlParameter("@cor", cor));
+            var progMatch = Convert.ToInt32(await progCmd.ExecuteScalarAsync());
+
+            await using var opCmd = connection.CreateCommand();
+            opCmd.CommandText = @"SELECT COUNT(*) FROM dbo.PRODUCAO_ORDEM A
+                JOIN dbo.PRODUCAO_ORDEM_COR B ON A.ORDEM_PRODUCAO = B.ORDEM_PRODUCAO AND A.PRODUTO = B.PRODUTO
+                WHERE A.PROGRAMACAO = @prog AND A.PRODUTO = @prod AND B.COR_PRODUTO = @cor";
+            opCmd.Parameters.Add(new SqlParameter("@prog", programacao));
+            opCmd.Parameters.Add(new SqlParameter("@prod", produto));
+            opCmd.Parameters.Add(new SqlParameter("@cor", cor));
+            var opMatch = Convert.ToInt32(await opCmd.ExecuteScalarAsync());
+
+            await using var pedCmd = connection.CreateCommand();
+            pedCmd.CommandText = @"SELECT COUNT(*) FROM dbo.COMPRAS A
+                JOIN dbo.COMPRAS_PRODUTO B ON A.PEDIDO = B.PEDIDO
+                WHERE A.PROGRAMACAO = @prog AND B.PRODUTO = @prod AND B.COR_PRODUTO = @cor";
+            pedCmd.Parameters.Add(new SqlParameter("@prog", programacao));
+            pedCmd.Parameters.Add(new SqlParameter("@prod", produto));
+            pedCmd.Parameters.Add(new SqlParameter("@cor", cor));
+            var pedMatch = Convert.ToInt32(await pedCmd.ExecuteScalarAsync());
+
+            await using var pedByPoCmd = connection.CreateCommand();
+            pedByPoCmd.CommandText = "SELECT COUNT(*) FROM dbo.COMPRAS_PRODUTO WHERE PEDIDO = @po AND PRODUTO = @prod AND COR_PRODUTO = @cor";
+            pedByPoCmd.Parameters.Add(new SqlParameter("@po", po));
+            pedByPoCmd.Parameters.Add(new SqlParameter("@prod", produto));
+            pedByPoCmd.Parameters.Add(new SqlParameter("@cor", cor));
+            var pedByPoMatch = Convert.ToInt32(await pedByPoCmd.ExecuteScalarAsync());
+
+            Console.WriteLine($"PRODUTO={produto}; PROGRAMACAO={programacao}; COR={cor}; PO={po} => PRODUCAO_PROG_PROD={progMatch}; OP={opMatch}; PED(by programacao)={pedMatch}; PED(by PO)={pedByPoMatch}");
+        }
+
+        return 0;
+    }
+
+    if (mode == "grade")
+    {
+        string[] views = ["ANM_VIEW_GRADE_TAMANHO", "ANM_VIEW_GRADE_TAMANHO_INTERNACIONAL"];
+        foreach (var view in views)
+        {
+            Console.WriteLine($"===== VIEW/OBJETO {view} =====");
+            await using var def = connection.CreateCommand();
+            def.CommandText = "SELECT OBJECT_DEFINITION(OBJECT_ID(@p))";
+            def.Parameters.Add(new SqlParameter("@p", $"dbo.{view}"));
+            var definition = Convert.ToString(await def.ExecuteScalarAsync()) ?? "(nao encontrada/nao acessivel)";
+            Console.WriteLine(definition);
+        }
+
+        Console.WriteLine("===== TABELA PRODUTO (colunas relacionadas a grade) =====");
+        await using (var prodCols = connection.CreateCommand())
+        {
+            prodCols.CommandText = @"SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = 'PRODUTO' AND (COLUMN_NAME LIKE '%GRADE%' OR COLUMN_NAME LIKE '%TAMANHO%')
+                ORDER BY ORDINAL_POSITION";
+            await using var reader = await prodCols.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+                Console.WriteLine($"{reader[0]} ({reader[1]})");
+        }
+
+        var jsonPath = args.Length > 2 ? args[2] : "downloads/showcase_produtos/planilha_rows.json";
+        if (!File.Exists(jsonPath))
+        {
+            Console.WriteLine($"Arquivo nao encontrado: {jsonPath}");
+            return 1;
+        }
+        var json = await File.ReadAllTextAsync(jsonPath);
+        var rows = System.Text.Json.JsonDocument.Parse(json).RootElement;
+        var produtos = rows.EnumerateArray().Select(r => r.GetProperty("produto").GetString()).Distinct().ToList();
+
+        string[] candidateTables = ["PRODUTOS", "PRODUTOS_TAMANHOS"];
+        foreach (var tabela in candidateTables)
+        {
+            Console.WriteLine($"===== TABELA {tabela} (colunas) =====");
+            await using var cols = connection.CreateCommand();
+            cols.CommandText = "SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @t ORDER BY ORDINAL_POSITION";
+            cols.Parameters.Add(new SqlParameter("@t", tabela));
+            await using var reader = await cols.ExecuteReaderAsync();
+            while (await reader.ReadAsync()) Console.WriteLine($"{reader[0]} ({reader[1]})");
+        }
+
+        Console.WriteLine("===== PRODUTOS.GRADE + PRODUTOS_TAMANHOS PARA OS PRODUTOS DA PLANILHA =====");
+        foreach (var produto in produtos)
+        {
+            string? grade = null;
+            await using (var prodRow = connection.CreateCommand())
+            {
+                prodRow.CommandText = "SELECT GRADE, TAMANHO_BASE FROM dbo.PRODUTOS WHERE PRODUTO = @p";
+                prodRow.Parameters.Add(new SqlParameter("@p", produto));
+                await using var reader = await prodRow.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    grade = reader.GetString(0);
+                    Console.WriteLine($"PRODUTO={produto}; GRADE={grade}; TAMANHO_BASE={reader[1]}");
+                }
+                else
+                {
+                    Console.WriteLine($"PRODUTO={produto}; NAO ENCONTRADO em PRODUTOS");
+                    continue;
+                }
+            }
+
+            await using var tamRow = connection.CreateCommand();
+            tamRow.CommandText = "SELECT NUMERO_TAMANHOS, TAMANHO_1, TAMANHO_2, TAMANHO_3, TAMANHO_4, TAMANHO_5, TAMANHO_6, TAMANHO_7, TAMANHO_8 FROM dbo.PRODUTOS_TAMANHOS WHERE GRADE = @g";
+            tamRow.Parameters.Add(new SqlParameter("@g", grade));
+            await using (var reader = await tamRow.ExecuteReaderAsync())
+            {
+                if (await reader.ReadAsync())
+                {
+                    var pairs = new List<string>();
+                    for (var i = 0; i < reader.FieldCount; i++)
+                        pairs.Add($"{reader.GetName(i)}={reader.GetValue(i)}");
+                    Console.WriteLine($"  PRODUTOS_TAMANHOS[GRADE={grade}]: {string.Join("; ", pairs)}");
+                }
+                else
+                {
+                    Console.WriteLine($"  PRODUTOS_TAMANHOS[GRADE={grade}]: NAO ENCONTRADO");
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    Console.WriteLine($"Modo desconhecido: {mode}. Use 'schema', 'grade' ou 'crossref'.");
+    return 1;
 }
 
 static IConfiguration BuildDatabaseConfiguration() => new ConfigurationBuilder()
