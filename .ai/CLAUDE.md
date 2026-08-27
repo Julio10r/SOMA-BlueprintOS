@@ -36,6 +36,7 @@ Nenhuma implementação deve começar sem essa leitura (ver PROJECT.md §7).
 | [context/definition-of-done.md](./context/definition-of-done.md) | for verificar se uma tarefa está concluída |
 | [context/linx-wise-daily-integration.md](./context/linx-wise-daily-integration.md) | for processar planilha de integração diária Linx/WISE (`MB_PROD_EXTRA_WEB`, WISE e `WS_ESTOQUE_PRODUTOS`) |
 | [context/wise-knowledge.md](./context/wise-knowledge.md) | for consultar campanha, saldo/estoque WISE, estrutura `WS_*`, ou relacionamento Showcase ↔ WISE (WISE Agent) |
+| [context/showcase-knowledge.md](./context/showcase-knowledge.md) | for coletar catálogo/grade/fotos do Showcase de qualquer marca/região (Showcase Agent) |
 
 ---
 
@@ -50,6 +51,7 @@ Nenhuma implementação deve começar sem essa leitura (ver PROJECT.md §7).
 | [prompts/tests.md](./prompts/tests.md) | escrever testes para uma funcionalidade |
 | [prompts/processar-planilha-integracao-linx-wise.md](./prompts/processar-planilha-integracao-linx-wise.md) | disparar a rotina diária de planilha Linx/WISE com uma instrução curta |
 | [prompts/consultar-wise.md](./prompts/consultar-wise.md) | acionar o WISE Agent para consultar campanha, saldo/estoque ou Showcase |
+| [prompts/coletar-showcase.md](./prompts/coletar-showcase.md) | acionar o Showcase Agent para coletar catálogo/fotos (e saldo WISE) — sem marca no gatilho |
 
 ---
 

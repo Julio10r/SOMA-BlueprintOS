@@ -35,3 +35,4 @@ Entradas atuais:
 
 - [linx-wise-daily-integration.md](./linx-wise-daily-integration.md) — conhecimento operacional aprovado para a rotina diária Linx/WISE (`MB_PROD_EXTRA_WEB`, validações Linx, WISE e `WS_ESTOQUE_PRODUTOS`).
 - [wise-knowledge.md](./wise-knowledge.md) — conhecimento operacional do WISE Agent: ambiente WISE, Linked Server `WISE_AZURE`, campanhas, saldo/estoque, estrutura `WS_*`, e relacionamento Showcase ↔ WISE.
+- [showcase-knowledge.md](./showcase-knowledge.md) — conhecimento operacional do Showcase Agent: autenticação/sessão, detecção de marca/região, API do Showcase, regra produto/cor, download de fotos e layout de Excel validado — genérico para qualquer marca/região, nunca fixado.

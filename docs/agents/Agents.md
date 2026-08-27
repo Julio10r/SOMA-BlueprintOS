@@ -22,8 +22,9 @@ Além dos agentes de runtime acima, o BlueprintOS mantém especialistas de conhe
 
 - **Agent Linx** (código: `LinxErpSpecialistAgent` / `LinxDatabaseSpecialistAgent`, ver `backend/src/BlueprintOS.Application/Knowledge/Linx/LinxSpecialistAgents.cs`) — especialista no ERP Visual Linx: regras funcionais, fluxos e schema estrutural (`SOMA_DESENV`).
 - **WISE Agent** (conhecimento: [`.ai/context/wise-knowledge.md`](../../.ai/context/wise-knowledge.md); acionamento: [`.ai/prompts/consultar-wise.md`](../../.ai/prompts/consultar-wise.md); runbook: [`docs/operations/WiseAgentRunbook.md`](../operations/WiseAgentRunbook.md)) — especialista no ambiente WISE: campanhas, saldo/estoque, estrutura `WS_*` e relacionamento com o Showcase. Consulta somente leitura por padrão; qualquer escrita exige autorização explícita do Product Owner e segue as regras já documentadas na rotina diária Linx/WISE ([`.ai/context/linx-wise-daily-integration.md`](../../.ai/context/linx-wise-daily-integration.md)).
+- **Showcase Agent** (conhecimento: [`.ai/context/showcase-knowledge.md`](../../.ai/context/showcase-knowledge.md); acionamento: [`.ai/prompts/coletar-showcase.md`](../../.ai/prompts/coletar-showcase.md); runbook: [`docs/operations/ShowcaseAgentRunbook.md`](../operations/ShowcaseAgentRunbook.md); implementação: [`scripts/showcase_collector/`](../../scripts/showcase_collector/)) — especialista em coletar catálogo, grade e fotos do Showcase (Compuwise/WiseCommerce), genérico para qualquer marca/região disponível na sessão autenticada (nunca fixa marca). Somente leitura; nunca persiste token/cookie/segredo — apenas o mecanismo de obtenção da sessão. Fornece PRODUTO+COR ao WISE Agent para enriquecimento de saldo, sem duplicar o conhecimento interno do WISE.
 
-Os dois nunca duplicam responsabilidade entre si (ver detalhe em `wise-knowledge.md`, seção "Relação com o Agent Linx").
+Os três nunca duplicam responsabilidade entre si (ver detalhe em `wise-knowledge.md`, seção "Relação com o Agent Linx", e em `showcase-knowledge.md`, seção "Colaboração com o WISE Agent").
 
 ## AI Factory — fundamentos internos
 

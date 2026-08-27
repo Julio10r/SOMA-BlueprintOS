@@ -1,0 +1,9 @@
+{
+  "name": "showcase-collector",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Coletor Showcase (multi-marca/região) — catálogo, grade e fotos, via API descoberta na sessão autenticada. Ver .ai/context/showcase-knowledge.md.",
+  "dependencies": {
+    "exceljs": "^4.4.0"
+  }
+}
