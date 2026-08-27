@@ -12,6 +12,7 @@ O manifesto e a declaracao canonica de identidade e configuracao do Agent. Ele n
 
 ## Fontes Canonicas
 
+- `agents/EXECUTION_POLICY.md`: politica global de execucao, delegacao, no-bypass e credenciais para qualquer IA.
 - `agents/AGENT_CONTRACT.md`: contrato estrutural canonico para criacao, registro, evolucao e auditoria de Agents.
 - `agents/agent.schema.json`: schema machine-readable usado para validar manifests.
 - `agents/<agent-id>/agent.yaml`: manifesto canonico daquele Agent.
@@ -62,3 +63,11 @@ Em etapa posterior, a Future Agent Factory devera usar este contrato para:
 - gerar catalogos;
 - auditar seguranca;
 - apontar gaps antes de alteracoes de comportamento.
+
+## Bootstrap Para Humanos E IAs
+
+Se voce clonou este projeto e esta usando uma IA para operar o BlueprintOS, ela deve carregar e obedecer `agents/EXECUTION_POLICY.md` e `agents/AGENT_CONTRACT.md` antes de executar qualquer tarefa governavel. Arquivos especificos de provider podem apontar para essas fontes, mas nao substitui-las.
+
+A IA atua como orquestradora: deve identificar o Agent responsavel, respeitar delegacao obrigatoria e registrar Capability Gap quando faltar conhecimento ou capacidade. Saber usar SQL, shell, MCP, browser ou API nao concede bypass.
+
+Credenciais pertencem ao usuario que executa. Configure-as diretamente em User Secrets, secret manager da plataforma/corporativo ou secret store local seguro; Keychain e Credential Manager sao estrategias previstas para adapters futuros. Nunca envie senha, token ou cookie no chat. `.env` local e ignorado pelo Git e seus templates versionados devem permanecer sem valores secretos.

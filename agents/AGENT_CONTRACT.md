@@ -1,8 +1,8 @@
-# Agent Contract v1
+# Agent Contract v1.1
 
 Status: accepted  
 Data: 2026-08-27  
-Escopo: identidade canonica e machine-readable dos Agents do SOMA BlueprintOS.
+Escopo: identidade, ownership, delegacao e seguranca canonica e machine-readable dos Agents do SOMA BlueprintOS.
 
 ## Contexto
 
@@ -22,10 +22,13 @@ O `agent.yaml` e a declaracao canonica de identidade/configuracao daquele Agent.
 
 ## Precedencia
 
-1. `agents/AGENT_CONTRACT.md`: semantica do contrato.
-2. `agents/agent.schema.json`: validacao estrutural machine-readable.
-3. `agents/<agent-id>/agent.yaml`: identidade/configuracao canonica de cada Agent.
-4. Fontes apontadas pelo manifesto: codigo, prompts, contextos, runbooks, scripts, docs e testes.
+1. `agents/EXECUTION_POLICY.md`: politica global de execucao por qualquer IA.
+2. `agents/AGENT_CONTRACT.md`: semantica do contrato.
+3. `agents/agent.schema.json`: validacao estrutural machine-readable.
+4. `agents/<agent-id>/agent.yaml`: identidade/configuracao canonica de cada Agent.
+5. Fontes apontadas pelo manifesto: codigo, prompts, contextos, runbooks, scripts, docs e testes.
+
+Nenhuma fonte de menor precedencia pode remover guardrails globais silenciosamente.
 
 Documentos legados como `.ai/AI_TEAM.md`, `.ai/context/agents.md`, `.ai/context/runtime.md`, `.ai/prompts/new-agent.md` e `docs/agents/Agents.md` continuam validos nesta etapa, mas devem convergir futuramente para este contrato quando houver migracao controlada.
 
@@ -53,7 +56,7 @@ Nao marque como `ENFORCED` algo que depende apenas de instrucao textual, convenc
 
 Todo manifesto deve declarar:
 
-- identidade: `schema_version`, `id`, `name`, `version`, `type`, `status`, `owner`;
+- identidade: `schema_version`, `contract_version`, `id`, `name`, `version`, `type`, `status`, `owner`;
 - responsabilidade: `objective`, `responsibilities`, `non_goals`, `escalation_rules`;
 - implementacao: paths e registro DI quando aplicavel;
 - runtime: se existe runtime executavel e como ele e instanciado;
@@ -65,6 +68,10 @@ Todo manifesto deve declarar:
 - tests: unit, integration, safety e contract;
 - relationships: upstream/downstream agents, workflows e conflitos;
 - catalog: resumo e ordem de exibicao.
+- ownership: capabilities machine-readable, owner responsavel e politica de delegacao;
+- transversalidade: se o Agent e `cross_cutting` e em quais criterios participa;
+- gap policy: tratamento de capability ausente sem bypass;
+- conexoes: profiles logicos e estrategia de credenciais, quando aplicavel.
 
 Quando um campo nao se aplica, use `null`, `[]` ou `false`, conforme permitido pelo schema. Nao invente capacidades para preencher campos.
 
@@ -82,6 +89,36 @@ Todo Agent deve declarar explicitamente:
 - qual e a situacao real de enforcement.
 
 Nenhum Agent pode autoaprovar sua propria acao sensivel.
+
+## Mudancas Do v1 Para v1.1
+
+O Contract v1.1 adiciona a Canonical AI Execution Policy, capability ownership, delegacao obrigatoria, no-direct-bypass, Capability Gap, evolucao controlada de Agents, autorizacao humana explicita para novo Agent, Agents transversais e seguranca canonica de conexoes/credenciais.
+
+`schema_version` permanece `1` para preservar compatibilidade com o envelope estrutural do v1. `contract_version: 1.1` torna o nivel semantico explicito. Os manifests dos Agents passam para versao `1.1.0`.
+
+## Capability Ownership E Delegacao
+
+`capability_ownership` e um objeto cujas chaves sao IDs estaveis em kebab-case. Cada declaracao informa `responsible_agent_id`, `ownership` (`primary` ou `complementary`), `delegation_required` e `direct_execution_by_others_allowed`.
+
+O Agent que declara ownership primario deve usar seu proprio ID como responsavel. Ownership complementar nao substitui o owner primario. Para os Agents atuais, bypass e execucao direta por terceiros permanecem proibidos.
+
+`delegation.cross_cutting` identifica Agents transversais. Seus `participation_criteria` determinam quando devem participar sem transferir ownership do dominio. `security-lgpd-agent` e transversal e consultivo; o Policy Engine continua sendo a decisao deterministica.
+
+## Capability Gap E Evolucao
+
+`gap_policy.direct_bypass_allowed` deve ser `false`. O Agent para quando faltar conhecimento, evidencia, permissao ou Tool/Adapter governado e registra Capability Gap conforme `EXECUTION_POLICY.md`.
+
+O contrato permite propor aprendizado do Agent existente e, depois de avaliar ownership por Agents existentes, propor novo Agent. Criacao de novo Agent e mudanca material de capability ou seguranca exigem autorizacao humana explicita.
+
+Nenhum Agent pode autoexpandir capabilities sensiveis, escrita, destruicao, bypass, acesso, enforcement ou reduzir approval/participacao transversal.
+
+## Connection Profiles E Credenciais
+
+`connections.profiles` contem IDs logicos de recursos, nunca credenciais. Cada profile declara `configuration_reference`, ambiente, intent e classificacao baseada em evidencia. Campos tecnicos nao comprovados ficam ausentes ou `AINDA_NAO_MAPEADO`.
+
+`connections.credential_policy` exige `least_privilege: true`, `privilege_escalation_allowed: false`, identidade individual e secret storage seguro. User Secrets/secret managers existentes sao reutilizados; Keychain e Credential Manager sao estrategias preferenciais previstas, ainda sem adapters completos.
+
+Permissao da identidade e aprovacao BlueprintOS sao independentes e ambas obrigatorias. Agents nao pedem segredo no chat, nao procuram credenciais no Git e nao trocam/elevam identidade quando o acesso for negado.
 
 ## Relacao Com A AgentFactory Atual
 

@@ -1,7 +1,8 @@
 schema_version: 1
+contract_version: 1.1
 id: wise-agent
 name: WISE Agent
-version: 1.0.0
+version: 1.1.0
 type: operational
 status: active
 owner: product-owner
@@ -60,6 +61,38 @@ capabilities:
     - Executar procedures de escrita automaticamente.
     - Imprimir ou persistir senha, token, cookie ou connection string.
     - Duplicar logica do Agent Linx.
+capability_ownership:
+  wise-operational-analysis:
+    responsible_agent_id: wise-agent
+    ownership: primary
+    delegation_required: true
+    direct_execution_by_others_allowed: false
+delegation:
+  cross_cutting: false
+  bypass_allowed: false
+  participation_criteria: []
+gap_policy:
+  direct_bypass_allowed: false
+  allow_learning_existing_agent: true
+  allow_new_agent_proposal: true
+  explicit_human_approval_required_for_new_agent: true
+  material_capability_change_requires_human_approval: true
+connections:
+  profiles:
+    linx-wise-daily-read:
+      configuration_reference: LINX_PROD_* local environment references
+      environment: production-via-approved-runbook
+      access_intent: read-only
+      classification: Confidential
+  credential_policy:
+    strategy: user-managed
+    secret_storage:
+      - secure-os-secret-store-preferred
+      - gitignored-local-environment-fallback
+    individual_identity_required: true
+    least_privilege: true
+    privilege_escalation_allowed: false
+    prompt_for_secret_allowed: false
 data:
   systems:
     - WISE

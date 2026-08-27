@@ -1,7 +1,8 @@
 schema_version: 1
+contract_version: 1.1
 id: linx-database-specialist-agent
 name: LinxDatabaseSpecialistAgent
-version: 1.0.0
+version: 1.1.0
 type: hybrid
 status: active
 owner: engineering
@@ -69,6 +70,38 @@ capabilities:
     - Executar INSERT, UPDATE, DELETE, TRUNCATE, MERGE, ALTER, DROP ou CREATE.
     - Alterar schema.
     - Autoaprovar acao sensivel.
+capability_ownership:
+  linx-database-analysis:
+    responsible_agent_id: linx-database-specialist-agent
+    ownership: primary
+    delegation_required: true
+    direct_execution_by_others_allowed: false
+delegation:
+  cross_cutting: false
+  bypass_allowed: false
+  participation_criteria: []
+gap_policy:
+  direct_bypass_allowed: false
+  allow_learning_existing_agent: true
+  allow_new_agent_proposal: true
+  explicit_human_approval_required_for_new_agent: true
+  material_capability_change_requires_human_approval: true
+connections:
+  profiles:
+    linx-erp-read-only:
+      configuration_reference: ConnectionStrings:ErpConnection
+      environment: SOMA_DESENV
+      access_intent: read-only
+      classification: Confidential
+  credential_policy:
+    strategy: user-managed
+    secret_storage:
+      - dotnet-user-secrets-development
+      - platform-or-corporate-secret-manager
+    individual_identity_required: true
+    least_privilege: true
+    privilege_escalation_allowed: false
+    prompt_for_secret_allowed: false
 data:
   systems:
     - ERP Visual Linx
