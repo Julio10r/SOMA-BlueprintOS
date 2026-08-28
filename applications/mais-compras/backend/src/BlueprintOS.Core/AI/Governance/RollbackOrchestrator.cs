@@ -142,6 +142,27 @@ public sealed class RollbackOrchestrator(
             handle, ["ROLLBACK_READY_FOR_CONFIRMATION"]);
     }
 
+    /// <summary>
+    /// Read-only preview of the rollback's equivalent proposal, for a caller that needs the proposal hash
+    /// BEFORE execution — e.g. a CLI "plan" step that requests a real, persisted approval ahead of the
+    /// (later, separate, manual) "execute" step. Writes nothing and calls nothing but
+    /// <see cref="BuildEquivalentProposal"/>, the exact same builder <see cref="ExecuteAsync"/> itself uses,
+    /// so the hash previewed here is byte-identical to the one evaluated at execution time as long as the
+    /// analyzed state has not concurrently changed (which <see cref="AnalyzeAsync"/> already guards).
+    /// </summary>
+    public static ActionProposal PreviewEquivalentProposal(
+        RollbackSafetyAnalysis analysis, RollbackConfirmation confirmation, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(analysis);
+        ArgumentNullException.ThrowIfNull(confirmation);
+        if (analysis.Status != RollbackAnalysisStatus.ReadyForConfirmation || analysis.Entry is null)
+        {
+            throw new InvalidOperationException("Only an analysis with status ReadyForConfirmation carries enough data to preview an equivalent proposal.");
+        }
+
+        return BuildEquivalentProposal(analysis.Entry, analysis, confirmation, now);
+    }
+
     // ---------------------------------------------------------------------------------------------------
     // 4. EXECUTION — only with the exact handle issued for the exact execution that was analyzed.
     // ---------------------------------------------------------------------------------------------------

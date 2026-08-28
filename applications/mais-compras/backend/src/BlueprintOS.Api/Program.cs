@@ -64,6 +64,11 @@ if (args.Length > 0 && args[0] == "governed-plan")
     return await BlueprintOS.Api.Governance.GovernedPlanCliHandler.RunAsync(Console.In, Console.Out);
 }
 
+if (args.Length > 0 && args[0] == "governed-execute")
+{
+    return await BlueprintOS.Api.Governance.GovernedExecuteCliHandler.RunAsync(args, Console.In, Console.Out, BuildDatabaseConfiguration());
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // CORS — libera a origem do frontend (+Compras Web) em dev/demo.

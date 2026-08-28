@@ -54,6 +54,20 @@ public sealed class GovernedPlanBridge(GovernedWriteStack writeStack)
 {
     public Task<GovernedWritePreparation> PrepareAsync(GovernedPlanPayload payload, CancellationToken cancellationToken = default)
     {
+        var (context, routing, analysis) = BuildTriple(payload);
+        return writeStack.PrepareAsync(context, routing, analysis, cancellationToken);
+    }
+
+    /// <summary>
+    /// The same <see cref="StructuredActionContext"/>/<see cref="RoutingEvidence"/>/<see cref="AgentWriteAnalysis"/>
+    /// construction <see cref="PrepareAsync"/> uses internally, exposed so a second caller that needs the SAME
+    /// triple outside of <see cref="GovernedWriteStack.PrepareAsync"/> (for example, a live-execution CLI that
+    /// hands the triple to <c>GovernedWriteExecutionOrchestrator.ExecuteAsync</c> instead) can build it once,
+    /// identically — never by re-deriving the mapping from a payload a second, divergent way, which would risk
+    /// producing a proposal whose hash silently differs from the one an earlier `propose` step persisted.
+    /// </summary>
+    public static (StructuredActionContext Context, RoutingEvidence Routing, AgentWriteAnalysis Analysis) BuildTriple(GovernedPlanPayload payload)
+    {
         ArgumentNullException.ThrowIfNull(payload);
 
         var context = new StructuredActionContext(
@@ -94,6 +108,6 @@ public sealed class GovernedPlanBridge(GovernedWriteStack writeStack)
             ExpectedAffectedRows: payload.ExpectedAffectedRows,
             Reversibility: Enum.Parse<ActionReversibility>(payload.Reversibility, ignoreCase: true));
 
-        return writeStack.PrepareAsync(context, routing, analysis, cancellationToken);
+        return (context, routing, analysis);
     }
 }

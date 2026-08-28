@@ -74,6 +74,11 @@ capability_ownership:
     ownership: primary
     delegation_required: true
     direct_execution_by_others_allowed: false
+  ped-grade-adjustment-write:
+    responsible_agent_id: linx-erp-specialist-agent
+    ownership: primary
+    delegation_required: true
+    direct_execution_by_others_allowed: false
 delegation:
   cross_cutting: false
   bypass_allowed: false
