@@ -123,7 +123,7 @@ public sealed class RecoveryPackageWriter(string rootDirectory) : IRecoveryPacka
 
     private string BuildPackagePath(RecoveryPackageManifest manifest)
     {
-        var executedAt = manifest.ExecutedAt.ToUniversalTime();
+        var executedAt = BrazilTimeZoneProvider.ToSaoPaulo(manifest.ExecutedAt);
         return Path.Combine(
             RootDirectory,
             Sanitize(manifest.AgentId),

@@ -62,7 +62,7 @@ public sealed class FileRecoveryIndexStore(string rootDirectory) : IRecoveryInde
     }
 
     private string BuildPath(Guid executionId, DateTimeOffset executedAt) =>
-        Path.Combine(_root, executedAt.UtcDateTime.ToString("yyyy-MM-dd"), $"{executionId:N}.json");
+        Path.Combine(_root, BrazilTimeZoneProvider.ToSaoPaulo(executedAt).ToString("yyyy-MM-dd"), $"{executionId:N}.json");
 
     private async Task<string?> FindPathByIdAsync(Guid executionId, CancellationToken cancellationToken)
     {

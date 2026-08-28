@@ -6,6 +6,8 @@ namespace BlueprintOS.UnitTests.Core.AI.Governance;
 
 public sealed class RecoveryPackageWriterTests : IDisposable
 {
+    // UTC 14:35 == America/Sao_Paulo (-03:00) 11:35, same calendar date — folder names below reflect the
+    // Sao Paulo-local rendering (BrazilTimeZoneProvider.ToSaoPaulo), never UTC.
     private static readonly DateTimeOffset ExecutedAt = new(2026, 8, 28, 14, 35, 0, TimeSpan.Zero);
 
     // Every test writes into an isolated temp directory — never into the repository's runtime/backups.
@@ -29,7 +31,7 @@ public sealed class RecoveryPackageWriterTests : IDisposable
         // other path segment) — never the logical ConnectionProfile name ("linx-development"), which stays
         // recorded as metadata inside the manifest.
         Assert.Equal(
-            $"linx-database-specialist-agent/soma_desenv/2026-08-28/1435-garantir-fornecedor__{manifest.ExecutionId:N}",
+            $"linx-database-specialist-agent/soma_desenv/2026-08-28/1135-garantir-fornecedor__{manifest.ExecutionId:N}",
             relative);
         Assert.True(File.Exists(Path.Combine(receipt.PackagePath, RecoveryPackageWriter.ManifestFileName)));
         Assert.True(File.Exists(Path.Combine(receipt.PackagePath, RecoveryPackageWriter.BeforeDataFileName)));
@@ -53,6 +55,23 @@ public sealed class RecoveryPackageWriterTests : IDisposable
         // ConnectionProfile is preserved as metadata even though it no longer shapes the physical path.
         var reloadedSoma = await writer.ReadManifestAsync(somaReceipt.PackagePath);
         Assert.Equal(WriteVerificationProfileSeeds.LinxProduction, reloadedSoma!.ConnectionProfile);
+    }
+
+    [Fact]
+    public async Task Folder_Date_Uses_Sao_Paulo_Local_Date_Not_Utc_Even_Across_The_Day_Boundary()
+    {
+        // 2026-08-29T01:00:00Z is still 2026-08-28 22:00 in America/Sao_Paulo (-03:00) — a UTC-based folder
+        // would land in "2026-08-29", but the canonical operational timezone must place it in "2026-08-28".
+        var crossingUtc = new DateTimeOffset(2026, 8, 29, 1, 0, 0, TimeSpan.Zero);
+        var writer = new RecoveryPackageWriter(_root);
+        var manifest = Manifest() with { ExecutionId = Guid.NewGuid(), ExecutedAt = crossingUtc, ExpiresAt = crossingUtc.AddDays(30) };
+
+        var receipt = await writer.CreateAsync(manifest, [BeforeSet()], [ExpectedAfterSet()]);
+
+        var relative = Path.GetRelativePath(_root, receipt.PackagePath).Replace('\\', '/');
+        Assert.Equal(
+            $"linx-database-specialist-agent/soma_desenv/2026-08-28/2200-garantir-fornecedor__{manifest.ExecutionId:N}",
+            relative);
     }
 
     [Fact]

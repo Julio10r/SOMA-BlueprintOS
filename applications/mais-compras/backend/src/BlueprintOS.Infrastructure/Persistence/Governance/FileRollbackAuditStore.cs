@@ -44,5 +44,5 @@ public sealed class FileRollbackAuditStore(string rootDirectory) : IRollbackAudi
     }
 
     private string BuildPath(Guid rollbackExecutionId, DateTimeOffset requestedAt) =>
-        Path.Combine(_root, requestedAt.UtcDateTime.ToString("yyyy-MM-dd"), $"{rollbackExecutionId:N}.json");
+        Path.Combine(_root, BrazilTimeZoneProvider.ToSaoPaulo(requestedAt).ToString("yyyy-MM-dd"), $"{rollbackExecutionId:N}.json");
 }

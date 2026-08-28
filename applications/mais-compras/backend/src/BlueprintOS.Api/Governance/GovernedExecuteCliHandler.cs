@@ -348,7 +348,7 @@ public static class GovernedExecuteCliHandler
             return 0;
         }
 
-        var now = TimeProvider.System.GetUtcNow();
+        var now = SaoPauloTimeProvider.Instance.GetUtcNow();
         var confirmation = new RollbackConfirmation(analysis.ExecutionId, analysis.ConfirmationHandle, payload.RequestedBy, payload.Justification, now);
         var equivalent = RollbackOrchestrator.PreviewEquivalentProposal(analysis, confirmation, now);
         var decision = new AIGovernancePolicyEngine().Evaluate(equivalent, now);
@@ -424,7 +424,7 @@ public static class GovernedExecuteCliHandler
         var restoreRequest = ExtractRestoreRequest(analysis, payload.SnapshotKey);
         var (rollbackOrchestrator, _, writeAdapter) = BuildRollbackOrchestrator(ForDatabase(governanceRoot, GovernanceDatabaseResolver.ResolveForConnectionProfile(payload.ConnectionProfile)), backupsRoot, configuration, payload.ConnectionProfile, restoreRequest);
 
-        var confirmation = new RollbackConfirmation(analysis.ExecutionId, analysis.ConfirmationHandle, payload.RequestedBy, payload.Justification, TimeProvider.System.GetUtcNow());
+        var confirmation = new RollbackConfirmation(analysis.ExecutionId, analysis.ConfirmationHandle, payload.RequestedBy, payload.Justification, SaoPauloTimeProvider.Instance.GetUtcNow());
 
         var grantId = payload.ApprovalGrantId;
         var result = await rollbackOrchestrator.ExecuteAsync(
@@ -455,8 +455,8 @@ public static class GovernedExecuteCliHandler
     {
         IGovernanceAuditStore audit = new FileGovernanceAuditStore(governanceRoot);
         IApprovalStore approvals = new FileApprovalStore(governanceRoot);
-        var gateway = new ToolGateway([], new ApprovalPolicy(), audit, TimeProvider.System);
-        return new GovernedWriteStack(new StructuredActionProposalAdapter(), new AIGovernancePolicyEngine(), approvals, audit, gateway, TimeProvider.System);
+        var gateway = new ToolGateway([], new ApprovalPolicy(), audit, SaoPauloTimeProvider.Instance);
+        return new GovernedWriteStack(new StructuredActionProposalAdapter(), new AIGovernancePolicyEngine(), approvals, audit, gateway, SaoPauloTimeProvider.Instance);
     }
 
     private static GovernedWriteExecutionOrchestrator BuildExecutionOrchestrator(string governanceRoot, string backupsRoot, PedGradeAdjustmentGovernedWriteAdapter adapter)
@@ -473,12 +473,12 @@ public static class GovernedExecuteCliHandler
         // The gateway for `run` carries EXACTLY the one concrete adapter this command builds from the payload —
         // never SomaLinxDryRunAdapter/SomaLinxReadOnlyAdapter/WiseGovernedAdapter, which cannot execute live and
         // have no place on a live-execution path.
-        var gateway = new ToolGateway([adapter], new ApprovalPolicy(), audit, TimeProvider.System);
-        var writeStack = new GovernedWriteStack(new StructuredActionProposalAdapter(), new AIGovernancePolicyEngine(), approvals, audit, gateway, TimeProvider.System);
+        var gateway = new ToolGateway([adapter], new ApprovalPolicy(), audit, SaoPauloTimeProvider.Instance);
+        var writeStack = new GovernedWriteStack(new StructuredActionProposalAdapter(), new AIGovernancePolicyEngine(), approvals, audit, gateway, SaoPauloTimeProvider.Instance);
 
         return new GovernedWriteExecutionOrchestrator(
             writeStack, profileStore, new PostWriteValidationRuleCatalog(), knowledgeGapStore,
-            recoveryWriter, index, gateway, writeAudit, TimeProvider.System, rollbackCapabilityGapStore);
+            recoveryWriter, index, gateway, writeAudit, SaoPauloTimeProvider.Instance, rollbackCapabilityGapStore);
     }
 
     /// <summary>
@@ -506,10 +506,10 @@ public static class GovernedExecuteCliHandler
 
         var writeAdapter = new PedGradeAdjustmentGovernedWriteAdapter(configuration, restoreRequest, connectionProfile);
 
-        var gateway = new ToolGateway([writeAdapter], new ApprovalPolicy(), governanceAudit, TimeProvider.System);
+        var gateway = new ToolGateway([writeAdapter], new ApprovalPolicy(), governanceAudit, SaoPauloTimeProvider.Instance);
         var orchestrator = new RollbackOrchestrator(
             index, writer, new PostWriteValidationRuleCatalog(), new AIGovernancePolicyEngine(), new ApprovalPolicy(),
-            approvals, gateway, profileStore, rollbackAudit, writeAudit, governanceAudit, TimeProvider.System);
+            approvals, gateway, profileStore, rollbackAudit, writeAudit, governanceAudit, SaoPauloTimeProvider.Instance);
 
         return (orchestrator, approvals, writeAdapter);
     }
@@ -598,7 +598,7 @@ public static class GovernedExecuteCliHandler
         var grant = await approvals.GetGrantAsync(grantId, cancellationToken);
         if (grant is null) return new(null, "APPROVAL_GRANT_NOT_FOUND", $"Nenhum ApprovalGrant persistido com id {grantId}.");
 
-        var now = TimeProvider.System.GetUtcNow();
+        var now = SaoPauloTimeProvider.Instance.GetUtcNow();
         if (grant.RevokedAt is not null) return new(null, "APPROVAL_GRANT_REVOKED", $"ApprovalGrant {grantId} foi revogado em {grant.RevokedAt}.");
         if (now > grant.ExpiresAt) return new(null, "APPROVAL_GRANT_EXPIRED", $"ApprovalGrant {grantId} expirou em {grant.ExpiresAt}.");
 

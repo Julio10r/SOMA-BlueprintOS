@@ -34,5 +34,5 @@ public sealed class FileGovernanceAuditStore(string rootDirectory) : IGovernance
     }
 
     private string BuildPath(Guid id, DateTimeOffset createdAt) =>
-        Path.Combine(_root, createdAt.UtcDateTime.ToString("yyyy-MM-dd"), $"{id:N}.json");
+        Path.Combine(_root, BrazilTimeZoneProvider.ToSaoPaulo(createdAt).ToString("yyyy-MM-dd"), $"{id:N}.json");
 }

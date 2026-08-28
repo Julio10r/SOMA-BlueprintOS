@@ -72,7 +72,7 @@ public sealed class FileWriteExecutionAuditStore(string rootDirectory) : IWriteE
     }
 
     private string BuildPath(Guid executionId, DateTimeOffset startedAt) =>
-        Path.Combine(_root, startedAt.UtcDateTime.ToString("yyyy-MM-dd"), $"{executionId:N}.json");
+        Path.Combine(_root, BrazilTimeZoneProvider.ToSaoPaulo(startedAt).ToString("yyyy-MM-dd"), $"{executionId:N}.json");
 
     private async Task<string?> FindPathByIdAsync(Guid executionId, CancellationToken cancellationToken)
     {

@@ -34,5 +34,5 @@ public sealed class FileRollbackCapabilityGapStore(string rootDirectory) : IRoll
     }
 
     private string BuildPath(Guid id, DateTimeOffset detectedAt) =>
-        Path.Combine(_root, detectedAt.UtcDateTime.ToString("yyyy-MM-dd"), $"{id:N}.json");
+        Path.Combine(_root, BrazilTimeZoneProvider.ToSaoPaulo(detectedAt).ToString("yyyy-MM-dd"), $"{id:N}.json");
 }
