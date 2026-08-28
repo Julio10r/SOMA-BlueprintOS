@@ -3,8 +3,18 @@
   "domain": "linx-fornecedor-cnpj",
   "discovery_date": "2026-08-12",
   "sources": [
-    { "id": "discovery", "path": "docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md" },
-    { "id": "arquitetura", "path": "docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md" }
+    {
+      "id": "discovery",
+      "path": "docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md"
+    },
+    {
+      "id": "arquitetura",
+      "path": "docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md"
+    },
+    {
+      "id": "snapshot",
+      "path": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md"
+    }
   ],
   "units": [
     {
@@ -20,7 +30,8 @@
       "confianca": "ALTA",
       "fonte": "docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md#secao-10-a (linhas 236-250)",
       "restricoes": "Leitura real do schema via sys.tables/sys.columns/sys.indexes no SOMA_DESENV, sessao READ-ONLY autorizada pelo PO em 2026-08-12. Nunca validado/aprovado formalmente no fluxo LinxKnowledgeEntry.Promover.",
-      "tags": ["cadastro_cli_for", "schema", "fornecedor", "cnpj"]
+      "tags": ["cadastro_cli_for", "schema", "fornecedor", "cnpj"],
+      "sourceType": "DATABASE_PROCEDURE_DISCOVERY"
     },
     {
       "key": "linx-enderecos-triplicados-cadastro-cli-for",
@@ -35,7 +46,8 @@
       "confianca": "ALTA",
       "fonte": "docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md#secao-10-a (linhas 245-246)",
       "restricoes": "Decisao de arquitetura +Compras (docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md secao F) e NAO replicar essa triplicacao no dominio +Compras — apenas o Adapter Linx futuro traduziria o endereco unico do +Compras para os 3 blocos, se necessario.",
-      "tags": ["cadastro_cli_for", "endereco", "schema"]
+      "tags": ["cadastro_cli_for", "endereco", "schema"],
+      "sourceType": "DATABASE_PROCEDURE_DISCOVERY"
     },
     {
       "key": "linx-triggers-cadastro-cli-for",
@@ -50,7 +62,8 @@
       "confianca": "ALTA para as 5 triggers lidas em detalhe; BAIXA (INFERIDO) para as 6 restantes (so nome/evento)",
       "fonte": "docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md#secao-10-a (linhas 252-284, tabela de triggers e mapa de efeitos colaterais)",
       "restricoes": "Definicao SQL lida via OBJECT_DEFINITION, nunca executada. Regra registrada para os Agents Linx: toda investigacao futura de entidade Linx com finalidade de escrita deve cobrir triggers, procedures/functions chamadas, views e sequenciais — nao so schema de colunas.",
-      "tags": ["cadastro_cli_for", "trigger", "efeito_colateral", "ibge", "paf_ecf"]
+      "tags": ["cadastro_cli_for", "trigger", "efeito_colateral", "ibge", "paf_ecf"],
+      "sourceType": "DATABASE_PROCEDURE_DISCOVERY"
     },
     {
       "key": "linx-fks-cadastro-cli-for",
@@ -65,7 +78,8 @@
       "confianca": "ALTA",
       "fonte": "docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md#secao-10-a (linha 268)",
       "restricoes": "Contagem aproximada ('mais de 90'), lista de exemplos nao exaustiva.",
-      "tags": ["cadastro_cli_for", "foreign_key", "acoplamento"]
+      "tags": ["cadastro_cli_for", "foreign_key", "acoplamento"],
+      "sourceType": "DATABASE_PROCEDURE_DISCOVERY"
     },
     {
       "key": "linx-procedure-lx-sequencial",
@@ -81,7 +95,8 @@
       "confianca": "ALTA",
       "fonte": "docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md#secao-10-b (linhas 404-409, 452)",
       "restricoes": "Definicao lida via OBJECT_DEFINITION, NUNCA executada em nenhuma sessao (regra READ-ONLY absoluta respeitada). Nao ha evidencia de controle de concorrencia explicito.",
-      "tags": ["lx_sequencial", "sequenciais", "geracao_codigo", "clifor"]
+      "tags": ["lx_sequencial", "sequenciais", "geracao_codigo", "clifor"],
+      "sourceType": "DATABASE_PROCEDURE_DISCOVERY"
     },
     {
       "key": "linx-sequenciais-concorrentes-fornecedor",
@@ -96,7 +111,8 @@
       "confianca": "MEDIA — confirmado como anomalia desta procedure especifica, NAO validado como regra geral do Linx",
       "fonte": "docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md#secao-10-b (linha 429), #secao-10-c (linhas 530, 585)",
       "restricoes": "GAP-LINX-SEQUENCIAL-INCONSISTENTE (aberto): se uma futura integracao de escrita do +Compras replicar esse padrao sem entender por que, pode gerar codigos incoerentes com o papel do registro. Nao decidir geracao de codigo sem confirmar com especialista Linx qual sequencial usar por papel.",
-      "tags": ["lx_sequencial", "clifor", "anomalia", "p_rsv_integracao_cadastro_fornecedor"]
+      "tags": ["lx_sequencial", "clifor", "anomalia", "p_rsv_integracao_cadastro_fornecedor"],
+      "sourceType": "DATABASE_PROCEDURE_DISCOVERY"
     },
     {
       "key": "linx-nome-clifor-nao-vem-de-sequencial",
@@ -111,7 +127,8 @@
       "confianca": "ALTA para 'vem de sanitizacao de string, nunca de sequencial'; MEDIA para o algoritmo exato (varia por implementacao)",
       "fonte": "docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md#secao-10-b (linha 399), #secao-10-c",
       "restricoes": "Confirmado que o algoritmo exato de sanitizacao nao e uniforme entre as 5 implementacoes lidas.",
-      "tags": ["nome_clifor", "sanitizacao", "clifor"]
+      "tags": ["nome_clifor", "sanitizacao", "clifor"],
+      "sourceType": "DATABASE_PROCEDURE_DISCOVERY"
     },
     {
       "key": "linx-procedure-p-rsv-integracao-cadastro-fornecedor",
@@ -127,7 +144,8 @@
       "confianca": "ALTA para o conteudo lido; a extrapolacao de que seja 'o mecanismo oficial generico' e explicitamente rejeitada (Inferido fraco/Desconhecido)",
       "fonte": "docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md#secao-10-b (linhas 394-402)",
       "restricoes": "Nao encontrada nesta rodada uma procedure claramente 'generica'/sem prefixo de parceiro que faca o mesmo INSERT a partir de tela de cadastro manual — permanece DESCONHECIDO.",
-      "tags": ["p_rsv_integracao_cadastro_fornecedor", "procedure", "sap", "marketplace", "lx_sequencial"]
+      "tags": ["p_rsv_integracao_cadastro_fornecedor", "procedure", "sap", "marketplace", "lx_sequencial"],
+      "sourceType": "DATABASE_PROCEDURE_DISCOVERY"
     },
     {
       "key": "linx-padrao-nivel-1-cinco-implementacoes-cadastro",
@@ -143,7 +161,8 @@
       "confianca": "ALTA para o padrao de 5/5 usar LX_SEQUENCIAL; nenhuma promocao a Validado/Aprovado ocorreu nesta rodada",
       "fonte": "docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md#secao-10-c (linhas 495-585)",
       "restricoes": "Metodologia explicita do PO: nenhuma procedure isolada deve ser tratada como 'o mecanismo oficial do Visual Linx' — tratar cada uma como amostra independente e buscar padrao recorrente.",
-      "tags": ["padrao", "lx_sequencial", "clifor", "metodologia"]
+      "tags": ["padrao", "lx_sequencial", "clifor", "metodologia"],
+      "sourceType": "DATABASE_PROCEDURE_DISCOVERY"
     },
     {
       "key": "linx-ferramentas-discovery-schema-readonly",
@@ -159,7 +178,8 @@
       "confianca": "ALTA",
       "fonte": "docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md#secao-10-c (linhas 335-336)",
       "restricoes": "Nenhuma dessas procedures foi executada com efeito de escrita — sao SELECTs sobre catalogos.",
-      "tags": ["lx_cade", "lx_cade_coluna", "anm_busca_instrucao", "discovery", "metodologia"]
+      "tags": ["lx_cade", "lx_cade_coluna", "anm_busca_instrucao", "discovery", "metodologia"],
+      "sourceType": "DATABASE_PROCEDURE_DISCOVERY"
     },
     {
       "key": "linx-metodologia-investigacao-escrita-futura",
@@ -174,7 +194,8 @@
       "confianca": "ALTA — regra de processo, nao de dado especifico",
       "fonte": "docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md#secao-10-a (linhas 292-296)",
       "restricoes": "Separacao de responsabilidades reforcada: LinxDatabaseSpecialist descobre o fato fisico (proveniencia inicial Descoberto); LinxErpSpecialist interpreta o significado funcional (proveniencia inicial Inferido). Uma interpretacao Inferida nunca deve ser promovida a Validado/Aprovado sem confirmacao humana.",
-      "tags": ["metodologia", "trigger", "procedure", "proveniencia", "regra_geral"]
+      "tags": ["metodologia", "trigger", "procedure", "proveniencia", "regra_geral"],
+      "sourceType": "DATABASE_PROCEDURE_DISCOVERY"
     },
     {
       "key": "arquitetura-fronteira-adapter-linx",
@@ -189,7 +210,8 @@
       "confianca": "ALTA como decisao de arquitetura; os itens 'AINDA DESCONHECIDO' permanecem nao confirmados",
       "fonte": "docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md#secao-o (linhas 253-269), #secao-b (linhas 55-84)",
       "restricoes": "Nenhum Adapter Linx foi implementado nesta rodada — apenas decisao/modelagem.",
-      "tags": ["adapter_linx", "arquitetura", "fronteira", "gate_validacao"]
+      "tags": ["adapter_linx", "arquitetura", "fronteira", "gate_validacao"],
+      "sourceType": "ARCHITECTURAL_DECISION"
     },
     {
       "key": "arquitetura-documento-fiscal-canonico",
@@ -204,7 +226,8 @@
       "confianca": "ALTA — resolvida por evidencia de uso real no codigo, nao pede decisao do PO",
       "fonte": "docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md#secao-c (linhas 88-97), #secao-a1 (linhas 15-20)",
       "restricoes": "Correspondencia com o campo fisico Linx CGC_CPF (varchar(19), coluna unica para CNPJ/CPF distinguida por PJ_PF) e responsabilidade do futuro Adapter Linx, nao do dominio +Compras.",
-      "tags": ["documento_fiscal", "cnpj", "cgc_cpf", "arquitetura", "bug_4"]
+      "tags": ["documento_fiscal", "cnpj", "cgc_cpf", "arquitetura", "bug_4"],
+      "sourceType": "ARCHITECTURAL_DECISION"
     },
     {
       "key": "arquitetura-taxonomia-erros-cnpj",
@@ -219,7 +242,8 @@
       "confianca": "ALTA — decisao tecnica direta a partir do comportamento HTTP ja observado no codigo",
       "fonte": "docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md#secao-k (linhas 190-203)",
       "restricoes": "Nao implementada nesta rodada — e decisao de arquitetura para Work Order futura (WO-2).",
-      "tags": ["taxonomia_erro", "cnpj", "bug_3", "arquitetura"]
+      "tags": ["taxonomia_erro", "cnpj", "bug_3", "arquitetura"],
+      "sourceType": "ARCHITECTURAL_DECISION"
     },
     {
       "key": "arquitetura-proveniencia-hibrida-consulta-cnpj",
@@ -234,7 +258,8 @@
       "confianca": "MEDIA — decisao tecnica formalizada, mas politica de retencao ainda pendente de decisao do PO/juridico",
       "fonte": "docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md#secao-l (linhas 207-214), #secao-a3 (linhas 30-33)",
       "restricoes": "Nao implementada nesta rodada. Pendencia explicita: politica de retencao do snapshot bruto (item 2 da secao Q).",
-      "tags": ["proveniencia", "snapshot", "cnpj", "lgpd", "auditoria"]
+      "tags": ["proveniencia", "snapshot", "cnpj", "lgpd", "auditoria"],
+      "sourceType": "ARCHITECTURAL_DECISION"
     },
     {
       "key": "arquitetura-nao-persistir-qsa-cnae-secundario",
@@ -249,7 +274,216 @@
       "confianca": "ALTA — resolvida por evidencia do Linx fisico + principio de minimizacao de dados; confirmacao formal de politica ainda pendente do PO/juridico",
       "fonte": "docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md#secao-h (linhas 162-164), #secao-i (linhas 168-170)",
       "restricoes": "Pendencia explicita: confirmacao formal de nao persistir QSA e recomendacao tecnica forte (LGPD), mas decisao final de politica de dados pessoais deve ser ratificada pelo PO/juridico (secao Q, item 1).",
-      "tags": ["qsa", "cnae", "lgpd", "minimizacao_dados", "arquitetura"]
+      "tags": ["qsa", "cnae", "lgpd", "minimizacao_dados", "arquitetura"],
+      "sourceType": "ARCHITECTURAL_DECISION"
+    },
+    {
+      "key": "linx-especializacao-papel-fornecedores-clientes-filiais",
+      "especialista": "LinxDatabaseSpecialist",
+      "categoria": "Schema",
+      "assunto": "FORNECEDORES/CLIENTES_ATACADO/FILIAIS como tabelas de especializacao de papel sobre CADASTRO_CLI_FOR",
+      "entidade_linx": "FORNECEDORES",
+      "tabela": "FORNECEDORES",
+      "campos": ["FORNECEDOR", "COD_FORNECEDOR", "CLIFOR", "TIPO", "SUBTIPO_FORNECEDOR", "CENTRO_CUSTO", "CONTA_CONTABIL", "CONDICAO_PGTO", "MOEDA", "FORNECE_MATERIAIS", "FORNECE_PROD_ACAB", "FORNECE_MAT_CONSUMO", "BENEFICIADOR", "FORNECE_OUTROS", "INDICA_TRANSPORTADORA", "INDICA_MARKDOWN", "INDICA_INTERMEDIADOR", "BLOQUEIO_COMPLINCE", "INDICA_CQFOR", "LICENCIADO", "LICENCIADO_ROYALTIES"],
+      "conteudo": "FORNECEDORES (PK FORNECEDOR varchar(25); FKs para CADASTRO_CLI_FOR via CLIFOR/COD_FORNECEDOR/FORNECEDOR) guarda exclusivamente atributos de negocio do papel de fornecedor -- classificacao (TIPO, SUBTIPO_FORNECEDOR, CENTRO_CUSTO), fiscal/financeiro (CONTA_CONTABIL, CONDICAO_PGTO, MOEDA), flags de fornecimento (FORNECE_MATERIAIS, FORNECE_PROD_ACAB, FORNECE_MAT_CONSUMO, BENEFICIADOR, FORNECE_OUTROS, INDICA_TRANSPORTADORA, INDICA_MARKDOWN, INDICA_INTERMEDIADOR), compliance (BLOQUEIO_COMPLINCE, INDICA_CQFOR), licenciamento (LICENCIADO, LICENCIADO_ROYALTIES). Nao tem nenhuma coluna de endereco, telefone, e-mail ou razao social -- tudo isso fica exclusivamente na tabela-mae CADASTRO_CLI_FOR. CLIENTES_ATACADO e FILIAIS seguem o mesmo padrao estrutural (dezenas de colunas de negocio especificas ao papel -- credito/bloqueios/expedicao para cliente; estoque/controle fiscal/conta bancaria para filial -- sem endereco/telefone proprios), mas foram lidas nesta rodada apenas por nome de coluna, nao em profundidade de tipo/PK/FK.",
+      "proveniencia": "Descoberto",
+      "confianca": "ALTA para FORNECEDORES (leitura completa); MEDIA para CLIENTES_ATACADO/FILIAIS (so nomes de coluna)",
+      "sourceType": "DATABASE_PROCEDURE_DISCOVERY",
+      "source_ref": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#2.2",
+      "fonte": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#2.2 (sem espelho nos dois documentos de auditoria originais -- sys.columns/sys.indexes lido em sessao de discovery READ-ONLY, 12/08/2026)",
+      "restricoes": "Profundidade de leitura desigual entre as tres tabelas de especializacao -- CLIENTES_ATACADO/FILIAIS pendentes de leitura estrutural completa (tipo/PK/FK) se o dominio Cliente/Filial vier a ser investigado.",
+      "tags": ["fornecedores", "clientes_atacado", "filiais", "especializacao_de_papel"]
+    },
+    {
+      "key": "linx-mapa-conceitual-efeitos-colaterais-escrita",
+      "especialista": "LinxDatabaseSpecialist",
+      "categoria": "Regra",
+      "assunto": "Template reutilizavel de mapa conceitual de efeitos colaterais de escrita Linx",
+      "entidade_linx": null,
+      "tabela": null,
+      "campos": [],
+      "conteudo": "Template conceitual reutilizavel para mapear o efeito real de qualquer operacao de escrita numa tabela Linx: Operacao -> Tabela principal -> Trigger(s) -> Validacao/bloqueio -> Colunas lidas/alteradas -> Tabelas secundarias afetadas -> Procedure/function chamada -> Sistema externo envolvido -> Efeito funcional (interpretacao, sempre marcada Inferido ate validacao humana). Aplicado ao dominio Fornecedor, esse mapa ja foi preenchido em docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md secao 10-A (ver unidade linx-triggers-cadastro-cli-for) -- esta unidade preserva apenas a estrutura do template como conhecimento GLOBAL reutilizavel para qualquer dominio Linx futuro (Filiais/Itens/Pedidos/Notas Fiscais), sem repetir os dados ja detalhados para Fornecedor.",
+      "proveniencia": "Inferido",
+      "confianca": "MEDIA -- funcionou uma vez (dominio Fornecedor); precisa se repetir em outro dominio para confirmar generalizacao",
+      "sourceType": "TEMP_DISCOVERY_SNAPSHOT",
+      "source_ref": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#6.2",
+      "fonte": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#6.2 (sintese/template proprio do snapshot, sem espelho literal nos documentos de auditoria)",
+      "restricoes": "Template ainda nao aplicado/validado em nenhum dominio Linx alem de Fornecedor.",
+      "tags": ["metodologia", "trigger", "efeitos_colaterais", "template"]
+    },
+    {
+      "key": "linx-principio-escrita-nunca-so-local",
+      "especialista": "LinxErpSpecialist",
+      "categoria": "Regra",
+      "assunto": "Uma escrita numa tabela Linx nunca deve ser assumida como tendo efeito apenas local",
+      "entidade_linx": "CADASTRO_CLI_FOR",
+      "tabela": "CADASTRO_CLI_FOR",
+      "campos": [],
+      "conteudo": "Confirmado na pratica no dominio Fornecedor: uma unica operacao de escrita em CADASTRO_CLI_FOR pode disparar, via triggers AFTER padrao (que reagem a qualquer INSERT/UPDATE real, nao so a inserts feitos pela tela), efeitos em: preenchimento automatico de outros campos, bloqueio condicional, gravacao de auditoria, chamada a procedure de integracao fiscal, enfileiramento em duas filas de replicacao distintas, bloqueio/integracao SAP, e gravacao em sistema de RH/terceiros (ver linx-triggers-cadastro-cli-for). Nenhuma dessas triggers exige passo adicional do chamador para disparar -- qualquer futuro Adapter Linx de escrita precisa assumir, por padrao, que a operacao tera efeitos alem da propria tabela, mapeando conscientemente cada trigger da tabela-alvo antes de escrever.",
+      "proveniencia": "Descoberto",
+      "confianca": "ALTA para o dominio Fornecedor; MEDIA como principio geral (ainda nao confirmado em outro dominio Linx)",
+      "sourceType": "TEMP_DISCOVERY_SNAPSHOT",
+      "source_ref": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#6.3",
+      "fonte": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#6.3 (generalizacao explicita do achado de docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md#secao-10-a, sem espelho literal do principio generalizado)",
+      "restricoes": "Generalizacao alem do dominio Fornecedor ainda nao testada.",
+      "tags": ["triggers", "efeitos_colaterais", "principio_global", "risco_de_escrita"]
+    },
+    {
+      "key": "linx-contrato-futuro-adapter-linx-fornecedor",
+      "especialista": "LinxErpSpecialist",
+      "categoria": "HistoricoDecisao",
+      "assunto": "Contrato classificado do futuro Adapter Linx de Fornecedor (preservado, nao implementado)",
+      "entidade_linx": "CADASTRO_CLI_FOR",
+      "tabela": "CADASTRO_CLI_FOR",
+      "campos": [],
+      "conteudo": "Classificacao consolidada do que um futuro Adapter Linx de Fornecedor precisa fazer: OBRIGATORIO -- obter codigo via LX_SEQUENCIAL/FORNECEDORES.CLIFOR (melhor evidencia disponivel, Nivel 1); gerar NOME_CLIFOR por sanitizacao de nome (sem espaco inicial, sem caracteres especiais, reforcado por trigger real de bloqueio); popular flags de papel Linx (INDICA_FORNECEDOR etc.) no momento da criacao; verificar existencia previa no lado Linx antes de decidir INSERT vs UPDATE fisico. RECOMENDADO -- transacao com rollback ao escrever no Linx; popular o bloco de endereco fisico Linx replicando o endereco unico do +Compras nos 3 blocos, se necessario. NAO ENTRA NO DOMINIO +COMPRAS -- qualquer vocabulario/campo especifico de integracoes de terceiros (grupo_conta, ORG_COMPRA, codigo_sap, campos SAP, nomes de tabela Linx). Gate obrigatorio preservado: nenhuma escrita real do Adapter Linx deve ir para producao sem confirmacao de um especialista Visual Linx sobre os itens AINDA DESCONHECIDO (ver linx-desconhecidos-preservados-adapter-fornecedor) -- o padrao de Nivel 1 e a melhor evidencia disponivel, nao um contrato oficialmente aprovado.",
+      "proveniencia": "Inferido",
+      "confianca": "ALTA para os itens OBRIGATORIO/RECOMENDADO (evidencia de codigo real); pendente de confirmacao humana antes de qualquer escrita em producao",
+      "sourceType": "TEMP_DISCOVERY_SNAPSHOT",
+      "source_ref": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#8",
+      "fonte": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#8 (sintese classificatoria propria do snapshot; itens individuais ja tem base em docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md, mas a tabela classificada em si nao tem espelho literal)",
+      "restricoes": "Nenhum Adapter Linx foi implementado -- apenas contrato preservado para decisao futura.",
+      "tags": ["adapter_linx", "contrato", "gate_validacao", "nivel_1"]
+    },
+    {
+      "key": "linx-desconhecidos-preservados-adapter-fornecedor",
+      "especialista": "LinxErpSpecialist",
+      "categoria": "Regra",
+      "assunto": "Lista consolidada de desconhecidos que bloqueiam a implementacao real do Adapter Linx de Fornecedor",
+      "entidade_linx": "CADASTRO_CLI_FOR",
+      "tabela": "CADASTRO_CLI_FOR",
+      "campos": [],
+      "conteudo": "Desconhecidos preservados explicitamente (nenhum deve ser preenchido por suposicao): (1) existencia de rotina distinta para a tela manual do Visual Linx, ja que as 5 procedures lidas sao integracoes automatizadas -- PARCIALMENTE RESOLVIDO por linx-metodologia-discovery-codigo-fonte-tela-vfp/linx-achados-tela-vfp-fornecedor-001016g1/linx-framework-persistencia-l-salva (leitura de codigo real da tela confirmou uso de FORNECEDORES.CLIFOR e rotina propria l_salva, distinta das 5 integracoes); (2) identidade dos sistemas consumidores das filas LJ_ETL_REPOSITORIO/GS_WETL_REPOSITORIO -- ainda DESCONHECIDO; (3) criterio definitivo de duplicidade do lado Linx (nome sanitizado vs CNPJ vs combinacao) -- PARCIALMENTE RESOLVIDO por linx-achados-tela-vfp-fornecedor-001016g1 (CGC_CPF escopado por EMPRESA e o criterio oficial da tela) e linx-decisoes-po-fronteira-bu-erp-fornecedor (identidade = BU+CNPJ, decisao do PO); (4) regras finais de escrita do Adapter Linx (ordem exata, tratamento de erro, ponto de rollback cross-sistema) -- parcialmente informado por linx-framework-persistencia-l-salva e linx-idempotencia-convergencia-create-update-fornecedor, mas implementacao real ainda pendente; (5) necessidade de tratamento de dados legados (CGC_CPF nao numerico) -- ainda DESCONHECIDO, requer investigacao de volume real; (6) conteudo completo de 6 procedures citadas por nome mas nao lidas em profundidade (LX_AZZ_GERAR_CLIENTE_ATAC_LINX, MIT_INTEGRA_ORO, MIT_INTEGRA_TRUNK, mit_integra_vintage, PROC_GS_INTEGRA_CLIENTES_ATACADO_REDMINE, LX_LGPD_PROC_CLIENTE) -- ainda DESCONHECIDO.",
+      "proveniencia": "Descoberto",
+      "confianca": "ALTA de que estes itens permanecem nao confirmados ou so parcialmente confirmados -- nao inventar resposta para nenhum deles",
+      "sourceType": "TEMP_DISCOVERY_SNAPSHOT",
+      "source_ref": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#9",
+      "fonte": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#9 (lista consolidada propria do snapshot; itens 1/3/4 atualizados por 13-A/13-A.1/13-B/13-C/13-D no mesmo snapshot)",
+      "restricoes": "KNOWN_LIMITATION -- nenhum destes itens deve ser decidido por inferencia automatica de um Agent; exige confirmacao humana/investigacao adicional antes de qualquer escrita real em producao.",
+      "gapType": "KNOWN_LIMITATION",
+      "tags": ["desconhecidos", "adapter_linx", "gate_validacao", "known_limitation"]
+    },
+    {
+      "key": "linx-playbook-discovery-reutilizavel-14-passos",
+      "especialista": "LinxDatabaseSpecialist",
+      "categoria": "Regra",
+      "assunto": "Playbook de 14 passos para discovery estrutural read-only de qualquer entidade Linx",
+      "entidade_linx": null,
+      "tabela": null,
+      "campos": [],
+      "conteudo": "Playbook reutilizavel para qualquer dominio Linx futuro (Filiais, Itens, Pedidos, Clientes, Notas Fiscais etc.), sempre em modo estritamente READ-ONLY: (1) localizar candidatos a tabela principal via nome (sys.tables/LX_CADE) e via coluna caracteristica (sys.columns/LX_CADE_COLUNA), nunca assumir nome de tabela pela nomenclatura de negocio; (2) listar todas as colunas (tipo, nulidade, identity), checando colunas de chave sem IDENTITY; (3) buscar FKs de entrada e saida (sys.foreign_keys); (4) verificar se e entidade-base multiuso (colunas BIT de papel + tabelas satelite), confirmando cada flag por uso real em triggers/procedures; (5) mapear chaves e mecanismo de geracao de codigo (SEQUENCIAIS/LX_SEQUENCIAL ou equivalente), lendo definicao sem executar; (6) listar e ler por completo todas as triggers da tabela principal (sys.triggers + OBJECT_DEFINITION); (7) buscar procedures/functions relacionadas via sys.sql_modules; (8) ler views relevantes referenciadas por triggers/procedures; (9) identificar efeitos colaterais em sistemas externos por evidencia textual no codigo, nunca por suposicao; (10) comparar multiplas implementacoes reais de escrita para a mesma tabela; (11) separar padrao recorrente (Nivel 1/2) de peculiaridade de integracao unica (Nivel 3); (12) classificar confianca por contagem real (ex. 4 de 5), nunca por percentual estimado; (13) registrar explicitamente todo DESCONHECIDO, nunca preencher com suposicao; (14) validar achados de Nivel 1 e desconhecidos criticos com especialista humano antes de qualquer implementacao real de escrita -- recorrencia nao e aprovacao.",
+      "proveniencia": "Inferido",
+      "confianca": "MEDIA -- aplicado uma vez com sucesso no dominio Fornecedor, precisa se repetir em outro dominio Linx para confirmar generalizacao",
+      "sourceType": "TEMP_DISCOVERY_SNAPSHOT",
+      "source_ref": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#10",
+      "fonte": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#10 (consolidacao propria do snapshot; passos individuais derivam da aplicacao pratica ja documentada em docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md, sem espelho literal do playbook completo)",
+      "restricoes": "Metodologia, nao regra de negocio -- nao aplicavel a nenhuma decisao funcional isolada.",
+      "tags": ["playbook", "metodologia", "discovery_sql", "reutilizavel"]
+    },
+    {
+      "key": "linx-gap-infraestrutura-persistencia-linxknowledgeentry",
+      "especialista": "LinxErpSpecialist",
+      "categoria": "HistoricoDecisao",
+      "assunto": "Ausencia de infraestrutura local para persistir LinxKnowledgeEntry diretamente a partir de um arquivo estatico",
+      "entidade_linx": null,
+      "tabela": null,
+      "campos": [],
+      "conteudo": "O mecanismo canonico LinxKnowledgeEntry/LinxKnowledgeRepository exige uma aplicacao .NET real conectada a um banco SQL Server via EF Core para persistir qualquer entrada (RegistrarConhecimentoUseCase.ExecuteAsync, com ator/RBAC) -- nao existe seeder/HasData/rotina de carga em lote no repositorio para popular LinxKnowledgeEntry a partir de um arquivo estatico. Nao ha, no inventario de dividas/GAPs numerado do projeto (docs/audits/O1.14-InventarioDividasEGaps.md), um identificador DEB-/GAP- que corresponda exatamente a este bloqueio -- o item mais proximo (DEB-18) trata de evolucao de busca/RAG, nao da ausencia de infraestrutura local para o caminho de escrita ja existente. Este snapshot nao inventa um novo identificador -- registra que a formalizacao de um novo item (ou ajuste de escopo de um existente) e acao pendente de quem resolver o bloqueio.",
+      "proveniencia": "Descoberto",
+      "confianca": "ALTA -- confirmado nesta e na rodada anterior de ingestao (ausencia de docker-compose ativo, appsettings.json com placeholders, nenhum seed/CLI alternativo)",
+      "sourceType": "TEMP_DISCOVERY_SNAPSHOT",
+      "source_ref": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#12",
+      "fonte": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#12; corroborado por docs/repository/LinxKnowledgeFornecedor-Ingestion.md secao 1 (limitacao real documentada na rodada anterior de ingestao)",
+      "restricoes": "ARCHITECTURE_GAP / IMPLEMENTATION_CONSTRAINT relevante ao comportamento futuro dos Agents -- nao e regra de negocio Linx; nao decide sozinho a criacao de um novo DEB-/GAP-, exige acao humana de formalizacao.",
+      "gapType": "IMPLEMENTATION_CONSTRAINT",
+      "tags": ["gap", "infraestrutura", "linxknowledgeentry", "persistencia"]
+    },
+    {
+      "key": "linx-metodologia-discovery-codigo-fonte-tela-vfp",
+      "especialista": "LinxErpSpecialist",
+      "categoria": "FluxoErp",
+      "assunto": "Playbook de descoberta de comportamento real de tela Visual Linx a partir de fontes locais (TRANSACOES -> SCX/SCT/PRG)",
+      "entidade_linx": "TRANSACOES",
+      "tabela": "TRANSACOES",
+      "campos": ["TABELA_PAI", "CONTROL_SISTEMA"],
+      "conteudo": "Quando os fontes do Visual Linx estao disponiveis localmente (pacote nao versionado no git), a hierarquia de evidencia preferencial passa a ser: (1) codigo real da tela padrao; (2) OBJ/customizacao associado; (3) schema/triggers/procedures do banco; (4) padroes recorrentes de integracoes existentes; (5) validacao com especialista humano; (6) inferencia arquitetural. Fluxo de localizacao: identificar tabela/dominio -> SELECT * FROM TRANSACOES WHERE TABELA_PAI='<TABELA>' -> obter CONTROL_SISTEMA -> localizar LX[CONTROL_SISTEMA].SCX/.SCT (tela) e obj_[CONTROL_SISTEMA].PRG/.FXP (objeto de entrada/customizacao) -> ler .PRG como fonte preferencial (texto plano); ler .SCT via extracao de texto (memo da tela, contem SQL de views/cursors e metodos como texto) -- nunca decompilar/modificar .FXP/.SCX binarios. Sempre classificar cada achado como PADRAO LINX vs CUSTOMIZACAO SOMA/AZZAS vs BANCO/TRIGGER vs INTEGRACAO EXTERNA -- nunca promover comportamento de um OBJ especifico a regra universal do produto sem evidencia adicional. Uma tela pode ter mais de uma transacao relacionada a mesma tabela-pai -- mapear finalidade de cada uma antes de decidir qual e relevante.",
+      "proveniencia": "Validado",
+      "confianca": "ALTA -- validado nesta sessao contra a tela real de Fornecedor (CONTROL_SISTEMA=001016G1), confirmado pelo Product Owner",
+      "sourceType": "VFP_CODE_DISCOVERY",
+      "source_ref": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-A",
+      "fonte": "docs/architecture/Gate-PreB29-AdapterLinxFornecedor.md#secao-6-a; agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-A",
+      "restricoes": "O pacote de fontes local pode conter apenas customizacoes (OBJs de entrada), nao o framework/classe base do produto -- chamadas a metodos herdados revelam quando/com quais parametros algo e chamado, nao necessariamente a implementacao interna. Registrar lacuna como DESCONHECIDO, nunca inferir comportamento interno.",
+      "tags": ["metodologia", "discovery", "visual_foxpro", "transacoes", "playbook"]
+    },
+    {
+      "key": "linx-achados-tela-vfp-fornecedor-001016g1",
+      "especialista": "LinxErpSpecialist",
+      "categoria": "Regra",
+      "assunto": "Regras de identidade e duplicidade de Fornecedor confirmadas por leitura direta da tela padrao Visual Linx",
+      "entidade_linx": "CADASTRO_CLI_FOR",
+      "tabela": "CADASTRO_CLI_FOR",
+      "procedure": "f_sequenciais",
+      "campos": ["CLIFOR", "COD_CLIFOR", "COD_FORNECEDOR", "NOME_CLIFOR", "CGC_CPF", "EMPRESA"],
+      "conteudo": "(a) CLIFOR de um fornecedor novo e gerado por f_sequenciais('FORNECEDORES.CLIFOR', .t.), chamado apenas em modo Inclusao e apenas se ainda nao gerado na sessao da tela -- confirma FORNECEDORES.CLIFOR como sequencial oficial (a anomalia CLIENTES_ATACADO.CLIFOR de uma integracao isolada nao e um padrao alternativo valido); (b) COD_CLIFOR e COD_FORNECEDOR recebem exatamente o mesmo valor de CLIFOR, sem padding/transformacao; (c) NOME_CLIFOR e o proprio valor do campo 'Fornecedor' digitado pelo usuario (nao deriva de razao social nem de sequencial), com sanitizacao de customizacao SOMA/AZZAS (maiusculas, sem espaco inicial, sem caracteres especiais de uma lista fixa) -- sem tratamento explicito de colisao de nome alem da PK fisica; (d) criterio de duplicidade primario e oficial da tela e CGC_CPF em FORNECEDORES, escopado por EMPRESA/grupo economico via CADASTRO_CLI_FOR_EMPRESA -- mesmo CNPJ na mesma empresa bloqueia, em outra empresa do grupo oferece reuso (vincular grupo economico ao cadastro existente, sem criar novo CADASTRO_CLI_FOR); (e) a persistencia real nao passa por nenhuma das 5 procedures de integracao conhecidas, nem por TableUpdate() automatico de view (SendUpdates=.F. no cursor principal) -- passa por uma classe base compartilhada (l_desenhista_*) cuja implementacao interna esta fora do pacote de fontes disponivel (ver linx-framework-persistencia-l-salva); (f) evidencia simetrica (pelo caminho de exclusao de papel): remover o papel Fornecedor de um cadastro que tambem e Cliente/Filial/Representante so reseta a flag e remove de FORNECEDORES, preservando CADASTRO_CLI_FOR e os demais papeis.",
+      "proveniencia": "Validado",
+      "confianca": "ALTA para (a)-(d) e (f) -- leitura direta e literal do codigo real da tela padrao; MEDIA para (e), ja que a implementacao interna da classe base nao foi lida diretamente aqui",
+      "sourceType": "VFP_CODE_DISCOVERY",
+      "source_ref": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-A.1",
+      "fonte": "lx001016G1.SCX/SCT + obj_001016G1.PRG/FXP (fonte local nao versionada); docs/architecture/Gate-PreB29-AdapterLinxFornecedor.md#secao-6-a; agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-A.1",
+      "restricoes": "Nao ha evidencia de transacao explicita (BEGIN TRAN) nem do caminho simetrico de adicionar um papel a um cadastro existente (so o de remover foi encontrado); consumidores de filas ETL/WETL, comportamento sob concorrencia de LX_SEQUENCIAL e estrategia de rollback cross-sistema permanecem desconhecidos.",
+      "tags": ["tela_visual_linx", "001016g1", "duplicidade", "clifor", "cgc_cpf", "vfp"]
+    },
+    {
+      "key": "linx-framework-persistencia-l-salva",
+      "especialista": "LinxDatabaseSpecialist",
+      "categoria": "FluxoErp",
+      "assunto": "l_salva -- rotina central de transacao/persistencia do framework Visual Linx",
+      "entidade_linx": "CADASTRO_CLI_FOR",
+      "tabela": "CADASTRO_CLI_FOR",
+      "procedure": "l_salva",
+      "campos": [],
+      "conteudo": "Localizado em lx_class.vcx (fonte local nao versionada), o metodo generico l_salva e herdado por todas as telas Visual Linx (incluindo a de Fornecedor, 001016G1) -- e a rotina central que investigacoes anteriores buscavam sem sucesso nas 5 procedures de integracao. Estrutura real: hooks pre-salvamento (l_desenhista_antes_salva, USR_SAVE_BEFORE) -> transacao em duas camadas (Begin Transaction de buffer VFP + data.connection.BeginTrans() real no SQL Server, isolamento ajustavel para READ COMMITTED durante a escrita) -> hooks de trigger antes -> auditoria (l_auditoria) -> gravacao real via objCursor.AcceptChanges(...) (metodo nativo do CursorAdapter do VFP, um por cursor principal, todos dentro da mesma transacao) -> hooks de trigger depois -> CommitTrans()/End Transaction em sucesso, ou RollbackTrans()+RollBack completo em qualquer falha em qualquer etapa -> hooks pos-salvamento (l_desenhista_apos_salva, USR_SAVE_AFTER). Para a tela de Fornecedor, cujo CursorAdapter tem Tables=CADASTRO_CLI_FOR,FORNECEDORES, isso confirma por evidencia direta (nao mais inferencia) que as duas tabelas sao gravadas dentro da mesma transacao de banco, com rollback total garantido pelo proprio framework em qualquer falha.",
+      "proveniencia": "Validado",
+      "confianca": "ALTA -- leitura direta e literal do codigo-fonte real da classe base do produto",
+      "sourceType": "VFP_CODE_DISCOVERY",
+      "source_ref": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-B",
+      "fonte": "lx_class.vcx/.VCT (fonte local nao versionada); docs/architecture/Gate-PreB29-AdapterLinxFornecedor.md; agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-B",
+      "restricoes": "f_sequenciais (chamado pela tela de Fornecedor para obter CLIFOR) nao esta definido em lx_class.vcx -- vive em biblioteca de funcoes globais nao incluida nas fontes disponiveis; nenhuma referencia a LX_SEQUENCIAL ou SEQUENCIA_FORNECEDOR foi encontrada nesta classe. Decisao do PO: irrelevante para o Adapter, que usa o mecanismo de banco diretamente, nunca a funcao VFP.",
+      "tags": ["l_salva", "framework", "transacao", "persistencia", "vfp"]
+    },
+    {
+      "key": "linx-decisoes-po-fronteira-bu-erp-fornecedor",
+      "especialista": "LinxErpSpecialist",
+      "categoria": "HistoricoDecisao",
+      "assunto": "Regras de fronteira BU-ERP, identidade de fornecedor e modelo multiuso aprovadas pelo Product Owner",
+      "entidade_linx": "CADASTRO_CLI_FOR",
+      "tabela": "CADASTRO_CLI_FOR",
+      "campos": ["EMPRESA"],
+      "conteudo": "Decisoes formalmente aprovadas pelo Product Owner (nao inferidas, nao derivadas de codigo): (1) BU e a fronteira de integracao com ERP/banco -- dentro de uma BU, cadastros sao compartilhados entre marcas, marca nao segrega fornecedor; (2) identidade do fornecedor = BU + CNPJ, nunca duplicado dentro da mesma BU; (3) EMPRESA/grupo economico do Linx nao pertence ao dominio +Compras -- para a BU SOMA, tratado internamente como valor tecnico fixo (EMPRESA=1) apenas se a persistencia exigir, nunca exposto na UI nem replicado para Adapters futuros; (4) adicionar o papel Fornecedor a um CADASTRO_CLI_FOR existente nunca cria nova entidade-base -- sempre INDICA_FORNECEDOR=1 + INSERT FORNECEDORES se ainda nao existir, preservando todos os papeis existentes; (5) o Adapter de Fornecedor nunca cria FILIAIS nem CLIENTES_ATACADO, mesmo quando o cadastro-base ja possui esses papeis (apenas preserva); (6) transacao essencial deve ser atomica com rollback total em falha, transacoes curtas, locks minimos, nenhuma chamada externa dentro da transacao; (7) SEQUENCIA_FORNECEDOR nao e reconhecida como regra pelo PO e, sem evidencia concreta adicional, e classificada como sem relevancia para o contrato minimo da B2.9; (8) ETL/WETL nao pertencem ao contrato funcional da B2.9 -- efeito colateral existente do ambiente, nao implementado/replicado pelo Adapter; (9) e-mail comercial x fiscal e pendencia de produto nao bloqueante; (10) principio de suficiencia -- duvida so bloqueia se houver risco concreto de corrupcao/duplicidade/perda de dados/inconsistencia de papeis/transacao; caso contrario, classificar como 'validar em desenvolvimento/homologacao'.",
+      "proveniencia": "Validado",
+      "confianca": "ALTA -- decisao direta do Product Owner, registrada em sessao de Gate",
+      "sourceType": "PRODUCT_OWNER_DECISION",
+      "source_ref": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-C",
+      "fonte": "docs/architecture/Gate-PreB29-AdapterLinxFornecedor.md#secao-6-b; agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-C",
+      "restricoes": "Sao decisoes de produto, nao achados tecnicos -- prevalecem sobre qualquer inferencia arquitetural anterior que as contradiga (ex.: item 3 restringe o uso de EMPRESA sugerido em achados tecnicos anteriores).",
+      "tags": ["decisao_po", "bu_erp", "identidade_fornecedor", "multiuso"]
+    },
+    {
+      "key": "linx-idempotencia-convergencia-create-update-fornecedor",
+      "especialista": "LinxErpSpecialist",
+      "categoria": "HistoricoDecisao",
+      "assunto": "Idempotencia de escrita de Fornecedor -- reconsulta obrigatoria e convergencia automatica CREATE->UPDATE",
+      "entidade_linx": "CADASTRO_CLI_FOR",
+      "tabela": "CADASTRO_CLI_FOR",
+      "campos": [],
+      "conteudo": "Decisao aprovada pelo PO: operacoes de escrita de Fornecedor devem ser idempotentes e orientadas a estado, nao a intencao original. A existencia do CNPJ no momento da escrita nao e erro. O Adapter deve reconsultar o ERP da BU pelo CNPJ imediatamente antes da decisao final de persistencia (nunca confiar em estado observado anteriormente pelo +Compras -- consulta CNPJ, Review, cache de frontend), e convergir automaticamente: inexistente -> criar CADASTRO_CLI_FOR+FORNECEDORES; CADASTRO_CLI_FOR existente sem FORNECEDORES -> reutilizar cadastro-base, preservar papeis, adicionar papel Fornecedor; ambos existentes -> atualizar/complementar com os dados confirmados pelo usuario, sem sobrescrever campos fora do escopo. Concorrencia CREATE/CREATE deve convergir para um unico fornecedor sempre que tecnicamente possivel -- a segunda solicitacao, ao encontrar o registro ja criado pela primeira, converge para atualizacao em vez de tentar criar ou falhar. Erros de duplicidade concorrente so podem ser tratados como tal quando identificados com seguranca (ex. violacao de constraint especifica), nunca mascarando erros SQL de natureza diferente.",
+      "proveniencia": "Validado",
+      "confianca": "ALTA -- decisao direta do Product Owner",
+      "sourceType": "PRODUCT_OWNER_DECISION",
+      "source_ref": "agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-D",
+      "fonte": "docs/architecture/Gate-PreB29-AdapterLinxFornecedor.md#secao-7-a; agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-D",
+      "restricoes": "A protecao minima para a janela residual entre a reconsulta final e o INSERT (concorrencia real) e decisao de implementacao ainda nao resolvida -- orientacao explicita do PO de nao introduzir locks pesados/transacoes longas por padrao.",
+      "tags": ["decisao_po", "idempotencia", "create_update", "concorrencia"]
     }
   ]
 }

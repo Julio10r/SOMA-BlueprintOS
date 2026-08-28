@@ -13,6 +13,7 @@ primária, é uma consolidação recuperável. As fontes primárias completas s�
 
 - `docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md` (`discovery`)
 - `docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md` (`arquitetura`)
+- `agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md` (`snapshot`)
 
 ## Rótulos de Proveniência (mesma convenção de `.ai/context/linx-wise-daily-integration.md`)
 
@@ -33,6 +34,7 @@ primária, é uma consolidação recuperável. As fontes primárias completas s�
 - **Campos**: `NOME_CLIFOR`, `CLIFOR`, `COD_CLIFOR`, `CGC_CPF`, `PJ_PF`, `INATIVO`, `CNAE`
 - **Proveniência**: Descoberto
 - **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
 
 A tabela real do cadastro de Fornecedor/CliFor no Visual Linx e `dbo.CADASTRO_CLI_FOR` (nao existe tabela chamada literalmente 'CliFor' — esse nome so aparece em tabelas satelite como CLIFOR_INTERCOMPANY, EVENTOS_CLIFOR). Chave primaria: `NOME_CLIFOR` (varchar(25), nao nulo, indice XPKCADASTRO_CLI_FOR). Existem tambem `CLIFOR` (char(6)) e `COD_CLIFOR` (char(6)) usados como identificadores alternativos em FKs de tabelas satelite, mas NENHUMA dessas colunas e IDENTITY (is_identity = 0 em todas) — o valor precisa ser fornecido por quem insere. Documento fiscal: `CGC_CPF` (varchar(19), nao nulo) — coluna unica para CNPJ e CPF, com o tipo distinguido pelo campo `PJ_PF` (bit). Situacao: `INATIVO` (bit) e o unico campo de status na tabela mestre — binario, sem enum rico como o da BrasilAPI. CNAE: coluna unica `CNAE varchar(7)` — apenas o CNAE principal e armazenado, sem estrutura para CNAEs secundarios. Sem coluna de QSA/socios na tabela mestre.
 
@@ -51,6 +53,7 @@ A tabela real do cadastro de Fornecedor/CliFor no Visual Linx e `dbo.CADASTRO_CL
 - **Campos**: `ENDERECO`, `COBRANCA_ENDERECO`, `ENTREGA_ENDERECO`, `COD_MUNICIPIO_IBGE`
 - **Proveniência**: Descoberto
 - **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
 
 O endereco em CADASTRO_CLI_FOR nao e uma FK para tabela de endereco separada — e um conjunto de colunas de texto direto na propria tabela, triplicado em tres blocos: endereco principal (ENDERECO, NUMERO, COMPLEMENTO, BAIRRO, CIDADE, UF, CEP, PAIS), endereco de cobranca (prefixo COBRANCA_) e endereco de entrega (prefixo ENTREGA_). Cada bloco tem seu proprio CGC/IE (CGC_CPF, COBRANCA_CGC, ENTREGA_CGC, RG_IE, COBRANCA_IE, ENTREGA_IE) e FK propria para UNIDADES_FEDERACAO/PAISES por bloco. As colunas COD_MUNICIPIO_IBGE (principal/cobranca/entrega) sao preenchidas automaticamente por trigger a partir de cidade+UF via lookup em LCF_LX_MUNICIPIO/LCF_LX_UF (ver unidade linx-trigger-lxi-cadastro-cli-for).
 
@@ -68,6 +71,7 @@ O endereco em CADASTRO_CLI_FOR nao e uma FK para tabela de endereco separada —
 - **Tabela**: `CADASTRO_CLI_FOR`
 - **Proveniência**: Descoberto
 - **Confiança**: ALTA para as 5 triggers lidas em detalhe; BAIXA (INFERIDO) para as 6 restantes (so nome/evento)
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
 
 CADASTRO_CLI_FOR tem 11 triggers, todas is_disabled = 0 (ativas). `LXI_CADASTRO_CLI_FOR` (INSERT): preenche COD_MUNICIPIO_IBGE via lookup LCF_LX_MUNICIPIO/LCF_LX_UF; se o parametro `VALIDA_COD_IBGE_CADASTROS='.T.'`, BLOQUEIA o INSERT com RAISERROR+ROLLBACK quando o codigo IBGE nao resolve; ao final, se existir a procedure `LX_ATUALIZA_PAF_ECF_ERP`, executa-a com ('CADASTRO_CLI_FOR','I','') — hook de integracao fiscal PAF-ECF (INFERIDO). `LXU_CADASTRO_CLI_FOR` (UPDATE): mesmo lookup de IBGE quando cidade/UF mudam; sincroniza CGC_CPF para tabelas satelite (FORNECEDORES, REPRESENTANTES); inativa em cascata STG_FILIAIS_OMS quando INATIVO muda e o registro e uma filial (INFERIDO: 'inativar CliFor = inativar filial no OMS'). `GSI_/GSU_/GSD_CADASTRO_CLI_FOR_LOG` (INSERT/UPDATE/DELETE): auditoria incondicional, grava snapshot antes/depois de ~35 colunas em GS_CADASTRO_CLI_FOR_LOG com USUARIO_ALTERACAO=SYSTEM_USER, OPERACAO, APLICACAO=APP_NAME(). As 6 triggers restantes (LXI_ETL_*, LXU_ETL_*, LXI_ANM_*, LXU_ANM_*, GSU_SAP_CADASTRO_CLI_FOR, GSUI_WETL_CADASTRO_CLI_FOR) tiveram apenas nome/evento lido, nao o conteudo SQL completo — DESCONHECIDO/INFERIDO fraco (sugerem ETL, modulo ANM, integracao SAP e webhook, respectivamente, mas sem confirmacao).
 
@@ -86,6 +90,7 @@ CADASTRO_CLI_FOR tem 11 triggers, todas is_disabled = 0 (ativas). `LXI_CADASTRO_
 - **Campos**: `NOME_CLIFOR`, `CLIFOR`, `COD_CLIFOR`
 - **Proveniência**: Descoberto
 - **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
 
 CADASTRO_CLI_FOR e referenciada por mais de 90 tabelas satelite via NOME_CLIFOR/CLIFOR/COD_CLIFOR, incluindo FORNECEDORES, REPRESENTANTES, CLIENTES_ATACADO, CONTRATO, FATURAMENTO, ENTRADAS, VENDAS, CTB_A_PAGAR_FATURA, CTB_A_RECEBER_FATURA, entre outras. A propria tabela tem FKs de saida para UNIDADES_FEDERACAO, PAISES, BANCOS, CARTEIRAS_COBRANCA, CONTATO, CTB_CONTA_PLANO, CTB_EXCECAO_GRUPO, CTB_LX_INDICADOR_FISCAL_TERCEIRO. Essa amplitude de FKs de entrada e evidencia forte de que CADASTRO_CLI_FOR e uma tabela central e amplamente acoplada — qualquer escrita direta precisa considerar esse acoplamento.
 
@@ -105,6 +110,7 @@ CADASTRO_CLI_FOR e referenciada por mais de 90 tabelas satelite via NOME_CLIFOR/
 - **Campos**: `TABELA_COLUNA`, `SEQUENCIA`, `TAMANHO`, `EMPRESA_SEQUENCIAIS`
 - **Proveniência**: Descoberto
 - **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
 
 `LX_SEQUENCIAL` (nome real no singular — nao 'lx_sequenciais' no plural, que era hipotese anterior do PO) e a procedure real de geracao/consulta de codigo sequencial no Linx. Assinatura: `LX_SEQUENCIAL @TABELA_COLUNA VARCHAR(37), @EMPRESA INT = NULL, @SEQUENCIA VARCHAR(20) OUTPUT, @UPDATE_SEQUENCIAL BIT = 1, @NEWVALUE VARCHAR(20) = NULL`. Quando @UPDATE_SEQUENCIAL=1 (padrao), faz UPDATE incremental (+1 fixo, sem coluna de incremento configuravel) na tabela `SEQUENCIAIS` (SET SEQUENCIA = SEQUENCIA + 1 WHERE TABELA_COLUNA=@TABELA_COLUNA) e retorna o novo valor formatado com zeros a esquerda conforme TAMANHO da tabela. Tem variante por empresa via EMPRESA_SEQUENCIAIS quando o parametro CTRL_MULTI_EMPRESA esta ativo. Quando @UPDATE_SEQUENCIAL=0, apenas le o proximo valor sem consumir. NAO ha hint de lock/transacao explicita (WITH (UPDLOCK, HOLDLOCK)) na definicao lida — atomicidade depende so do UPDATE padrao.
 
@@ -123,6 +129,7 @@ CADASTRO_CLI_FOR e referenciada por mais de 90 tabelas satelite via NOME_CLIFOR/
 - **Campos**: `FORNECEDORES.CLIFOR`, `SEQUENCIA_FORNECEDOR`
 - **Proveniência**: Descoberto
 - **Confiança**: MEDIA — confirmado como anomalia desta procedure especifica, NAO validado como regra geral do Linx
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
 
 Existem dois sequenciais concorrentes e nao usados de forma consistente para o mesmo proposito: `FORNECEDORES.CLIFOR` e `SEQUENCIA_FORNECEDOR`. A procedure de integracao `p_RSV_INTEGRACAO_CADASTRO_FORNECEDOR` usa `CLIENTES_ATACADO.CLIFOR` (nao `FORNECEDORES.CLIFOR`, que aparece comentado/desativado no codigo) mesmo quando o registro sera marcado INDICA_FORNECEDOR=1 — ou seja, nesta integracao especifica, o codigo do CliFor vem do sequencial de CLIENTE, nao do papel real do registro. Das 5 implementacoes de escrita lidas em profundidade, 4 de 5 usam corretamente LX_SEQUENCIAL(FORNECEDORES.CLIFOR); apenas p_RSV_INTEGRACAO_CADASTRO_FORNECEDOR usa a chave divergente.
 
@@ -141,6 +148,7 @@ Existem dois sequenciais concorrentes e nao usados de forma consistente para o m
 - **Campos**: `NOME_CLIFOR`
 - **Proveniência**: Descoberto
 - **Confiança**: ALTA para 'vem de sanitizacao de string, nunca de sequencial'; MEDIA para o algoritmo exato (varia por implementacao)
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
 
 Em 4 das 5 implementacoes de escrita lidas em profundidade, CLIFOR/COD_CLIFOR/COD_FORNECEDOR vem de uma unica chamada a LX_SEQUENCIAL(FORNECEDORES.CLIFOR), com o mesmo valor reaproveitado nas tres colunas. NOME_CLIFOR NUNCA vem de sequencial — e sempre construido por sanitizacao de string de um campo de nome de origem (razao social, nome fantasia, ou campo especifico da integracao), removendo espaco inicial e caracteres especiais (reforcado por uma trigger real que bloqueia inserts com nome mal formatado). O campo de origem exato e o algoritmo de sanitizacao variam entre implementacoes (nivel 2 de recorrencia, nao nivel 1). Na procedure `p_RSV_INTEGRACAO_CADASTRO_FORNECEDOR` (a anomalia), NOME_CLIFOR e construido como 'AZCB-' + substring(RAZAO_SOCIAL,1,18) sem virgulas/pontos + ' ' + ultimos 6 digitos do CGC/CPF, truncado para varchar(25) — prefixo fixo de marca especifico dessa integracao de parceiro, nao convencao geral do Linx.
 
@@ -159,6 +167,7 @@ Em 4 das 5 implementacoes de escrita lidas em profundidade, CLIFOR/COD_CLIFOR/CO
 - **Procedure**: `p_RSV_INTEGRACAO_CADASTRO_FORNECEDOR`
 - **Proveniência**: Descoberto
 - **Confiança**: ALTA para o conteudo lido; a extrapolacao de que seja 'o mecanismo oficial generico' e explicitamente rejeitada (Inferido fraco/Desconhecido)
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
 
 Procedure de integracao real, definicao completa lida via OBJECT_DEFINITION. Obtem novo codigo via EXEC LX_SEQUENCIAL @TABELA_COLUNA='CLIENTES_ATACADO.CLIFOR', @EMPRESA=1, @SEQUENCIA=@p4 OUTPUT (a linha equivalente para 'FORNECEDORES.CLIFOR' existe no codigo mas esta comentada/desativada). Sequencia real do INSERT confirmada: (1) EXEC LX_SEQUENCIAL (obtem codigo); (2) INSERT INTO CADASTRO_CLI_FOR (cria a entidade-mae, com INDICA_FORNECEDOR/INDICA_CLIENTE explicitamente setados); (3) INSERT INTO FORNECEDORES (cria a especializacao, mesmo CLIFOR, TIPO derivado de codigo de grupo de conta @grupo_conta vindo de fora — vocabulario grupo_conta/ORG_COMPRA/codigo_sap evidencia integracao tipo SAP/marketplace); (4) chamadas subsequentes a LX_AZZ_API_RETORNO_SAP_FORNECEDORES e GS_CADASTRO_CLI_FOR_CONSULTA — confirma integracao especifica com SAP/API externa. E uma integracao customizada para um parceiro/marketplace especifico ('RSV', prefixo AZCB-), NAO necessariamente a rotina que o operador humano usa na tela do Visual Linx.
 
@@ -176,6 +185,7 @@ Procedure de integracao real, definicao completa lida via OBJECT_DEFINITION. Obt
 - **Tabela**: `CADASTRO_CLI_FOR`
 - **Proveniência**: Descoberto
 - **Confiança**: ALTA para o padrao de 5/5 usar LX_SEQUENCIAL; nenhuma promocao a Validado/Aprovado ocorreu nesta rodada
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
 
 5 implementacoes de escrita foram lidas em profundidade via sys.sql_modules: LX_AZZ_GERAR_FORNECEDOR_LINX, LX_GS_GERAR_ALTERAR_FORNECEDOR_OBC_LINX, PROC_GS_INTEGRA_FORNECEDOR_REDMINE (usa LX_SEQUENCIAL('LOG_INTEG_FORNECEDOR_REDMINE.LOTE') alem de FORNECEDORES.CLIFOR — unico caso de dois sequenciais na mesma procedure), PROC_HRG_CADASTRA_ZTBMM_FORNE_SOMA e p_RSV_INTEGRACAO_CADASTRO_FORNECEDOR. Padrao Nivel 1 (5/5, ALTA confianca): todas usam LX_SEQUENCIAL para gerar o codigo do CliFor; CLIFOR/COD_CLIFOR nunca vem de IDENTITY/geracao propria em SQL puro. Padrao Nivel 2/3 (variavel): campo de origem e algoritmo de sanitizacao do NOME_CLIFOR variam por implementacao. Anomalia confirmada (so 1/5): uso do sequencial CLIENTES_ATACADO.CLIFOR (p_RSV) em vez de FORNECEDORES.CLIFOR. Outras ~15 procedures candidatas foram apenas listadas por nome (LX_AZZ_GERAR_CLIENTE_ATAC_LINX, MIT_INTEGRA_ORO, MIT_INTEGRA_TRUNK, mit_integra_vintage, PROC_GS_INTEGRA_CLIENTES_ATACADO_REDMINE, LX_LGPD_PROC_CLIENTE, GS_CRIA_FILIAIS, etc.) — nao lidas em detalhe, pendencia explicita.
 
@@ -192,6 +202,7 @@ Procedure de integracao real, definicao completa lida via OBJECT_DEFINITION. Obt
 - **Procedure**: `LX_CADE`
 - **Proveniência**: Descoberto
 - **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
 
 Tres procedures auxiliares no Linx, comprovadamente READ-ONLY (wrappers de SELECT sobre catalogos do SQL Server): `LX_CADE @TEXTO` — SELECT sobre sys.objects+sys.schemas, filtro name LIKE '%texto%' para tipos U/V/FN/TF/P (tabelas, views, functions, procedures); wrapper de busca de objetos por nome. `LX_CADE_COLUNA @texto` — SELECT sobre sys.columns+sys.types, retorna tabela/nome da coluna/tipo formatado, filtro a.name LIKE @texto; wrapper de busca de tabelas por nome de coluna. `ANM_BUSCA_INSTRUCAO(@INSTRUCAO)` — busca texto literal dentro da definicao SQL de procedures/functions/triggers/views (via syscomments/sysobjects, equivalente funcional a sys.sql_modules). Quando disponivel, sys.sql_modules/sys.objects/sys.columns do proprio SQL Server produz o mesmo resultado com mais controle de filtro — essas tres ferramentas sao conveniencias do Linx, nao a unica via de discovery.
 
@@ -207,6 +218,7 @@ Tres procedures auxiliares no Linx, comprovadamente READ-ONLY (wrappers de SELEC
 - **Categoria**: Regra
 - **Proveniência**: Descoberto
 - **Confiança**: ALTA — regra de processo, nao de dado especifico
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
 
 Regra de metodologia registrada para os Agents Linx (LinxErpSpecialistAgent/LinxDatabaseSpecialistAgent), aplicavel a toda investigacao futura de entidades Linx com finalidade de integracao de escrita: a descoberta de schema fisico (tabela/coluna/tipo/FK) NAO e suficiente. A investigacao deve cobrir tambem: triggers (eventos tratados, colunas lidas/alteradas, validacoes, bloqueios, geracao automatica de codigos/timestamps, auditoria, tabelas secundarias afetadas, cascata de outras triggers), stored procedures e functions chamadas, views relevantes, e sequencias/geradores de chave. Todo achado deve ser registrado com proveniencia apropriada (LinxConhecimentoProveniencia: Descoberto/Inferido/Validado/Aprovado). Vale para qualquer dominio Linx futuro (Itens, Pedidos, Notas Fiscais etc.), nao so Fornecedor/CliFor. Confirmada na pratica: CADASTRO_CLI_FOR tem 11 triggers ativas e mais de 90 FKs de entrada — uma integracao desenhada so a partir do schema de colunas teria ignorado o preenchimento automatico de IBGE, o bloqueio condicional por parametro, a integracao fiscal automatica e a inativacao em cascata de filial.
 
@@ -224,6 +236,7 @@ Regra de metodologia registrada para os Agents Linx (LinxErpSpecialistAgent/Linx
 - **Tabela**: `CADASTRO_CLI_FOR`
 - **Proveniência**: Inferido
 - **Confiança**: ALTA como decisao de arquitetura; os itens 'AINDA DESCONHECIDO' permanecem nao confirmados
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
 
 Decisao de arquitetura (nao implementada): nenhum detalhe fisico do Linx (nomes de tabela/coluna, LX_SEQUENCIAL, CLIFOR, filas de ETL/WETL, vocabulario SAP/OBC/Redmine como grupo_conta/ORG_COMPRA/codigo_sap/MANDT/LIFNR/STCD1) deve aparecer em Fornecedor.cs, no contrato canonico ConsultaCnpjResultado, ou em qualquer DTO/componente do dominio +Compras — pertencem exclusivamente a um futuro Adapter Linx. Itens OBRIGATORIOS do Adapter Linx quando implementado: obter codigo via LX_SEQUENCIAL/FORNECEDORES.CLIFOR; gerar NOME_CLIFOR por sanitizacao (sem espaco inicial, sem caracteres especiais); popular flags de papel Linx (INDICA_FORNECEDOR etc, ja espelhadas 1:1 pelas flags ForneceMateriais/etc do dominio +Compras); verificar existencia previa no lado Linx antes de decidir INSERT vs UPDATE fisico. Itens AINDA DESCONHECIDO que bloqueiam a implementacao real do Adapter (nao bloqueiam a modelagem): se o cadastro manual via tela Visual Linx segue o mesmo padrao das 5 integracoes automatizadas ou existe rotina distinta; quem consome as filas ETL/WETL e se o Adapter deve suprimir essa replicacao. Gate de validacao obrigatorio: nenhuma escrita real do Adapter Linx deve ir para producao sem confirmacao de um especialista Visual Linx sobre os itens AINDA DESCONHECIDO.
 
@@ -242,6 +255,7 @@ Decisao de arquitetura (nao implementada): nenhum detalhe fisico do Linx (nomes 
 - **Campos**: `CGC_CPF`
 - **Proveniência**: Inferido
 - **Confiança**: ALTA — resolvida por evidencia de uso real no codigo, nao pede decisao do PO
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
 
 Decisao formalizada: manter um unico Value Object canonico, DocumentoFiscal, eliminando Cnpj.cs como classe publica ativa (fora do escopo desta rodada remover fisicamente). Regras: (1) normalizacao unica — remover tudo que nao e digito ao construir (mesma regra que Cnpj.Create ja usa), corrigindo o comportamento permissivo atual de DocumentoFiscal.Create (so Trim()), causa raiz do BUG-4 do discovery original; (2) a compatibilidade com o campo Linx CGC_CPF (que pode conter valores nao numericos legados) pertence a fronteira do Adapter Linx, nunca a normalizacao do Value Object canonico — se necessario, um campo bruto adicional (ex.: CodigoLegadoErp) seria responsabilidade do Adapter; (3) validar digito verificador de CNPJ (modulo 11) e CPF na fronteira de entrada — elimina a lacuna que causa o BUG-3 (string com 14 digitos mas DV invalido passa a validacao e so falha na fonte externa, classificada erroneamente como 'fonte indisponivel'); (4) composicao, nao especializacao por tipo — um unico DocumentoFiscal com propriedade TipoPessoa (PJ/PF), nao subtipos Cnpj/Cpf separados; (5) mascara e so apresentacao, nunca parte do valor armazenado ou da comparacao de igualdade.
 
@@ -257,6 +271,7 @@ Decisao formalizada: manter um unico Value Object canonico, DocumentoFiscal, eli
 - **Categoria**: Regra
 - **Proveniência**: Inferido
 - **Confiança**: ALTA — decisao tecnica direta a partir do comportamento HTTP ja observado no codigo
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
 
 Taxonomia formalizada de 8 erros para o fluxo de consulta CNPJ: CnpjInvalido (validacao local, DV invalido, detectado ANTES de qualquer chamada externa — 400, sem retry), NaoEncontrado (provider retornou 404 — sem retry), FonteIndisponivel (5xx do provider — retry), Timeout (retry), LimiteDeConsultas (429 — retry com backoff), ErroDeAutenticacaoDoProvider (nao se aplica hoje a BrasilAPI, mas prevista para troca futura de provider — sem retry), RespostaInvalida (2xx mas payload nao interpretavel — retry possivel), ErroInterno (qualquer erro nao classificado — retry). Decisao estrutural: essa taxonomia deve ser um enum/hierarquia de exceptions tipadas no Application layer, nunca strings livres decidindo comportamento — corrige diretamente o BUG-3 do discovery original, que hoje classifica todo erro HTTP >=400 nao-404 e toda excecao nao tratada como 'fonte indisponivel'/'falha ao consultar a fonte externa' generica.
 
@@ -274,6 +289,7 @@ Taxonomia formalizada de 8 erros para o fluxo de consulta CNPJ: CnpjInvalido (va
 - **Campos**: `PayloadBrutoJson`
 - **Proveniência**: Inferido
 - **Confiança**: MEDIA — decisao tecnica formalizada, mas politica de retencao ainda pendente de decisao do PO/juridico
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
 
 FornecedorCnpjConsultaHistorico ja grava fonte, timestamp, documento, status e correlation id, mas NAO grava o payload bruto (snapshot JSON) do provider — apenas um Resultado (string curta, ate 1000 caracteres, .ToString() do resultado tipado). Decisao — modelo hibrido definitivo: (1) camada normalizada, ja existente, mantida — campos individuais gravados em Fornecedor apos decisao humana de aceitar o enriquecimento, complementada por UltimaConsultaCnpjEm/UltimaConsultaCnpjFonte se o PO aprovar; (2) camada de snapshot/evidencia nova — coluna adicional PayloadBrutoJson (nullable, tamanho grande) na tabela ja existente FornecedoresCnpjConsultas, com o JSON completo do provider antes da traducao para o contrato canonico; esse snapshot e evidencia/auditoria, nunca fonte de leitura para o dominio; (3) politica minima contra armazenamento desnecessario — so gravar snapshot em consulta bem-sucedida que resulta em criacao/atualizacao real de Fornecedor, com periodo de retencao a definir (pendencia de compliance).
 
@@ -292,9 +308,240 @@ FornecedorCnpjConsultaHistorico ja grava fonte, timestamp, documento, status e c
 - **Campos**: `CNAE`
 - **Proveniência**: Inferido
 - **Confiança**: ALTA — resolvida por evidencia do Linx fisico + principio de minimizacao de dados; confirmacao formal de politica ainda pendente do PO/juridico
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
 
 Decisao confirmada: nao persistir QSA (quadro societario) em nenhuma hipotese no dominio +Compras — justificativa: minimizacao de dados (LGPD art. 6 III), ausencia de requisito de compliance documentado, e confirmacao direta no Linx fisico de que CADASTRO_CLI_FOR/FORNECEDORES nao tem nenhuma coluna de QSA. Mecanismo de consulta pontual proposto para o futuro (nao implementar agora): se compliance exigir verificar socios (PEP, sancoes), deveria ser consulta sob demanda, nao armazenada, disparada explicitamente e descartada apos exibicao — nunca parte do cadastro permanente. Para CNAE: persistir apenas codigo+descricao do CNAE principal; CNAEs secundarios NAO persistem (podem aparecer so como dado transitorio na tela de revisao) — reforcado por evidencia de que nenhuma das 5 implementacoes de cadastro Linx lidas preenche CNAE, e o Linx fisico so tem uma coluna CNAE varchar(7) (sem estrutura para secundarios).
 
 - **Fonte**: docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md#secao-h (linhas 162-164), #secao-i (linhas 168-170)
 - **Restrições/observações**: Pendencia explicita: confirmacao formal de nao persistir QSA e recomendacao tecnica forte (LGPD), mas decisao final de politica de dados pessoais deve ser ratificada pelo PO/juridico (secao Q, item 1).
 - **Tags**: `qsa`, `cnae`, `lgpd`, `minimizacao_dados`, `arquitetura`
+
+<!-- linx-knowledge-unit: linx-especializacao-papel-fornecedores-clientes-filiais -->
+### FORNECEDORES/CLIENTES_ATACADO/FILIAIS como tabelas de especializacao de papel sobre CADASTRO_CLI_FOR
+
+- **Chave**: `linx-especializacao-papel-fornecedores-clientes-filiais`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Schema
+- **Entidade Linx**: `FORNECEDORES`
+- **Tabela**: `FORNECEDORES`
+- **Campos**: `FORNECEDOR`, `COD_FORNECEDOR`, `CLIFOR`, `TIPO`, `SUBTIPO_FORNECEDOR`, `CENTRO_CUSTO`, `CONTA_CONTABIL`, `CONDICAO_PGTO`, `MOEDA`, `FORNECE_MATERIAIS`, `FORNECE_PROD_ACAB`, `FORNECE_MAT_CONSUMO`, `BENEFICIADOR`, `FORNECE_OUTROS`, `INDICA_TRANSPORTADORA`, `INDICA_MARKDOWN`, `INDICA_INTERMEDIADOR`, `BLOQUEIO_COMPLINCE`, `INDICA_CQFOR`, `LICENCIADO`, `LICENCIADO_ROYALTIES`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA para FORNECEDORES (leitura completa); MEDIA para CLIENTES_ATACADO/FILIAIS (so nomes de coluna)
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
+
+FORNECEDORES (PK FORNECEDOR varchar(25); FKs para CADASTRO_CLI_FOR via CLIFOR/COD_FORNECEDOR/FORNECEDOR) guarda exclusivamente atributos de negocio do papel de fornecedor -- classificacao (TIPO, SUBTIPO_FORNECEDOR, CENTRO_CUSTO), fiscal/financeiro (CONTA_CONTABIL, CONDICAO_PGTO, MOEDA), flags de fornecimento (FORNECE_MATERIAIS, FORNECE_PROD_ACAB, FORNECE_MAT_CONSUMO, BENEFICIADOR, FORNECE_OUTROS, INDICA_TRANSPORTADORA, INDICA_MARKDOWN, INDICA_INTERMEDIADOR), compliance (BLOQUEIO_COMPLINCE, INDICA_CQFOR), licenciamento (LICENCIADO, LICENCIADO_ROYALTIES). Nao tem nenhuma coluna de endereco, telefone, e-mail ou razao social -- tudo isso fica exclusivamente na tabela-mae CADASTRO_CLI_FOR. CLIENTES_ATACADO e FILIAIS seguem o mesmo padrao estrutural (dezenas de colunas de negocio especificas ao papel -- credito/bloqueios/expedicao para cliente; estoque/controle fiscal/conta bancaria para filial -- sem endereco/telefone proprios), mas foram lidas nesta rodada apenas por nome de coluna, nao em profundidade de tipo/PK/FK.
+
+- **Fonte**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#2.2 (sem espelho nos dois documentos de auditoria originais -- sys.columns/sys.indexes lido em sessao de discovery READ-ONLY, 12/08/2026)
+- **Referência de origem (source_ref)**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#2.2
+- **Restrições/observações**: Profundidade de leitura desigual entre as tres tabelas de especializacao -- CLIENTES_ATACADO/FILIAIS pendentes de leitura estrutural completa (tipo/PK/FK) se o dominio Cliente/Filial vier a ser investigado.
+- **Tags**: `fornecedores`, `clientes_atacado`, `filiais`, `especializacao_de_papel`
+
+<!-- linx-knowledge-unit: linx-mapa-conceitual-efeitos-colaterais-escrita -->
+### Template reutilizavel de mapa conceitual de efeitos colaterais de escrita Linx
+
+- **Chave**: `linx-mapa-conceitual-efeitos-colaterais-escrita`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Regra
+- **Proveniência**: Inferido
+- **Confiança**: MEDIA -- funcionou uma vez (dominio Fornecedor); precisa se repetir em outro dominio para confirmar generalizacao
+- **Tipo de origem (sourceType)**: TEMP_DISCOVERY_SNAPSHOT
+
+Template conceitual reutilizavel para mapear o efeito real de qualquer operacao de escrita numa tabela Linx: Operacao -> Tabela principal -> Trigger(s) -> Validacao/bloqueio -> Colunas lidas/alteradas -> Tabelas secundarias afetadas -> Procedure/function chamada -> Sistema externo envolvido -> Efeito funcional (interpretacao, sempre marcada Inferido ate validacao humana). Aplicado ao dominio Fornecedor, esse mapa ja foi preenchido em docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md secao 10-A (ver unidade linx-triggers-cadastro-cli-for) -- esta unidade preserva apenas a estrutura do template como conhecimento GLOBAL reutilizavel para qualquer dominio Linx futuro (Filiais/Itens/Pedidos/Notas Fiscais), sem repetir os dados ja detalhados para Fornecedor.
+
+- **Fonte**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#6.2 (sintese/template proprio do snapshot, sem espelho literal nos documentos de auditoria)
+- **Referência de origem (source_ref)**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#6.2
+- **Restrições/observações**: Template ainda nao aplicado/validado em nenhum dominio Linx alem de Fornecedor.
+- **Tags**: `metodologia`, `trigger`, `efeitos_colaterais`, `template`
+
+<!-- linx-knowledge-unit: linx-principio-escrita-nunca-so-local -->
+### Uma escrita numa tabela Linx nunca deve ser assumida como tendo efeito apenas local
+
+- **Chave**: `linx-principio-escrita-nunca-so-local`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA para o dominio Fornecedor; MEDIA como principio geral (ainda nao confirmado em outro dominio Linx)
+- **Tipo de origem (sourceType)**: TEMP_DISCOVERY_SNAPSHOT
+
+Confirmado na pratica no dominio Fornecedor: uma unica operacao de escrita em CADASTRO_CLI_FOR pode disparar, via triggers AFTER padrao (que reagem a qualquer INSERT/UPDATE real, nao so a inserts feitos pela tela), efeitos em: preenchimento automatico de outros campos, bloqueio condicional, gravacao de auditoria, chamada a procedure de integracao fiscal, enfileiramento em duas filas de replicacao distintas, bloqueio/integracao SAP, e gravacao em sistema de RH/terceiros (ver linx-triggers-cadastro-cli-for). Nenhuma dessas triggers exige passo adicional do chamador para disparar -- qualquer futuro Adapter Linx de escrita precisa assumir, por padrao, que a operacao tera efeitos alem da propria tabela, mapeando conscientemente cada trigger da tabela-alvo antes de escrever.
+
+- **Fonte**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#6.3 (generalizacao explicita do achado de docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md#secao-10-a, sem espelho literal do principio generalizado)
+- **Referência de origem (source_ref)**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#6.3
+- **Restrições/observações**: Generalizacao alem do dominio Fornecedor ainda nao testada.
+- **Tags**: `triggers`, `efeitos_colaterais`, `principio_global`, `risco_de_escrita`
+
+<!-- linx-knowledge-unit: linx-contrato-futuro-adapter-linx-fornecedor -->
+### Contrato classificado do futuro Adapter Linx de Fornecedor (preservado, nao implementado)
+
+- **Chave**: `linx-contrato-futuro-adapter-linx-fornecedor`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: HistoricoDecisao
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Proveniência**: Inferido
+- **Confiança**: ALTA para os itens OBRIGATORIO/RECOMENDADO (evidencia de codigo real); pendente de confirmacao humana antes de qualquer escrita em producao
+- **Tipo de origem (sourceType)**: TEMP_DISCOVERY_SNAPSHOT
+
+Classificacao consolidada do que um futuro Adapter Linx de Fornecedor precisa fazer: OBRIGATORIO -- obter codigo via LX_SEQUENCIAL/FORNECEDORES.CLIFOR (melhor evidencia disponivel, Nivel 1); gerar NOME_CLIFOR por sanitizacao de nome (sem espaco inicial, sem caracteres especiais, reforcado por trigger real de bloqueio); popular flags de papel Linx (INDICA_FORNECEDOR etc.) no momento da criacao; verificar existencia previa no lado Linx antes de decidir INSERT vs UPDATE fisico. RECOMENDADO -- transacao com rollback ao escrever no Linx; popular o bloco de endereco fisico Linx replicando o endereco unico do +Compras nos 3 blocos, se necessario. NAO ENTRA NO DOMINIO +COMPRAS -- qualquer vocabulario/campo especifico de integracoes de terceiros (grupo_conta, ORG_COMPRA, codigo_sap, campos SAP, nomes de tabela Linx). Gate obrigatorio preservado: nenhuma escrita real do Adapter Linx deve ir para producao sem confirmacao de um especialista Visual Linx sobre os itens AINDA DESCONHECIDO (ver linx-desconhecidos-preservados-adapter-fornecedor) -- o padrao de Nivel 1 e a melhor evidencia disponivel, nao um contrato oficialmente aprovado.
+
+- **Fonte**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#8 (sintese classificatoria propria do snapshot; itens individuais ja tem base em docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md, mas a tabela classificada em si nao tem espelho literal)
+- **Referência de origem (source_ref)**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#8
+- **Restrições/observações**: Nenhum Adapter Linx foi implementado -- apenas contrato preservado para decisao futura.
+- **Tags**: `adapter_linx`, `contrato`, `gate_validacao`, `nivel_1`
+
+<!-- linx-knowledge-unit: linx-desconhecidos-preservados-adapter-fornecedor -->
+### Lista consolidada de desconhecidos que bloqueiam a implementacao real do Adapter Linx de Fornecedor
+
+- **Chave**: `linx-desconhecidos-preservados-adapter-fornecedor`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA de que estes itens permanecem nao confirmados ou so parcialmente confirmados -- nao inventar resposta para nenhum deles
+- **Tipo de origem (sourceType)**: TEMP_DISCOVERY_SNAPSHOT
+- **Classificação de gap (gapType)**: KNOWN_LIMITATION
+
+Desconhecidos preservados explicitamente (nenhum deve ser preenchido por suposicao): (1) existencia de rotina distinta para a tela manual do Visual Linx, ja que as 5 procedures lidas sao integracoes automatizadas -- PARCIALMENTE RESOLVIDO por linx-metodologia-discovery-codigo-fonte-tela-vfp/linx-achados-tela-vfp-fornecedor-001016g1/linx-framework-persistencia-l-salva (leitura de codigo real da tela confirmou uso de FORNECEDORES.CLIFOR e rotina propria l_salva, distinta das 5 integracoes); (2) identidade dos sistemas consumidores das filas LJ_ETL_REPOSITORIO/GS_WETL_REPOSITORIO -- ainda DESCONHECIDO; (3) criterio definitivo de duplicidade do lado Linx (nome sanitizado vs CNPJ vs combinacao) -- PARCIALMENTE RESOLVIDO por linx-achados-tela-vfp-fornecedor-001016g1 (CGC_CPF escopado por EMPRESA e o criterio oficial da tela) e linx-decisoes-po-fronteira-bu-erp-fornecedor (identidade = BU+CNPJ, decisao do PO); (4) regras finais de escrita do Adapter Linx (ordem exata, tratamento de erro, ponto de rollback cross-sistema) -- parcialmente informado por linx-framework-persistencia-l-salva e linx-idempotencia-convergencia-create-update-fornecedor, mas implementacao real ainda pendente; (5) necessidade de tratamento de dados legados (CGC_CPF nao numerico) -- ainda DESCONHECIDO, requer investigacao de volume real; (6) conteudo completo de 6 procedures citadas por nome mas nao lidas em profundidade (LX_AZZ_GERAR_CLIENTE_ATAC_LINX, MIT_INTEGRA_ORO, MIT_INTEGRA_TRUNK, mit_integra_vintage, PROC_GS_INTEGRA_CLIENTES_ATACADO_REDMINE, LX_LGPD_PROC_CLIENTE) -- ainda DESCONHECIDO.
+
+- **Fonte**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#9 (lista consolidada propria do snapshot; itens 1/3/4 atualizados por 13-A/13-A.1/13-B/13-C/13-D no mesmo snapshot)
+- **Referência de origem (source_ref)**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#9
+- **Restrições/observações**: KNOWN_LIMITATION -- nenhum destes itens deve ser decidido por inferencia automatica de um Agent; exige confirmacao humana/investigacao adicional antes de qualquer escrita real em producao.
+- **Tags**: `desconhecidos`, `adapter_linx`, `gate_validacao`, `known_limitation`
+
+<!-- linx-knowledge-unit: linx-playbook-discovery-reutilizavel-14-passos -->
+### Playbook de 14 passos para discovery estrutural read-only de qualquer entidade Linx
+
+- **Chave**: `linx-playbook-discovery-reutilizavel-14-passos`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Regra
+- **Proveniência**: Inferido
+- **Confiança**: MEDIA -- aplicado uma vez com sucesso no dominio Fornecedor, precisa se repetir em outro dominio Linx para confirmar generalizacao
+- **Tipo de origem (sourceType)**: TEMP_DISCOVERY_SNAPSHOT
+
+Playbook reutilizavel para qualquer dominio Linx futuro (Filiais, Itens, Pedidos, Clientes, Notas Fiscais etc.), sempre em modo estritamente READ-ONLY: (1) localizar candidatos a tabela principal via nome (sys.tables/LX_CADE) e via coluna caracteristica (sys.columns/LX_CADE_COLUNA), nunca assumir nome de tabela pela nomenclatura de negocio; (2) listar todas as colunas (tipo, nulidade, identity), checando colunas de chave sem IDENTITY; (3) buscar FKs de entrada e saida (sys.foreign_keys); (4) verificar se e entidade-base multiuso (colunas BIT de papel + tabelas satelite), confirmando cada flag por uso real em triggers/procedures; (5) mapear chaves e mecanismo de geracao de codigo (SEQUENCIAIS/LX_SEQUENCIAL ou equivalente), lendo definicao sem executar; (6) listar e ler por completo todas as triggers da tabela principal (sys.triggers + OBJECT_DEFINITION); (7) buscar procedures/functions relacionadas via sys.sql_modules; (8) ler views relevantes referenciadas por triggers/procedures; (9) identificar efeitos colaterais em sistemas externos por evidencia textual no codigo, nunca por suposicao; (10) comparar multiplas implementacoes reais de escrita para a mesma tabela; (11) separar padrao recorrente (Nivel 1/2) de peculiaridade de integracao unica (Nivel 3); (12) classificar confianca por contagem real (ex. 4 de 5), nunca por percentual estimado; (13) registrar explicitamente todo DESCONHECIDO, nunca preencher com suposicao; (14) validar achados de Nivel 1 e desconhecidos criticos com especialista humano antes de qualquer implementacao real de escrita -- recorrencia nao e aprovacao.
+
+- **Fonte**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#10 (consolidacao propria do snapshot; passos individuais derivam da aplicacao pratica ja documentada em docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md, sem espelho literal do playbook completo)
+- **Referência de origem (source_ref)**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#10
+- **Restrições/observações**: Metodologia, nao regra de negocio -- nao aplicavel a nenhuma decisao funcional isolada.
+- **Tags**: `playbook`, `metodologia`, `discovery_sql`, `reutilizavel`
+
+<!-- linx-knowledge-unit: linx-gap-infraestrutura-persistencia-linxknowledgeentry -->
+### Ausencia de infraestrutura local para persistir LinxKnowledgeEntry diretamente a partir de um arquivo estatico
+
+- **Chave**: `linx-gap-infraestrutura-persistencia-linxknowledgeentry`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: HistoricoDecisao
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA -- confirmado nesta e na rodada anterior de ingestao (ausencia de docker-compose ativo, appsettings.json com placeholders, nenhum seed/CLI alternativo)
+- **Tipo de origem (sourceType)**: TEMP_DISCOVERY_SNAPSHOT
+- **Classificação de gap (gapType)**: IMPLEMENTATION_CONSTRAINT
+
+O mecanismo canonico LinxKnowledgeEntry/LinxKnowledgeRepository exige uma aplicacao .NET real conectada a um banco SQL Server via EF Core para persistir qualquer entrada (RegistrarConhecimentoUseCase.ExecuteAsync, com ator/RBAC) -- nao existe seeder/HasData/rotina de carga em lote no repositorio para popular LinxKnowledgeEntry a partir de um arquivo estatico. Nao ha, no inventario de dividas/GAPs numerado do projeto (docs/audits/O1.14-InventarioDividasEGaps.md), um identificador DEB-/GAP- que corresponda exatamente a este bloqueio -- o item mais proximo (DEB-18) trata de evolucao de busca/RAG, nao da ausencia de infraestrutura local para o caminho de escrita ja existente. Este snapshot nao inventa um novo identificador -- registra que a formalizacao de um novo item (ou ajuste de escopo de um existente) e acao pendente de quem resolver o bloqueio.
+
+- **Fonte**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#12; corroborado por docs/repository/LinxKnowledgeFornecedor-Ingestion.md secao 1 (limitacao real documentada na rodada anterior de ingestao)
+- **Referência de origem (source_ref)**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#12
+- **Restrições/observações**: ARCHITECTURE_GAP / IMPLEMENTATION_CONSTRAINT relevante ao comportamento futuro dos Agents -- nao e regra de negocio Linx; nao decide sozinho a criacao de um novo DEB-/GAP-, exige acao humana de formalizacao.
+- **Tags**: `gap`, `infraestrutura`, `linxknowledgeentry`, `persistencia`
+
+<!-- linx-knowledge-unit: linx-metodologia-discovery-codigo-fonte-tela-vfp -->
+### Playbook de descoberta de comportamento real de tela Visual Linx a partir de fontes locais (TRANSACOES -> SCX/SCT/PRG)
+
+- **Chave**: `linx-metodologia-discovery-codigo-fonte-tela-vfp`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: FluxoErp
+- **Entidade Linx**: `TRANSACOES`
+- **Tabela**: `TRANSACOES`
+- **Campos**: `TABELA_PAI`, `CONTROL_SISTEMA`
+- **Proveniência**: Validado
+- **Confiança**: ALTA -- validado nesta sessao contra a tela real de Fornecedor (CONTROL_SISTEMA=001016G1), confirmado pelo Product Owner
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+Quando os fontes do Visual Linx estao disponiveis localmente (pacote nao versionado no git), a hierarquia de evidencia preferencial passa a ser: (1) codigo real da tela padrao; (2) OBJ/customizacao associado; (3) schema/triggers/procedures do banco; (4) padroes recorrentes de integracoes existentes; (5) validacao com especialista humano; (6) inferencia arquitetural. Fluxo de localizacao: identificar tabela/dominio -> SELECT * FROM TRANSACOES WHERE TABELA_PAI='<TABELA>' -> obter CONTROL_SISTEMA -> localizar LX[CONTROL_SISTEMA].SCX/.SCT (tela) e obj_[CONTROL_SISTEMA].PRG/.FXP (objeto de entrada/customizacao) -> ler .PRG como fonte preferencial (texto plano); ler .SCT via extracao de texto (memo da tela, contem SQL de views/cursors e metodos como texto) -- nunca decompilar/modificar .FXP/.SCX binarios. Sempre classificar cada achado como PADRAO LINX vs CUSTOMIZACAO SOMA/AZZAS vs BANCO/TRIGGER vs INTEGRACAO EXTERNA -- nunca promover comportamento de um OBJ especifico a regra universal do produto sem evidencia adicional. Uma tela pode ter mais de uma transacao relacionada a mesma tabela-pai -- mapear finalidade de cada uma antes de decidir qual e relevante.
+
+- **Fonte**: docs/architecture/Gate-PreB29-AdapterLinxFornecedor.md#secao-6-a; agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-A
+- **Referência de origem (source_ref)**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-A
+- **Restrições/observações**: O pacote de fontes local pode conter apenas customizacoes (OBJs de entrada), nao o framework/classe base do produto -- chamadas a metodos herdados revelam quando/com quais parametros algo e chamado, nao necessariamente a implementacao interna. Registrar lacuna como DESCONHECIDO, nunca inferir comportamento interno.
+- **Tags**: `metodologia`, `discovery`, `visual_foxpro`, `transacoes`, `playbook`
+
+<!-- linx-knowledge-unit: linx-achados-tela-vfp-fornecedor-001016g1 -->
+### Regras de identidade e duplicidade de Fornecedor confirmadas por leitura direta da tela padrao Visual Linx
+
+- **Chave**: `linx-achados-tela-vfp-fornecedor-001016g1`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Procedure**: `f_sequenciais`
+- **Campos**: `CLIFOR`, `COD_CLIFOR`, `COD_FORNECEDOR`, `NOME_CLIFOR`, `CGC_CPF`, `EMPRESA`
+- **Proveniência**: Validado
+- **Confiança**: ALTA para (a)-(d) e (f) -- leitura direta e literal do codigo real da tela padrao; MEDIA para (e), ja que a implementacao interna da classe base nao foi lida diretamente aqui
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+(a) CLIFOR de um fornecedor novo e gerado por f_sequenciais('FORNECEDORES.CLIFOR', .t.), chamado apenas em modo Inclusao e apenas se ainda nao gerado na sessao da tela -- confirma FORNECEDORES.CLIFOR como sequencial oficial (a anomalia CLIENTES_ATACADO.CLIFOR de uma integracao isolada nao e um padrao alternativo valido); (b) COD_CLIFOR e COD_FORNECEDOR recebem exatamente o mesmo valor de CLIFOR, sem padding/transformacao; (c) NOME_CLIFOR e o proprio valor do campo 'Fornecedor' digitado pelo usuario (nao deriva de razao social nem de sequencial), com sanitizacao de customizacao SOMA/AZZAS (maiusculas, sem espaco inicial, sem caracteres especiais de uma lista fixa) -- sem tratamento explicito de colisao de nome alem da PK fisica; (d) criterio de duplicidade primario e oficial da tela e CGC_CPF em FORNECEDORES, escopado por EMPRESA/grupo economico via CADASTRO_CLI_FOR_EMPRESA -- mesmo CNPJ na mesma empresa bloqueia, em outra empresa do grupo oferece reuso (vincular grupo economico ao cadastro existente, sem criar novo CADASTRO_CLI_FOR); (e) a persistencia real nao passa por nenhuma das 5 procedures de integracao conhecidas, nem por TableUpdate() automatico de view (SendUpdates=.F. no cursor principal) -- passa por uma classe base compartilhada (l_desenhista_*) cuja implementacao interna esta fora do pacote de fontes disponivel (ver linx-framework-persistencia-l-salva); (f) evidencia simetrica (pelo caminho de exclusao de papel): remover o papel Fornecedor de um cadastro que tambem e Cliente/Filial/Representante so reseta a flag e remove de FORNECEDORES, preservando CADASTRO_CLI_FOR e os demais papeis.
+
+- **Fonte**: lx001016G1.SCX/SCT + obj_001016G1.PRG/FXP (fonte local nao versionada); docs/architecture/Gate-PreB29-AdapterLinxFornecedor.md#secao-6-a; agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-A.1
+- **Referência de origem (source_ref)**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-A.1
+- **Restrições/observações**: Nao ha evidencia de transacao explicita (BEGIN TRAN) nem do caminho simetrico de adicionar um papel a um cadastro existente (so o de remover foi encontrado); consumidores de filas ETL/WETL, comportamento sob concorrencia de LX_SEQUENCIAL e estrategia de rollback cross-sistema permanecem desconhecidos.
+- **Tags**: `tela_visual_linx`, `001016g1`, `duplicidade`, `clifor`, `cgc_cpf`, `vfp`
+
+<!-- linx-knowledge-unit: linx-framework-persistencia-l-salva -->
+### l_salva -- rotina central de transacao/persistencia do framework Visual Linx
+
+- **Chave**: `linx-framework-persistencia-l-salva`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: FluxoErp
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Procedure**: `l_salva`
+- **Proveniência**: Validado
+- **Confiança**: ALTA -- leitura direta e literal do codigo-fonte real da classe base do produto
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+Localizado em lx_class.vcx (fonte local nao versionada), o metodo generico l_salva e herdado por todas as telas Visual Linx (incluindo a de Fornecedor, 001016G1) -- e a rotina central que investigacoes anteriores buscavam sem sucesso nas 5 procedures de integracao. Estrutura real: hooks pre-salvamento (l_desenhista_antes_salva, USR_SAVE_BEFORE) -> transacao em duas camadas (Begin Transaction de buffer VFP + data.connection.BeginTrans() real no SQL Server, isolamento ajustavel para READ COMMITTED durante a escrita) -> hooks de trigger antes -> auditoria (l_auditoria) -> gravacao real via objCursor.AcceptChanges(...) (metodo nativo do CursorAdapter do VFP, um por cursor principal, todos dentro da mesma transacao) -> hooks de trigger depois -> CommitTrans()/End Transaction em sucesso, ou RollbackTrans()+RollBack completo em qualquer falha em qualquer etapa -> hooks pos-salvamento (l_desenhista_apos_salva, USR_SAVE_AFTER). Para a tela de Fornecedor, cujo CursorAdapter tem Tables=CADASTRO_CLI_FOR,FORNECEDORES, isso confirma por evidencia direta (nao mais inferencia) que as duas tabelas sao gravadas dentro da mesma transacao de banco, com rollback total garantido pelo proprio framework em qualquer falha.
+
+- **Fonte**: lx_class.vcx/.VCT (fonte local nao versionada); docs/architecture/Gate-PreB29-AdapterLinxFornecedor.md; agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-B
+- **Referência de origem (source_ref)**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-B
+- **Restrições/observações**: f_sequenciais (chamado pela tela de Fornecedor para obter CLIFOR) nao esta definido em lx_class.vcx -- vive em biblioteca de funcoes globais nao incluida nas fontes disponiveis; nenhuma referencia a LX_SEQUENCIAL ou SEQUENCIA_FORNECEDOR foi encontrada nesta classe. Decisao do PO: irrelevante para o Adapter, que usa o mecanismo de banco diretamente, nunca a funcao VFP.
+- **Tags**: `l_salva`, `framework`, `transacao`, `persistencia`, `vfp`
+
+<!-- linx-knowledge-unit: linx-decisoes-po-fronteira-bu-erp-fornecedor -->
+### Regras de fronteira BU-ERP, identidade de fornecedor e modelo multiuso aprovadas pelo Product Owner
+
+- **Chave**: `linx-decisoes-po-fronteira-bu-erp-fornecedor`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: HistoricoDecisao
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Campos**: `EMPRESA`
+- **Proveniência**: Validado
+- **Confiança**: ALTA -- decisao direta do Product Owner, registrada em sessao de Gate
+- **Tipo de origem (sourceType)**: PRODUCT_OWNER_DECISION
+
+Decisoes formalmente aprovadas pelo Product Owner (nao inferidas, nao derivadas de codigo): (1) BU e a fronteira de integracao com ERP/banco -- dentro de uma BU, cadastros sao compartilhados entre marcas, marca nao segrega fornecedor; (2) identidade do fornecedor = BU + CNPJ, nunca duplicado dentro da mesma BU; (3) EMPRESA/grupo economico do Linx nao pertence ao dominio +Compras -- para a BU SOMA, tratado internamente como valor tecnico fixo (EMPRESA=1) apenas se a persistencia exigir, nunca exposto na UI nem replicado para Adapters futuros; (4) adicionar o papel Fornecedor a um CADASTRO_CLI_FOR existente nunca cria nova entidade-base -- sempre INDICA_FORNECEDOR=1 + INSERT FORNECEDORES se ainda nao existir, preservando todos os papeis existentes; (5) o Adapter de Fornecedor nunca cria FILIAIS nem CLIENTES_ATACADO, mesmo quando o cadastro-base ja possui esses papeis (apenas preserva); (6) transacao essencial deve ser atomica com rollback total em falha, transacoes curtas, locks minimos, nenhuma chamada externa dentro da transacao; (7) SEQUENCIA_FORNECEDOR nao e reconhecida como regra pelo PO e, sem evidencia concreta adicional, e classificada como sem relevancia para o contrato minimo da B2.9; (8) ETL/WETL nao pertencem ao contrato funcional da B2.9 -- efeito colateral existente do ambiente, nao implementado/replicado pelo Adapter; (9) e-mail comercial x fiscal e pendencia de produto nao bloqueante; (10) principio de suficiencia -- duvida so bloqueia se houver risco concreto de corrupcao/duplicidade/perda de dados/inconsistencia de papeis/transacao; caso contrario, classificar como 'validar em desenvolvimento/homologacao'.
+
+- **Fonte**: docs/architecture/Gate-PreB29-AdapterLinxFornecedor.md#secao-6-b; agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-C
+- **Referência de origem (source_ref)**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-C
+- **Restrições/observações**: Sao decisoes de produto, nao achados tecnicos -- prevalecem sobre qualquer inferencia arquitetural anterior que as contradiga (ex.: item 3 restringe o uso de EMPRESA sugerido em achados tecnicos anteriores).
+- **Tags**: `decisao_po`, `bu_erp`, `identidade_fornecedor`, `multiuso`
+
+<!-- linx-knowledge-unit: linx-idempotencia-convergencia-create-update-fornecedor -->
+### Idempotencia de escrita de Fornecedor -- reconsulta obrigatoria e convergencia automatica CREATE->UPDATE
+
+- **Chave**: `linx-idempotencia-convergencia-create-update-fornecedor`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: HistoricoDecisao
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Proveniência**: Validado
+- **Confiança**: ALTA -- decisao direta do Product Owner
+- **Tipo de origem (sourceType)**: PRODUCT_OWNER_DECISION
+
+Decisao aprovada pelo PO: operacoes de escrita de Fornecedor devem ser idempotentes e orientadas a estado, nao a intencao original. A existencia do CNPJ no momento da escrita nao e erro. O Adapter deve reconsultar o ERP da BU pelo CNPJ imediatamente antes da decisao final de persistencia (nunca confiar em estado observado anteriormente pelo +Compras -- consulta CNPJ, Review, cache de frontend), e convergir automaticamente: inexistente -> criar CADASTRO_CLI_FOR+FORNECEDORES; CADASTRO_CLI_FOR existente sem FORNECEDORES -> reutilizar cadastro-base, preservar papeis, adicionar papel Fornecedor; ambos existentes -> atualizar/complementar com os dados confirmados pelo usuario, sem sobrescrever campos fora do escopo. Concorrencia CREATE/CREATE deve convergir para um unico fornecedor sempre que tecnicamente possivel -- a segunda solicitacao, ao encontrar o registro ja criado pela primeira, converge para atualizacao em vez de tentar criar ou falhar. Erros de duplicidade concorrente so podem ser tratados como tal quando identificados com seguranca (ex. violacao de constraint especifica), nunca mascarando erros SQL de natureza diferente.
+
+- **Fonte**: docs/architecture/Gate-PreB29-AdapterLinxFornecedor.md#secao-7-a; agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-D
+- **Referência de origem (source_ref)**: agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-D
+- **Restrições/observações**: A protecao minima para a janela residual entre a reconsulta final e o INSERT (concorrencia real) e decisao de implementacao ainda nao resolvida -- orientacao explicita do PO de nao introduzir locks pesados/transacoes longas por padrao.
+- **Tags**: `decisao_po`, `idempotencia`, `create_update`, `concorrencia`

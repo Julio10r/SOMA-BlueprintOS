@@ -27,6 +27,19 @@ const repoRoot = path.resolve(__dirname, "../..");
 const sourcePath = path.join(repoRoot, "agents/knowledge/linx-fornecedor-cnpj/linx-fornecedor-knowledge.source.json");
 const outputPath = path.join(repoRoot, "agents/knowledge/linx-fornecedor-cnpj/linx-fornecedor-knowledge.generated.md");
 
+// Tipos de origem legítimos para uma unidade de conhecimento, independente de
+// aparecer ou não em dois documentos de auditoria distintos ("dupla
+// proveniência" NÃO é mais exigida). O próprio snapshot temporário
+// (`TEMP_DISCOVERY_SNAPSHOT`) é fonte legítima e suficiente quando o
+// conhecimento vem de discovery documentado nele mesmo.
+const VALID_SOURCE_TYPES = [
+  "VFP_CODE_DISCOVERY",
+  "DATABASE_PROCEDURE_DISCOVERY",
+  "PRODUCT_OWNER_DECISION",
+  "ARCHITECTURAL_DECISION",
+  "TEMP_DISCOVERY_SNAPSHOT",
+];
+
 function loadSource() {
   const raw = fs.readFileSync(sourcePath, "utf8");
   const parsed = JSON.parse(raw);
@@ -42,6 +55,14 @@ function loadSource() {
       throw new Error(`Chave de conhecimento duplicada na fonte estruturada: '${unit.key}'. Ingestão idempotente exige chaves únicas.`);
     }
     seen.add(unit.key);
+    if (!unit.sourceType || !VALID_SOURCE_TYPES.includes(unit.sourceType)) {
+      throw new Error(
+        `Unidade '${unit.key}' com 'sourceType' ausente ou inválido. Deve ser um de: ${VALID_SOURCE_TYPES.join(", ")}.`,
+      );
+    }
+    if (!unit.fonte && !unit.source_ref) {
+      throw new Error(`Unidade '${unit.key}' precisa de 'fonte' e/ou 'source_ref' para rastreabilidade.`);
+    }
   }
   return parsed;
 }
@@ -65,10 +86,13 @@ function renderUnit(unit) {
   if (unit.campos && unit.campos.length > 0) lines.push(`- **Campos**: ${renderList(unit.campos)}`);
   lines.push(`- **Proveniência**: ${unit.proveniencia}`);
   lines.push(`- **Confiança**: ${unit.confianca}`);
+  if (unit.sourceType) lines.push(`- **Tipo de origem (sourceType)**: ${unit.sourceType}`);
+  if (unit.gapType) lines.push(`- **Classificação de gap (gapType)**: ${unit.gapType}`);
   lines.push("");
   lines.push(unit.conteudo);
   lines.push("");
   lines.push(`- **Fonte**: ${unit.fonte}`);
+  if (unit.source_ref) lines.push(`- **Referência de origem (source_ref)**: ${unit.source_ref}`);
   if (unit.restricoes) lines.push(`- **Restrições/observações**: ${unit.restricoes}`);
   if (unit.tags && unit.tags.length > 0) lines.push(`- **Tags**: ${renderList(unit.tags)}`);
   lines.push("");
