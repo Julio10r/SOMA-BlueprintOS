@@ -309,7 +309,7 @@ def build_governed_plan(args, rows, diff_summary: dict) -> dict:
         "containsSensitivePersonalData": False,
         "containsSecrets": False,
         "reversibility": "PartiallyReversible",
-        "runbookReference": "docs/operations/LinxWiseDailyIntegrationRunbook.md",
+        "runbookReference": "applications/mais-compras/docs/operations/LinxWiseDailyIntegrationRunbook.md",
         "connectionProfile": CONNECTION_PROFILE,
         "additionalContext": None,
         "crossCuttingAgents": ["security-lgpd-agent"],

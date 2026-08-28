@@ -11,7 +11,7 @@ const manifestText = read("agents/wise-agent/agent.yaml");
 const manifest = parseManifest(manifestText, "agents/wise-agent/agent.yaml");
 const script = read("scripts/linx_wise_daily_integration.py");
 const dailyPrompt = read(".ai/prompts/processar-planilha-integracao-linx-wise.md");
-const dailyRunbook = read("docs/operations/LinxWiseDailyIntegrationRunbook.md");
+const dailyRunbook = read("applications/mais-compras/docs/operations/LinxWiseDailyIntegrationRunbook.md");
 
 assert.equal(manifest.governance.read_only, true);
 assert.equal(manifest.governance.can_execute_write, false);

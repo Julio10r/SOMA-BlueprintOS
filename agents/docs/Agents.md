@@ -39,9 +39,9 @@ Status real:
 
 ## Catálogo Visual dos Agents
 
-[`docs/agents/AgentsCatalog.html`](./AgentsCatalog.html) é o catálogo visual consolidado de todos os agents/especialistas do projeto — abre direto no navegador, sem servidor/build. É uma **visão para humanos**, não a fonte canônica: em caso de divergência, os documentos linkados nele (`.ai/context/`, `.ai/prompts/`, `docs/operations/`) sempre prevalecem.
+[`agents/docs/AgentsCatalog.html`](./AgentsCatalog.html) é o catálogo visual consolidado de todos os agents/especialistas do projeto — abre direto no navegador, sem servidor/build. É uma **visão para humanos**, não a fonte canônica: em caso de divergência, os documentos linkados nele (`.ai/context/`, `.ai/prompts/`, `docs/operations/`) sempre prevalecem.
 
-**Regra permanente:** sempre que um agent/especialista for criado, removido, renomeado, tiver responsabilidade alterada, ou receber conhecimento persistente relevante (nova entrada `.ai/context/`, novo prompt-gatilho, novo runbook), revisar e atualizar `docs/agents/AgentsCatalog.html` na mesma mudança — não deixar para depois.
+**Regra permanente:** sempre que um agent/especialista for criado, removido, renomeado, tiver responsabilidade alterada, ou receber conhecimento persistente relevante (nova entrada `.ai/context/`, novo prompt-gatilho, novo runbook), revisar e atualizar `agents/docs/AgentsCatalog.html` na mesma mudança — não deixar para depois.
 
 ## AI Factory — fundamentos internos
 

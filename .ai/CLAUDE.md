@@ -61,7 +61,7 @@ Nenhuma implementação deve começar sem essa leitura (ver PROJECT.md §7).
 - [ROADMAP.md](./ROADMAP.md) — roadmap de alto nível
 - [WORKFLOW.md](./WORKFLOW.md) — fluxo oficial de trabalho
 - [AI_TEAM.md](./AI_TEAM.md) — arquitetura multi-agente alvo
-- [docs/agents/AgentsCatalog.html](../docs/agents/AgentsCatalog.html) — catálogo visual de todos os agents/especialistas (visão para humanos, não canônica); atualizar sempre que um agent for criado, removido, renomeado ou tiver conhecimento relevante alterado (ver regra completa em [docs/agents/Agents.md](../docs/agents/Agents.md))
+- [agents/docs/AgentsCatalog.html](../agents/docs/AgentsCatalog.html) — catálogo visual de todos os agents/especialistas (visão para humanos, não canônica); atualizar sempre que um agent for criado, removido, renomeado ou tiver conhecimento relevante alterado (ver regra completa em [agents/docs/Agents.md](../agents/docs/Agents.md))
 - [dashboard/README.md](./dashboard/README.md) — camada de estado consolidado que alimenta o Dashboard do projeto; nunca editar `dashboard/DASHBOARD_STATE.md` manualmente
 - [dashboard/DASHBOARD_UPDATE_COMMAND.md](./dashboard/DASHBOARD_UPDATE_COMMAND.md) — comando permanente `[atualizar dashboard]`: rotina determinística de atualização, validação e publicação do Dashboard Oficial
 

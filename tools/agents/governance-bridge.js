@@ -3,7 +3,7 @@
 // The real process boundary for WAVE A: takes the payload produced by
 // GovernedOrchestrator.buildActionProposalPayload() (tools/agents/governed-orchestrator.js)
 // and hands it, as JSON over stdin, to the `governed-plan` CLI command exposed by
-// BlueprintOS.Api (backend/src/BlueprintOS.Api/Governance/GovernedPlanCliHandler.cs),
+// BlueprintOS.Api (applications/mais-compras/backend/src/BlueprintOS.Api/Governance/GovernedPlanCliHandler.cs),
 // which converts it into a real ActionProposal via GovernedPlanBridge and runs it
 // through the real AIGovernancePolicyEngine/ApprovalPolicy. No HTTP endpoint, no
 // network call — a deterministic, testable process boundary, chosen because it is
@@ -19,7 +19,7 @@ const { spawnSync } = require("child_process");
 const fs = require("fs");
 
 const repoRoot = path.resolve(__dirname, "../..");
-const apiProjectDir = path.join(repoRoot, "backend/src/BlueprintOS.Api");
+const apiProjectDir = path.join(repoRoot, "applications/mais-compras/backend/src/BlueprintOS.Api");
 const apiDllPath = path.join(apiProjectDir, "bin/Debug/net9.0/BlueprintOS.Api.dll");
 
 function ensureBuilt({ apiProjectDir: projectDir = apiProjectDir, dllPath = apiDllPath } = {}) {

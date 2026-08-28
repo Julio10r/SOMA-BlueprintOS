@@ -30,7 +30,7 @@ O `agent.yaml` e a declaracao canonica de identidade/configuracao daquele Agent.
 
 Nenhuma fonte de menor precedencia pode remover guardrails globais silenciosamente.
 
-Documentos legados como `.ai/AI_TEAM.md`, `.ai/context/agents.md`, `.ai/context/runtime.md`, `.ai/prompts/new-agent.md` e `docs/agents/Agents.md` continuam validos nesta etapa, mas devem convergir futuramente para este contrato quando houver migracao controlada.
+Documentos legados como `.ai/AI_TEAM.md`, `.ai/context/agents.md`, `.ai/context/runtime.md`, `.ai/prompts/new-agent.md` e `agents/docs/Agents.md` continuam validos nesta etapa, mas devem convergir futuramente para este contrato quando houver migracao controlada.
 
 ## Politicas Canonicas Relacionadas
 
