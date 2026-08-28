@@ -172,12 +172,12 @@ assert.throws(() => factory.catalog({ apply: true }), /explicit human approval/)
 assert.throws(() => assertSafeOutput("../../outside.json", "audit"), /Unsafe/);
 assert.throws(() => assertSafeOutput("docs/agents/not-json.json", "catalog"), /Unsupported/);
 assert.equal(assertSafeOutput("docs/audits/audit.json", "audit"), "docs/audits/audit.json");
-// docs/agents/AgentsCatalog.generated.html now legitimately exists on disk (written directly,
+// agents/docs/AgentsCatalog.generated.html now legitimately exists on disk (written directly,
 // under explicit human instruction, during the Agents v1 final certification wave — see
 // docs/audits/AgentsV1-FinalCertification.md section 11) — its mere presence is not a
 // regression. What must still hold is that catalog() in preview mode (apply not set) never
 // itself writes or modifies that file.
-const catalogGeneratedPath = path.join(repoRoot, "docs/agents/AgentsCatalog.generated.html");
+const catalogGeneratedPath = path.join(repoRoot, "agents/docs/AgentsCatalog.generated.html");
 const catalogGeneratedBefore = fs.existsSync(catalogGeneratedPath) ? fs.readFileSync(catalogGeneratedPath) : null;
 factory.catalog();
 const catalogGeneratedAfter = fs.existsSync(catalogGeneratedPath) ? fs.readFileSync(catalogGeneratedPath) : null;

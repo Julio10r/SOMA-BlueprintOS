@@ -269,7 +269,7 @@ class AgentFactoryV2 {
   catalog(options = {}) {
     const records = this.discover().sort((a, b) => a.manifest.catalog.display_order - b.manifest.catalog.display_order);
     const rows = records.map(({ manifest }) => `<tr><td>${escapeHtml(manifest.id)}</td><td>${escapeHtml(manifest.name)}</td><td>${escapeHtml(manifest.version)}</td><td>${escapeHtml(manifest.type)}</td><td>${escapeHtml(manifest.status)}</td><td>${escapeHtml(Object.keys(manifest.capability_ownership).join(", "))}</td><td>${escapeHtml(manifest.governance.enforcement_status)}</td></tr>`).join("\n");
-    const html = `<!doctype html>\n<html lang="pt-BR"><head><meta charset="utf-8"><title>SOMA BlueprintOS Agents</title></head><body><h1>SOMA BlueprintOS Agents</h1><p>Generated from canonical manifests. Human editorial context remains in docs/agents/AgentsCatalog.html.</p><table><thead><tr><th>ID</th><th>Name</th><th>Version</th><th>Type</th><th>Status</th><th>Capabilities</th><th>Enforcement</th></tr></thead><tbody>${rows}</tbody></table></body></html>\n`;
+    const html = `<!doctype html>\n<html lang="pt-BR"><head><meta charset="utf-8"><title>SOMA BlueprintOS Agents</title></head><body><h1>SOMA BlueprintOS Agents</h1><p>Generated from canonical manifests. Human editorial context remains in agents/docs/AgentsCatalog.html.</p><table><thead><tr><th>ID</th><th>Name</th><th>Version</th><th>Type</th><th>Status</th><th>Capabilities</th><th>Enforcement</th></tr></thead><tbody>${rows}</tbody></table></body></html>\n`;
     if (options.apply) {
       assertApproval(options.authorization, "CATALOG write");
       const output = assertSafeOutput(options.output || "agents/docs/AgentsCatalog.generated.html", "catalog");

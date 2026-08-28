@@ -1,6 +1,6 @@
 # Orquestração
 
-Este documento descreve como o backend coordena fluxos entre a camada HTTP, casos de uso de Application e os contratos de estratégia/memória — a capacidade de coordenação em si, não a tecnologia (IA) usada por trás de cada estratégia. É distinto de [docs/agents/Agents.md](../../agents/Agents.md), que descreve a arquitetura dos próprios agentes de IA.
+Este documento descreve como o backend coordena fluxos entre a camada HTTP, casos de uso de Application e os contratos de estratégia/memória — a capacidade de coordenação em si, não a tecnologia (IA) usada por trás de cada estratégia. É distinto de [agents/docs/Agents.md](../../../../../agents/docs/Agents.md), que descreve a arquitetura dos próprios agentes de IA.
 
 ## Fluxo implementado: recomendação consultiva de negociação
 

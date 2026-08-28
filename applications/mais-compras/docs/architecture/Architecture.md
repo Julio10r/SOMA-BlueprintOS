@@ -78,7 +78,7 @@ Ingestão e recuperação de conhecimento organizacional a partir de conteúdo M
 
 ### Agents
 
-Ver [docs/agents/Agents.md](../agents/Agents.md) para o runtime de agentes de IA.
+Ver [agents/docs/Agents.md](../../../../agents/docs/Agents.md) para o runtime de agentes de IA.
 
 ### AI.Negotiation
 
