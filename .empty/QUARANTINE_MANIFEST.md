@@ -9,7 +9,7 @@ apagado — apenas isolado por evidência de obsolescência/duplicação.
 |---|---|---|---|---|
 | `_staging/backend_full.tar.gz` | Backup/tarball órfão do backend, sem consumidor identificado no repositório. | `applications/mais-compras/backend/` (fonte viva) | Nenhuma referência ativa em código, scripts ou docs. | Provavelmente sim, após confirmação do dono do backend de que o tarball não é necessário para nenhum processo de disaster recovery externo ao git. |
 | `.ai/local-output/mb_prod_extra_web/**` | Saída bruta de execução de integração (CSV/JSON de precheck, execução e verificação Wise/Linx), gerada localmente, não é fonte de conhecimento canônica. | `.ai/context/`, `docs/operations/` (documentação canônica das integrações) | Nenhuma referência ativa em código ou docs vivos; é artefato de execução pontual. | Provavelmente sim, após confirmação do dono da integração Linx/Wise de que os dados não têm valor de auditoria retido. |
-| `....` (arquivo de 0 bytes, nome literal `....`) | Arquivo vazio sem função identificável, provável artefato acidental (ex: redirecionamento de shell mal formado). | — | Nenhuma. | Sim — arquivo vazio sem conteúdo a preservar. |
+| `....` (arquivo de 0 bytes, nome literal `....`) | Arquivo vazio sem função identificável, provável artefato acidental (ex: redirecionamento de shell mal formado). | — | Nenhuma. | **Removido definitivamente** em 2026-08-27 após revisão humana (Repository Cleanup v1 — Fase 2): confirmado 0 bytes, tracked, sem referências funcionais ativas. |
 
 Itens **não movidos** apesar de riscos identificados na auditoria (ver
 `docs/repository/RepositoryReorganization-Audit.md`):
