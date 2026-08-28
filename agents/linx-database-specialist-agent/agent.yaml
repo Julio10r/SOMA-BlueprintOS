@@ -38,6 +38,7 @@ implementation:
     - .ai/context/runtime.md
     - .ai/context/knowledge.md
     - .ai/context/linx-wise-daily-integration.md
+    - agents/knowledge/linx-fornecedor-cnpj/linx-fornecedor-knowledge.generated.md
   runbook_paths:
     - applications/mais-compras/docs/operations/LinxWiseDailyIntegrationRunbook.md
   script_paths:
