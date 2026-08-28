@@ -35,7 +35,7 @@ Ver também [observability.md](./observability.md) para auditoria e rastreamento
 
 ## AI Governance
 
-A Onda 1 de governanca de Agents esta documentada em `docs/architecture/AIGovernance.md` e implementada no nucleo `BlueprintOS.Core.AI.Governance`.
+A Onda 1 de governanca de Agents esta documentada em `agents/docs/AIGovernance.md` e implementada no nucleo `BlueprintOS.Core.AI.Governance`.
 
 Separacao obrigatoria:
 
