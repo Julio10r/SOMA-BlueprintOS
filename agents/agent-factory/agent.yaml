@@ -128,7 +128,7 @@ data:
     - Canonical Agent manifests
   resources:
     - agents/*/agent.yaml
-    - docs/agents/AgentsCatalog.generated.html when explicitly generated
+    - agents/docs/AgentsCatalog.generated.html when explicitly generated
     - audit artifacts when explicitly requested
   classifications:
     - Internal
@@ -160,7 +160,7 @@ knowledge:
   memory_paths:
     - agents/AGENT_CONTRACT.md
     - agents/EXECUTION_POLICY.md
-    - docs/architecture/AIGovernance.md
+    - agents/docs/AIGovernance.md
   provenance_labels:
     - CONFIRMADO
     - INFERIDO

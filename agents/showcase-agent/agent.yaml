@@ -34,8 +34,8 @@ implementation:
     - .ai/context/showcase-knowledge.md
     - .ai/context/wise-knowledge.md
   runbook_paths:
-    - docs/operations/ShowcaseAgentRunbook.md
-    - docs/operations/WiseAgentRunbook.md
+    - applications/mais-compras/docs/operations/ShowcaseAgentRunbook.md
+    - applications/mais-compras/docs/operations/WiseAgentRunbook.md
   script_paths:
     - scripts/showcase_collector/README.md
     - scripts/showcase_collector/package.json
@@ -43,7 +43,7 @@ implementation:
     - scripts/showcase_collector/enrich.js
     - scripts/showcase_collector/build_excel.js
   docs_paths:
-    - docs/agents/Agents.md
+    - agents/docs/Agents.md
   di_registration: null
 runtime:
   implemented: false

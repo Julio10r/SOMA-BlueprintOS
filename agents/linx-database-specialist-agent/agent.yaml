@@ -27,11 +27,11 @@ responsibility:
     - Escalar para AI Governance antes de qualquer futura tool com escrita, exportacao ou efeito externo.
 implementation:
   code_paths:
-    - backend/src/BlueprintOS.Application/Knowledge/Linx/LinxSpecialistAgents.cs
-    - backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxEspecialista.cs
-    - backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxConhecimentoProveniencia.cs
-    - backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxKnowledgeEntry.cs
-    - backend/src/BlueprintOS.Infrastructure/Integrations/ERP/Soma/LinxSchemaDiscoveryReader.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Application/Knowledge/Linx/LinxSpecialistAgents.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxEspecialista.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxConhecimentoProveniencia.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxKnowledgeEntry.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Infrastructure/Integrations/ERP/Soma/LinxSchemaDiscoveryReader.cs
   prompt_paths: []
   context_paths:
     - .ai/context/agents.md
@@ -39,12 +39,12 @@ implementation:
     - .ai/context/knowledge.md
     - .ai/context/linx-wise-daily-integration.md
   runbook_paths:
-    - docs/operations/LinxWiseDailyIntegrationRunbook.md
+    - applications/mais-compras/docs/operations/LinxWiseDailyIntegrationRunbook.md
   script_paths:
     - scripts/linx_wise_daily_integration.py
   docs_paths:
-    - docs/agents/Agents.md
-    - docs/backend/integration/Integration.md
+    - agents/docs/Agents.md
+    - applications/mais-compras/docs/backend/integration/Integration.md
     - .ai/work-orders/completed/O1.13.5-FundacaoAgentsEspecialistasLinx.md
   di_registration: services.AddScoped<LinxDatabaseSpecialistAgent>()
 runtime:
@@ -155,7 +155,7 @@ governance:
   by_design_findings:
     - code: AFV2-GOV-001
       classification: NOT_IMPLEMENTED
-      justification: The governed-plan CLI bridge (backend/src/BlueprintOS.Api/Governance/GovernedPlanCliHandler.cs) and Gateway multi-adapter routing are implemented and tested end-to-end offline (tools/agents/governance-bridge.test.js). What remains is wiring that CLI into a long-lived host with a persisted approval store, which needs a real database connection explicitly out of scope for this offline certification wave. Not a corrigible gap left unaddressed — a documented production-wiring boundary.
+      justification: The governed-plan CLI bridge (applications/mais-compras/backend/src/BlueprintOS.Api/Governance/GovernedPlanCliHandler.cs) and Gateway multi-adapter routing are implemented and tested end-to-end offline (tools/agents/governance-bridge.test.js). What remains is wiring that CLI into a long-lived host with a persisted approval store, which needs a real database connection explicitly out of scope for this offline certification wave. Not a corrigible gap left unaddressed — a documented production-wiring boundary.
     - code: AFV2-GATEWAY-001
       classification: NOT_IMPLEMENTED
       justification: SomaLinxReadOnlyAdapter and SomaLinxDryRunAdapter are real, registered, DI-resolved and tested Gateway adapters for this Agent's capabilities. The existing SQL readers (SomaFornecedorReader, SomaFilialReader, etc.) that call SqlConnection directly live in the Suppliers/Fornecedores feature area, explicitly out of scope for this wave (unrelated in-flight workstream). Rewiring those readers to route through the Gateway is a follow-up integration task, not an unaddressed gap in the Agents architecture itself.
@@ -187,11 +187,11 @@ observability:
   redaction_required: true
 tests:
   unit:
-    - backend/tests/BlueprintOS.UnitTests/Application/Knowledge/Linx/LinxSpecialistAgentsTests.cs
-    - backend/tests/BlueprintOS.UnitTests/Application/Knowledge/Linx/LinxSpecialistsFunctionalValidationTests.cs
+    - applications/mais-compras/backend/tests/BlueprintOS.UnitTests/Application/Knowledge/Linx/LinxSpecialistAgentsTests.cs
+    - applications/mais-compras/backend/tests/BlueprintOS.UnitTests/Application/Knowledge/Linx/LinxSpecialistsFunctionalValidationTests.cs
   integration: []
   safety:
-    - backend/tests/BlueprintOS.UnitTests/Application/Knowledge/Linx/LinxSpecialistAgentsTests.cs
+    - applications/mais-compras/backend/tests/BlueprintOS.UnitTests/Application/Knowledge/Linx/LinxSpecialistAgentsTests.cs
   contract:
     - tools/agents/validate-agent-manifests.js
 relationships:

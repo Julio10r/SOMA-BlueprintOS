@@ -1,0 +1,79 @@
+using BlueprintOS.Application.Procurement.Suppliers.Contracts;
+using BlueprintOS.Domain.Procurement.Suppliers;
+using Microsoft.EntityFrameworkCore;
+
+namespace BlueprintOS.Infrastructure.Persistence.Repositories;
+
+public sealed class FornecedorRepository(BlueprintOSDbContext context) : IFornecedorRepository
+{
+    public async Task AdicionarAsync(Fornecedor fornecedor, CancellationToken cancellationToken = default)
+    { await context.Fornecedores.AddAsync(fornecedor, cancellationToken); await context.SaveChangesAsync(cancellationToken); }
+    public async Task AtualizarAsync(Fornecedor fornecedor, CancellationToken cancellationToken = default)
+    {
+        // Se outra instância com a mesma PK já estiver rastreada neste DbContext (ex.: leituras via
+        // ObterPorCnpjSemRastreamentoAsync/AsNoTracking convivendo, na mesma unit-of-work, com uma
+        // entidade tracked por uma chamada anterior a este mesmo repositório), DbSet.Update lançaria
+        // "another instance with the same key value is already being tracked". Em vez de anexar uma
+        // segunda instância, copiamos os valores atuais para a instância já rastreada.
+        var rastreado = context.ChangeTracker.Entries<Fornecedor>().FirstOrDefault(e => e.Entity.Id == fornecedor.Id);
+        if (rastreado is not null && !ReferenceEquals(rastreado.Entity, fornecedor))
+        {
+            rastreado.CurrentValues.SetValues(fornecedor);
+        }
+        else
+        {
+            context.Fornecedores.Update(fornecedor);
+        }
+        await context.SaveChangesAsync(cancellationToken);
+    }
+    public Task<Fornecedor?> ObterPorIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default) =>
+        context.Fornecedores.SingleOrDefaultAsync(x => x.Id == id && x.TemporaryUserId == userId, cancellationToken);
+    public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid userId, CancellationToken cancellationToken = default) =>
+        context.Fornecedores.SingleOrDefaultAsync(x => x.Cnpj_Cpf == cnpj && x.TemporaryUserId == userId, cancellationToken);
+    public async Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string termo, Guid userId, CancellationToken cancellationToken = default) =>
+        await context.Fornecedores.AsNoTracking().Where(x => x.TemporaryUserId == userId &&
+            (x.RazaoSocial.Contains(termo) || x.Cnpj_Cpf.Contains(termo))).OrderBy(x => x.RazaoSocial).ToListAsync(cancellationToken);
+    public async Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid userId, CancellationToken cancellationToken = default) =>
+        await context.Fornecedores.AsNoTracking().Where(x => x.TemporaryUserId == userId).OrderBy(x => x.RazaoSocial).ToListAsync(cancellationToken);
+    public Task<bool> ExisteAsync(string cnpj, CancellationToken cancellationToken = default) =>
+        context.Fornecedores.AnyAsync(x => x.Cnpj_Cpf == cnpj, cancellationToken);
+    public Task<Fornecedor?> ObterPorCnpjSemRastreamentoAsync(string cnpj, Guid userId, CancellationToken cancellationToken = default) =>
+        context.Fornecedores.AsNoTracking().SingleOrDefaultAsync(x => x.Cnpj_Cpf == cnpj && x.TemporaryUserId == userId, cancellationToken);
+    public Task<int> ContarAtivosAsync(Guid userId, CancellationToken cancellationToken = default) =>
+        context.Fornecedores.AsNoTracking().CountAsync(x => x.TemporaryUserId == userId && x.Status == "Ativo", cancellationToken);
+
+    public async Task<FornecedorPesquisaPaginadaResultado> PesquisarPaginadoAsync(Guid temporaryUserId, string? termo,
+        FornecedorStatusFiltro status, FornecedorOrdenacaoCampo ordenarPor, bool ordenarDescendente,
+        int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var pagina = page < 1 ? 1 : page;
+        var tamanho = pageSize < 1 ? 20 : pageSize;
+
+        IQueryable<Fornecedor> query = context.Fornecedores.AsNoTracking().Where(x => x.TemporaryUserId == temporaryUserId);
+
+        if (!string.IsNullOrWhiteSpace(termo))
+        {
+            query = query.Where(x => x.RazaoSocial.Contains(termo) || x.Cnpj_Cpf.Contains(termo)
+                || (x.NomeFantasia != null && x.NomeFantasia.Contains(termo)));
+        }
+
+        query = status switch
+        {
+            FornecedorStatusFiltro.Ativo => query.Where(x => x.Status == "Ativo"),
+            FornecedorStatusFiltro.Inativo => query.Where(x => x.Status == "Inativo"),
+            _ => query,
+        };
+
+        query = ordenarPor switch
+        {
+            FornecedorOrdenacaoCampo.Cnpj => ordenarDescendente ? query.OrderByDescending(x => x.Cnpj_Cpf) : query.OrderBy(x => x.Cnpj_Cpf),
+            FornecedorOrdenacaoCampo.Status => ordenarDescendente ? query.OrderByDescending(x => x.Status) : query.OrderBy(x => x.Status),
+            FornecedorOrdenacaoCampo.CreatedAt => ordenarDescendente ? query.OrderByDescending(x => x.CreatedAt) : query.OrderBy(x => x.CreatedAt),
+            _ => ordenarDescendente ? query.OrderByDescending(x => x.RazaoSocial) : query.OrderBy(x => x.RazaoSocial),
+        };
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await query.Skip((pagina - 1) * tamanho).Take(tamanho).ToListAsync(cancellationToken);
+        return new FornecedorPesquisaPaginadaResultado(items, totalCount, pagina, tamanho);
+    }
+}

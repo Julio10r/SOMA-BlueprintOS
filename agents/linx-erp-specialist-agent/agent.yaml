@@ -25,10 +25,10 @@ responsibility:
     - Escalar para AI Governance antes de qualquer futura tool com escrita ou efeito externo.
 implementation:
   code_paths:
-    - backend/src/BlueprintOS.Application/Knowledge/Linx/LinxSpecialistAgents.cs
-    - backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxEspecialista.cs
-    - backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxConhecimentoProveniencia.cs
-    - backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxKnowledgeEntry.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Application/Knowledge/Linx/LinxSpecialistAgents.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxEspecialista.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxConhecimentoProveniencia.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxKnowledgeEntry.cs
   prompt_paths: []
   context_paths:
     - .ai/context/agents.md
@@ -36,12 +36,12 @@ implementation:
     - .ai/context/knowledge.md
     - .ai/context/linx-wise-daily-integration.md
   runbook_paths:
-    - docs/operations/LinxWiseDailyIntegrationRunbook.md
+    - applications/mais-compras/docs/operations/LinxWiseDailyIntegrationRunbook.md
   script_paths:
     - scripts/linx_wise_daily_integration.py
   docs_paths:
-    - docs/agents/Agents.md
-    - docs/backend/integration/Integration.md
+    - agents/docs/Agents.md
+    - applications/mais-compras/docs/backend/integration/Integration.md
     - .ai/work-orders/completed/O1.13.5-FundacaoAgentsEspecialistasLinx.md
   di_registration: services.AddScoped<LinxErpSpecialistAgent>()
 runtime:
@@ -133,7 +133,7 @@ governance:
       justification: The governed-plan CLI bridge and Gateway routing are implemented and tested offline for this Agent's capability. Promoting to ENFORCED requires wiring that CLI into a long-lived host with a persisted approval store, which needs a real database connection explicitly out of scope for this offline certification wave.
     - code: AFV2-GATEWAY-001
       classification: NOT_IMPLEMENTED
-      justification: LinxKnowledgeStoreReadOnlyAdapter (backend/src/BlueprintOS.Core/AI/Governance/LinxKnowledgeStoreReadOnlyAdapter.cs) is a real, registered, DI-resolved and tested Gateway adapter for the linx-knowledge-store profile (ConnectionStrings:MaisComprasConnection). The existing reader (B1ConnectivityValidator) that opens this connection directly is a live connectivity-check utility outside Agents governance scope; rewiring it to route through the Gateway is a follow-up integration task, not an unaddressed architectural gap.
+      justification: LinxKnowledgeStoreReadOnlyAdapter (applications/mais-compras/backend/src/BlueprintOS.Core/AI/Governance/LinxKnowledgeStoreReadOnlyAdapter.cs) is a real, registered, DI-resolved and tested Gateway adapter for the linx-knowledge-store profile (ConnectionStrings:MaisComprasConnection). The existing reader (B1ConnectivityValidator) that opens this connection directly is a live connectivity-check utility outside Agents governance scope; rewiring it to route through the Gateway is a follow-up integration task, not an unaddressed architectural gap.
 knowledge:
   memory_paths:
     - .ai/context/knowledge.md
@@ -155,11 +155,11 @@ observability:
   redaction_required: true
 tests:
   unit:
-    - backend/tests/BlueprintOS.UnitTests/Application/Knowledge/Linx/LinxSpecialistAgentsTests.cs
-    - backend/tests/BlueprintOS.UnitTests/Application/Knowledge/Linx/LinxSpecialistsFunctionalValidationTests.cs
+    - applications/mais-compras/backend/tests/BlueprintOS.UnitTests/Application/Knowledge/Linx/LinxSpecialistAgentsTests.cs
+    - applications/mais-compras/backend/tests/BlueprintOS.UnitTests/Application/Knowledge/Linx/LinxSpecialistsFunctionalValidationTests.cs
   integration: []
   safety:
-    - backend/tests/BlueprintOS.UnitTests/Application/Knowledge/Linx/LinxSpecialistAgentsTests.cs
+    - applications/mais-compras/backend/tests/BlueprintOS.UnitTests/Application/Knowledge/Linx/LinxSpecialistAgentsTests.cs
   contract:
     - tools/agents/validate-agent-manifests.js
 relationships:

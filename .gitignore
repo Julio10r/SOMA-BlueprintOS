@@ -72,9 +72,9 @@ BenchmarkDotNet.Artifacts/
 # ==========================================================
 
 node_modules/
-frontend/dist/
-frontend/web/dist/
-frontend/web/dist_old_*/
+applications/mais-compras/frontend/dist/
+applications/mais-compras/frontend/web/dist/
+applications/mais-compras/frontend/web/dist_old_*/
 *.tsbuildinfo
 *.timestamp-*.mjs
 

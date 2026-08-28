@@ -17,7 +17,7 @@ O manifesto e a declaracao canonica de identidade e configuracao do Agent. Ele n
 - `agents/agent.schema.json`: schema machine-readable usado para validar manifests.
 - `agents/<agent-id>/agent.yaml`: manifesto canonico daquele Agent.
 
-Conhecimento operacional continua nas fontes de dominio, como `.ai/context/*`. Runbooks continuam em `docs/operations/*`. Codigo C# continua em `backend/*`. Scripts continuam em `scripts/*`.
+Conhecimento operacional continua nas fontes de dominio, como `.ai/context/*`. Runbooks continuam em `applications/mais-compras/docs/operations/*`. Codigo C# continua em `applications/mais-compras/backend/*`. Scripts continuam em `scripts/*`.
 
 ## O Que E Um Agent
 
@@ -43,7 +43,7 @@ O manifesto responde:
 - quais testes cobrem seu comportamento;
 - quais outros Agents ou workflows se relacionam a ele.
 
-A implementacao continua onde ela faz sentido arquiteturalmente. Por exemplo, classes C# permanecem em `backend/`, runbooks em `docs/operations/`, prompts em `.ai/prompts/` e scripts em `scripts/`.
+A implementacao continua onde ela faz sentido arquiteturalmente. Por exemplo, classes C# permanecem em `applications/mais-compras/backend/`, runbooks em `applications/mais-compras/docs/operations/`, prompts em `.ai/prompts/` e scripts em `scripts/`.
 
 ## Relacao Com AI Governance
 

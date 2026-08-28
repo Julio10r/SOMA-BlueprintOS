@@ -6,8 +6,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-BACKEND_DIR="$ROOT_DIR/backend"
-FRONTEND_DIR="$ROOT_DIR/frontend/web"
+BACKEND_DIR="$ROOT_DIR/applications/mais-compras/backend"
+FRONTEND_DIR="$ROOT_DIR/applications/mais-compras/frontend/web"
 BACKEND_PID_FILE="$SCRIPT_DIR/.backend.pid"
 BACKEND_LOG_FILE="$SCRIPT_DIR/.backend.log"
 FRONTEND_PID_FILE="$SCRIPT_DIR/.frontend.pid"

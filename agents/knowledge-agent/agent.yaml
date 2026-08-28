@@ -22,11 +22,11 @@ responsibility:
     - Escalar para curadoria de conhecimento quando a fonte recuperada for insuficiente ou conflitante.
 implementation:
   code_paths:
-    - backend/src/BlueprintOS.Core/Agents/KnowledgeAgent.cs
-    - backend/src/BlueprintOS.Core/Agents/Contracts/IAgent.cs
-    - backend/src/BlueprintOS.Core/Agents/BaseAgent.cs
-    - backend/src/BlueprintOS.Core/Agents/AgentFactory.cs
-    - backend/src/BlueprintOS.Core/Agents/Observability/IAgentExecutionObserver.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Core/Agents/KnowledgeAgent.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Core/Agents/Contracts/IAgent.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Core/Agents/BaseAgent.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Core/Agents/AgentFactory.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Core/Agents/Observability/IAgentExecutionObserver.cs
   prompt_paths: []
   context_paths:
     - .ai/context/agents.md
@@ -35,7 +35,7 @@ implementation:
   runbook_paths: []
   script_paths: []
   docs_paths:
-    - docs/agents/Agents.md
+    - agents/docs/Agents.md
   di_registration: null
 runtime:
   implemented: true
@@ -133,10 +133,10 @@ observability:
   redaction_required: true
 tests:
   unit:
-    - backend/tests/BlueprintOS.UnitTests/Core/Agents/KnowledgeAgentTests.cs
+    - applications/mais-compras/backend/tests/BlueprintOS.UnitTests/Core/Agents/KnowledgeAgentTests.cs
   integration: []
   safety:
-    - backend/tests/BlueprintOS.UnitTests/Core/Agents/KnowledgeAgentSafetyTests.cs
+    - applications/mais-compras/backend/tests/BlueprintOS.UnitTests/Core/Agents/KnowledgeAgentSafetyTests.cs
   contract:
     - tools/agents/validate-agent-manifests.js
 relationships:

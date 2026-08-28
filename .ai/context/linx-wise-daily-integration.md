@@ -14,7 +14,7 @@ The agent must still confirm the production environment and must still ask the P
 
 ## Precedence
 
-`DECISAO_PO`: For the trigger `Executar integração diária Linx/WISE desta planilha`, this document and [LinxWiseDailyIntegrationRunbook.md](../../docs/operations/LinxWiseDailyIntegrationRunbook.md) are the source of truth. The WISE Agent knowledge base is complementary only. If WISE Agent guidance conflicts with this daily workflow during a daily integration, this document and the daily runbook take precedence.
+`DECISAO_PO`: For the trigger `Executar integração diária Linx/WISE desta planilha`, this document and [LinxWiseDailyIntegrationRunbook.md](../../applications/mais-compras/docs/operations/LinxWiseDailyIntegrationRunbook.md) are the source of truth. The WISE Agent knowledge base is complementary only. If WISE Agent guidance conflicts with this daily workflow during a daily integration, this document and the daily runbook take precedence.
 
 ## Provenance Labels
 
@@ -84,6 +84,10 @@ If any row fails:
   - `PRODUTO`
   - `COR_PRODUTO`
   - `DATA_LIMITE`
+- `CONFIRMADO` from production metadata on 2026-08-27: physical primary key `XPKMB_PROD_EXTRA_WEB` is only:
+  - `PRODUTO`
+  - `COR_PRODUTO`
+- Daily execution must therefore detect existing rows by `PRODUTO + COR_PRODUTO`; when an existing row belongs to a new daily load, update `DATA_LIMITE` together with divergent `EXn` values instead of inserting a second product/color row.
 - `CONFIRMADO`: `TOTAL` is a computed column (`is_computed = True`) calculated by SQL Server from `EX1..EX48`.
 - `NAO_USAR`: Never include `TOTAL` in `INSERT`, `UPDATE`, or `SET`.
 - `CONFIRMADO`: `TOTAL` is read-only validation against `TOTAL ARGENTINA`.
@@ -238,7 +242,9 @@ The safe correction pattern used successfully:
 `CONFIRMADO` from the 2026-08-24 execution:
 
 - `DECISAO_PO`: `WS_PRODUTOS`, `WS_PRODUTO_CORES`, `WS_PRODUTOS_BARRA`, and `WS_PROP_PRODUTOS` use incremental synchronization for the approved set: insert missing keys; update only divergent fields for existing keys.
-- `DECISAO_PO`: For each approved product, locate the remote `WS_PRODUTOS_PRECOS` row for the current campaign where `CODIGO_TAB_PRECO = 'DL'`. When the remote price is missing, report it as pending and do not insert it. When it exists, compare `PRODUTOS_PRECOS.PRECO1` with `WS_PRODUTOS_PRECOS.PRECO1`; if different, update only the remote `PRECO1`, restricted by `ID_CAMPANHA`, `PRODUTO`, and `CODIGO_TAB_PRECO = 'DL'`.
+- `DECISAO_PO`: Linx/SOMA is the source of truth for product price in this workflow.
+- `DECISAO_PO`: Never update `PRODUTOS_PRECOS` in Linx/SOMA during the daily Linx/WISE integration.
+- `DECISAO_PO`: For each approved product, locate the remote `WS_PRODUTOS_PRECOS` row for the current campaign where `CODIGO_TAB_PRECO = 'DL'`. When the remote price row is missing, report it as pending and do not insert it. When it exists, compare `PRODUTOS_PRECOS.PRECO1` with `WS_PRODUTOS_PRECOS.PRECO1`; if different, update only the remote WISE `PRECO1` to match Linx/SOMA, restricted by `ID_CAMPANHA`, `PRODUTO`, and `CODIGO_TAB_PRECO = 'DL'`.
 - `CONFIRMADO`: `WS_PROP_PRODUTOS` had no expected rows for property `00717` in the 2026-08-24 execution.
 
 Do not execute broad auxiliary table reloads from the procedures unless a future, explicit Product Owner-approved workflow is created for that scope.
