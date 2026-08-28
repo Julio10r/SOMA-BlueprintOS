@@ -121,7 +121,7 @@ const snapshotOnlyUnits = source.units.filter((u) => {
   const mentionsAudits =
     ref.includes("docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md") ||
     ref.includes("docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md");
-  return ref.includes("agents/docs/ai-factory/temp/") && !mentionsAudits;
+  return ref.includes(".empty/legacy/agents/ai-factory/") && !mentionsAudits;
 });
 assert(
   snapshotOnlyUnits.length > 0,
@@ -162,12 +162,12 @@ for (const u of vfpUnits) {
 
 // --- Artefato gerado deve expor sourceType/gapType/source_ref quando presentes (recuperável pelos Agents) ---
 assert(firstRun.includes("Tipo de origem (sourceType)"), "artefato gerado deve expor o tipo de origem de cada unidade");
-assert(firstRun.includes("Referência de origem (source_ref)") || firstRun.includes("agents/docs/ai-factory/temp/"), "artefato gerado deve expor referência de origem rastreável, inclusive ao snapshot quando aplicável");
+assert(firstRun.includes("Referência de origem (source_ref)") || firstRun.includes(".empty/legacy/agents/ai-factory/"), "artefato gerado deve expor referência de origem rastreável, inclusive ao snapshot quando aplicável");
 
 // --- Nenhum fallback SILENCIOSO: o snapshot pode ser citado como fonte legítima agora,
 // mas apenas via fonte/source_ref explícito de uma unidade real, nunca como comentário solto ---
 assert(
-  source.units.some((u) => (u.fonte || "").includes("agents/docs/ai-factory/temp/") || (u.source_ref || "").includes("agents/docs/ai-factory/temp/")),
+  source.units.some((u) => (u.fonte || "").includes(".empty/legacy/agents/ai-factory/") || (u.source_ref || "").includes(".empty/legacy/agents/ai-factory/")),
   "o snapshot temporário deve aparecer como proveniência explícita de ao menos uma unidade real (não é mais proibido, é fonte legítima)",
 );
 

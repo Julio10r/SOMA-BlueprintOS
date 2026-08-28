@@ -3,7 +3,7 @@
 ## Metadados
 
 - Status: Concluído — ingestão completa das 28 unidades de conhecimento reutilizável identificadas no snapshot temporário
-- Tipo: Governança de conhecimento — consolidação do snapshot temporário `agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md` no mecanismo canônico de conhecimento dos Agents Especialistas Linx
+- Tipo: Governança de conhecimento — consolidação do snapshot temporário `.empty/legacy/agents/ai-factory/LinxKnowledge-Fornecedor-Discovery-Snapshot.md` no mecanismo canônico de conhecimento dos Agents Especialistas Linx
 - Data desta rodada: 2026-08-27 (segunda rodada, completa a rodada anterior de mesma data)
 - Regras seguidas: `agents/EXECUTION_POLICY.md`, `agents/AGENT_CONTRACT.md`, `agents/linx-erp-specialist-agent/agent.yaml`, `agents/linx-database-specialist-agent/agent.yaml`
 - Nenhum acesso a ambiente externo (PROD/DEV/SQL Server/WISE/API) foi realizado nesta tarefa — consolidação estritamente offline de conhecimento já descoberto.
@@ -161,11 +161,11 @@ Agents v1: **PASS, 0 ERROR, 0 ACTION_REQUIRED.**
 
 ## 6. Status final do snapshot temporário
 
-`agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md` — **todo conhecimento reutilizável identificado na revisão completa (tabela da seção 4) tem unidade estruturada correspondente `COVERED`**. Nenhuma seção permanece `STILL_MISSING`.
+`.empty/legacy/agents/ai-factory/LinxKnowledge-Fornecedor-Discovery-Snapshot.md` — **todo conhecimento reutilizável identificado na revisão completa (tabela da seção 4) tem unidade estruturada correspondente `COVERED`**. Nenhuma seção permanece `STILL_MISSING`.
 
 **Status: `TEMP_SNAPSHOT = SUPERSEDED`** (superseded pelo conteúdo canônico em `agents/knowledge/linx-fornecedor-cnpj/`).
 
-**Ação explicitamente NÃO executada nesta rodada**: a movimentação física do arquivo para `.empty/legacy/agents/ai-factory/` fica para uma próxima etapa — não foi movida agora, por instrução explícita desta tarefa. O arquivo permanece no local atual, git-rastreado, até essa etapa futura.
+**Ação executada**: o arquivo foi movido (`git mv`) de `agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md` para `.empty/legacy/agents/ai-factory/LinxKnowledge-Fornecedor-Discovery-Snapshot.md`, registrado em `.empty/QUARANTINE_MANIFEST.md`. Todas as referências de `source_ref`/`fonte` na fonte estruturada, no artefato gerado e neste relatório foram atualizadas para o novo caminho, mantendo a rastreabilidade. Nenhum `agent.yaml`/`memory_paths`/`context_paths` apontava para o snapshot (os agents já consumiam apenas o artefato canônico), então a movimentação não altera o comportamento em runtime.
 
 ---
 
@@ -178,4 +178,4 @@ Modificados:
 - `tools/agents/generate-linx-fornecedor-knowledge.test.js` (cobertura da nova política de proveniência, sourceTypes, gapType, decisões do PO, descobertas VFP)
 - `docs/repository/LinxKnowledgeFornecedor-Ingestion.md` (este relatório)
 
-Não modificados: `agents/linx-erp-specialist-agent/agent.yaml`, `agents/linx-database-specialist-agent/agent.yaml`, `.ai/context/knowledge.md` (já apontavam corretamente para o artefato compartilhado desde a rodada anterior — nenhuma mudança de referência necessária). `agents/docs/ai-factory/temp/LinxKnowledge-Fornecedor-Discovery-Snapshot.md` permanece no lugar (ver seção 6).
+Não modificados: `agents/linx-erp-specialist-agent/agent.yaml`, `agents/linx-database-specialist-agent/agent.yaml`, `.ai/context/knowledge.md` (já apontavam corretamente para o artefato compartilhado desde a rodada anterior — nenhuma mudança de referência necessária). `.empty/legacy/agents/ai-factory/LinxKnowledge-Fornecedor-Discovery-Snapshot.md` permanece no lugar (ver seção 6).
