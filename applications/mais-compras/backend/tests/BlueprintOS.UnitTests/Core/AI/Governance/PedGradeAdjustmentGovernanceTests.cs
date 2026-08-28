@@ -12,8 +12,9 @@ namespace BlueprintOS.UnitTests.Core.AI.Governance;
 /// <summary>
 /// Unit coverage for the new PED grade adjustment capability that does NOT require a live database:
 /// post-write validation rule registration/resolution, the adapter's RollbackStrategy declaration, its
-/// allowed-connection-profile restriction (never linx-production/wise in this PR), and its guard clauses
-/// (negative desired quantities, missing row) — all of which are checkable without opening a real SqlConnection.
+/// allowed-connection-profile set (linx-development and linx-production, never wise), and its guard clauses
+/// (negative desired quantities, missing row, unrecognized connection profile) — all of which are checkable
+/// without opening a real SqlConnection.
 /// </summary>
 public sealed class PedGradeAdjustmentGovernanceTests
 {
@@ -54,15 +55,30 @@ public sealed class PedGradeAdjustmentGovernanceTests
     }
 
     [Fact]
-    public void Adapter_AllowedConnectionProfiles_Excludes_Production_And_Wise()
+    public void Adapter_AllowedConnectionProfiles_Includes_Development_And_Production_But_Never_Wise()
     {
         IConfiguration configuration = new ConfigurationBuilder().Build();
         var request = new PedGradeAdjustmentRequest("000001", "PROD001", "01", 1, 2, 3, 4, 5, 6);
         var adapter = new PedGradeAdjustmentGovernedWriteAdapter(configuration, request);
 
         Assert.Contains(WriteVerificationProfileSeeds.LinxDevelopment, adapter.AllowedConnectionProfiles);
-        Assert.DoesNotContain(WriteVerificationProfileSeeds.LinxProduction, adapter.AllowedConnectionProfiles);
+        Assert.Contains(WriteVerificationProfileSeeds.LinxProduction, adapter.AllowedConnectionProfiles);
         Assert.DoesNotContain(WriteVerificationProfileSeeds.Wise, adapter.AllowedConnectionProfiles);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Rejects_Any_Connection_Profile_Other_Than_Development_Or_Production()
+    {
+        // The adapter's own OpenAsync switch is a second, independent guard beyond AllowedConnectionProfiles /
+        // ToolGateway routing — an unrecognized profile string must never silently fall back to any server.
+        IConfiguration configuration = new ConfigurationBuilder().Build();
+        var request = new PedGradeAdjustmentRequest("000001", "PROD001", "01", 1, 2, 3, 4, 5, 6);
+        var adapter = new PedGradeAdjustmentGovernedWriteAdapter(configuration, request, WriteVerificationProfileSeeds.Wise);
+
+        var result = await adapter.ExecuteAsync(BuildGatewayRequest(), recoveryPackage: null);
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("GRADE_ADJUSTMENT_EXECUTION_ERROR", result.Reasons);
     }
 
     [Theory]

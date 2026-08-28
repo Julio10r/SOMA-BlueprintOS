@@ -19,9 +19,9 @@ namespace BlueprintOS.Infrastructure.Persistence.Repositories;
 /// QTDE_ENTREGUE and VALOR_ENTREGUE are NEVER written — they are read fresh inside the transaction and
 /// preserved as-is in the recomputed totals, exactly as the reference mechanism requires.
 ///
-/// Homologation-only for now: <see cref="AllowedConnectionProfiles"/> restricts execution to
-/// <see cref="WriteVerificationProfileSeeds.LinxDevelopment"/>. Production wiring (linx-production) is a
-/// deliberately separate future step, not included in this capability.
+/// <see cref="AllowedConnectionProfiles"/> permits <see cref="WriteVerificationProfileSeeds.LinxDevelopment"/>
+/// and, after formal DEV homologation and an eligibility review, <see cref="WriteVerificationProfileSeeds.LinxProduction"/>.
+/// <see cref="WriteVerificationProfileSeeds.Wise"/> is never permitted — this capability is Linx/ERP-specific.
 /// </summary>
 public sealed class PedGradeAdjustmentGovernedWriteAdapter(
     IConfiguration configuration,
@@ -46,9 +46,12 @@ public sealed class PedGradeAdjustmentGovernedWriteAdapter(
     public string Capability => CapabilityId;
     public string OwnerAgent => OwnerAgentId;
 
-    // Homologation-only: linx-production and wise are deliberately absent from this list. Production wiring
-    // for this capability is a separate future step, not part of this PR.
-    public IReadOnlyList<string> AllowedConnectionProfiles => [WriteVerificationProfileSeeds.LinxDevelopment];
+    // Enabled for linx-production after formal DEV homologation (write+backup+rollback+concurrency-block all
+    // passing) and an eligibility review confirming the profile's guarantees (backup, rollback, post-write
+    // validation) are already satisfied by this adapter without any relaxation. wise remains excluded — this
+    // capability is Linx/ERP-specific and has no WISE analog.
+    public IReadOnlyList<string> AllowedConnectionProfiles =>
+        [WriteVerificationProfileSeeds.LinxDevelopment, WriteVerificationProfileSeeds.LinxProduction];
 
     /// <summary>
     /// RestoreBeforeState: this is a pure quantity/value UPDATE on an EXISTING row (grade quantities and their
@@ -249,10 +252,13 @@ public sealed class PedGradeAdjustmentGovernedWriteAdapter(
 
     private async Task<SqlConnection> OpenAsync(CancellationToken cancellationToken)
     {
-        var profile = connectionProfile == WriteVerificationProfileSeeds.LinxDevelopment
-            ? LinxConnectionProfiles.Development
-            : throw new InvalidOperationException(
-                $"PedGradeAdjustmentGovernedWriteAdapter so aceita o profile '{WriteVerificationProfileSeeds.LinxDevelopment}' nesta versao (homologacao). Profile recebido: '{connectionProfile}'.");
+        var profile = connectionProfile switch
+        {
+            WriteVerificationProfileSeeds.LinxDevelopment => LinxConnectionProfiles.Development,
+            WriteVerificationProfileSeeds.LinxProduction => LinxConnectionProfiles.Production,
+            _ => throw new InvalidOperationException(
+                $"PedGradeAdjustmentGovernedWriteAdapter so aceita '{WriteVerificationProfileSeeds.LinxDevelopment}' ou '{WriteVerificationProfileSeeds.LinxProduction}'. Profile recebido: '{connectionProfile}'.")
+        };
 
         var connectionString = LinxConnectionStringResolver.Resolve(configuration, profile);
         var connection = new SqlConnection(connectionString);
