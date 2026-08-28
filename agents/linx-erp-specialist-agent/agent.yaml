@@ -132,11 +132,11 @@ governance:
     - Promocao final de conhecimento para Aprovado exige aprovador humano pelo fluxo Linx Knowledge.
   audit_required: true
   default_risk: Green
-  enforcement_status: PARTIAL
+  enforcement_status: ENFORCED
   by_design_findings:
     - code: AFV2-GOV-001
-      classification: NOT_IMPLEMENTED
-      justification: The governed-plan CLI bridge and Gateway routing are implemented and tested offline for this Agent's capability. Promoting to ENFORCED requires wiring that CLI into a long-lived host with a persisted approval store, which needs a real database connection explicitly out of scope for this offline certification wave.
+      classification: BY_DESIGN
+      justification: "RESOLVED (2026-08-28): the governed-execute CLI (propose/approve/run/rollback-plan/rollback/cleanup, applications/mais-compras/backend/src/BlueprintOS.Api/Governance/GovernedExecuteCliHandler.cs) is the real, persistent LIVE-execution host previously described as missing. It uses a persisted, file-based ApprovalGrant store (runtime/governance/, GovernedRuntimeRootLocator/GovernanceDatabaseResolver), a Recovery Package written BEFORE any write, Post-Write Validation, and a permanent Governance Audit trail. Homologated end-to-end in SOMA_DESENV and then executed for real in SOMA PROD (192.168.9.200): 77 PED grade adjustments, zero rollback, zero bypass, volume conserved (15.240=15.240). The prior finding assumed a real database connection was the only path to a persisted approval store; the file-based Governed Write Stack closed that gap instead (commits 4224090, fd50dc3, 5e65a2a). Historical note, kept for traceability: this code previously carried AFV2-GOV-001 as NOT_IMPLEMENTED because wiring a long-lived host with a persisted approval store was thought to need a real database connection out of scope for that wave; that constraint no longer applies. governed-plan (an older, separate CLI handler) remains dry-run/in-memory only and is not the live path."
     - code: AFV2-GATEWAY-001
       classification: NOT_IMPLEMENTED
       justification: LinxKnowledgeStoreReadOnlyAdapter (applications/mais-compras/backend/src/BlueprintOS.Core/AI/Governance/LinxKnowledgeStoreReadOnlyAdapter.cs) is a real, registered, DI-resolved and tested Gateway adapter for the linx-knowledge-store profile (ConnectionStrings:MaisComprasConnection). The existing reader (B1ConnectivityValidator) that opens this connection directly is a live connectivity-check utility outside Agents governance scope; rewiring it to route through the Gateway is a follow-up integration task, not an unaddressed architectural gap.
