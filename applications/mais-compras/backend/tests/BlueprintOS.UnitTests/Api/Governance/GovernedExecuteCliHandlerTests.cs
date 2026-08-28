@@ -86,8 +86,10 @@ public sealed class GovernedExecuteCliHandlerTests : IDisposable
         var approvalRequestId = json.GetProperty("approvalRequest").GetProperty("id").GetGuid();
         Assert.NotEqual(Guid.Empty, approvalRequestId);
 
-        // Persisted for real — a second, brand-new process reading the same root can see it.
-        var requestPath = Path.Combine(_governanceRoot, "approvals", "requests", $"{approvalRequestId:N}.json");
+        // Persisted for real — a second, brand-new process reading the same root can see it. Bucketed under
+        // SOMA_DESENV: ProposePayloadJson uses ConnectionProfile linx-development, whose canonical
+        // ExpectedDatabase (LinxConnectionProfiles.Development) is SOMA_DESENV.
+        var requestPath = Path.Combine(_governanceRoot, "SOMA_DESENV", "approvals", "requests", $"{approvalRequestId:N}.json");
         Assert.True(File.Exists(requestPath));
     }
 
@@ -113,7 +115,7 @@ public sealed class GovernedExecuteCliHandlerTests : IDisposable
         var grantId = approveJson.GetProperty("approvalGrant").GetProperty("id").GetGuid();
         Assert.NotEqual(Guid.Empty, grantId);
 
-        var grantPath = Path.Combine(_governanceRoot, "approvals", "grants", $"{grantId:N}.json");
+        var grantPath = Path.Combine(_governanceRoot, "SOMA_DESENV", "approvals", "grants", $"{grantId:N}.json");
         Assert.True(File.Exists(grantPath));
     }
 
@@ -253,7 +255,7 @@ public sealed class GovernedExecuteCliHandlerTests : IDisposable
         var (_, approveJson) = await InvokeAsync(["governed-execute", "approve"], approvePayload, configuration);
         var grantId = approveJson.GetProperty("approvalGrant").GetProperty("id").GetGuid();
 
-        var grantPath = Path.Combine(_governanceRoot, "approvals", "grants", $"{grantId:N}.json");
+        var grantPath = Path.Combine(_governanceRoot, "SOMA_DESENV", "approvals", "grants", $"{grantId:N}.json");
         var grant = JsonSerializer.Deserialize<ApprovalGrant>(await File.ReadAllTextAsync(grantPath), new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
         await File.WriteAllTextAsync(grantPath, JsonSerializer.Serialize(grant with { RevokedAt = DateTimeOffset.UtcNow }));
 
@@ -277,7 +279,7 @@ public sealed class GovernedExecuteCliHandlerTests : IDisposable
         var (_, approveJson) = await InvokeAsync(["governed-execute", "approve"], approvePayload, configuration);
         var grantId = approveJson.GetProperty("approvalGrant").GetProperty("id").GetGuid();
 
-        var grantPath = Path.Combine(_governanceRoot, "approvals", "grants", $"{grantId:N}.json");
+        var grantPath = Path.Combine(_governanceRoot, "SOMA_DESENV", "approvals", "grants", $"{grantId:N}.json");
         var grant = JsonSerializer.Deserialize<ApprovalGrant>(await File.ReadAllTextAsync(grantPath), new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
         await File.WriteAllTextAsync(grantPath, JsonSerializer.Serialize(grant with { ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(-1) }));
 

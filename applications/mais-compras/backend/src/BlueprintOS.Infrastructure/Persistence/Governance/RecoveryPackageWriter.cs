@@ -10,10 +10,16 @@ namespace BlueprintOS.Infrastructure.Persistence.Governance;
 /// Filesystem implementation of <see cref="IRecoveryPackageWriter"/>.
 ///
 /// Layout, rooted at <c>runtime/backups/</c>:
-/// <c>&lt;agent-id&gt;/&lt;connection-profile&gt;/&lt;yyyy-MM-dd&gt;/&lt;HHmm&gt;-&lt;acao&gt;__&lt;execution-id&gt;/</c>
+/// <c>&lt;agent-id&gt;/&lt;database&gt;/&lt;yyyy-MM-dd&gt;/&lt;HHmm&gt;-&lt;acao&gt;__&lt;execution-id&gt;/</c>
 /// containing manifest.json, before-data.json, expected-after.json, after-data.json and
 /// validation-report.json. The date/time segments come from the manifest's ExecutedAt (UTC), never from the
 /// wall clock, so a package's path always matches the execution it documents.
+///
+/// The path component is the manifest's <c>Database</c> — the REAL, validated database identity of the
+/// connection the write ran against (already checked by <c>LinxConnectionStringResolver.Resolve</c> before
+/// the manifest was ever built), never the logical <c>ConnectionProfile</c> name and never guessed from it.
+/// <c>ConnectionProfile</c> stays recorded as metadata inside the manifest — it is simply no longer a
+/// component of the physical path.
 ///
 /// The root is injected. Tests point it at a temp directory; nothing here ever writes into the repository's
 /// real runtime folder unless a host explicitly configures that root.
@@ -121,7 +127,7 @@ public sealed class RecoveryPackageWriter(string rootDirectory) : IRecoveryPacka
         return Path.Combine(
             RootDirectory,
             Sanitize(manifest.AgentId),
-            Sanitize(manifest.ConnectionProfile),
+            Sanitize(manifest.Database),
             executedAt.ToString("yyyy-MM-dd"),
             $"{executedAt:HHmm}-{Sanitize(manifest.ExecutionName)}__{manifest.ExecutionId:N}");
     }

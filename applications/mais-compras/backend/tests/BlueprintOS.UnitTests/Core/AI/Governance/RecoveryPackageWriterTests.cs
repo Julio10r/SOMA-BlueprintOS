@@ -17,7 +17,7 @@ public sealed class RecoveryPackageWriterTests : IDisposable
     }
 
     [Fact]
-    public async Task Package_Is_Written_Under_Agent_Profile_Date_Time_Action_Execution_Path()
+    public async Task Package_Is_Written_Under_Agent_Database_Date_Time_Action_Execution_Path()
     {
         var writer = new RecoveryPackageWriter(_root);
         var manifest = Manifest();
@@ -25,12 +25,34 @@ public sealed class RecoveryPackageWriterTests : IDisposable
         var receipt = await writer.CreateAsync(manifest, [BeforeSet()], [ExpectedAfterSet()]);
 
         var relative = Path.GetRelativePath(_root, receipt.PackagePath).Replace('\\', '/');
+        // The path component is the REAL, validated Database ("SOMA_DESENV", lowercased by Sanitize like every
+        // other path segment) — never the logical ConnectionProfile name ("linx-development"), which stays
+        // recorded as metadata inside the manifest.
         Assert.Equal(
-            $"linx-database-specialist-agent/linx-development/2026-08-28/1435-garantir-fornecedor__{manifest.ExecutionId:N}",
+            $"linx-database-specialist-agent/soma_desenv/2026-08-28/1435-garantir-fornecedor__{manifest.ExecutionId:N}",
             relative);
         Assert.True(File.Exists(Path.Combine(receipt.PackagePath, RecoveryPackageWriter.ManifestFileName)));
         Assert.True(File.Exists(Path.Combine(receipt.PackagePath, RecoveryPackageWriter.BeforeDataFileName)));
         Assert.True(File.Exists(Path.Combine(receipt.PackagePath, RecoveryPackageWriter.ExpectedAfterFileName)));
+    }
+
+    [Fact]
+    public async Task Two_Different_Databases_Land_In_Physically_Separate_Subtrees()
+    {
+        var writer = new RecoveryPackageWriter(_root);
+        var somaManifest = Manifest() with { ExecutionId = Guid.NewGuid(), Database = "SOMA", Server = "192.168.9.200", ConnectionProfile = WriteVerificationProfileSeeds.LinxProduction };
+        var somaDesenvManifest = Manifest() with { ExecutionId = Guid.NewGuid() };
+
+        var somaReceipt = await writer.CreateAsync(somaManifest, [BeforeSet()], [ExpectedAfterSet()]);
+        var somaDesenvReceipt = await writer.CreateAsync(somaDesenvManifest, [BeforeSet()], [ExpectedAfterSet()]);
+
+        Assert.Contains($"{Path.DirectorySeparatorChar}soma{Path.DirectorySeparatorChar}", somaReceipt.PackagePath);
+        Assert.Contains($"{Path.DirectorySeparatorChar}soma_desenv{Path.DirectorySeparatorChar}", somaDesenvReceipt.PackagePath);
+        Assert.NotEqual(Path.GetDirectoryName(Path.GetDirectoryName(somaReceipt.PackagePath)), Path.GetDirectoryName(Path.GetDirectoryName(somaDesenvReceipt.PackagePath)));
+
+        // ConnectionProfile is preserved as metadata even though it no longer shapes the physical path.
+        var reloadedSoma = await writer.ReadManifestAsync(somaReceipt.PackagePath);
+        Assert.Equal(WriteVerificationProfileSeeds.LinxProduction, reloadedSoma!.ConnectionProfile);
     }
 
     [Fact]

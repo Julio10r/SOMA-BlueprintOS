@@ -1,10 +1,9 @@
-# Recovery packages written by the governed live-write path (manifest, before/after data, validation
-# reports). They can contain real record snapshots from a governed database and are retained/expired by
-# RecoveryRetentionCleanupService — they are runtime artifacts, never source, and must never be committed.
-runtime/backups/
-
-# Governance bookkeeping (approvals, audit events, recovery index, rollback audit, write-execution audit,
-# knowledge gaps, write-verification profile versions) written by the Governed Write Stack's file-based
-# stores. These are runtime artifacts of the Agents' governance runtime — never the +Compras business
-# database — and, like runtime/backups/, are never committed.
-runtime/governance/
+# The AI Agents' governance runtime (Recovery Packages under runtime/backups/, governance bookkeeping
+# under runtime/governance/ — approvals, audit, recovery index, rollback audit, write-execution audit,
+# knowledge gaps, write-verification profiles) used to live under this backend folder. It was moved to
+# <repository-root>/runtime/ (see BlueprintOS.Infrastructure/Persistence/Governance/RuntimeRootLocator.cs):
+# the runtime belongs to the SOMA BlueprintOS platform, not to any one application inside it. The
+# repository root's own .gitignore (`/runtime/`) is what actually keeps it out of version control now;
+# this file has nothing left to ignore here, kept only so a stray local `runtime/` folder created by an
+# old build/config override never gets committed by accident.
+runtime/

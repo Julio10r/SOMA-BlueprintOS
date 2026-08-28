@@ -102,7 +102,8 @@ public static class GovernedExecuteCliHandler
         var payload = await ReadAsync<GovernedPlanPayload>(input, cancellationToken);
         if (payload is null) return await WriteErrorAsync(output, "EMPTY_PAYLOAD");
 
-        var writeStack = BuildWriteStack(governanceRoot);
+        var database = GovernanceDatabaseResolver.ResolveForConnectionProfile(payload.ConnectionProfile);
+        var writeStack = BuildWriteStack(ForDatabase(governanceRoot, database));
         var bridge = new GovernedPlanBridge(writeStack);
 
         GovernedWritePreparation preparation;
@@ -161,8 +162,10 @@ public static class GovernedExecuteCliHandler
         if (payload is null) return await WriteErrorAsync(output, "EMPTY_PAYLOAD");
         if (string.IsNullOrWhiteSpace(payload.ApprovedBy)) return await WriteErrorAsync(output, "APPROVED_BY_REQUIRED");
 
-        var approvals = new FileApprovalStore(governanceRoot);
-        var writeStack = BuildWriteStack(governanceRoot);
+        var located = await FindApprovalStoreForRequestAsync(governanceRoot, payload.ApprovalRequestId, cancellationToken);
+        if (located is null) return await WriteErrorAsync(output, "APPROVAL_REQUEST_NOT_FOUND", $"Nenhum ApprovalRequest persistido com id {payload.ApprovalRequestId}.");
+        var (approvals, databaseGovernanceRoot) = located.Value;
+        var writeStack = BuildWriteStack(databaseGovernanceRoot);
         var request = await approvals.GetRequestAsync(payload.ApprovalRequestId, cancellationToken);
         if (request is null) return await WriteErrorAsync(output, "APPROVAL_REQUEST_NOT_FOUND", $"Nenhum ApprovalRequest persistido com id {payload.ApprovalRequestId}.");
         if (request.Status != ApprovalRequestStatus.Pending) return await WriteErrorAsync(output, "APPROVAL_REQUEST_NOT_PENDING", $"ApprovalRequest {payload.ApprovalRequestId} esta com status {request.Status}, nao Pending.");
@@ -238,8 +241,14 @@ public static class GovernedExecuteCliHandler
         var profileResolution = TryResolveLinxProfile(payload.ConnectionProfile, payload.Server, payload.Database, configuration);
         if (profileResolution.Error is not null) return await WriteErrorAsync(output, profileResolution.Error, profileResolution.Message);
 
+        // Governance for a live write is bucketed under the REAL, validated Database (never the connection
+        // profile name) — TryResolveLinxProfile above already proved payload.Database matches the resolved
+        // profile's ExpectedDatabase, which itself only reaches here after LinxConnectionStringResolver.Resolve
+        // validated the real connection string against it.
+        var databaseGovernanceRoot = ForDatabase(governanceRoot, payload.Database);
+
         // Approval grant — ALWAYS looked up by id from the persisted, file-based store. Never synthesized.
-        var approvals = new FileApprovalStore(governanceRoot);
+        var approvals = new FileApprovalStore(databaseGovernanceRoot);
         var grantResolution = await ResolveApprovalGrantAsync(approvals, payload.ApprovalGrantId, cancellationToken);
         if (grantResolution.Error is not null) return await WriteErrorAsync(output, grantResolution.Error, grantResolution.Message);
 
@@ -258,7 +267,7 @@ public static class GovernedExecuteCliHandler
             payload.BusinessKeys, [BuildExpectedAfter(payload.PedGradeAdjustment)], payload.OriginalRequestSummary, payload.ProceduresInvoked,
             payload.AllowsMissingBeforeState);
 
-        var orchestrator = BuildExecutionOrchestrator(governanceRoot, backupsRoot, adapter);
+        var orchestrator = BuildExecutionOrchestrator(databaseGovernanceRoot, backupsRoot, adapter);
         var result = await orchestrator.ExecuteAsync(executionRequest, grantResolution.Grant, adapter, cancellationToken);
 
         await WriteAsync(output, new
@@ -322,7 +331,7 @@ public static class GovernedExecuteCliHandler
         // rollback-plan never executes, so the Tool Gateway's write adapter is never actually invoked here —
         // an all-zero placeholder is fine for discovery/analysis (a read-only phase via ISnapshotCapableAdapter).
         var placeholderRestore = new PedGradeAdjustmentRequest(payload.SnapshotKey.Pedido, payload.SnapshotKey.Produto, payload.SnapshotKey.CorProduto, 0, 0, 0, 0, 0, 0);
-        var (rollbackOrchestrator, approvals, _) = BuildRollbackOrchestrator(governanceRoot, backupsRoot, configuration, payload.ConnectionProfile, placeholderRestore);
+        var (rollbackOrchestrator, approvals, _) = BuildRollbackOrchestrator(ForDatabase(governanceRoot, GovernanceDatabaseResolver.ResolveForConnectionProfile(payload.ConnectionProfile)), backupsRoot, configuration, payload.ConnectionProfile, placeholderRestore);
         var snapshotAdapter = BuildSnapshotOnlyAdapter(configuration, payload.ConnectionProfile, payload.SnapshotKey);
 
         var discovery = await rollbackOrchestrator.DiscoverAsync(new RecoveryIndexQuery { ExecutionId = payload.ExecutionId }, cancellationToken);
@@ -413,7 +422,7 @@ public static class GovernedExecuteCliHandler
         // here is exactly the bug the SOMA_DESENV homologation run caught — see BuildRollbackOrchestrator's
         // remarks.
         var restoreRequest = ExtractRestoreRequest(analysis, payload.SnapshotKey);
-        var (rollbackOrchestrator, _, writeAdapter) = BuildRollbackOrchestrator(governanceRoot, backupsRoot, configuration, payload.ConnectionProfile, restoreRequest);
+        var (rollbackOrchestrator, _, writeAdapter) = BuildRollbackOrchestrator(ForDatabase(governanceRoot, GovernanceDatabaseResolver.ResolveForConnectionProfile(payload.ConnectionProfile)), backupsRoot, configuration, payload.ConnectionProfile, restoreRequest);
 
         var confirmation = new RollbackConfirmation(analysis.ExecutionId, analysis.ConfirmationHandle, payload.RequestedBy, payload.Justification, TimeProvider.System.GetUtcNow());
 
@@ -598,11 +607,15 @@ public static class GovernedExecuteCliHandler
         return new(grant, null, null);
     }
 
+    /// <summary>Base governance root (NOT yet split by database) — <c>{repository-root}/runtime/governance</c>
+    /// by default, or the configured override. Every call site below combines this with a resolved
+    /// <c>database</c> bucket (<see cref="GovernanceDatabaseResolver"/> pre-execution, or the real validated
+    /// <c>Database</c> once a live write is in play) before constructing any File* store.</summary>
     private static string ResolveGovernanceRoot(IConfiguration configuration)
     {
         var configuredRoot = configuration["Governance:RuntimeRoot"];
         return string.IsNullOrWhiteSpace(configuredRoot)
-            ? Path.Combine(Directory.GetCurrentDirectory(), "runtime", "governance")
+            ? Path.Combine(RuntimeRootLocator.ResolveRuntimeRoot(), "governance")
             : configuredRoot;
     }
 
@@ -610,8 +623,34 @@ public static class GovernedExecuteCliHandler
     {
         var configuredRoot = configuration["Governance:BackupsRoot"];
         return string.IsNullOrWhiteSpace(configuredRoot)
-            ? Path.Combine(Directory.GetCurrentDirectory(), "runtime", "backups")
+            ? Path.Combine(RuntimeRootLocator.ResolveRuntimeRoot(), "backups")
             : configuredRoot;
+    }
+
+    /// <summary>Combines the base governance root with the database bucket — <c>{governanceRoot}/{database}</c>
+    /// — the "effective" root every File* governance store below is actually constructed with.</summary>
+    private static string ForDatabase(string governanceRoot, string database) => Path.Combine(governanceRoot, database);
+
+    /// <summary>
+    /// <c>approve</c> only receives an <c>ApprovalRequestId</c> — no connection profile/database — because the
+    /// request may have been persisted by `propose` (pre-execution, database resolved via
+    /// <see cref="GovernanceDatabaseResolver"/>) or by `rollback-plan` (same resolver). Rather than requiring the
+    /// caller to also pass the database back in (a value it may not have on hand), this looks the request up
+    /// across every existing database bucket under the governance root — inexpensive at this project's volume
+    /// (a handful of buckets: SOMA, SOMA_DESENV, wise).
+    /// </summary>
+    private static async Task<(FileApprovalStore Store, string DatabaseGovernanceRoot)?> FindApprovalStoreForRequestAsync(
+        string governanceRoot, Guid requestId, CancellationToken cancellationToken)
+    {
+        if (!Directory.Exists(governanceRoot)) return null;
+        foreach (var bucket in Directory.GetDirectories(governanceRoot))
+        {
+            var store = new FileApprovalStore(bucket);
+            var found = await store.GetRequestAsync(requestId, cancellationToken);
+            if (found is not null) return (store, bucket);
+        }
+
+        return null;
     }
 
     private static async Task<T?> ReadAsync<T>(TextReader input, CancellationToken cancellationToken)

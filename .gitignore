@@ -178,3 +178,13 @@ docs/linxERP
 # Artefatos de trabalho fornecidos pelo usuario (evidencia, nao codigo)
 # ==========================================================
 downloads/
+
+# ==========================================================
+# AI Agents governance runtime (Recovery Packages, approvals, audit, ...)
+# ==========================================================
+# Belongs to the SOMA BlueprintOS platform, rooted at the REPOSITORY root — never to any one application
+# inside it (e.g. +Compras). See applications/mais-compras/backend/src/BlueprintOS.Infrastructure/Persistence/
+# Governance/RuntimeRootLocator.cs. Never versioned: Recovery Packages, approvals, audit, rollback-audit,
+# write-execution-audit, knowledge-gaps, rollback-capability-gaps and profiles are all live governance data,
+# not source.
+/runtime/

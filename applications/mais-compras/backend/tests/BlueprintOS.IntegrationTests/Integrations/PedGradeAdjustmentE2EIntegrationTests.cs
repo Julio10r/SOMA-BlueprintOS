@@ -42,9 +42,10 @@ public sealed class PedGradeAdjustmentE2EIntegrationTests(ITestOutputHelper outp
             return;
         }
 
-        var backendRoot = FindBackendRoot();
-        var backupsRoot = Path.Combine(backendRoot, "runtime", "backups");
-        output.WriteLine($"Backend root: {backendRoot}");
+        // Recovery packages live under the REPOSITORY root's runtime/ (see RuntimeRootLocator), not under the
+        // +Compras backend folder — the Agents' governance runtime belongs to the SOMA BlueprintOS platform,
+        // not to any one application inside it.
+        var backupsRoot = Path.Combine(RuntimeRootLocator.ResolveRuntimeRoot(), "backups");
         output.WriteLine($"Recovery packages root: {backupsRoot}");
 
         var (pedido, produto, cor) = await FindCandidateRowAsync(connectionString);
@@ -349,18 +350,6 @@ public sealed class PedGradeAdjustmentE2EIntegrationTests(ITestOutputHelper outp
         var root = Path.Combine(Path.GetTempPath(), "blueprintos-governance-tests", Guid.NewGuid().ToString("N"));
         GovernanceRoots.Add(root);
         return root;
-    }
-
-    private static string FindBackendRoot()
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "BlueprintOS.sln")))
-        {
-            dir = dir.Parent;
-        }
-
-        return dir?.FullName
-            ?? throw new InvalidOperationException("Nao foi possivel localizar BlueprintOS.sln a partir do diretorio de teste.");
     }
 
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider

@@ -18,14 +18,23 @@ public static class GovernedWriteServiceCollectionExtensions
     ///
     /// The root directory is resolved from configuration key <c>Governance:RuntimeRoot</c> when present
     /// (this is how tests point the stack at a unique temp directory per run); otherwise it defaults to
-    /// <c>{CurrentDirectory}/runtime/governance</c>, mirroring the same "relative to the running process's
-    /// working directory" convention already used for Recovery Packages.
+    /// <c>{repository-root}/runtime/governance</c> (see <see cref="RuntimeRootLocator"/>) — the Agents'
+    /// governance runtime belongs to the SOMA BlueprintOS platform, not to any one application inside the
+    /// repository, so its default location is never relative to the process's current working directory or
+    /// to the +Compras backend folder.
+    ///
+    /// The adapters this stack wires (<see cref="SomaLinxDryRunAdapter"/>, <see cref="SomaLinxReadOnlyAdapter"/>,
+    /// <see cref="WiseGovernedAdapter"/>, <see cref="LinxKnowledgeStoreReadOnlyAdapter"/>) are all dry-run or
+    /// read-only — no live write adapter is ever registered here — so this composition root's bookkeeping is
+    /// deliberately kept under one shared root rather than split per-database: the per-database split
+    /// (<c>runtime/governance/&lt;database&gt;/...</c>) applies to the live-write path, which runs entirely
+    /// through <c>GovernedExecuteCliHandler</c>'s own, separately-built stores.
     /// </summary>
     public static IServiceCollection AddGovernedWriteStack(this IServiceCollection services, IConfiguration? configuration = null)
     {
         var configuredRoot = configuration?["Governance:RuntimeRoot"];
         var governanceRoot = string.IsNullOrWhiteSpace(configuredRoot)
-            ? Path.Combine(Directory.GetCurrentDirectory(), "runtime", "governance")
+            ? Path.Combine(RuntimeRootLocator.ResolveRuntimeRoot(), "governance")
             : configuredRoot;
 
         services.AddScoped<IActionProposalAdapter, StructuredActionProposalAdapter>();
