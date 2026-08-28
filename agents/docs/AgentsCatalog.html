@@ -137,6 +137,40 @@
   .step-badge{fill:var(--accent); stroke:var(--panel); stroke-width:2;}
   .step-num{font-size:12px; font-weight:700; fill:#fff; font-family:inherit;}
 
+  /* Segurança e Recuperação de Alterações no Banco */
+  .flow-row{display:flex; flex-wrap:wrap; align-items:stretch; gap:0; margin:18px 0 8px;}
+  .flow-step{
+    background:var(--panel); border:1.5px solid var(--accent); border-radius:12px;
+    padding:14px 16px; width:168px; min-height:118px; display:flex; flex-direction:column; gap:6px;
+    position:relative;
+  }
+  .flow-step .flow-num{
+    position:absolute; top:-12px; left:-12px; width:26px; height:26px; border-radius:50%;
+    background:var(--accent); color:#fff; font-size:12.5px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);
+  }
+  .flow-step .flow-title{font-size:13.5px; font-weight:700; color:var(--text); line-height:1.25; margin-top:6px;}
+  .flow-step .flow-tech{
+    font-size:10.5px; color:var(--text-dim); font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  .flow-arrow{
+    display:flex; align-items:center; justify-content:center; width:26px; color:var(--accent);
+    font-size:18px; font-weight:700; flex-shrink:0;
+  }
+  .flow-arrow.wrap-break{width:100%; height:0; margin:2px 0;}
+  .rollback .flow-step{border-color:#1e8e5a;}
+  .rollback .flow-step .flow-num{background:#1e8e5a;}
+  .rollback .flow-arrow{color:#1e8e5a;}
+  .safety-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin-top:22px;}
+  .safety-card{
+    background:var(--panel); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow);
+    padding:20px 22px;
+  }
+  .safety-card h4{margin:0 0 4px; font-size:15px;}
+  .safety-card .safety-tech{font-size:11px; color:var(--text-dim); font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; margin-bottom:10px;}
+  .safety-card ul{margin:0; padding-left:18px; font-size:13px;}
+  .safety-card ul li{margin-bottom:4px;}
+
   footer.foot{margin-top:48px; font-size:12.5px; color:var(--text-dim); text-align:center; border-top:1px solid var(--border); padding-top:20px;}
 
   #noResults{display:none; text-align:center; padding:40px 0; color:var(--text-dim); font-size:14px;}
@@ -150,7 +184,7 @@
     <h1>Catálogo de Agentes e Conhecimento</h1>
     <div class="sub">Catálogo visual do "time de IA" do projeto — quem existe, o que cada um sabe, o que pode fazer e como se relacionam.</div>
     <div class="meta">
-      <div>Última atualização: <strong>2026-08-27</strong></div>
+      <div>Última atualização: <strong>2026-08-28</strong></div>
       <div>Gerado a partir do SOMA BlueprintOS — identidade e configuração dos Agents a partir de <code>agents/&lt;agent-id&gt;/agent.yaml</code> (Agent Contract, schema e Execution Policy); código, <code>.ai/</code>, prompts e runbooks são fontes complementares/especializadas declaradas pelos próprios manifests.</div>
     </div>
   </header>
@@ -167,8 +201,9 @@
     <span class="pend-count zero">0 ERROR · 0 WARN</span>
     <span class="pend-count zero">0 ACTION_REQUIRED</span>
     <span class="pend-count">4 BY_DESIGN</span>
-    <span class="pend-count">8 NOT_IMPLEMENTED</span>
-    <span class="pend-count">12 INFO</span>
+    <span class="pend-count">4 NOT_IMPLEMENTED</span>
+    <span class="pend-count">8 INFO</span>
+    <span class="pend-count zero">governed-execute: LIVE, real, 77 execuções em SOMA PROD</span>
   </div>
 
   <div class="summary" id="summary">
@@ -177,6 +212,8 @@
     <div class="stat"><div class="num" id="statPlanejados">–</div><div class="label">Agents planejados (backlog editorial)</div></div>
     <div class="stat"><div class="num">3</div><div class="label">Prompts-gatilho de agente</div></div>
     <div class="stat"><div class="num">11</div><div class="label">Conhecimentos ainda não mapeados (AINDA_NAO_MAPEADO)</div></div>
+    <div class="stat"><div class="num">1105 + 22</div><div class="label">Testes automatizados (unitários + integração), todos passando</div></div>
+    <div class="stat"><div class="num">77</div><div class="label">Ajustes de grade PED executados de verdade em produção (SOMA), zero rollback</div></div>
   </div>
 
   <div class="search-box">
@@ -269,7 +306,7 @@
     </div>
 
     <h3 class="map-subtitle">2. Execução Governada</h3>
-    <div class="map-caption">Como uma ação proposta por um Agent chega até uma ferramenta/sistema de forma governada. Resultado real da certificação: LIVE_EXECUTION permanece desabilitado — toda ação termina em Simulação (DRY_RUN) ou Bloqueada (BLOCKED).</div>
+    <div class="map-caption">Como uma ação proposta por um Agent chega até uma ferramenta/sistema de forma governada. Estado real atual: para a capability de ajuste de grade PED (Linx), LIVE_EXECUTION está habilitada, real e homologada — já usada em produção (SOMA) via <code>governed-execute</code>. Para as demais capabilities, toda ação ainda termina em Simulação (DRY_RUN) ou Bloqueada (BLOCKED).</div>
     <div class="map-wrap">
       <svg viewBox="0 0 1260 340" width="100%" height="340" role="img" aria-label="Fluxo de execução governada dos Agents do SOMA BlueprintOS">
         <rect class="node-box active" x="10" y="30" width="180" height="250" rx="10"></rect>
@@ -339,21 +376,105 @@
         <circle class="step-badge" cx="1170" cy="88" r="14"></circle>
         <text class="step-num" x="1170" y="93" text-anchor="middle">6</text>
         <text class="group-label" x="1215" y="102" text-anchor="middle">Resultado</text>
-        <rect class="node-box stack" x="1170" y="108" width="90" height="58" rx="9"></rect>
-        <text class="node-text small" x="1215" y="130" text-anchor="middle">Simulação</text>
-        <text class="node-sub mono" x="1215" y="144" text-anchor="middle">DRY_RUN</text>
-        <text class="node-sub" x="1215" y="157" text-anchor="middle">padrão seguro</text>
+        <rect class="node-box stack" x="1170" y="88" width="90" height="46" rx="9"></rect>
+        <text class="node-text small" x="1215" y="108" text-anchor="middle">Simulação</text>
+        <text class="node-sub mono" x="1215" y="121" text-anchor="middle">DRY_RUN</text>
 
-        <rect class="node-box stack blocked" x="1170" y="172" width="90" height="46" rx="9"></rect>
-        <text class="node-text small" x="1215" y="192" text-anchor="middle">Bloqueado</text>
-        <text class="node-sub mono" x="1215" y="205" text-anchor="middle">BLOCKED</text>
+        <rect class="node-box active" x="1170" y="140" width="90" height="46" rx="9"></rect>
+        <text class="node-text small" x="1215" y="160" text-anchor="middle">Execução real</text>
+        <text class="node-sub mono" x="1215" y="173" text-anchor="middle">LIVE</text>
+
+        <rect class="node-box stack blocked" x="1170" y="192" width="90" height="46" rx="9"></rect>
+        <text class="node-text small" x="1215" y="212" text-anchor="middle">Bloqueado</text>
+        <text class="node-sub mono" x="1215" y="225" text-anchor="middle">BLOCKED</text>
 
         <rect class="node-box crosscut" x="220" y="270" width="1010" height="40" rx="8"></rect>
-        <text class="node-text small" x="725" y="286" text-anchor="middle">LIVE_EXECUTION desabilitado</text>
-        <text class="node-sub" x="725" y="301" text-anchor="middle">Execução real permanece fora da certificação arquitetural atual — não é um terceiro resultado disponível.</text>
+        <text class="node-text small" x="725" y="286" text-anchor="middle">LIVE_EXECUTION real para PED grade adjustment (Linx) via governed-execute</text>
+        <text class="node-sub" x="725" y="301" text-anchor="middle">Homologada em SOMA_DESENV e já usada em produção (SOMA): 77 ajustes de grade PED, zero rollback, zero bypass. Demais capabilities seguem em DRY_RUN/BLOCKED.</text>
       </svg>
     </div>
     <div class="map-caption" style="font-style:italic; margin-top:-4px;">O conceito inicial de "Maestro" evoluiu para os componentes concretos de orquestração, registro e execução governada acima.</div>
+  </section>
+
+  <section class="section">
+    <h2>Segurança e Recuperação de Alterações no Banco</h2>
+    <div class="section-sub">Como o SOMA BlueprintOS garante que uma alteração real em um banco de dados (ex.: SOMA/Linx) só acontece com segurança, com backup automático antes da mudança, e pode ser desfeita se necessário. Mecanismo real, já usado em produção (77 ajustes de grade PED em SOMA, zero rollback necessário). Nomes grandes são o conceito funcional; abaixo, em fonte menor e monoespaçada, o nome técnico correspondente no código.</div>
+
+    <h3 class="map-subtitle">1. Execução segura de uma alteração</h3>
+    <div class="map-caption">O caminho completo de um pedido de mudança até ela ser aplicada de fato — em qualquer etapa, se algo não estiver certo, a alteração é bloqueada antes de chegar ao banco.</div>
+    <div class="map-wrap">
+      <div class="flow-row">
+        <div class="flow-step"><span class="flow-num">1</span><div class="flow-title">Pedido de alteração</div><div class="flow-tech">ActionProposal</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="flow-num">2</span><div class="flow-title">Regras de segurança</div><div class="flow-tech">AIGovernancePolicyEngine</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="flow-num">3</span><div class="flow-title">Plano de conferência</div><div class="flow-tech">PostWriteValidationRule</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="flow-num">4</span><div class="flow-title">Backup do estado anterior</div><div class="flow-tech">RecoveryPackage</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="flow-num">5</span><div class="flow-title">Aprovação</div><div class="flow-tech">ApprovalPolicy</div></div>
+        <div class="flow-arrow wrap-break"></div>
+        <div class="flow-step"><span class="flow-num">6</span><div class="flow-title">Execução da alteração</div><div class="flow-tech">GovernedWriteExecutionOrchestrator</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="flow-num">7</span><div class="flow-title">Acesso ao sistema</div><div class="flow-tech">ToolGateway / IWriteExecutionAdapter</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="flow-num">8</span><div class="flow-title">Conferência do resultado</div><div class="flow-tech">Post-Write Validation</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="flow-num">9</span><div class="flow-title">Registro no histórico</div><div class="flow-tech">Governance Audit</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="border-color:#1e8e5a;"><span class="flow-num" style="background:#1e8e5a;">10</span><div class="flow-title">Alteração concluída com sucesso</div><div class="flow-tech">Status = PASS</div></div>
+      </div>
+    </div>
+
+    <h3 class="map-subtitle">2. Rollback de uma alteração</h3>
+    <div class="map-caption">Como desfazer uma alteração já aplicada, restaurando o estado anterior salvo no backup — nunca automático, sempre com nova aprovação humana e verificação de que nada mudou depois.</div>
+    <div class="map-wrap">
+      <div class="flow-row rollback">
+        <div class="flow-step"><span class="flow-num">1</span><div class="flow-title">Pedido de rollback</div><div class="flow-tech">RollbackActionProposal</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="flow-num">2</span><div class="flow-title">Localiza alteração e backup</div><div class="flow-tech">RecoveryIndex / RecoveryPackage</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="flow-num">3</span><div class="flow-title">Usuário seleciona a execução</div><div class="flow-tech">Recovery Selection</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="flow-num">4</span><div class="flow-title">Verifica alterações posteriores</div><div class="flow-tech">Concurrency Validation</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="flow-num">5</span><div class="flow-title">Mostra impacto do rollback</div><div class="flow-tech">Rollback Analysis</div></div>
+        <div class="flow-arrow wrap-break"></div>
+        <div class="flow-step"><span class="flow-num">6</span><div class="flow-title">Confirmação do usuário</div><div class="flow-tech">ApprovalPolicy</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="flow-num">7</span><div class="flow-title">Executa rollback</div><div class="flow-tech">RollbackOrchestrator</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="flow-num">8</span><div class="flow-title">Confere restauração</div><div class="flow-tech">Rollback Validation</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="border-color:#1e8e5a;"><span class="flow-num" style="background:#1e8e5a;">9</span><div class="flow-title">Registra no histórico</div><div class="flow-tech">Governance Audit</div></div>
+      </div>
+    </div>
+
+    <div class="safety-cards">
+      <div class="safety-card">
+        <h4>Backup de segurança</h4>
+        <div class="safety-tech">Recovery Package</div>
+        <ul>
+          <li>Guarda o estado anterior da alteração, sempre gerado <b>antes</b> da escrita — nunca depois.</li>
+          <li>Permite desfazer (rollback) a alteração posteriormente, se necessário.</li>
+          <li>Retenção conforme o profile de verificação de escrita — em SOMA PROD, <b>30 dias</b>.</li>
+          <li>Suporta item único e lote (várias mudanças de uma vez, com conferência por item).</li>
+        </ul>
+      </div>
+      <div class="safety-card">
+        <h4>Histórico permanente</h4>
+        <div class="safety-tech">Governance Audit</div>
+        <ul>
+          <li>Quem solicitou a alteração.</li>
+          <li>O que foi alterado.</li>
+          <li>Quando aconteceu.</li>
+          <li>Resultado da validação (antes e depois de aplicar).</li>
+          <li>Resultado final da alteração.</li>
+          <li>Todo rollback realizado, com sua própria aprovação e resultado.</li>
+          <li>Registro permanente — nunca apagado, mesmo quando o backup expira.</li>
+        </ul>
+      </div>
+    </div>
   </section>
 
   <footer class="foot">
@@ -480,7 +601,7 @@ const AGENTS = [
       { alvo: "Todos os 8 Agents", nota: "Ciclo de vida/conformidade — não é hierarquicamente superior aos Agents nem participa do roteamento de execução (isso é do Orquestrador Governado/Registro de Execução)." },
     ],
     pendencias: [
-      "AUDIT atual: 0 ERROR, 0 WARN, 12 INFO (classification_summary: ACTION_REQUIRED 0, BY_DESIGN 4, NOT_IMPLEMENTED 8) — status geral PASS.",
+      "AUDIT atual: 0 ERROR, 0 WARN, 8 INFO (classification_summary: ACTION_REQUIRED 0, BY_DESIGN 4, NOT_IMPLEMENTED 4) — status geral PASS. Redução em relação à onda anterior (12 INFO) porque governed-execute fechou GOV-001/GATEWAY-001 dos dois Agents Linx, que passaram a enforcement_status ENFORCED e deixaram de gerar finding.",
     ],
     exemplo: "node tools/agents/agent-factory-cli.js AUDIT",
   },
@@ -527,9 +648,9 @@ const AGENTS = [
     ],
     pendencias: [
       "Tool Gateway multi-adapter implementado e testado (SomaLinxDryRunAdapter, SomaLinxReadOnlyAdapter, WiseGovernedAdapter, LinxKnowledgeStoreReadOnlyAdapter); Showcase segue sem adapter por não existir ainda código de acesso real a governar (NOT_IMPLEMENTED, by design).",
-      "Persistência de approvals/auditoria real via EF Core implementada (GovernedWriteStack + EfApprovalStore/EfGovernanceAuditStore); ver docs/audits/AgentsV1-FinalCertification.md.",
+      "Persistência de approvals/auditoria real implementada de forma file-based (runtime/governance/, organizada por agent/database real) via governed-execute — substituiu a persistência SQL Server planejada anteriormente.",
       "WISE consulta o Motor de Políticas real via bridge antes de qualquer escrita (scripts/linx_wise_daily_integration.py); um veredito Blocked/Red não pode ser sobreposto pelo mirror local.",
-      "Approval store persistido e compartilhado entre o processo CLI (governed-plan) e um host de longa duração ainda depende de conexão real de banco — homologação de produção/LIVE permanece PENDING (não bloqueia a certificação arquitetural).",
+      "Approval store persistido e compartilhado entre propose/approve/run já existe e está em uso real (governed-execute) para a capability PED grade adjustment — homologado em SOMA_DESENV e executado em produção (SOMA), 77 ajustes, zero rollback. Demais capabilities (WISE, Showcase) seguem PENDING para o mesmo nível de execução real.",
     ],
     exemplo: "AÇÃO REQUER AUTORIZAÇÃO: Ambiente, Sistema, Recurso, Operação, Campos, Filtro, Registros, Finalidade, Dados pessoais, Reversibilidade e Risco.",
   },
@@ -550,7 +671,7 @@ const AGENTS = [
       "Consultar conhecimento persistido e versionado (RAG-safety: conteúdo recuperado nunca é tratado como instrução)",
       "Validar produto/produto-cor antes de qualquer escrita",
       "Diferenciar fatos Validado/Aprovado de Descoberto/Inferido na resposta",
-      "Propor ActionProposal para escrita, roteada pelo Motor de Políticas via bridge governed-plan real",
+      "Propor ActionProposal para escrita, executada de verdade (LIVE) via governed-execute (propose→approve→run), nunca pelo próprio Agent",
     ],
     naoDeve: [
       "Escolher ID_CAMPANHA (sempre pergunta ao Product Owner)",
@@ -580,8 +701,8 @@ const AGENTS = [
       { alvo: "WISE Agent", nota: "Agent Linx ERP valida ERP (produto, cor, preço, grade) → WISE Agent interpreta/reconcilia o destino WISE (campanha, saldo)." },
     ],
     pendencias: [
-      "GOV-001 (NOT_IMPLEMENTED): bridge real existe e testada; falta host de produção com approval store persistido (precisa de BD real).",
-      "GATEWAY-001 (NOT_IMPLEMENTED): adapter real existe e testado; B1ConnectivityValidator é utilitário de conectividade fora do escopo de rewiring desta onda.",
+      "GOV-001: RESOLVIDO (BY_DESIGN) — governed-execute é o host real e persistido de execução LIVE (propose→approve→run), com ApprovalGrant e Governance Audit em arquivo (runtime/governance/), Recovery Package antes do write e Post-Write Validation. Homologado em SOMA_DESENV e executado de verdade em SOMA PROD (77 ajustes de grade PED, zero rollback).",
+      "GATEWAY-001 (NOT_IMPLEMENTED, mantido): B1ConnectivityValidator é utilitário de conectividade fora do escopo de rewiring desta onda.",
     ],
     exemplo: '"Use Agent Linx ERP + WISE Agent para validar esta planilha"',
   },
@@ -602,7 +723,7 @@ const AGENTS = [
       "Consultar conhecimento persistido e versionado (RAG-safety: conteúdo recuperado nunca é tratado como instrução)",
       "Validar produto/produto-cor antes de qualquer escrita",
       "Atualizar MB_PROD_EXTRA_WEB de forma incremental (na rotina diária aprovada)",
-      "Propor ActionProposal para escrita, roteada pelo Tool Gateway (SomaLinxReadOnlyAdapter / SomaLinxDryRunAdapter)",
+      "Propor ActionProposal para escrita, executada de verdade (LIVE) via governed-execute (propose→approve→run), nunca pelo próprio Agent",
     ],
     naoDeve: [
       "Escolher ID_CAMPANHA (sempre pergunta ao Product Owner)",
@@ -632,8 +753,9 @@ const AGENTS = [
       { alvo: "WISE Agent", nota: "Alimenta a rotina diária Linx/WISE que reconcilia o destino WISE (campanha, saldo)." },
     ],
     pendencias: [
-      "GOV-001 (NOT_IMPLEMENTED): bridge real existe e testada; falta host de produção com approval store persistido (precisa de BD real).",
-      "GATEWAY-001 (NOT_IMPLEMENTED): adapters reais existem e testados; readers SQL diretos de Suppliers/Fornecedores ainda não passam pelo Gateway (workstream não relacionado).",
+      "GOV-001: RESOLVIDO (BY_DESIGN) — governed-execute é o host real e persistido de execução LIVE (propose→approve→run→rollback→cleanup), com ApprovalGrant e Governance Audit em arquivo, Recovery Package (item único e em lote com chunking) antes do write, Post-Write Validation e BatchRollbackOrchestrator (rollback nunca automático, sempre com nova aprovação). Homologado em SOMA_DESENV e executado de verdade em SOMA PROD (77 ajustes de grade PED, zero rollback, zero bypass).",
+      "GATEWAY-001 (NOT_IMPLEMENTED, mantido): readers SQL diretos de Suppliers/Fornecedores ainda não passam pelo Gateway (workstream não relacionado).",
+      "Limitações conhecidas, por design: rollback em lote não suporta operações mistas; governed-execute cleanup não tem agendador de SO embutido (precisa ser chamado externamente por cron/Task Scheduler).",
     ],
     exemplo: '"Use Agent Linx Banco para validar o schema desta tabela"',
   },
