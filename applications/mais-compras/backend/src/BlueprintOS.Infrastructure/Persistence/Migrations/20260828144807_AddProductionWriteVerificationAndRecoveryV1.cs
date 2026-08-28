@@ -160,7 +160,7 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                 {
                     { "linx-development", "1.0-phase-a", "product-owner", true, 30, new DateTimeOffset(new DateTime(2026, 8, 28, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), true, true },
                     { "linx-development", "2.0-phase-b", "product-owner", false, 0, new DateTimeOffset(new DateTime(2099, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), true, false },
-                    { "linx-production", "1.0", "product-owner", true, 90, new DateTimeOffset(new DateTime(2026, 8, 28, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), true, true },
+                    { "linx-production", "1.0", "product-owner", true, 30, new DateTimeOffset(new DateTime(2026, 8, 28, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), true, true },
                     { "wise", "1.0-config-only", "product-owner", false, 0, new DateTimeOffset(new DateTime(2026, 8, 28, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), true, false }
                 });
 

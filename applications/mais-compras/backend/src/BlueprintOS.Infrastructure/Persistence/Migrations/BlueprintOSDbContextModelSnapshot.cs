@@ -2316,7 +2316,7 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                             PolicyVersion = "1.0",
                             ApprovedBy = "product-owner",
                             BackupRequired = true,
-                            BackupRetentionDays = 90,
+                            BackupRetentionDays = 30,
                             EffectiveFrom = new DateTimeOffset(new DateTime(2026, 8, 28, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             PostWriteValidationRequired = true,
                             RollbackSupported = true

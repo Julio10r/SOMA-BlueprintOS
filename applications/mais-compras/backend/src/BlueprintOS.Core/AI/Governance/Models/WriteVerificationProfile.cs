@@ -71,7 +71,7 @@ public static class WriteVerificationProfileSeeds
         ApprovedBy: "product-owner", EffectiveFrom: PhaseBEffectiveFrom);
 
     public static readonly WriteVerificationProfile LinxProductionV1 = new(
-        LinxProduction, BackupRequired: true, RollbackSupported: true, BackupRetentionDays: 90,
+        LinxProduction, BackupRequired: true, RollbackSupported: true, BackupRetentionDays: 30,
         PostWriteValidationRequired: true, PolicyVersion: "1.0",
         ApprovedBy: "product-owner", EffectiveFrom: PhaseAEffectiveFrom);
 

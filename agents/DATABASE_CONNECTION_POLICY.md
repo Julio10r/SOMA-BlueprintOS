@@ -492,7 +492,7 @@ Seeded versions:
 | --- | --- | --- | --- | --- | --- |
 | `linx-development` | `1.0-phase-a` (effective) | yes | yes | 30 d | yes |
 | `linx-development` | `2.0-phase-b` (recorded, not yet effective) | no | no | — | yes |
-| `linx-production` | `1.0` | yes | yes | 90 d | yes |
+| `linx-production` | `1.0` | yes | yes | 30 d | yes |
 | `wise` | `1.0-config-only` | no | no | — | yes |
 
 Phase B exists as a separate append-only version, never as an edit of phase A, and carries a

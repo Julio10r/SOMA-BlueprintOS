@@ -52,10 +52,28 @@ public sealed class PostWriteValidationRuleCatalog : IPostWriteValidationRuleCat
         Description: "Reconsulta a linha de homologacao pela chave ID e confirma que VALOR corresponde ao estado esperado.",
         PolicyVersion: "1.0");
 
+    public const string PedGradeAdjustmentResource = "COMPRAS_PRODUTO";
+
+    /// <summary>Verifies a PED grade-adjustment write on COMPRAS_PRODUTO: reconsulta the row by its business
+    /// key (PEDIDO/PRODUTO/COR_PRODUTO) and confirms CO1..CO6 (grade positions 1-6, sizes 34..44) match the
+    /// desired absolute values. Deliberately does NOT compare CE1..CE6/QTDE_*/VALOR_* here — those are either
+    /// derived from live values read inside the transaction (not knowable ahead of time) or a second mirror of
+    /// CO1..CO6 that this table already keeps in lockstep; CO1..CO6 is the field set the business classification
+    /// actually needs proven. Grade position 7+ (size 32 and beyond) is intentionally absent from this rule and
+    /// from the adapter that services it — out of scope for this mechanism.</summary>
+    public static readonly PostWriteValidationRule PedGradeAdjustmentRule = new(
+        RuleId: "post-write-validation.ped-grade-adjustment.v1",
+        Resource: PedGradeAdjustmentResource,
+        Operations: [ActionOperation.Update],
+        BusinessKeyFields: ["PEDIDO", "PRODUTO", "COR_PRODUTO"],
+        FieldsToCompare: ["CO1", "CO2", "CO3", "CO4", "CO5", "CO6"],
+        Description: "Reconsulta COMPRAS_PRODUTO pela chave PEDIDO/PRODUTO/COR_PRODUTO e confirma que CO1..CO6 correspondem aos valores de grade desejados (posicoes 1-6, tamanhos 34-44).",
+        PolicyVersion: "1.0");
+
     private readonly List<PostWriteValidationRule> _rules;
 
     public PostWriteValidationRuleCatalog(IEnumerable<PostWriteValidationRule>? rules = null) =>
-        _rules = [.. rules ?? [CadastroCliForRule, FornecedoresRule, RecoveryHomologationRule]];
+        _rules = [.. rules ?? [CadastroCliForRule, FornecedoresRule, RecoveryHomologationRule, PedGradeAdjustmentRule]];
 
     public PostWriteValidationRule? Resolve(ActionOperation operation, string resource) =>
         string.IsNullOrWhiteSpace(resource)

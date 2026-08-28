@@ -39,14 +39,14 @@ public sealed class WriteVerificationProfileTests
     }
 
     [Fact]
-    public async Task LinxProduction_Requires_Backup_Rollback_And_Ninety_Day_Retention()
+    public async Task LinxProduction_Requires_Backup_Rollback_And_Thirty_Day_Retention()
     {
         var store = new InMemoryWriteVerificationProfileStore();
         var profile = await store.ResolveAsync(WriteVerificationProfileSeeds.LinxProduction, Now);
 
         Assert.True(profile!.BackupRequired);
         Assert.True(profile.RollbackSupported);
-        Assert.Equal(90, profile.BackupRetentionDays);
+        Assert.Equal(30, profile.BackupRetentionDays);
         Assert.True(profile.PostWriteValidationRequired);
     }
 
