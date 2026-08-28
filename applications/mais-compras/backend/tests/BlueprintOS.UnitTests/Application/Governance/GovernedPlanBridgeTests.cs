@@ -1,9 +1,7 @@
 using BlueprintOS.Application.Governance;
 using BlueprintOS.Core.AI.Governance;
 using BlueprintOS.Core.AI.Governance.Models;
-using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Governance;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintOS.UnitTests.Application.Governance;
 
@@ -14,8 +12,8 @@ public sealed class GovernedPlanBridgeTests
     [Fact]
     public async Task Valid_Wise_Plan_Payload_Should_Reach_Policy_Evaluation_As_Yellow()
     {
-        await using var db = CreateDb();
-        var bridge = CreateBridge(db);
+        var root = CreateGovernanceRoot();
+        var bridge = CreateBridge(root);
         var payload = new GovernedPlanPayload(
             RequestId: "REQ-BRIDGE-001",
             RequestedBy: "subject-requester-001",
@@ -51,8 +49,8 @@ public sealed class GovernedPlanBridgeTests
     [Fact]
     public async Task Plan_Payload_With_Unknown_Environment_Should_Surface_As_Context_Gap()
     {
-        await using var db = CreateDb();
-        var bridge = CreateBridge(db);
+        var root = CreateGovernanceRoot();
+        var bridge = CreateBridge(root);
         var payload = BasePayload() with { Environment = "Unknown" };
 
         var preparation = await bridge.PrepareAsync(payload);
@@ -64,8 +62,8 @@ public sealed class GovernedPlanBridgeTests
     [Fact]
     public async Task Invalid_Enum_Value_Should_Throw_Instead_Of_Silently_Defaulting()
     {
-        await using var db = CreateDb();
-        var bridge = CreateBridge(db);
+        var root = CreateGovernanceRoot();
+        var bridge = CreateBridge(root);
         var payload = BasePayload() with { OperationIntent = "NOT_A_REAL_INTENT" };
 
         await Assert.ThrowsAsync<ArgumentException>(() => bridge.PrepareAsync(payload));
@@ -95,18 +93,13 @@ public sealed class GovernedPlanBridgeTests
         AdditionalContext: null,
         CrossCuttingAgents: ["security-lgpd-agent"]);
 
-    private static BlueprintOSDbContext CreateDb()
-    {
-        var options = new DbContextOptionsBuilder<BlueprintOSDbContext>()
-            .UseInMemoryDatabase($"governed-plan-bridge-{Guid.NewGuid():N}")
-            .Options;
-        return new BlueprintOSDbContext(options);
-    }
+    private static string CreateGovernanceRoot() =>
+        Path.Combine(Path.GetTempPath(), "blueprintos-governance-tests", Guid.NewGuid().ToString("N"));
 
-    private static GovernedPlanBridge CreateBridge(BlueprintOSDbContext db)
+    private static GovernedPlanBridge CreateBridge(string governanceRoot)
     {
-        var approvals = new EfApprovalStore(db);
-        var audit = new EfGovernanceAuditStore(db);
+        var approvals = new FileApprovalStore(governanceRoot);
+        var audit = new FileGovernanceAuditStore(governanceRoot);
         var clock = new FixedTimeProvider(Now);
         var gateway = new ToolGateway([new WiseGovernedAdapter(), new SomaLinxDryRunAdapter(), new SomaLinxReadOnlyAdapter()], new ApprovalPolicy(), audit, clock);
         var stack = new GovernedWriteStack(new StructuredActionProposalAdapter(), new AIGovernancePolicyEngine(), approvals, audit, gateway, clock);

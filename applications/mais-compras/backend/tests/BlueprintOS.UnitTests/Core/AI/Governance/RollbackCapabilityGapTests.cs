@@ -2,9 +2,7 @@ using BlueprintOS.Core.AI.Governance;
 using BlueprintOS.Core.AI.Governance.Contracts;
 using BlueprintOS.Core.AI.Governance.Models;
 using BlueprintOS.Core.AI.Governance.Recovery;
-using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Governance;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintOS.UnitTests.Core.AI.Governance;
 
@@ -83,6 +81,24 @@ public sealed class RollbackCapabilityGapTests : IDisposable
         Assert.Equal(1, fixture.Adapter.ExecuteCallCount);
     }
 
+    [Fact]
+    public async Task File_Store_Persists_And_Lists_Gaps_Without_Any_Relational_Store()
+    {
+        var governanceRoot = Path.Combine(_root, "file-gap-store");
+        var store = new FileRollbackCapabilityGapStore(governanceRoot);
+        var gap = new RollbackCapabilityGap(
+            Guid.NewGuid(), "REQ-FILE-GAP-001", FakeCapabilityAdapter.OwnerAgentId,
+            WriteVerificationProfileSeeds.LinxDevelopment, FakeCapabilityAdapter.CapabilityId,
+            "BLUEPRINTOS_RECOVERY_HOMOLOGATION", RollbackCapabilityGap.ReasonCode, null, Now);
+
+        await store.RecordAsync(gap);
+        var persisted = Assert.Single(await store.ListAsync());
+
+        Assert.Equal(gap.Id, persisted.Id);
+        Assert.Equal(RollbackCapabilityGap.ReasonCode, persisted.Reason);
+        Assert.True(File.Exists(Path.Combine(governanceRoot, "rollback-capability-gaps", "2026-08-28", $"{gap.Id:N}.json")));
+    }
+
     // ------------------------------------------------------------------------------------------------------
 
     private static GovernedWriteExecutionRequest Request() => new(
@@ -123,12 +139,10 @@ public sealed class RollbackCapabilityGapTests : IDisposable
 
     private Fixture CreateFixture(RollbackStrategy strategy, bool rollbackSupported)
     {
-        var options = new DbContextOptionsBuilder<BlueprintOSDbContext>()
-            .UseInMemoryDatabase($"rollback-gap-{Guid.NewGuid():N}").Options;
-        var db = new BlueprintOSDbContext(options);
+                var governanceRoot = Path.Combine(_root, "governance");
         var clock = new FixedTimeProvider(Now);
-        var audit = new EfGovernanceAuditStore(db);
-        var approvals = new EfApprovalStore(db);
+        var audit = new FileGovernanceAuditStore(governanceRoot);
+        var approvals = new FileApprovalStore(governanceRoot);
         var adapter = new FakeCapabilityAdapter(strategy);
         var gateway = new ToolGateway([adapter], new ApprovalPolicy(), audit, clock);
         var stack = new GovernedWriteStack(new StructuredActionProposalAdapter(), new AIGovernancePolicyEngine(), approvals, audit, gateway, clock);

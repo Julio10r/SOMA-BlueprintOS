@@ -2,9 +2,7 @@ using BlueprintOS.Core.AI.Governance;
 using BlueprintOS.Core.AI.Governance.Contracts;
 using BlueprintOS.Core.AI.Governance.Models;
 using BlueprintOS.Core.AI.Governance.Recovery;
-using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Governance;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintOS.UnitTests.Core.AI.Governance;
 
@@ -214,12 +212,10 @@ public sealed class GovernedWriteExecutionOrchestratorTests : IDisposable
 
     private Fixture CreateFixture()
     {
-        var options = new DbContextOptionsBuilder<BlueprintOSDbContext>()
-            .UseInMemoryDatabase($"orchestrator-{Guid.NewGuid():N}").Options;
-        var db = new BlueprintOSDbContext(options);
+                var governanceRoot = Path.Combine(_root, "governance");
         var clock = new FixedTimeProvider(Now);
-        var audit = new EfGovernanceAuditStore(db);
-        var approvals = new EfApprovalStore(db);
+        var audit = new FileGovernanceAuditStore(governanceRoot);
+        var approvals = new FileApprovalStore(governanceRoot);
         var adapter = new FakeFornecedorWriteAdapter();
         var gateway = new ToolGateway([adapter], new ApprovalPolicy(), audit, clock);
         var stack = new GovernedWriteStack(new StructuredActionProposalAdapter(), new AIGovernancePolicyEngine(), approvals, audit, gateway, clock);

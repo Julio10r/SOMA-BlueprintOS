@@ -1,8 +1,6 @@
 using BlueprintOS.Core.AI.Governance;
 using BlueprintOS.Core.AI.Governance.Models;
-using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Governance;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintOS.UnitTests.Core.AI.Governance;
 
@@ -91,22 +89,27 @@ public sealed class WriteVerificationProfileTests
     }
 
     [Fact]
-    public async Task Ef_Store_Round_Trips_Versions_With_The_Same_Semantics()
+    public async Task File_Store_Round_Trips_Versions_With_The_Same_Semantics()
     {
-        var options = new DbContextOptionsBuilder<BlueprintOSDbContext>()
-            .UseInMemoryDatabase($"write-verification-{Guid.NewGuid():N}")
-            .Options;
-        await using var db = new BlueprintOSDbContext(options);
-        var store = new EfWriteVerificationProfileStore(db);
+        var root = Path.Combine(Path.GetTempPath(), "blueprintos-governance-tests", Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new FileWriteVerificationProfileStore(root);
 
-        await store.AppendVersionAsync(WriteVerificationProfileSeeds.LinxDevelopmentPhaseA);
-        await store.AppendVersionAsync(WriteVerificationProfileSeeds.LinxDevelopmentPhaseB);
+            // The file store self-seeds from WriteVerificationProfileSeeds.All on first use, so both phase A
+            // and B for linx-development already exist; appending them again must be rejected exactly like
+            // the in-memory/EF stores did (append-only, immutable versions).
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                store.AppendVersionAsync(WriteVerificationProfileSeeds.LinxDevelopmentPhaseA));
 
-        var resolved = await store.ResolveAsync(WriteVerificationProfileSeeds.LinxDevelopment, Now);
-        Assert.Equal("1.0-phase-a", resolved!.PolicyVersion);
-        Assert.Equal(2, (await store.ListVersionsAsync(WriteVerificationProfileSeeds.LinxDevelopment)).Count);
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            store.AppendVersionAsync(WriteVerificationProfileSeeds.LinxDevelopmentPhaseA));
+            var resolved = await store.ResolveAsync(WriteVerificationProfileSeeds.LinxDevelopment, Now);
+            Assert.Equal("1.0-phase-a", resolved!.PolicyVersion);
+            Assert.Equal(2, (await store.ListVersionsAsync(WriteVerificationProfileSeeds.LinxDevelopment)).Count);
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
     }
 
     [Fact]

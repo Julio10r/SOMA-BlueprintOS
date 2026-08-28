@@ -1,7 +1,6 @@
 using BlueprintOS.Domain.Identity;
 using BlueprintOS.Domain.Knowledge.Linx;
 using BlueprintOS.Domain.Procurement.Suppliers;
-using BlueprintOS.Infrastructure.Persistence.Governance;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintOS.Infrastructure.Persistence;
@@ -50,14 +49,12 @@ public sealed class BlueprintOSDbContext(DbContextOptions<BlueprintOSDbContext> 
     // O1.13.5 — Fundação dos Agents Especialistas Linx (base de conhecimento persistente e versionada).
     public DbSet<LinxKnowledgeEntry> LinxConhecimentoEntradas => Set<LinxKnowledgeEntry>();
 
-    public DbSet<GovernanceApprovalRequestEntity> AIGovernanceApprovalRequests => Set<GovernanceApprovalRequestEntity>();
-    public DbSet<GovernanceApprovalGrantEntity> AIGovernanceApprovalGrants => Set<GovernanceApprovalGrantEntity>();
-    public DbSet<GovernanceAuditEventEntity> AIGovernanceAuditEvents => Set<GovernanceAuditEventEntity>();
-    public DbSet<WriteVerificationProfileEntity> AIGovernanceWriteVerificationProfiles => Set<WriteVerificationProfileEntity>();
-    public DbSet<WriteValidationKnowledgeGapEntity> AIGovernanceWriteValidationKnowledgeGaps => Set<WriteValidationKnowledgeGapEntity>();
-    public DbSet<RecoveryIndexEntryEntity> AIGovernanceRecoveryIndex => Set<RecoveryIndexEntryEntity>();
-    public DbSet<WriteExecutionAuditEntity> AIGovernanceWriteExecutionAudit => Set<WriteExecutionAuditEntity>();
-    public DbSet<RollbackAuditEntity> AIGovernanceRollbackAudit => Set<RollbackAuditEntity>();
+    // NOTE: The AIGovernance* DbSets (approval requests/grants, audit events, write verification profiles,
+    // knowledge gaps, recovery index, write execution audit, rollback audit) were removed. Governance
+    // bookkeeping now lives entirely in file-based stores under runtime/governance/ (see
+    // src/BlueprintOS.Infrastructure/Persistence/Governance/File*.cs) — MAISCOMPRAS, the +Compras business
+    // database this context represents, is business-application infrastructure, not agent infrastructure,
+    // and the Governed Write Stack must have zero dependency on it.
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -2,9 +2,7 @@ using BlueprintOS.Core.AI.Governance;
 using BlueprintOS.Core.AI.Governance.Contracts;
 using BlueprintOS.Core.AI.Governance.Models;
 using BlueprintOS.Core.AI.Governance.Recovery;
-using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Governance;
-using Microsoft.EntityFrameworkCore;
 using Xunit.Abstractions;
 
 namespace BlueprintOS.IntegrationTests.Integrations;
@@ -30,9 +28,9 @@ public sealed class GovernedWriteKnowledgeGapE2EIntegrationTests(ITestOutputHelp
         var writeAudit = new InMemoryWriteExecutionAuditStore();
         var gapStore = new InMemoryWriteValidationKnowledgeGapStore();
         var writer = new RecoveryPackageWriter(Path.Combine(Path.GetTempPath(), $"blueprintos-e2e-gap-{Guid.NewGuid():N}"));
-        using var db = NewInMemoryDb();
-        var approvals = new EfApprovalStore(db);
-        var governanceAudit = new EfGovernanceAuditStore(db);
+        var governanceRoot = Path.Combine(Path.GetTempPath(), "blueprintos-governance-tests", Guid.NewGuid().ToString("N"));
+        var approvals = new FileApprovalStore(governanceRoot);
+        var governanceAudit = new FileGovernanceAuditStore(governanceRoot);
         var writeAdapter = new NoOpWriteAdapter(unmappedResource);
 
         try
@@ -80,11 +78,9 @@ public sealed class GovernedWriteKnowledgeGapE2EIntegrationTests(ITestOutputHelp
         finally
         {
             if (Directory.Exists(writer.RootDirectory)) Directory.Delete(writer.RootDirectory, recursive: true);
+            if (Directory.Exists(governanceRoot)) Directory.Delete(governanceRoot, recursive: true);
         }
     }
-
-    private static BlueprintOSDbContext NewInMemoryDb() => new(new DbContextOptionsBuilder<BlueprintOSDbContext>()
-        .UseInMemoryDatabase($"knowledge-gap-e2e-{Guid.NewGuid():N}").Options);
 
     private sealed class NoOpWriteAdapter(string resource) : IWriteExecutionAdapter, ISnapshotCapableAdapter
     {

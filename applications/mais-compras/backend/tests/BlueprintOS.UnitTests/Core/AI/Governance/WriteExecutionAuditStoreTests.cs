@@ -1,9 +1,7 @@
 using BlueprintOS.Core.AI.Governance;
 using BlueprintOS.Core.AI.Governance.Models;
 using BlueprintOS.Core.AI.Governance.Recovery;
-using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Governance;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintOS.UnitTests.Core.AI.Governance;
 
@@ -21,8 +19,8 @@ public sealed class WriteExecutionAuditStoreTests : IDisposable
     [Fact]
     public async Task Every_Documented_Field_Round_Trips_Through_The_Permanent_Table()
     {
-        await using var db = NewDb();
-        var store = new EfWriteExecutionAuditStore(db);
+        var governanceRoot = NewGovernanceRoot();
+        var store = new FileWriteExecutionAuditStore(governanceRoot);
         var record = Record(Guid.NewGuid());
 
         await store.AppendAsync(record);
@@ -64,8 +62,8 @@ public sealed class WriteExecutionAuditStoreTests : IDisposable
     [Fact]
     public async Task Audit_Survives_Retention_Cleanup_And_Remains_Queryable()
     {
-        await using var db = NewDb();
-        var store = new EfWriteExecutionAuditStore(db);
+        var governanceRoot = NewGovernanceRoot();
+        var store = new FileWriteExecutionAuditStore(governanceRoot);
         var writer = new RecoveryPackageWriter(_root);
         var index = new InMemoryRecoveryIndexStore();
         var executionId = Guid.NewGuid();
@@ -96,8 +94,8 @@ public sealed class WriteExecutionAuditStoreTests : IDisposable
     [Fact]
     public async Task Rollback_Outcome_Is_Recorded_Against_The_Original_Execution()
     {
-        await using var db = NewDb();
-        var store = new EfWriteExecutionAuditStore(db);
+        var governanceRoot = NewGovernanceRoot();
+        var store = new FileWriteExecutionAuditStore(governanceRoot);
         var record = Record(Guid.NewGuid());
         await store.AppendAsync(record);
 
@@ -112,8 +110,8 @@ public sealed class WriteExecutionAuditStoreTests : IDisposable
     [Fact]
     public async Task Rollback_Audit_Round_Trips_And_Is_Queryable_By_Original_Execution()
     {
-        await using var db = NewDb();
-        var store = new EfRollbackAuditStore(db);
+        var governanceRoot = NewGovernanceRoot();
+        var store = new FileRollbackAuditStore(governanceRoot);
         var originalExecutionId = Guid.NewGuid();
 
         await store.AppendAsync(new RollbackAuditRecord
@@ -143,8 +141,7 @@ public sealed class WriteExecutionAuditStoreTests : IDisposable
         Assert.Contains("FORNECEDORES", loaded.TablesAffected);
     }
 
-    private static BlueprintOSDbContext NewDb() => new(new DbContextOptionsBuilder<BlueprintOSDbContext>()
-        .UseInMemoryDatabase($"write-audit-{Guid.NewGuid():N}").Options);
+    private string NewGovernanceRoot() => Path.Combine(_root, "governance", Guid.NewGuid().ToString("N"));
 
     private static RecoveryPackageManifest Manifest(Guid executionId) => new()
     {

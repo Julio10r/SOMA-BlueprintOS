@@ -1,9 +1,7 @@
 using BlueprintOS.Core.AI.Governance;
 using BlueprintOS.Core.AI.Governance.Contracts;
 using BlueprintOS.Core.AI.Governance.Models;
-using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Governance;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintOS.UnitTests.Core.AI.Governance;
 
@@ -143,11 +141,8 @@ public sealed class WriteVerificationProfileGovernanceServiceTests
 
     private static Fixture CreateFixture()
     {
-        var options = new DbContextOptionsBuilder<BlueprintOSDbContext>()
-            .UseInMemoryDatabase($"profile-governance-{Guid.NewGuid():N}")
-            .Options;
-        var db = new BlueprintOSDbContext(options);
-        var audit = new EfGovernanceAuditStore(db);
+        var root = Path.Combine(Path.GetTempPath(), "blueprintos-governance-tests", Guid.NewGuid().ToString("N"));
+        var audit = new FileGovernanceAuditStore(root);
         IWriteVerificationProfileStore store = new InMemoryWriteVerificationProfileStore();
         var service = new WriteVerificationProfileGovernanceService(
             store, new AIGovernancePolicyEngine(), new ApprovalPolicy(), audit, new FixedTimeProvider(Now));
@@ -156,7 +151,7 @@ public sealed class WriteVerificationProfileGovernanceServiceTests
 
     private sealed record Fixture(
         IWriteVerificationProfileStore Store,
-        EfGovernanceAuditStore Audit,
+        FileGovernanceAuditStore Audit,
         WriteVerificationProfileGovernanceService Service);
 
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider

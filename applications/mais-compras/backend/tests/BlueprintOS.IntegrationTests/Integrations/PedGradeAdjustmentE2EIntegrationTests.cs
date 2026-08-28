@@ -4,11 +4,9 @@ using BlueprintOS.Core.AI.Governance;
 using BlueprintOS.Core.AI.Governance.Contracts;
 using BlueprintOS.Core.AI.Governance.Models;
 using BlueprintOS.Core.AI.Governance.Recovery;
-using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Governance;
 using BlueprintOS.Infrastructure.Persistence.Repositories;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Xunit.Abstractions;
 
@@ -70,12 +68,12 @@ public sealed class PedGradeAdjustmentE2EIntegrationTests(ITestOutputHelper outp
             var profileStoreA = new InMemoryWriteVerificationProfileStore();
             var indexA = new InMemoryRecoveryIndexStore();
             var writeAuditA = new InMemoryWriteExecutionAuditStore();
-            using var dbA = NewInMemoryDb();
+            var dbARoot = NewGovernanceRoot();
 
             var desiredA = new PedGradeAdjustmentRequest(pedido, produto, cor,
                 original.Co1 + 1, original.Co2 + 1, original.Co3 + 1, original.Co4 + 1, original.Co5 + 1, original.Co6 + 1);
             var forwardAdapterA = new PedGradeAdjustmentGovernedWriteAdapter(configuration, desiredA);
-            var (orchestratorA, _) = BuildOrchestrator(forwardAdapterA, dbA, profileStoreA, indexA, writeAuditA, writer, clock);
+            var (orchestratorA, _) = BuildOrchestrator(forwardAdapterA, dbARoot, profileStoreA, indexA, writeAuditA, writer, clock);
 
             var requestA = Request("REQ-PED-GRADE-FASE-A", pedido, produto, cor, desiredA);
             var grantA = GrantFor(requestA.Context, clock.GetUtcNow(), pedido, produto, cor);
@@ -128,12 +126,12 @@ public sealed class PedGradeAdjustmentE2EIntegrationTests(ITestOutputHelper outp
             // =====================================================================================
             output.WriteLine("=== FASE B: rollback governado da execucao A ===");
 
-            using var dbRollbackA = NewInMemoryDb();
+            var dbRollbackARoot = NewGovernanceRoot();
             var snapshotSourceA = new PedGradeAdjustmentGovernedWriteAdapter(configuration,
                 new PedGradeAdjustmentRequest(pedido, produto, cor, 0, 0, 0, 0, 0, 0)); // read-only use (CaptureSnapshotAsync)
             var rollbackWriteAdapterA = new PedGradeAdjustmentGovernedWriteAdapter(configuration,
                 new PedGradeAdjustmentRequest(pedido, produto, cor, original.Co1, original.Co2, original.Co3, original.Co4, original.Co5, original.Co6));
-            var rollbackOrchestratorA = BuildRollbackOrchestrator(indexA, writer, profileStoreA, writeAuditA, dbRollbackA, clock, rollbackWriteAdapterA);
+            var rollbackOrchestratorA = BuildRollbackOrchestrator(indexA, writer, profileStoreA, writeAuditA, dbRollbackARoot, clock, rollbackWriteAdapterA);
 
             var discovery = await rollbackOrchestratorA.DiscoverAsync(new RecoveryIndexQuery
             {
@@ -200,13 +198,13 @@ public sealed class PedGradeAdjustmentE2EIntegrationTests(ITestOutputHelper outp
             var profileStoreD = new InMemoryWriteVerificationProfileStore();
             var indexD = new InMemoryRecoveryIndexStore();
             var writeAuditD = new InMemoryWriteExecutionAuditStore();
-            using var dbD = NewInMemoryDb();
+            var dbDRoot = NewGovernanceRoot();
             var clockD = new FixedTimeProvider(DateTimeOffset.UtcNow);
 
             var desiredD = new PedGradeAdjustmentRequest(pedido, produto, cor,
                 original.Co1 + 2, original.Co2 + 2, original.Co3 + 2, original.Co4 + 2, original.Co5 + 2, original.Co6 + 2);
             var forwardAdapterD = new PedGradeAdjustmentGovernedWriteAdapter(configuration, desiredD);
-            var (orchestratorD, _) = BuildOrchestrator(forwardAdapterD, dbD, profileStoreD, indexD, writeAuditD, writer, clockD);
+            var (orchestratorD, _) = BuildOrchestrator(forwardAdapterD, dbDRoot, profileStoreD, indexD, writeAuditD, writer, clockD);
 
             var requestD = Request("REQ-PED-GRADE-CONCORRENCIA", pedido, produto, cor, desiredD);
             var grantD = GrantFor(requestD.Context, clockD.GetUtcNow(), pedido, produto, cor);
@@ -219,8 +217,8 @@ public sealed class PedGradeAdjustmentE2EIntegrationTests(ITestOutputHelper outp
             await AdminSetCo1Async(connectionString, pedido, produto, cor, desiredD.Tam1 + 99);
             output.WriteLine($"Concorrencia — alteracao simulada de terceiro: CO1={desiredD.Tam1 + 99}.");
 
-            using var dbRollbackD = NewInMemoryDb();
-            var rollbackOrchestratorD = BuildRollbackOrchestrator(indexD, writer, profileStoreD, writeAuditD, dbRollbackD, clockD,
+            var dbRollbackDRoot = NewGovernanceRoot();
+            var rollbackOrchestratorD = BuildRollbackOrchestrator(indexD, writer, profileStoreD, writeAuditD, dbRollbackDRoot, clockD,
                 new PedGradeAdjustmentGovernedWriteAdapter(configuration, new PedGradeAdjustmentRequest(pedido, produto, cor, 0, 0, 0, 0, 0, 0)));
             var analysisD = await rollbackOrchestratorD.AnalyzeAsync(executionIdD,
                 new PedGradeAdjustmentGovernedWriteAdapter(configuration, new PedGradeAdjustmentRequest(pedido, produto, cor, 0, 0, 0, 0, 0, 0)));
@@ -239,6 +237,11 @@ public sealed class PedGradeAdjustmentE2EIntegrationTests(ITestOutputHelper outp
         {
             await RestoreOriginalStateAsync(connectionString, pedido, produto, cor, original);
             output.WriteLine("Limpeza final: linha COMPRAS_PRODUTO restaurada byte-a-byte ao estado original em SOMA_DESENV.");
+            foreach (var root in GovernanceRoots)
+            {
+                try { if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }
+                catch (IOException) { /* best-effort cleanup */ }
+            }
         }
     }
 
@@ -303,15 +306,15 @@ public sealed class PedGradeAdjustmentE2EIntegrationTests(ITestOutputHelper outp
 
     private static (GovernedWriteExecutionOrchestrator Orchestrator, IApprovalStore ApprovalStore) BuildOrchestrator(
         IWriteExecutionAdapter adapter,
-        BlueprintOSDbContext db,
+        string governanceRoot,
         IWriteVerificationProfileStore profileStore,
         IRecoveryIndexStore index,
         IWriteExecutionAuditStore writeAudit,
         IRecoveryPackageWriter recoveryWriter,
         TimeProvider clock)
     {
-        var governanceAudit = new EfGovernanceAuditStore(db);
-        var approvals = new EfApprovalStore(db);
+        var governanceAudit = new FileGovernanceAuditStore(governanceRoot);
+        var approvals = new FileApprovalStore(governanceRoot);
         var gateway = new ToolGateway([adapter], new ApprovalPolicy(), governanceAudit, clock);
         var stack = new GovernedWriteStack(new StructuredActionProposalAdapter(), new AIGovernancePolicyEngine(), approvals, governanceAudit, gateway, clock);
         var orchestrator = new GovernedWriteExecutionOrchestrator(
@@ -325,12 +328,12 @@ public sealed class PedGradeAdjustmentE2EIntegrationTests(ITestOutputHelper outp
         IRecoveryPackageWriter writer,
         IWriteVerificationProfileStore profileStore,
         IWriteExecutionAuditStore writeAudit,
-        BlueprintOSDbContext db,
+        string governanceRoot,
         TimeProvider clock,
         IWriteExecutionAdapter rollbackWriteAdapter)
     {
-        var governanceAudit = new EfGovernanceAuditStore(db);
-        var approvals = new EfApprovalStore(db);
+        var governanceAudit = new FileGovernanceAuditStore(governanceRoot);
+        var approvals = new FileApprovalStore(governanceRoot);
         var rollbackAudit = new InMemoryRollbackAuditStore();
         var gateway = new ToolGateway([rollbackWriteAdapter], new ApprovalPolicy(), governanceAudit, clock);
 
@@ -339,8 +342,14 @@ public sealed class PedGradeAdjustmentE2EIntegrationTests(ITestOutputHelper outp
             approvals, gateway, profileStore, rollbackAudit, writeAudit, governanceAudit, clock);
     }
 
-    private static BlueprintOSDbContext NewInMemoryDb() => new(new DbContextOptionsBuilder<BlueprintOSDbContext>()
-        .UseInMemoryDatabase($"ped-grade-adjustment-e2e-{Guid.NewGuid():N}").Options);
+    private static readonly List<string> GovernanceRoots = [];
+
+    private static string NewGovernanceRoot()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "blueprintos-governance-tests", Guid.NewGuid().ToString("N"));
+        GovernanceRoots.Add(root);
+        return root;
+    }
 
     private static string FindBackendRoot()
     {

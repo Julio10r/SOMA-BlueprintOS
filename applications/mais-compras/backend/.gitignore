@@ -2,3 +2,9 @@
 # reports). They can contain real record snapshots from a governed database and are retained/expired by
 # RecoveryRetentionCleanupService — they are runtime artifacts, never source, and must never be committed.
 runtime/backups/
+
+# Governance bookkeeping (approvals, audit events, recovery index, rollback audit, write-execution audit,
+# knowledge gaps, write-verification profile versions) written by the Governed Write Stack's file-based
+# stores. These are runtime artifacts of the Agents' governance runtime — never the +Compras business
+# database — and, like runtime/backups/, are never committed.
+runtime/governance/

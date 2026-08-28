@@ -1,8 +1,6 @@
 using BlueprintOS.Core.AI.Governance;
 using BlueprintOS.Core.AI.Governance.Models;
-using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Governance;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintOS.UnitTests.Core.AI.Governance;
 
@@ -55,21 +53,25 @@ public sealed class PostWriteValidationRuleCatalogTests
     }
 
     [Fact]
-    public async Task Ef_Knowledge_Gap_Store_Persists_And_Lists_Gaps()
+    public async Task File_Knowledge_Gap_Store_Persists_And_Lists_Gaps()
     {
-        var options = new DbContextOptionsBuilder<BlueprintOSDbContext>()
-            .UseInMemoryDatabase($"write-validation-gap-{Guid.NewGuid():N}")
-            .Options;
-        await using var db = new BlueprintOSDbContext(options);
-        var store = new EfWriteValidationKnowledgeGapStore(db);
+        var root = Path.Combine(Path.GetTempPath(), "blueprintos-governance-tests", Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new FileWriteValidationKnowledgeGapStore(root);
 
-        await store.RecordAsync(new WriteValidationKnowledgeGap(
-            Guid.NewGuid(), "REQ-GAP", "linx-database-specialist-agent", "linx-development",
-            "PEDIDOS", ActionOperation.Insert, WriteValidationKnowledgeGap.ReasonCode, Guid.NewGuid(), Now));
+            await store.RecordAsync(new WriteValidationKnowledgeGap(
+                Guid.NewGuid(), "REQ-GAP", "linx-database-specialist-agent", "linx-development",
+                "PEDIDOS", ActionOperation.Insert, WriteValidationKnowledgeGap.ReasonCode, Guid.NewGuid(), Now));
 
-        var gap = Assert.Single(await store.ListAsync());
-        Assert.Equal("PEDIDOS", gap.Resource);
-        Assert.Equal(ActionOperation.Insert, gap.Operation);
-        Assert.NotNull(gap.ActionProposalId);
+            var gap = Assert.Single(await store.ListAsync());
+            Assert.Equal("PEDIDOS", gap.Resource);
+            Assert.Equal(ActionOperation.Insert, gap.Operation);
+            Assert.NotNull(gap.ActionProposalId);
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
     }
 }

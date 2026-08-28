@@ -2,9 +2,7 @@ using BlueprintOS.Core.AI.Governance;
 using BlueprintOS.Core.AI.Governance.Contracts;
 using BlueprintOS.Core.AI.Governance.Models;
 using BlueprintOS.Core.AI.Governance.Recovery;
-using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Governance;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintOS.UnitTests.Core.AI.Governance;
 
@@ -14,7 +12,7 @@ public sealed class RecoveryIndexStoreTests
     private static readonly DateTimeOffset Day2 = new(2026, 8, 25, 10, 0, 0, TimeSpan.Zero);
     private static readonly DateTimeOffset Day3 = new(2026, 8, 27, 10, 0, 0, TimeSpan.Zero);
 
-    public static TheoryData<string> StoreKinds => ["in-memory", "ef"];
+    public static TheoryData<string> StoreKinds => ["in-memory", "file"];
 
     [Theory]
     [MemberData(nameof(StoreKinds))]
@@ -129,9 +127,8 @@ public sealed class RecoveryIndexStoreTests
 
     private static async Task<IRecoveryIndexStore> CreateSeededStoreAsync(string kind)
     {
-        IRecoveryIndexStore store = kind == "ef"
-            ? new EfRecoveryIndexStore(new BlueprintOSDbContext(new DbContextOptionsBuilder<BlueprintOSDbContext>()
-                .UseInMemoryDatabase($"recovery-index-{Guid.NewGuid():N}").Options))
+        IRecoveryIndexStore store = kind == "file"
+            ? new FileRecoveryIndexStore(Path.Combine(Path.GetTempPath(), "blueprintos-governance-tests", Guid.NewGuid().ToString("N")))
             : new InMemoryRecoveryIndexStore();
 
         await store.AppendAsync(Entry(ExecutionA, Day1, "subject-requester-001", ["FORNECEDORES"], ["CGC_CPF=00000000000191"]));

@@ -2,11 +2,9 @@ using BlueprintOS.Core.AI.Governance;
 using BlueprintOS.Core.AI.Governance.Contracts;
 using BlueprintOS.Core.AI.Governance.Models;
 using BlueprintOS.Core.AI.Governance.Recovery;
-using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Governance;
 using BlueprintOS.Infrastructure.Persistence.Repositories;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Xunit.Abstractions;
 
@@ -67,9 +65,9 @@ public sealed class RecoveryHomologationE2EIntegrationTests(ITestOutputHelper ou
             var indexA = new InMemoryRecoveryIndexStore();
             var writeAuditA = new InMemoryWriteExecutionAuditStore();
 
-            using var dbA = NewInMemoryDb();
+            var dbARoot = NewGovernanceRoot();
             var forwardAdapterA = new RecoveryHomologationWriteAdapter(configuration, RowId, Depois);
-            var (orchestratorA, approvalsA) = BuildOrchestrator(forwardAdapterA, dbA, profileStoreA, indexA, writeAuditA, writer, clockA);
+            var (orchestratorA, approvalsA) = BuildOrchestrator(forwardAdapterA, dbARoot, profileStoreA, indexA, writeAuditA, writer, clockA);
 
             var requestA = Request("REQ-HOMOLOG-FASE-A");
             var grantA = GrantFor(requestA.Context, clockA.GetUtcNow());
@@ -106,10 +104,10 @@ public sealed class RecoveryHomologationE2EIntegrationTests(ITestOutputHelper ou
             // ---- ROLLBACK completo da execucao A --------------------------------------------------
             output.WriteLine("=== FASE A: rollback governado ===");
 
-            using var dbRollbackA = NewInMemoryDb();
+            var dbRollbackARoot = NewGovernanceRoot();
             var snapshotSourceA = new RecoveryHomologationWriteAdapter(configuration, RowId, targetValue: null); // read-only use here
             var rollbackWriteAdapterA = new RecoveryHomologationWriteAdapter(configuration, RowId, Antes);
-            var rollbackOrchestratorA = BuildRollbackOrchestrator(indexA, writer, profileStoreA, writeAuditA, dbRollbackA, clockA, rollbackWriteAdapterA);
+            var rollbackOrchestratorA = BuildRollbackOrchestrator(indexA, writer, profileStoreA, writeAuditA, dbRollbackARoot, clockA, rollbackWriteAdapterA);
 
             var discovery = await rollbackOrchestratorA.DiscoverAsync(new RecoveryIndexQuery
             {
@@ -169,9 +167,9 @@ public sealed class RecoveryHomologationE2EIntegrationTests(ITestOutputHelper ou
 
             var indexB = new InMemoryRecoveryIndexStore();
             var writeAuditB = new InMemoryWriteExecutionAuditStore();
-            using var dbB = NewInMemoryDb();
+            var dbBRoot = NewGovernanceRoot();
             var forwardAdapterB = new RecoveryHomologationWriteAdapter(configuration, RowId, Depois);
-            var (orchestratorB, _) = BuildOrchestrator(forwardAdapterB, dbB, profileStoreB, indexB, writeAuditB, writer, clockA);
+            var (orchestratorB, _) = BuildOrchestrator(forwardAdapterB, dbBRoot, profileStoreB, indexB, writeAuditB, writer, clockA);
 
             var requestB = Request("REQ-HOMOLOG-FASE-B");
             var grantB = GrantFor(requestB.Context, now);
@@ -192,8 +190,8 @@ public sealed class RecoveryHomologationE2EIntegrationTests(ITestOutputHelper ou
 
             Assert.Equal(Depois, await ReadValorAsync(connectionString, RowId));
 
-            using var dbRollbackB = NewInMemoryDb();
-            var rollbackOrchestratorB = BuildRollbackOrchestrator(indexB, writer, profileStoreB, writeAuditB, dbRollbackB, clockA,
+            var dbRollbackBRoot = NewGovernanceRoot();
+            var rollbackOrchestratorB = BuildRollbackOrchestrator(indexB, writer, profileStoreB, writeAuditB, dbRollbackBRoot, clockA,
                 new RecoveryHomologationWriteAdapter(configuration, RowId, targetValue: null));
             var discoveryB = await rollbackOrchestratorB.DiscoverAsync(new RecoveryIndexQuery { ExecutionId = resultB.ExecutionId });
             output.WriteLine($"Fase B — tentativa de rollback (discovery): status={discoveryB.Status}, reasons=[{string.Join(", ", discoveryB.Reasons)}]");
@@ -219,11 +217,11 @@ public sealed class RecoveryHomologationE2EIntegrationTests(ITestOutputHelper ou
             var profileStoreC = new InMemoryWriteVerificationProfileStore(); // volta ao seed padrao (fase A)
             var indexC = new InMemoryRecoveryIndexStore();
             var writeAuditC = new InMemoryWriteExecutionAuditStore();
-            using var dbC = NewInMemoryDb();
+            var dbCRoot = NewGovernanceRoot();
             var creationTime = clockA.GetUtcNow();
             var clockC = new FixedTimeProvider(creationTime);
             var forwardAdapterC = new RecoveryHomologationWriteAdapter(configuration, RowId, Depois);
-            var (orchestratorC, _) = BuildOrchestrator(forwardAdapterC, dbC, profileStoreC, indexC, writeAuditC, writer, clockC);
+            var (orchestratorC, _) = BuildOrchestrator(forwardAdapterC, dbCRoot, profileStoreC, indexC, writeAuditC, writer, clockC);
 
             var requestC = Request("REQ-HOMOLOG-FASE-C");
             var grantC = GrantFor(requestC.Context, creationTime);
@@ -250,8 +248,8 @@ public sealed class RecoveryHomologationE2EIntegrationTests(ITestOutputHelper ou
             Assert.Equal(executionIdC, permanentAuditC.ExecutionId);
             output.WriteLine("Fase C — audit permanente continua consultavel apos expiracao do recovery package.");
 
-            using var dbRollbackC = NewInMemoryDb();
-            var rollbackOrchestratorC = BuildRollbackOrchestrator(indexC, writer, profileStoreC, writeAuditC, dbRollbackC, clockC,
+            var dbRollbackCRoot = NewGovernanceRoot();
+            var rollbackOrchestratorC = BuildRollbackOrchestrator(indexC, writer, profileStoreC, writeAuditC, dbRollbackCRoot, clockC,
                 new RecoveryHomologationWriteAdapter(configuration, RowId, targetValue: null));
             var analysisC = await rollbackOrchestratorC.AnalyzeAsync(executionIdC, new RecoveryHomologationWriteAdapter(configuration, RowId, targetValue: null));
             output.WriteLine($"Fase C — tentativa de rollback pos-expiracao: status={analysisC.Status}, reasons=[{string.Join(", ", analysisC.Reasons)}]");
@@ -271,10 +269,10 @@ public sealed class RecoveryHomologationE2EIntegrationTests(ITestOutputHelper ou
             var profileStoreD = new InMemoryWriteVerificationProfileStore();
             var indexD = new InMemoryRecoveryIndexStore();
             var writeAuditD = new InMemoryWriteExecutionAuditStore();
-            using var dbD = NewInMemoryDb();
+            var dbDRoot = NewGovernanceRoot();
             var clockD = new FixedTimeProvider(DateTimeOffset.UtcNow);
             var forwardAdapterD = new RecoveryHomologationWriteAdapter(configuration, RowId, Depois);
-            var (orchestratorD, _) = BuildOrchestrator(forwardAdapterD, dbD, profileStoreD, indexD, writeAuditD, writer, clockD);
+            var (orchestratorD, _) = BuildOrchestrator(forwardAdapterD, dbDRoot, profileStoreD, indexD, writeAuditD, writer, clockD);
 
             var requestD = Request("REQ-HOMOLOG-CONCORRENCIA");
             var grantD = GrantFor(requestD.Context, clockD.GetUtcNow());
@@ -288,8 +286,8 @@ public sealed class RecoveryHomologationE2EIntegrationTests(ITestOutputHelper ou
             await AdminSetValorAsync(connectionString, RowId, terceiro);
             output.WriteLine($"Concorrencia — alteracao simulada de terceiro: VALOR={terceiro}.");
 
-            using var dbRollbackD = NewInMemoryDb();
-            var rollbackOrchestratorD = BuildRollbackOrchestrator(indexD, writer, profileStoreD, writeAuditD, dbRollbackD, clockD,
+            var dbRollbackDRoot = NewGovernanceRoot();
+            var rollbackOrchestratorD = BuildRollbackOrchestrator(indexD, writer, profileStoreD, writeAuditD, dbRollbackDRoot, clockD,
                 new RecoveryHomologationWriteAdapter(configuration, RowId, targetValue: null));
             var analysisD = await rollbackOrchestratorD.AnalyzeAsync(executionIdD, new RecoveryHomologationWriteAdapter(configuration, RowId, targetValue: null));
             output.WriteLine($"Concorrencia — analise: status={analysisD.Status}, reasons=[{string.Join(", ", analysisD.Reasons)}]");
@@ -308,6 +306,11 @@ public sealed class RecoveryHomologationE2EIntegrationTests(ITestOutputHelper ou
         {
             await DropTableAsync(connectionString);
             output.WriteLine($"Limpeza final: tabela {Table} removida de SOMA_DESENV (se existia).");
+            foreach (var root in GovernanceRoots)
+            {
+                try { if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }
+                catch (IOException) { /* best-effort cleanup */ }
+            }
         }
     }
 
@@ -353,15 +356,15 @@ public sealed class RecoveryHomologationE2EIntegrationTests(ITestOutputHelper ou
 
     private static (GovernedWriteExecutionOrchestrator Orchestrator, IApprovalStore ApprovalStore) BuildOrchestrator(
         IWriteExecutionAdapter adapter,
-        BlueprintOSDbContext db,
+        string governanceRoot,
         IWriteVerificationProfileStore profileStore,
         IRecoveryIndexStore index,
         IWriteExecutionAuditStore writeAudit,
         IRecoveryPackageWriter recoveryWriter,
         TimeProvider clock)
     {
-        var governanceAudit = new EfGovernanceAuditStore(db);
-        var approvals = new EfApprovalStore(db);
+        var governanceAudit = new FileGovernanceAuditStore(governanceRoot);
+        var approvals = new FileApprovalStore(governanceRoot);
         var gateway = new ToolGateway([adapter], new ApprovalPolicy(), governanceAudit, clock);
         var stack = new GovernedWriteStack(new StructuredActionProposalAdapter(), new AIGovernancePolicyEngine(), approvals, governanceAudit, gateway, clock);
         var orchestrator = new GovernedWriteExecutionOrchestrator(
@@ -375,12 +378,12 @@ public sealed class RecoveryHomologationE2EIntegrationTests(ITestOutputHelper ou
         IRecoveryPackageWriter writer,
         IWriteVerificationProfileStore profileStore,
         IWriteExecutionAuditStore writeAudit,
-        BlueprintOSDbContext db,
+        string governanceRoot,
         TimeProvider clock,
         IWriteExecutionAdapter rollbackWriteAdapter)
     {
-        var governanceAudit = new EfGovernanceAuditStore(db);
-        var approvals = new EfApprovalStore(db);
+        var governanceAudit = new FileGovernanceAuditStore(governanceRoot);
+        var approvals = new FileApprovalStore(governanceRoot);
         var rollbackAudit = new InMemoryRollbackAuditStore();
         var gateway = new ToolGateway([rollbackWriteAdapter], new ApprovalPolicy(), governanceAudit, clock);
 
@@ -389,8 +392,14 @@ public sealed class RecoveryHomologationE2EIntegrationTests(ITestOutputHelper ou
             approvals, gateway, profileStore, rollbackAudit, writeAudit, governanceAudit, clock);
     }
 
-    private static BlueprintOSDbContext NewInMemoryDb() => new(new DbContextOptionsBuilder<BlueprintOSDbContext>()
-        .UseInMemoryDatabase($"recovery-homologation-e2e-{Guid.NewGuid():N}").Options);
+    private static readonly List<string> GovernanceRoots = [];
+
+    private static string NewGovernanceRoot()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "blueprintos-governance-tests", Guid.NewGuid().ToString("N"));
+        GovernanceRoots.Add(root);
+        return root;
+    }
 
     private static string FindBackendRoot()
     {

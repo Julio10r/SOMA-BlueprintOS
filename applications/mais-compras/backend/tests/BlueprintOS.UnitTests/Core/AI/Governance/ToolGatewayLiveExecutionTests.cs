@@ -2,9 +2,7 @@ using BlueprintOS.Core.AI.Governance;
 using BlueprintOS.Core.AI.Governance.Contracts;
 using BlueprintOS.Core.AI.Governance.Models;
 using BlueprintOS.Core.AI.Governance.Recovery;
-using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Governance;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintOS.UnitTests.Core.AI.Governance;
 
@@ -215,10 +213,8 @@ public sealed class ToolGatewayLiveExecutionTests
 
     private static async Task<Fixture> CreateFixtureAsync(bool useWriteCapableAdapter = true)
     {
-        var options = new DbContextOptionsBuilder<BlueprintOSDbContext>()
-            .UseInMemoryDatabase($"live-execution-{Guid.NewGuid():N}").Options;
-        var db = new BlueprintOSDbContext(options);
-        var audit = new EfGovernanceAuditStore(db);
+        var root = Path.Combine(Path.GetTempPath(), "blueprintos-governance-tests", Guid.NewGuid().ToString("N"));
+        var audit = new FileGovernanceAuditStore(root);
         var adapter = new FakeWriteExecutionAdapter();
         IGovernedToolAdapter[] adapters = useWriteCapableAdapter ? [adapter] : [new DryRunOnlyAdapter()];
         var gateway = new ToolGateway(adapters, new ApprovalPolicy(), audit, new FixedTimeProvider(Now));
@@ -258,7 +254,7 @@ public sealed class ToolGatewayLiveExecutionTests
     private sealed record Fixture(
         ToolGateway Gateway,
         FakeWriteExecutionAdapter Adapter,
-        EfGovernanceAuditStore Audit,
+        FileGovernanceAuditStore Audit,
         ActionProposal Proposal,
         PolicyDecision Decision,
         ApprovalGrant Grant,

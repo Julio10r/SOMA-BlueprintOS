@@ -2,9 +2,7 @@ using System.Text.Json;
 using BlueprintOS.Core.AI.Governance;
 using BlueprintOS.Core.AI.Governance.Contracts;
 using BlueprintOS.Core.AI.Governance.Models;
-using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Governance;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintOS.UnitTests.Core.AI.Governance;
 
@@ -302,19 +300,16 @@ public sealed class GovernedWriteStackTests
 
     private static Fixture CreateFixture(bool includeReadOnlyAndWiseAdapters = false)
     {
-        var options = new DbContextOptionsBuilder<BlueprintOSDbContext>()
-            .UseInMemoryDatabase($"governed-write-{Guid.NewGuid():N}")
-            .Options;
-        var db = new BlueprintOSDbContext(options);
-        var approvals = new EfApprovalStore(db);
-        var audit = new EfGovernanceAuditStore(db);
+        var root = Path.Combine(Path.GetTempPath(), "blueprintos-governance-tests", Guid.NewGuid().ToString("N"));
+        var approvals = new FileApprovalStore(root);
+        var audit = new FileGovernanceAuditStore(root);
         var clock = new FixedTimeProvider(Now);
         IGovernedToolAdapter[] adapters = includeReadOnlyAndWiseAdapters
             ? [new SomaLinxDryRunAdapter(), new SomaLinxReadOnlyAdapter(), new WiseGovernedAdapter(), new LinxKnowledgeStoreReadOnlyAdapter()]
             : [new SomaLinxDryRunAdapter()];
         var gateway = new ToolGateway(adapters, new ApprovalPolicy(), audit, clock);
         var stack = new GovernedWriteStack(new StructuredActionProposalAdapter(), new AIGovernancePolicyEngine(), approvals, audit, gateway, clock);
-        return new(db, approvals, audit, stack);
+        return new(root, approvals, audit, stack);
     }
 
     private static StructuredActionContext Context(OperationIntent intent, GovernanceEnvironment environment = GovernanceEnvironment.Production) => new(
@@ -354,12 +349,21 @@ public sealed class GovernedWriteStackTests
         Now.AddMinutes(30), "specific proposal", null, null);
 
     private sealed record Fixture(
-        BlueprintOSDbContext Db,
-        EfApprovalStore Approvals,
-        EfGovernanceAuditStore Audit,
+        string RootDirectory,
+        FileApprovalStore Approvals,
+        FileGovernanceAuditStore Audit,
         GovernedWriteStack Stack) : IAsyncDisposable
     {
-        public ValueTask DisposeAsync() => Db.DisposeAsync();
+        public ValueTask DisposeAsync()
+        {
+            try
+            {
+                if (Directory.Exists(RootDirectory)) Directory.Delete(RootDirectory, recursive: true);
+            }
+            catch (IOException) { /* best-effort cleanup */ }
+
+            return ValueTask.CompletedTask;
+        }
     }
 
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider

@@ -2,9 +2,7 @@ using BlueprintOS.Core.AI.Governance;
 using BlueprintOS.Core.AI.Governance.Contracts;
 using BlueprintOS.Core.AI.Governance.Models;
 using BlueprintOS.Core.AI.Governance.Recovery;
-using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Governance;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintOS.UnitTests.Core.AI.Governance;
 
@@ -299,12 +297,12 @@ public sealed class RollbackOrchestratorTests : IDisposable
             new PostWriteValidationRuleCatalog(),
             new AIGovernancePolicyEngine(),
             new ApprovalPolicy(),
-            new EfApprovalStore(NewDb()),
-            new ToolGateway([new FakeRollbackWriteAdapter()], new ApprovalPolicy(), new EfGovernanceAuditStore(NewDb()), new FixedTimeProvider(Now)),
+            new FileApprovalStore(NewGovernanceRoot()),
+            new ToolGateway([new FakeRollbackWriteAdapter()], new ApprovalPolicy(), new FileGovernanceAuditStore(NewGovernanceRoot()), new FixedTimeProvider(Now)),
             new InMemoryWriteVerificationProfileStore(),
             new InMemoryRollbackAuditStore(),
             new InMemoryWriteExecutionAuditStore(),
-            new EfGovernanceAuditStore(NewDb()),
+            new FileGovernanceAuditStore(NewGovernanceRoot()),
             new FixedTimeProvider(Now));
 
         var byId = await coldOrchestrator.DiscoverAsync(new RecoveryIndexQuery { ExecutionId = executionId });
@@ -329,8 +327,7 @@ public sealed class RollbackOrchestratorTests : IDisposable
     private static Task<RollbackExecutionResult> ExecuteAsync(Fixture fixture, RollbackSafetyAnalysis analysis, RollbackConfirmation confirmation) =>
         fixture.Orchestrator.ExecuteAsync(analysis, confirmation, fixture.Snapshots, fixture.WriteAdapter, fixture.Approve);
 
-    private BlueprintOSDbContext NewDb() => new(new DbContextOptionsBuilder<BlueprintOSDbContext>()
-        .UseInMemoryDatabase($"rollback-{Guid.NewGuid():N}").Options);
+    private string NewGovernanceRoot() => Path.Combine(_root, "governance", Guid.NewGuid().ToString("N"));
 
     private async Task<Fixture> CreateFixtureAsync(
         int extraExecutions = 0,
@@ -339,13 +336,13 @@ public sealed class RollbackOrchestratorTests : IDisposable
         bool rollbackSupported = true,
         string? indexChecksumOverride = null)
     {
-        var db = NewDb();
+        var governanceRoot = NewGovernanceRoot();
         var clock = new FixedTimeProvider(Now);
         var writer = new RecoveryPackageWriter(_root);
         var index = new InMemoryRecoveryIndexStore();
         var snapshots = new FakeSnapshotSource();
         var writeAdapter = new FakeRollbackWriteAdapter(snapshots);
-        var governanceAudit = new EfGovernanceAuditStore(db);
+        var governanceAudit = new FileGovernanceAuditStore(governanceRoot);
         var rollbackAudit = new InMemoryRollbackAuditStore();
         var writeAudit = new InMemoryWriteExecutionAuditStore();
         var gateway = new ToolGateway([writeAdapter], new ApprovalPolicy(), governanceAudit, clock);
@@ -362,7 +359,7 @@ public sealed class RollbackOrchestratorTests : IDisposable
 
         var orchestrator = new RollbackOrchestrator(
             index, writer, new PostWriteValidationRuleCatalog(), new AIGovernancePolicyEngine(), new ApprovalPolicy(),
-            new EfApprovalStore(db), gateway, new InMemoryWriteVerificationProfileStore(), rollbackAudit, writeAudit,
+            new FileApprovalStore(governanceRoot), gateway, new InMemoryWriteVerificationProfileStore(), rollbackAudit, writeAudit,
             governanceAudit, clock);
 
         return new(orchestrator, index, snapshots, writeAdapter, rollbackAudit, writeAudit, executionId, packagePath);

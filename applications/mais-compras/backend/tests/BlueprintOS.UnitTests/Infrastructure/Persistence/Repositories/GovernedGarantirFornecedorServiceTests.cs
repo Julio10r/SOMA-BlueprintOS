@@ -101,12 +101,10 @@ public sealed class GovernedGarantirFornecedorServiceTests : IDisposable
 
     private Fixture CreateFixture()
     {
-        var options = new DbContextOptionsBuilder<BlueprintOSDbContext>()
-            .UseInMemoryDatabase($"garantir-governed-{Guid.NewGuid():N}").Options;
-        var db = new BlueprintOSDbContext(options);
+                var governanceRoot = Path.Combine(_root, "governance");
         var clock = new FixedTimeProvider(Now);
-        var audit = new EfGovernanceAuditStore(db);
-        var approvals = new EfApprovalStore(db);
+        var audit = new FileGovernanceAuditStore(governanceRoot);
+        var approvals = new FileApprovalStore(governanceRoot);
         var index = new InMemoryRecoveryIndexStore();
         var erp = new FakeErpAdapter();
         var snapshots = new FakeSnapshotSource();
