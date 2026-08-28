@@ -92,30 +92,50 @@ Enforced nesta onda:
 - DI dos componentes de governanca;
 - `SecurityLgpdAgent` registrado como agent consultivo.
 
-Ainda documental ou planejado:
+Ainda documental ou planejado (Showcase/WISE, ver Onda 2 abaixo para o que ja deixou de ser planejado):
 
-- Tool Gateway universal;
-- persistencia de approvals/auditoria em banco;
-- UI de aprovacao humana;
-- migracao dos scripts Linx/WISE e Showcase;
-- interceptacao de MCP/pyodbc/manual SQL;
+- Tool Gateway universal para todos os Agents (Linx ERP/Banco ja tem `governed-execute` real; Showcase nao tem nenhum adapter real ainda por nao existir codigo de acesso real ao Showcase);
+- UI de aprovacao humana (hoje a aprovacao e via CLI, nao via UI web);
+- migracao completa dos scripts WISE/Showcase para o mesmo host `governed-execute`;
+- interceptacao de MCP/pyodbc/manual SQL fora do escopo Linx PED;
 - classificacao campo-a-campo automatica de PII;
 - DLP de prompts/logs/exportacoes.
 
+## Onda 2 — `governed-execute` (Execucao Real Persistida, 2026-08-28)
+
+Status: implementado, homologado em SOMA_DESENV e executado de verdade em producao (SOMA, 192.168.9.200) — 77 ajustes de grade PED, zero rollback, zero bypass, volume conservado (15.240=15.240).
+
+O que a Onda 2 fechou, que a Onda 1 deixava como planejado:
+
+- **Persistencia real de `ApprovalGrant`/`GovernanceAuditEntry`**: nao e mais em memoria. E file-based, raiz `<repository-root>/runtime/{backups,governance}/`, organizada por `<agent-id>/<database>/...` com o database real validado (nunca inferido do nome do connection profile) — ver `RuntimeRootLocator`/`GovernanceDatabaseResolver` (`applications/mais-compras/backend/src/BlueprintOS.Infrastructure/Persistence/Governance/`).
+- **Host de execucao real e invocavel**: `governed-execute` CLI (`applications/mais-compras/backend/src/BlueprintOS.Api/Governance/GovernedExecuteCliHandler.cs`), modos `propose`/`approve`/`run`/`rollback-plan`/`rollback`/`cleanup`. `governed-plan` (handler mais antigo) continua sendo so dry-run/in-memory, nunca executa de verdade — os dois nao devem ser confundidos.
+- **Recovery Package sempre ANTES do write**, nunca depois. Formato de item unico e formato batch v2 com chunking (`BatchRecoveryPackageWriter`, manifest+items-index+chunks numerados com checksum por chunk) para operacoes multi-item, sem forcar sempre-um-por-item.
+- **Post-Write Validation conhecida ANTES do write**: toda escrita governada precisa da regra de conferencia definida previamente; a ausencia disso e Knowledge Gap, nunca resolvido por suposicao.
+- **Rollback nunca automatico**: `BatchRollbackOrchestrator` sempre exige nova aprovacao (a aprovacao da execucao original nunca autoriza rollback), com deteccao de concorrencia por item (inclusive em lote) que bloqueia rollback incompativel. Rollback = restaurar o estado anterior registrado no Recovery Package, nunca "SQL inverso" adivinhado.
+- **Timezone canonico America/Sao_Paulo** (offset -03:00 explicito) para todo artefato novo persistido pelo `governed-execute`, via `BrazilTimeZoneProvider`/`SaoPauloTimeProvider` — nunca retroativo a artefatos historicos.
+- **Retencao e cleanup**: Recovery Package expira conforme o `WriteVerificationProfile` (SOMA PROD = 30 dias); `governed-execute cleanup` e um modo real e invocavel do `RecoveryRetentionCleanupService` que remove o pacote fisico mas preserva Governance Audit e Recovery Index (marcado Expired) — limitacao conhecida e por design: nao ha agendador de SO embutido, precisa ser chamado externamente (cron/Task Scheduler).
+- **Limitacao conhecida e por design do batch rollback**: nao suporta operacoes mistas (tipos de operacao diferentes) num unico lote.
+- **Regra de ambiente ja existente, so referenciada aqui**: DEV homologa mecanismo, PROD determina estado real — ver `agents/DATABASE_CONNECTION_POLICY.md`.
+- **Agents nunca executam SQL direto quando a capability governada estiver ausente** — isso e Capability Gap, deve ser identificado explicitamente, nunca contornado.
+
+### Aprendizado funcional desta execucao (PED/grade) — mecanismo generalizavel, numeros nao
+
+A alteracao de `PRODUTOS.GRADE` de um produto para outro codigo de grade e apenas cadastral: ela **nao** realinha automaticamente os dados ja existentes em `COMPRAS_PRODUTO`. A escrita de PED usa quantidade final absoluta por posicao (nao delta, ver `agents/linx-database-specialist-agent/agent.yaml` para a diferenca de semantica entre os mecanismos PROG/OP/PED), entao a correcao acontece em uma unica operacao atomica dentro do `governed-execute run`. Isso e uma caracteristica do **mecanismo**, generalizavel a qualquer ajuste de grade PED futuro. Os numeros desta execucao especifica — 77 itens, 15.240 registros, posicoes 34-44 — sao **evidencia deste caso**, nao regra universal; nao assumir os mesmos numeros, posicoes ou volume em uma proxima execucao.
+
 ## Relacao com Agents Existentes
 
-- Agent Linx continua especialista de conhecimento. `LinxDatabaseSpecialistAgent` nao vira executor SQL.
-- WISE Agent continua somente leitura por padrao; escrita real segue o runbook diario ou fluxo futuro governado.
+- Agent Linx ERP e Agent Linx Banco tem capability real de escrita governada e persistida (`ped-grade-adjustment-write` / `soma-database-write-proposal`) via `governed-execute`, homologada e ja usada em producao. `LinxDatabaseSpecialistAgent` continua nao sendo um executor SQL arbitrario — toda escrita passa pelo Motor de Politicas, aprovacao, Recovery Package e Gateway.
+- WISE Agent continua somente leitura por padrao; escrita real segue o runbook diario ou fluxo futuro governado (ainda documental/`DOCUMENTAL`, nao `ENFORCED`).
 - Showcase Agent continua somente leitura na API; exportacoes locais podem virar `ActionProposal` quando houver risco comercial/PII.
 - Runtime agents genericos ainda nao passam automaticamente pelo Policy Engine.
 
-## Roadmap para Tool Gateway
+## Roadmap (atualizado apos Onda 2)
 
-1. Persistir `ActionProposal`, `ApprovalRequest`, `ApprovalGrant` e `GovernanceAuditEntry`.
-2. Criar endpoint/API de aprovacao com RBAC.
-3. Criar `IToolGateway` obrigatorio para tools agent-driven.
-4. Envolver primeiro o fluxo Linx/WISE de escrita em adapter governado.
-5. Adicionar politica configuravel por runbook.
-6. Adicionar classificacao explicita de dados por recurso/campo.
-7. Integrar redacao/mascaramento para logs, prompts e exportacoes.
+1. ~~Persistir `ActionProposal`, `ApprovalRequest`, `ApprovalGrant` e `GovernanceAuditEntry`~~ — feito (file-based) para a capability PED grade adjustment.
+2. Criar endpoint/API de aprovacao com RBAC e UI de aprovacao humana (hoje via CLI).
+3. Estender `governed-execute` (ou equivalente) para as demais capabilities/Agents (WISE, Showcase) quando existir codigo de acesso real a governar.
+4. Adicionar politica configuravel por runbook.
+5. Adicionar classificacao explicita de dados por recurso/campo.
+6. Integrar redacao/mascaramento para logs, prompts e exportacoes.
+7. Agendador de SO para `governed-execute cleanup` (hoje precisa ser chamado externamente).
 
