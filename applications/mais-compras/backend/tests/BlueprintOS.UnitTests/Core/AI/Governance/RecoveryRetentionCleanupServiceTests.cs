@@ -88,6 +88,76 @@ public sealed class RecoveryRetentionCleanupServiceTests : IDisposable
         Assert.Equal(1, (await fixture.Service.RunOnceAsync(CreatedAt.AddDays(30))).Expired);
     }
 
+    [Fact]
+    public async Task Batch_Format_Package_Is_Expired_The_Same_Way_As_Single_Item_Format()
+    {
+        // The cleanup service is format-agnostic: RecoveryPackageWriter.DeletePackageAsync/PackageExists are
+        // plain directory operations that do not know or care whether the directory holds the old single-item
+        // layout or the new batch/chunked one. Proven here directly against a real batch package, indexed the
+        // way item 5 documents (one RecoveryIndexEntry per batch, keyed by BatchExecutionId, BusinessKeys
+        // carrying every item's key so a business-key search still finds it).
+        var batchWriter = new BatchRecoveryPackageWriter(_root);
+        var recoveryWriter = new RecoveryPackageWriter(_root);
+        var index = new InMemoryRecoveryIndexStore();
+        var batchExecutionId = Guid.NewGuid();
+        var expiresAt = CreatedAt.AddDays(30);
+
+        var manifest = new BatchRecoveryPackageManifest
+        {
+            BatchExecutionId = batchExecutionId,
+            ExecutionName = "ajuste-grade-lote",
+            AgentId = "linx-database-specialist-agent",
+            Capability = "ped-grade-adjustment-write",
+            ConnectionProfile = WriteVerificationProfileSeeds.LinxDevelopment,
+            Server = "192.168.9.98",
+            Database = "SOMA_DESENV",
+            ExecutedAt = CreatedAt,
+            Requester = "subject-requester-001",
+            Origin = "governed-execute batch-run",
+            OriginalRequestSummary = "Ajuste de grade em lote (teste de retencao).",
+            OperationTypes = [ActionOperation.Update],
+            TablesAffected = ["COMPRAS_PRODUTO"],
+            TotalItems = 0,
+            ChunkCount = 0,
+            MaxItemsPerChunk = 0,
+            MaxChunkSizeBytes = 0,
+            BackupRequired = true,
+            RollbackSupported = true,
+            RetentionDays = 30,
+            ExpiresAt = expiresAt,
+            ValidationRuleId = "ped-grade-adjustment.v1",
+            ProposalHash = new string('b', 64),
+            Status = BatchStatus.Active,
+            ChunkBeforeDataChecksumsSha256 = new Dictionary<int, string>(),
+        };
+
+        var items = new[] { "produto-0001", "produto-0002" }.Select(key => new BatchRecoveryItem(
+            key, "COMPRAS_PRODUTO",
+            new RecoveryDataSet("COMPRAS_PRODUTO", [new Dictionary<string, string?> { ["ID_PRODUTO"] = key, ["GRADE"] = "A" }]),
+            new RecoveryDataSet("COMPRAS_PRODUTO", [new Dictionary<string, string?> { ["ID_PRODUTO"] = key, ["GRADE"] = "B" }]))).ToArray();
+
+        var receipt = await batchWriter.CreateBatchAsync(manifest, items);
+
+        await index.AppendAsync(new RecoveryIndexEntry(
+            batchExecutionId, manifest.ExecutionName, manifest.AgentId, manifest.ConnectionProfile, manifest.Server,
+            manifest.Database, manifest.ExecutedAt, manifest.Requester, manifest.OperationTypes, manifest.TablesAffected,
+            items.Select(i => i.BusinessKey).ToArray(), items.Length, true, true, 30, expiresAt,
+            receipt.PackagePath, receipt.ManifestChecksumSha256, RecoveryPackageStatus.Active,
+            manifest.ProposalHash, manifest.ValidationRuleId));
+
+        var service = new RecoveryRetentionCleanupService(index, recoveryWriter);
+        var report = await service.RunOnceAsync(expiresAt.AddSeconds(1));
+
+        Assert.Equal(1, report.Expired);
+        Assert.False(Directory.Exists(receipt.PackagePath));
+        var entry = Assert.Single(await index.FindAsync(new RecoveryIndexQuery { ExecutionId = batchExecutionId }));
+        Assert.Equal(RecoveryPackageStatus.Expired, entry.Status);
+
+        // Business-key search still locates the batch after expiry — only the physical files are gone.
+        var byBusinessKey = await index.FindAsync(new RecoveryIndexQuery { BusinessKey = "produto-0002" });
+        Assert.Single(byBusinessKey);
+    }
+
     private async Task<Fixture> CreateFixtureAsync()
     {
         var writer = new RecoveryPackageWriter(_root);

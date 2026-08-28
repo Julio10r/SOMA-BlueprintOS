@@ -84,7 +84,8 @@ public static class GovernedExecuteCliHandler
                 "run" => await RunExecuteAsync(input, output, configuration, governanceRoot, backupsRoot, cancellationToken),
                 "rollback-plan" => await RollbackPlanAsync(input, output, configuration, governanceRoot, backupsRoot, cancellationToken),
                 "rollback" => await RollbackAsync(input, output, configuration, governanceRoot, backupsRoot, cancellationToken),
-                _ => await WriteErrorAsync(output, "UNKNOWN_MODE", $"Modo desconhecido: '{mode}'. Use propose, approve, run, rollback-plan ou rollback."),
+                "cleanup" => await CleanupAsync(output, governanceRoot, backupsRoot, cancellationToken),
+                _ => await WriteErrorAsync(output, "UNKNOWN_MODE", $"Modo desconhecido: '{mode}'. Use propose, approve, run, rollback-plan, rollback ou cleanup."),
             };
         }
         catch (JsonException ex)
@@ -450,6 +451,64 @@ public static class GovernedExecuteCliHandler
     // Shared wiring — every store below is the same File* implementation AddGovernedWriteStack registers,
     // rooted at the same configurable directory. No In-Memory store is ever used on this path.
     // =========================================================================================================
+
+    // =========================================================================================================
+    // cleanup — the REAL, invocable side of retention: this is the mechanism, not just RecoveryRetentionCleanupService
+    // proven manually in a unit test. There is no in-process scheduler here (no Quartz.NET or similar was added,
+    // per instruction — this project runs both as a short-lived CLI and, separately, as a long-lived Web host,
+    // and adding a new scheduling dependency for one nightly sweep is not justified). Honest limitation: this
+    // command must be invoked periodically by something OUTSIDE this process — an OS-level scheduler (cron on
+    // Linux/macOS, Task Scheduler on Windows) calling
+    // `dotnet BlueprintOS.Api.dll governed-execute cleanup` once a day. That external trigger is NOT configured
+    // by this change (no crontab entry is installed here) — the operator wires it up. What IS real: the command
+    // itself performs the actual, non-simulated sweep (using SaoPauloTimeProvider.Instance — the real wall
+    // clock — as `now`), across every database partition under Governance:RuntimeRoot, and reuses
+    // RecoveryPackageWriter.DeletePackageAsync/PackageExists for both the old single-item format and the new
+    // batch format — both are plain "the package is one directory" operations, so nothing here treats the two
+    // formats differently.
+    // =========================================================================================================
+
+    private static async Task<int> CleanupAsync(TextWriter output, string governanceRoot, string backupsRoot, CancellationToken cancellationToken)
+    {
+        var now = SaoPauloTimeProvider.Instance.GetUtcNow();
+        var recoveryWriter = new RecoveryPackageWriter(backupsRoot);
+        var perDatabase = new List<object>();
+        var totalInspected = 0;
+        var totalExpired = 0;
+
+        if (Directory.Exists(governanceRoot))
+        {
+            foreach (var databaseDir in Directory.GetDirectories(governanceRoot).OrderBy(d => d, StringComparer.Ordinal))
+            {
+                var database = Path.GetFileName(databaseDir);
+                var index = new FileRecoveryIndexStore(databaseDir);
+                var service = new RecoveryRetentionCleanupService(index, recoveryWriter);
+                var report = await service.RunOnceAsync(now, cancellationToken);
+
+                totalInspected += report.Inspected;
+                totalExpired += report.Expired;
+                perDatabase.Add(new
+                {
+                    database,
+                    inspected = report.Inspected,
+                    expired = report.Expired,
+                    expiredExecutionIds = report.ExpiredExecutionIds,
+                    errors = report.Errors,
+                });
+            }
+        }
+
+        await WriteAsync(output, new
+        {
+            ranAt = now,
+            governanceRoot,
+            backupsRoot,
+            totalInspected,
+            totalExpired,
+            perDatabase,
+        });
+        return 0;
+    }
 
     private static GovernedWriteStack BuildWriteStack(string governanceRoot)
     {
