@@ -1,0 +1,11 @@
+{
+  "status": "OK",
+  "source": "FN_CONSULTA_SALDO_WEB_WISE('%','%',NULL,NULL)",
+  "id_campanha": 54,
+  "approved_product_colors": 386,
+  "expected_count": 386,
+  "missing_expected": 0,
+  "pre_to_update": 288,
+  "updated_rowcount": 288,
+  "post_mismatches": 0
+}

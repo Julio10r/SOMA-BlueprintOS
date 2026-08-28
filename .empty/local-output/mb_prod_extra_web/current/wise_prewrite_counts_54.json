@@ -1,0 +1,13 @@
+{
+  "id_campanha": 54,
+  "environment": {
+    "servidor": "SRV-SOMADB",
+    "banco": "SOMA"
+  },
+  "spreadsheet_product_colors": 446,
+  "approved_product_colors": 386,
+  "sem_dl_product_colors": 60,
+  "expected_rows_from_fn": 386,
+  "remote_existing_expected_rows": 386,
+  "remote_missing_expected_rows": 0
+}

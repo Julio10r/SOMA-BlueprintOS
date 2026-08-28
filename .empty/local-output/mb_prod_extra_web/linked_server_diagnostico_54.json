@@ -1,0 +1,645 @@
+{
+  "server": "SRV-SOMADB",
+  "database": "SOMA",
+  "id_campanha": "54",
+  "keys": 446,
+  "linked_server": [
+    {
+      "name": "WISE_AZURE",
+      "product": "SQLSERVER",
+      "provider": "SQLNCLI",
+      "data_source": "compuwise-soma.database.windows.net",
+      "is_linked": true,
+      "is_remote_login_enabled": true,
+      "is_rpc_out_enabled": true,
+      "is_data_access_enabled": true,
+      "is_remote_proc_transaction_promotion_enabled": true,
+      "modify_date": "2026-03-30 19:20:21.487000"
+    }
+  ],
+  "remote_existing_matching_keys": 375,
+  "remote_duplicate_keys": [],
+  "remote_columns": [
+    {
+      "COLUMN_NAME": "ID_CAMPANHA",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "PRODUTO",
+      "DATA_TYPE": "char",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": 12,
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "COR_PRODUTO",
+      "DATA_TYPE": "char",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": 10,
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "FILIAL",
+      "DATA_TYPE": "varchar",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": 25,
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "CUSTO_MEDIO1",
+      "DATA_TYPE": "numeric",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 15,
+      "NUMERIC_SCALE": 5,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "CUSTO_MEDIO2",
+      "DATA_TYPE": "numeric",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 15,
+      "NUMERIC_SCALE": 5,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "CUSTO_MEDIO3",
+      "DATA_TYPE": "numeric",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 15,
+      "NUMERIC_SCALE": 5,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "CUSTO_MEDIO4",
+      "DATA_TYPE": "numeric",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 15,
+      "NUMERIC_SCALE": 5,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ULTIMO_CUSTO1",
+      "DATA_TYPE": "numeric",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 15,
+      "NUMERIC_SCALE": 5,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ULTIMO_CUSTO2",
+      "DATA_TYPE": "numeric",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 15,
+      "NUMERIC_SCALE": 5,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ULTIMO_CUSTO3",
+      "DATA_TYPE": "numeric",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 15,
+      "NUMERIC_SCALE": 5,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ULTIMO_CUSTO4",
+      "DATA_TYPE": "numeric",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 15,
+      "NUMERIC_SCALE": 5,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "DATA_CUSTO_MEDIO",
+      "DATA_TYPE": "datetime",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "DATA_ULT_CUSTO",
+      "DATA_TYPE": "datetime",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ULTIMA_SAIDA",
+      "DATA_TYPE": "datetime",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ULTIMA_ENTRADA",
+      "DATA_TYPE": "datetime",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ESTOQUE",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES1",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES2",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES3",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES4",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES5",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES6",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES7",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES8",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES9",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES10",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES11",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES12",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES13",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES14",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES15",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES16",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES17",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES18",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES19",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES20",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES21",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES22",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES23",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES24",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES25",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES26",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES27",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES28",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES29",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES30",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES31",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES32",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES33",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES34",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES35",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES36",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES37",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES38",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES39",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES40",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES41",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES42",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES43",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES44",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES45",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES46",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES47",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "ES48",
+      "DATA_TYPE": "int",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": 10,
+      "NUMERIC_SCALE": 0,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "DATA_PARA_TRANSFERENCIA",
+      "DATA_TYPE": "datetime",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "LIBERAR_GRADE_WEB",
+      "DATA_TYPE": "bit",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "DT_INTEGRACAO",
+      "DATA_TYPE": "smalldatetime",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "COLUMN_DEFAULT": null
+    },
+    {
+      "COLUMN_NAME": "DT_EXCLUSAO",
+      "DATA_TYPE": "smalldatetime",
+      "IS_NULLABLE": "YES",
+      "CHARACTER_MAXIMUM_LENGTH": null,
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "COLUMN_DEFAULT": null
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "executed_at": "2026-08-24T15:48:10",
+  "input_workbook": "/Users/juliocesar/Downloads/20260821 - Carga Wise AV27 - Versão 1.1.xlsx",
+  "processed_workbook": ".ai/local-output/mb_prod_extra_web/current/20260821 - Carga Wise AV27 - Versao 1.1 - processada-campanha-54-20260824-154810.xlsx",
+  "campaign": 54,
+  "environment": {
+    "server": "SRV-SOMADB",
+    "database": "SOMA"
+  },
+  "spreadsheet": {
+    "sheet": "Planilha1",
+    "rows": 446,
+    "products": 417,
+    "product_colors": 446
+  },
+  "linx": {
+    "missing_products": 0,
+    "missing_product_colors": 0,
+    "products_without_dl": 0,
+    "product_colors_without_dl": 0,
+    "mb_prod_extra_web": {
+      "updated": 0,
+      "inserted": 0,
+      "validation_errors": 0
+    },
+    "envia_atacado_internet_updated": 0
+  },
+  "wise": {
+    "expected_stock_rows": 446,
+    "missing_expected_before_write": 0,
+    "divergent_or_inactive_expected_before_write": 0,
+    "inactivated_outside_spreadsheet": 537,
+    "active_outside_spreadsheet_after_write": 0,
+    "note": "Consulta final confirmada: 446 registros ativos na campanha 54, exatamente o total de produto/cores da planilha.",
+    "active_total_campaign_after_write": 446
+  },
+  "safety": {
+    "delete_executed": false,
+    "truncate_executed": false,
+    "legacy_procedure_executed": false,
+    "produtos_precos_written": false,
+    "mb_total_written": false
+  },
+  "artifacts": {
+    "integrados_csv": ".ai/local-output/mb_prod_extra_web/current/integrados_campanha_54_20260824-154810.csv"
+  }
+}

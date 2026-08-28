@@ -1,0 +1,10 @@
+{
+  "restored_eligible_dt_exclusao_null_rowcount": 63,
+  "checks": {
+    "expected": 386,
+    "expected_with_active_remote": 386,
+    "expected_with_only_excluded_remote": 0,
+    "remote_campaign54_active": 386,
+    "remote_campaign54_excluded": 597
+  }
+}

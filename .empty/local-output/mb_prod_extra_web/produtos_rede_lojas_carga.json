@@ -1,0 +1,151 @@
+{
+  "rede_lojas_distribution": [
+    {
+      "REDE_LOJAS": "2     ",
+      "produtos": 362,
+      "linhas": 386
+    }
+  ],
+  "sample": [
+    {
+      "PRODUTO": "367234",
+      "COR_PRODUTO": "07742",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "BLUSA                    ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "367234",
+      "COR_PRODUTO": "07748",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "BLUSA                    ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "367846",
+      "COR_PRODUTO": "07448",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "CALÇA",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "367847",
+      "COR_PRODUTO": "07448",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "AGASALHO",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "368530",
+      "COR_PRODUTO": "10066",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "VESTIDO                  ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "368531",
+      "COR_PRODUTO": "10066",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "SAIA                     ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "368537",
+      "COR_PRODUTO": "58302",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "VESTIDO                  ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "371830",
+      "COR_PRODUTO": "07742",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "VESTIDO                  ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "371830",
+      "COR_PRODUTO": "09269",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "VESTIDO                  ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "371832",
+      "COR_PRODUTO": "07448",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "VESTIDO                  ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "371833",
+      "COR_PRODUTO": "0013",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "VESTIDO                  ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "371833",
+      "COR_PRODUTO": "05052",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "VESTIDO                  ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "371834",
+      "COR_PRODUTO": "04097",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "VESTIDO                  ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "371834",
+      "COR_PRODUTO": "07448",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "VESTIDO                  ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "371846",
+      "COR_PRODUTO": "07448",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "VESTIDO                  ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "371848",
+      "COR_PRODUTO": "07448",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "VESTIDO                  ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "371848",
+      "COR_PRODUTO": "07742",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "VESTIDO                  ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "371850",
+      "COR_PRODUTO": "7122",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "VESTIDO                  ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "371860",
+      "COR_PRODUTO": "0013",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "MACACAO                  ",
+      "ENVIA_ATACADO_INTERNET": true
+    },
+    {
+      "PRODUTO": "371863",
+      "COR_PRODUTO": "05024",
+      "REDE_LOJAS": "2     ",
+      "GRUPO_PRODUTO": "CALCA                    ",
+      "ENVIA_ATACADO_INTERNET": true
+    }
+  ]
+}

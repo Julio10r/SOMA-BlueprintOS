@@ -1,0 +1,171 @@
+{
+  "server": "SRV-SOMADB",
+  "database": "SOMA",
+  "procedures": [
+    {
+      "proc": "dbo.PROC_INTEGRACAO_LINX_WISE_TB_AUXILIARES_COM_ESTOQUE",
+      "found": true,
+      "object_id": 2108660934,
+      "create_date": "2018-07-03 17:44:55.630000",
+      "modify_date": "2025-10-21 09:59:23.530000",
+      "params": [
+        {
+          "name": "@TIPO",
+          "type": "int",
+          "max_length": 4,
+          "precision": 10,
+          "scale": 0,
+          "is_output": false
+        }
+      ],
+      "definition_chars": 23147,
+      "delete_tokens": 43,
+      "insert_tokens": 35,
+      "update_tokens": 0,
+      "four_part_names": [
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_CLASSIF_FISCAL"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_COLECOES"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_ESTOQUE_PRODUTOS"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_FORMA_PGTO"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_GS_COLECOES_FRETE_LINXWEB"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_GS_CONDICOES_CIF_LINXWEB"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_GS_CONDICOES_PGTO_LINXWEB"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_GS_DATA_ENTREGA_PEDIDOS_ATAC"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_GS_PERIODO_PCP"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_GS_TB_LIMITE_VALOR_WEB"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_GS_TB_META_REPRE_WEB"
+        ]
+      ]
+    },
+    {
+      "proc": "dbo.PROC_INTEGRACAO_LINX_WISE_PRODUTOS",
+      "found": true,
+      "object_id": 1472087858,
+      "create_date": "2021-10-15 11:35:39.480000",
+      "modify_date": "2021-10-15 11:35:39.480000",
+      "params": [],
+      "definition_chars": 23513,
+      "delete_tokens": 15,
+      "insert_tokens": 26,
+      "update_tokens": 19,
+      "four_part_names": [
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_CLASSIF_FISCAL"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_CORES_BASICAS"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_PRODUTOS"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_PRODUTOS_BARRA"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_PRODUTOS_PRECOS"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_PRODUTOS_TAMANHOS"
+        ],
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_PRODUTO_CORES"
+        ]
+      ]
+    },
+    {
+      "proc": "dbo.PROC_INTEGRACAO_LINX_WISE_ESTOQUE",
+      "found": true,
+      "object_id": 1328383716,
+      "create_date": "2023-01-12 16:45:57.830000",
+      "modify_date": "2024-06-17 13:47:29.117000",
+      "params": [],
+      "definition_chars": 13722,
+      "delete_tokens": 9,
+      "insert_tokens": 7,
+      "update_tokens": 4,
+      "four_part_names": [
+        [
+          "WISE_AZURE",
+          "SOMA_LINX",
+          "DBO",
+          "WS_ESTOQUE_PRODUTOS"
+        ]
+      ]
+    }
+  ]
+}

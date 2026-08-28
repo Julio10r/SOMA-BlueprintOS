@@ -1,0 +1,9 @@
+{
+  "table": "WS_PRODUTOS_PRECOS",
+  "scope": "read-only DL verification",
+  "id_campanha": 54,
+  "expected_dl": 362,
+  "remote_dl": 362,
+  "missing_dl": 0,
+  "divergent_dl": 0
+}

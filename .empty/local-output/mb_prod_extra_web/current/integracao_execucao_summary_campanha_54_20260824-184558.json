@@ -1,0 +1,33 @@
+{
+  "executed_at": "2026-08-24T18:45:58",
+  "campaign": 54,
+  "environment": {
+    "server": "SRV-SOMADB",
+    "database": "SOMA"
+  },
+  "spreadsheet_product_colors": 446,
+  "activity": {
+    "active_after_reconciliation": 446,
+    "inactivated_outside_spreadsheet": 537
+  },
+  "stock": {
+    "expected": 446,
+    "missing": 0,
+    "divergent": 0
+  },
+  "prices_dl": {
+    "missing_remote": 0,
+    "preco1_updated": 362,
+    "preco1_divergent_after_validation": 0
+  },
+  "primary_wise_tables": {
+    "ws_products_missing": 0,
+    "ws_product_colors_missing": 0
+  },
+  "safety": {
+    "delete": false,
+    "truncate": false,
+    "legacy_procedure": false
+  },
+  "processed_workbook": ".ai/local-output/mb_prod_extra_web/current/20260821 - Carga Wise AV27 - Versao 1.1 - processada-campanha-54-20260824-184558.xlsx"
+}

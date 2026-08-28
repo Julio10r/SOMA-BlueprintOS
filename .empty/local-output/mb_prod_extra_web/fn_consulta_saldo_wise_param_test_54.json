@@ -1,0 +1,171 @@
+{
+  "params": [
+    {
+      "name": "@PRODUTO",
+      "type_name": "varchar",
+      "parameter_id": 1
+    },
+    {
+      "name": "@COR_PRODUTO",
+      "type_name": "varchar",
+      "parameter_id": 2
+    },
+    {
+      "name": "@COLECAO",
+      "type_name": "char",
+      "parameter_id": 3
+    },
+    {
+      "name": "@PEDIDO",
+      "type_name": "varchar",
+      "parameter_id": 4
+    }
+  ],
+  "samples": [
+    {
+      "produto": "367234",
+      "cor": "07742",
+      "rows": [
+        {
+          "ID_CAMPANHA": 54,
+          "LIBERAR_GRADE_WEB": 0,
+          "PRODUTO": "367234      ",
+          "COR_PRODUTO": "07742     ",
+          "SALDO_DISPONIVEL": 19,
+          "D1": 4,
+          "D2": 8,
+          "D3": 4,
+          "D4": 2,
+          "D5": 1,
+          "D6": 0,
+          "D7": 0,
+          "D8": 0,
+          "D9": 0,
+          "D10": 0,
+          "D11": 0,
+          "D12": 0,
+          "D13": 0,
+          "D14": 0,
+          "D15": 0,
+          "D16": 0
+        }
+      ]
+    },
+    {
+      "produto": "367234",
+      "cor": "07748",
+      "rows": [
+        {
+          "ID_CAMPANHA": 54,
+          "LIBERAR_GRADE_WEB": 0,
+          "PRODUTO": "367234      ",
+          "COR_PRODUTO": "07748     ",
+          "SALDO_DISPONIVEL": 18,
+          "D1": 4,
+          "D2": 7,
+          "D3": 4,
+          "D4": 2,
+          "D5": 1,
+          "D6": 0,
+          "D7": 0,
+          "D8": 0,
+          "D9": 0,
+          "D10": 0,
+          "D11": 0,
+          "D12": 0,
+          "D13": 0,
+          "D14": 0,
+          "D15": 0,
+          "D16": 0
+        }
+      ]
+    },
+    {
+      "produto": "367846",
+      "cor": "07448",
+      "rows": [
+        {
+          "ID_CAMPANHA": 54,
+          "LIBERAR_GRADE_WEB": 0,
+          "PRODUTO": "367846      ",
+          "COR_PRODUTO": "07448     ",
+          "SALDO_DISPONIVEL": 15,
+          "D1": 2,
+          "D2": 4,
+          "D3": 4,
+          "D4": 3,
+          "D5": 1,
+          "D6": 1,
+          "D7": 0,
+          "D8": 0,
+          "D9": 0,
+          "D10": 0,
+          "D11": 0,
+          "D12": 0,
+          "D13": 0,
+          "D14": 0,
+          "D15": 0,
+          "D16": 0
+        }
+      ]
+    },
+    {
+      "produto": "367847",
+      "cor": "07448",
+      "rows": [
+        {
+          "ID_CAMPANHA": 54,
+          "LIBERAR_GRADE_WEB": 0,
+          "PRODUTO": "367847      ",
+          "COR_PRODUTO": "07448     ",
+          "SALDO_DISPONIVEL": 15,
+          "D1": 4,
+          "D2": 6,
+          "D3": 3,
+          "D4": 1,
+          "D5": 1,
+          "D6": 0,
+          "D7": 0,
+          "D8": 0,
+          "D9": 0,
+          "D10": 0,
+          "D11": 0,
+          "D12": 0,
+          "D13": 0,
+          "D14": 0,
+          "D15": 0,
+          "D16": 0
+        }
+      ]
+    },
+    {
+      "produto": "368530",
+      "cor": "10066",
+      "rows": [
+        {
+          "ID_CAMPANHA": 54,
+          "LIBERAR_GRADE_WEB": 0,
+          "PRODUTO": "368530      ",
+          "COR_PRODUTO": "10066     ",
+          "SALDO_DISPONIVEL": 26,
+          "D1": 6,
+          "D2": 10,
+          "D3": 5,
+          "D4": 3,
+          "D5": 2,
+          "D6": 0,
+          "D7": 0,
+          "D8": 0,
+          "D9": 0,
+          "D10": 0,
+          "D11": 0,
+          "D12": 0,
+          "D13": 0,
+          "D14": 0,
+          "D15": 0,
+          "D16": 0
+        }
+      ]
+    }
+  ]
+}

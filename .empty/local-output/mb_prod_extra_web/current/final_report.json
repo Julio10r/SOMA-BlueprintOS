@@ -1,0 +1,27 @@
+{
+  "data_limite": "2026-08-27",
+  "id_campanha": 54,
+  "rows": 446,
+  "environment": {
+    "servidor": "SRV-SOMADB",
+    "banco": "SOMA"
+  },
+  "missing_products": 0,
+  "missing_product_colors": 0,
+  "mb_updated": 446,
+  "mb_inserted": 0,
+  "envia_atacado_updated": 0,
+  "products_without_dl": 0,
+  "wise_expected_counts": {
+    "aprovados": 446,
+    "expected": 446
+  },
+  "wise_missing_remote_rows": 0,
+  "wise_reactivated": 0,
+  "wise_inactivated": 537,
+  "wise_activity_mismatches": 0,
+  "wise_stock_updated": 446,
+  "wise_post_mismatches": 0,
+  "status": "success",
+  "processed_workbook": "/Users/juliocesar/Projects/SOMA-BlueprintOS/.ai/local-output/mb_prod_extra_web/current/20260827 - Carga Wise AV27 - Vers\u00e3o 3 - normalizada - processada-campanha-54-20260827-132028.xlsx"
+}

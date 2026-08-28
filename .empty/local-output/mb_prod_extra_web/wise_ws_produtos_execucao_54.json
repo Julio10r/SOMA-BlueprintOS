@@ -1,0 +1,10 @@
+{
+  "table": "WS_PRODUTOS",
+  "expected": 362,
+  "updated": 0,
+  "inserted": 0,
+  "ok": 362,
+  "errors": 0,
+  "error_samples": [],
+  "ignored_hardcoded_id_99": true
+}

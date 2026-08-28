@@ -1,0 +1,11 @@
+{
+  "checked_at": "2026-08-27 13:24:16",
+  "environment": {
+    "servidor": "SRV-SOMADB",
+    "banco": "SOMA"
+  },
+  "id_campanha": 54,
+  "distinct_products": 417,
+  "missing_ws_produtos_precos_dl": 0,
+  "preco1_mismatches": 0
+}

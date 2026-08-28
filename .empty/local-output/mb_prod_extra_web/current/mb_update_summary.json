@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-08-24T14:27:00",
+  "environment": {
+    "servidor": "SRV-SOMADB",
+    "banco": "SOMA"
+  },
+  "status": "COMMIT",
+  "rows": 446,
+  "mb_prod_extra_web": {
+    "updated": 0,
+    "inserted": 0,
+    "validated_ok": 446,
+    "validation_errors": 0,
+    "total_never_written": true
+  },
+  "produtos": {
+    "envia_atacado_internet_updated": 0
+  }
+}

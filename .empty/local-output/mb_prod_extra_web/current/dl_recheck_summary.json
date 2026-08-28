@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-08-24T14:39:59",
+  "environment": {
+    "servidor": "SRV-SOMADB",
+    "banco": "SOMA"
+  },
+  "spreadsheet_products": 417,
+  "spreadsheet_product_colors": 446,
+  "products_with_dl": 362,
+  "products_without_dl": 55,
+  "product_colors_without_dl": 60,
+  "status": "AINDA_EXISTEM_PRODUTOS_SEM_DL"
+}

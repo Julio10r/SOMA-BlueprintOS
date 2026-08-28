@@ -1,0 +1,380 @@
+{
+  "status": "PRECHECK_OK",
+  "approved_product_colors": 386,
+  "function_expected": 386,
+  "remote_missing": 0,
+  "to_update": 385,
+  "already_ok": 1,
+  "missing_remote_samples": [],
+  "update_samples": [
+    {
+      "key": {
+        "PRODUTO": "367234",
+        "COR_PRODUTO": "07742"
+      },
+      "diff": [
+        "ESTOQUE",
+        "ES1",
+        "ES2",
+        "ES3",
+        "ES4"
+      ],
+      "expected": {
+        "ID_CAMPANHA": "54",
+        "PRODUTO": "367234",
+        "COR_PRODUTO": "07742",
+        "LIBERAR_GRADE_WEB": 0,
+        "ESTOQUE": 19,
+        "ES1": 4,
+        "ES2": 8,
+        "ES3": 4,
+        "ES4": 2,
+        "ES5": 1,
+        "ES6": 0,
+        "ES7": 0,
+        "ES8": 0,
+        "ES9": 0,
+        "ES10": 0,
+        "ES11": 0,
+        "ES12": 0,
+        "ES13": 0,
+        "ES14": 0,
+        "ES15": 0,
+        "ES16": 0
+      }
+    },
+    {
+      "key": {
+        "PRODUTO": "367234",
+        "COR_PRODUTO": "07748"
+      },
+      "diff": [
+        "ESTOQUE",
+        "ES1",
+        "ES2",
+        "ES3",
+        "ES4"
+      ],
+      "expected": {
+        "ID_CAMPANHA": "54",
+        "PRODUTO": "367234",
+        "COR_PRODUTO": "07748",
+        "LIBERAR_GRADE_WEB": 0,
+        "ESTOQUE": 18,
+        "ES1": 4,
+        "ES2": 7,
+        "ES3": 4,
+        "ES4": 2,
+        "ES5": 1,
+        "ES6": 0,
+        "ES7": 0,
+        "ES8": 0,
+        "ES9": 0,
+        "ES10": 0,
+        "ES11": 0,
+        "ES12": 0,
+        "ES13": 0,
+        "ES14": 0,
+        "ES15": 0,
+        "ES16": 0
+      }
+    },
+    {
+      "key": {
+        "PRODUTO": "367846",
+        "COR_PRODUTO": "07448"
+      },
+      "diff": [
+        "ESTOQUE",
+        "ES1",
+        "ES2",
+        "ES3",
+        "ES4",
+        "ES5",
+        "ES6"
+      ],
+      "expected": {
+        "ID_CAMPANHA": "54",
+        "PRODUTO": "367846",
+        "COR_PRODUTO": "07448",
+        "LIBERAR_GRADE_WEB": 0,
+        "ESTOQUE": 15,
+        "ES1": 2,
+        "ES2": 4,
+        "ES3": 4,
+        "ES4": 3,
+        "ES5": 1,
+        "ES6": 1,
+        "ES7": 0,
+        "ES8": 0,
+        "ES9": 0,
+        "ES10": 0,
+        "ES11": 0,
+        "ES12": 0,
+        "ES13": 0,
+        "ES14": 0,
+        "ES15": 0,
+        "ES16": 0
+      }
+    },
+    {
+      "key": {
+        "PRODUTO": "367847",
+        "COR_PRODUTO": "07448"
+      },
+      "diff": [
+        "ESTOQUE",
+        "ES1",
+        "ES2",
+        "ES3",
+        "ES4",
+        "ES5"
+      ],
+      "expected": {
+        "ID_CAMPANHA": "54",
+        "PRODUTO": "367847",
+        "COR_PRODUTO": "07448",
+        "LIBERAR_GRADE_WEB": 0,
+        "ESTOQUE": 15,
+        "ES1": 4,
+        "ES2": 6,
+        "ES3": 3,
+        "ES4": 1,
+        "ES5": 1,
+        "ES6": 0,
+        "ES7": 0,
+        "ES8": 0,
+        "ES9": 0,
+        "ES10": 0,
+        "ES11": 0,
+        "ES12": 0,
+        "ES13": 0,
+        "ES14": 0,
+        "ES15": 0,
+        "ES16": 0
+      }
+    },
+    {
+      "key": {
+        "PRODUTO": "368530",
+        "COR_PRODUTO": "10066"
+      },
+      "diff": [
+        "ESTOQUE",
+        "ES1",
+        "ES2",
+        "ES3",
+        "ES4",
+        "ES5"
+      ],
+      "expected": {
+        "ID_CAMPANHA": "54",
+        "PRODUTO": "368530",
+        "COR_PRODUTO": "10066",
+        "LIBERAR_GRADE_WEB": 0,
+        "ESTOQUE": 26,
+        "ES1": 6,
+        "ES2": 10,
+        "ES3": 5,
+        "ES4": 3,
+        "ES5": 2,
+        "ES6": 0,
+        "ES7": 0,
+        "ES8": 0,
+        "ES9": 0,
+        "ES10": 0,
+        "ES11": 0,
+        "ES12": 0,
+        "ES13": 0,
+        "ES14": 0,
+        "ES15": 0,
+        "ES16": 0
+      }
+    },
+    {
+      "key": {
+        "PRODUTO": "368531",
+        "COR_PRODUTO": "10066"
+      },
+      "diff": [
+        "ESTOQUE",
+        "ES1",
+        "ES2",
+        "ES3",
+        "ES4",
+        "ES5"
+      ],
+      "expected": {
+        "ID_CAMPANHA": "54",
+        "PRODUTO": "368531",
+        "COR_PRODUTO": "10066",
+        "LIBERAR_GRADE_WEB": 0,
+        "ESTOQUE": 30,
+        "ES1": 6,
+        "ES2": 11,
+        "ES3": 7,
+        "ES4": 4,
+        "ES5": 2,
+        "ES6": 0,
+        "ES7": 0,
+        "ES8": 0,
+        "ES9": 0,
+        "ES10": 0,
+        "ES11": 0,
+        "ES12": 0,
+        "ES13": 0,
+        "ES14": 0,
+        "ES15": 0,
+        "ES16": 0
+      }
+    },
+    {
+      "key": {
+        "PRODUTO": "368537",
+        "COR_PRODUTO": "58302"
+      },
+      "diff": [
+        "ESTOQUE",
+        "ES1",
+        "ES2",
+        "ES3",
+        "ES4",
+        "ES5"
+      ],
+      "expected": {
+        "ID_CAMPANHA": "54",
+        "PRODUTO": "368537",
+        "COR_PRODUTO": "58302",
+        "LIBERAR_GRADE_WEB": 0,
+        "ESTOQUE": 15,
+        "ES1": 3,
+        "ES2": 6,
+        "ES3": 3,
+        "ES4": 2,
+        "ES5": 1,
+        "ES6": 0,
+        "ES7": 0,
+        "ES8": 0,
+        "ES9": 0,
+        "ES10": 0,
+        "ES11": 0,
+        "ES12": 0,
+        "ES13": 0,
+        "ES14": 0,
+        "ES15": 0,
+        "ES16": 0
+      }
+    },
+    {
+      "key": {
+        "PRODUTO": "371830",
+        "COR_PRODUTO": "07742"
+      },
+      "diff": [
+        "ESTOQUE",
+        "ES1",
+        "ES2",
+        "ES3",
+        "ES4",
+        "ES5"
+      ],
+      "expected": {
+        "ID_CAMPANHA": "54",
+        "PRODUTO": "371830",
+        "COR_PRODUTO": "07742",
+        "LIBERAR_GRADE_WEB": 0,
+        "ESTOQUE": 78,
+        "ES1": 21,
+        "ES2": 30,
+        "ES3": 15,
+        "ES4": 8,
+        "ES5": 4,
+        "ES6": 0,
+        "ES7": 0,
+        "ES8": 0,
+        "ES9": 0,
+        "ES10": 0,
+        "ES11": 0,
+        "ES12": 0,
+        "ES13": 0,
+        "ES14": 0,
+        "ES15": 0,
+        "ES16": 0
+      }
+    },
+    {
+      "key": {
+        "PRODUTO": "371830",
+        "COR_PRODUTO": "09269"
+      },
+      "diff": [
+        "ESTOQUE",
+        "ES1",
+        "ES2",
+        "ES3",
+        "ES4",
+        "ES5"
+      ],
+      "expected": {
+        "ID_CAMPANHA": "54",
+        "PRODUTO": "371830",
+        "COR_PRODUTO": "09269",
+        "LIBERAR_GRADE_WEB": 0,
+        "ESTOQUE": 20,
+        "ES1": 5,
+        "ES2": 8,
+        "ES3": 4,
+        "ES4": 2,
+        "ES5": 1,
+        "ES6": 0,
+        "ES7": 0,
+        "ES8": 0,
+        "ES9": 0,
+        "ES10": 0,
+        "ES11": 0,
+        "ES12": 0,
+        "ES13": 0,
+        "ES14": 0,
+        "ES15": 0,
+        "ES16": 0
+      }
+    },
+    {
+      "key": {
+        "PRODUTO": "371832",
+        "COR_PRODUTO": "07448"
+      },
+      "diff": [
+        "ESTOQUE",
+        "ES1",
+        "ES2",
+        "ES3",
+        "ES4",
+        "ES5"
+      ],
+      "expected": {
+        "ID_CAMPANHA": "54",
+        "PRODUTO": "371832",
+        "COR_PRODUTO": "07448",
+        "LIBERAR_GRADE_WEB": 0,
+        "ESTOQUE": 71,
+        "ES1": 18,
+        "ES2": 27,
+        "ES3": 14,
+        "ES4": 8,
+        "ES5": 4,
+        "ES6": 0,
+        "ES7": 0,
+        "ES8": 0,
+        "ES9": 0,
+        "ES10": 0,
+        "ES11": 0,
+        "ES12": 0,
+        "ES13": 0,
+        "ES14": 0,
+        "ES15": 0,
+        "ES16": 0
+      }
+    }
+  ]
+}

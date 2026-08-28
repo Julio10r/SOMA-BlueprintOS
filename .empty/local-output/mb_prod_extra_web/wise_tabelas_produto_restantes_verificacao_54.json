@@ -1,0 +1,14 @@
+{
+  "id_campanha": 54,
+  "mode": "read-only for remaining product-dependent tables",
+  "WS_PROP_PRODUTOS": {
+    "expected": 0,
+    "remote": 0,
+    "missing": 0
+  },
+  "WS_PRODUTOS_BARRA": {
+    "expected": 2563,
+    "remote": 2563,
+    "missing": 0
+  }
+}

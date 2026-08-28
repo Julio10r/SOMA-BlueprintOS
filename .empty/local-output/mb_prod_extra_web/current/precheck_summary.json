@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-08-24T14:26:13",
+  "environment": {
+    "servidor": "SRV-SOMADB",
+    "banco": "SOMA"
+  },
+  "spreadsheet": {
+    "path": "/Users/juliocesar/Downloads/20260821 - Carga Wise AV27 - Versão 1.1.xlsx",
+    "sheet": "Planilha1",
+    "data_rows": 446,
+    "unique_products": 417,
+    "unique_product_colors": 446,
+    "duplicate_keys": 0
+  },
+  "validation": {
+    "missing_products": 0,
+    "missing_product_colors": 0,
+    "products_without_dl": 55,
+    "products_envia_atacado_to_update": 0
+  }
+}

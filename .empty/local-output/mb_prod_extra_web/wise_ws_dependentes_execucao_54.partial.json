@@ -1,0 +1,14 @@
+{
+  "id_campanha": 54,
+  "tables": {
+    "WS_PRODUTO_CORES": {
+      "expected": 386,
+      "updated": 0,
+      "inserted": 0,
+      "ok": 386,
+      "errors": 0,
+      "error_samples": []
+    }
+  },
+  "ignored_hardcoded_id_99": true
+}

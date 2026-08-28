@@ -1,0 +1,9 @@
+{
+  "server": "SRV-SOMADB",
+  "database": "SOMA",
+  "eligible_records": 386,
+  "status_counts": {
+    "PENDENTE_INSERT": 386
+  },
+  "remote_duplicate_keys": []
+}

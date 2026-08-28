@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-08-24T14:33:44",
+  "environment": {
+    "servidor": "SRV-SOMADB",
+    "banco": "SOMA"
+  },
+  "id_campanha": 54,
+  "approved_product_colors": 386,
+  "sem_dl_product_colors": 60,
+  "expected_rows": 386,
+  "remote_missing_rows": 0,
+  "eligible_validation_mismatches": 0,
+  "active_noneligible_in_sheet": 60,
+  "status": "VALIDATED_OK"
+}

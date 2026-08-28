@@ -1,0 +1,419 @@
+{
+  "GS_CAMPANHA_ATACADO": [
+    {
+      "ID_CAMPANHA": 54,
+      "DATA": "2025-11-04 00:00:00",
+      "COLECAO_ATIVA": true
+    }
+  ],
+  "GS_CAMPANHA_ATACADO_COLECOES": [
+    {
+      "ID_CAMPANHA": 54,
+      "COLECAO": "AV27  ",
+      "REDE_LOJAS": "2     ",
+      "ATIVA_PRATELEIRA": false
+    }
+  ],
+  "WS_PRODUTOS_INTERNET": [
+    {
+      "PRODUTO": "355102      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "355103      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "356764      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "356775      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "367117      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "367120      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "367234      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "367846      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "367847      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "368530      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "368531      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "368537      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "368626      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "368627      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "369502      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "369943      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371830      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371832      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371833      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371834      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371835      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371837      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371839      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371843      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371844      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371846      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371847      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371848      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371849      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371850      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371860      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371861      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371862      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371863      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371864      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371868      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "371880      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "372001      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "372002      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "372003      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "372004      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "372005      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "372006      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "372007      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "372008      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "372012      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "372014      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "372015      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "372017      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    },
+    {
+      "PRODUTO": "372018      ",
+      "REDE_LOJAS": "2     ",
+      "COLECAO": "AV27  ",
+      "ID_CAMPANHA": 54,
+      "ENVIA_ATACADO_INTERNET": true,
+      "ENVIA_FRANQUIA_INTERNET": null
+    }
+  ]
+}

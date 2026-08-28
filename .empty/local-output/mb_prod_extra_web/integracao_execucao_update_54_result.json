@@ -1,0 +1,20 @@
+{
+  "server": "SRV-SOMADB",
+  "database": "SOMA",
+  "id_campanha": "54",
+  "pre_counts": {
+    "pending_update": 385,
+    "already_ok": 1,
+    "dt_to_mark": 660
+  },
+  "updated_stock_rowcount": 385,
+  "updated_dt_exclusao_rowcount": 660,
+  "post_validation": {
+    "eligible_mismatches": 0,
+    "active_noneligible_or_outside_sheet": 0,
+    "eligible_active": 323
+  },
+  "delete_executed": false,
+  "insert_executed": false,
+  "procedure_executed": false
+}

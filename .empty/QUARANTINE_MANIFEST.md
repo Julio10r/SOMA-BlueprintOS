@@ -1,0 +1,24 @@
+# QUARANTINE_MANIFEST.md
+
+Inventário item a item do conteúdo movido para `.empty/` durante a
+reorganização física do repositório (ver
+`docs/repository/RepositoryReorganization-Final.md`). Nenhum item aqui foi
+apagado — apenas isolado por evidência de obsolescência/duplicação.
+
+| ORIGINAL_PATH | REASON | REPLACED_BY | REFERENCES_FOUND | SAFE_TO_DELETE_LATER? |
+|---|---|---|---|---|
+| `_staging/backend_full.tar.gz` | Backup/tarball órfão do backend, sem consumidor identificado no repositório. | `applications/mais-compras/backend/` (fonte viva) | Nenhuma referência ativa em código, scripts ou docs. | Provavelmente sim, após confirmação do dono do backend de que o tarball não é necessário para nenhum processo de disaster recovery externo ao git. |
+| `.ai/local-output/mb_prod_extra_web/**` | Saída bruta de execução de integração (CSV/JSON de precheck, execução e verificação Wise/Linx), gerada localmente, não é fonte de conhecimento canônica. | `.ai/context/`, `docs/operations/` (documentação canônica das integrações) | Nenhuma referência ativa em código ou docs vivos; é artefato de execução pontual. | Provavelmente sim, após confirmação do dono da integração Linx/Wise de que os dados não têm valor de auditoria retido. |
+| `....` (arquivo de 0 bytes, nome literal `....`) | Arquivo vazio sem função identificável, provável artefato acidental (ex: redirecionamento de shell mal formado). | — | Nenhuma. | Sim — arquivo vazio sem conteúdo a preservar. |
+
+Itens **não movidos** apesar de riscos identificados na auditoria (ver
+`docs/repository/RepositoryReorganization-Audit.md`):
+
+- `.myNotes` — sinalizado por conter possível credencial em texto claro.
+  **Não foi movido nem tocado** por ser um problema de segurança fora do
+  escopo desta reorganização; requer ação humana direta (rotação de
+  credencial + remoção/gitignore), não uma decisão de "para onde mover".
+- `backend/backend/` (diretório aninhado duplicado, identificado na
+  auditoria) — não foi encontrado no momento da execução física; pode já
+  ter sido resolvido em commit anterior ou nunca ter existido como
+  descrito. Nenhuma ação necessária.

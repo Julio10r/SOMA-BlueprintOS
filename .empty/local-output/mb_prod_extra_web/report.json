@@ -1,0 +1,4331 @@
+{
+  "server": "SRV-SOMADB",
+  "database": "SOMA",
+  "total_never_written": true,
+  "validation": {
+    "produtos_unicos": 417,
+    "produto_cor": 446,
+    "produtos_inexistentes_linhas": 0,
+    "produto_cor_inexistentes": 0,
+    "inconsistencias": []
+  },
+  "metadata": {
+    "mb_columns": [
+      {
+        "name": "PRODUTO",
+        "type": "char",
+        "nullable": false,
+        "identity": false,
+        "computed": false,
+        "definition": null
+      },
+      {
+        "name": "COR_PRODUTO",
+        "type": "char",
+        "nullable": false,
+        "identity": false,
+        "computed": false,
+        "definition": null
+      },
+      {
+        "name": "DATA_LIMITE",
+        "type": "smalldatetime",
+        "nullable": true,
+        "identity": false,
+        "computed": false,
+        "definition": null
+      },
+      {
+        "name": "TOTAL",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "computed": true,
+        "definition": "(((((((((((((((((((((((((((((((((((((((((((((((([EX1]+[EX2])+[EX3])+[EX4])+[EX5])+[EX6])+[EX7])+[EX8])+[EX9])+[EX10])+[EX11])+[EX12])+[EX13])+[EX14])+[EX15])+[EX16])+[EX17])+[EX18])+[EX19])+[EX20])+[EX21])+[EX22])+[EX23])+[EX24])+[EX25])+[EX26])+[EX26])+[EX27])+[EX28])+[EX29])+[EX30])+[EX31])+[EX32])+[EX33])+[EX24])+[EX35])+[EX36])+[EX37])+[EX38])+[EX39])+[EX40])+[EX41])+[EX42])+[EX43])+[EX44])+[EX45])+[EX46])+[EX47])+[EX48])"
+      },
+      {
+        "name": "EX1",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "computed": false,
+        "definition": null
+      },
+      {
+        "name": "EX2",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "computed": false,
+        "definition": null
+      },
+      {
+        "name": "EX3",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "computed": false,
+        "definition": null
+      },
+      {
+        "name": "EX4",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "computed": false,
+        "definition": null
+      },
+      {
+        "name": "EX5",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "computed": false,
+        "definition": null
+      },
+      {
+        "name": "EX6",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "computed": false,
+        "definition": null
+      },
+      {
+        "name": "EX7",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "computed": false,
+        "definition": null
+      }
+    ]
+  },
+  "block1": {
+    "status": "COMMIT",
+    "error": null,
+    "ok_sem_atualizacao": [
+      {
+        "produto": "367117",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 34,
+        "total_esperado": 34
+      },
+      {
+        "produto": "367234",
+        "cor": "07742",
+        "data_limite": "2026-08-31",
+        "total_computado": 19,
+        "total_esperado": 19
+      },
+      {
+        "produto": "367234",
+        "cor": "07748",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "367846",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 15,
+        "total_esperado": 15
+      },
+      {
+        "produto": "367847",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 15,
+        "total_esperado": 15
+      },
+      {
+        "produto": "368530",
+        "cor": "10066",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "368531",
+        "cor": "10066",
+        "data_limite": "2026-08-31",
+        "total_computado": 30,
+        "total_esperado": 30
+      },
+      {
+        "produto": "368537",
+        "cor": "58302",
+        "data_limite": "2026-08-31",
+        "total_computado": 15,
+        "total_esperado": 15
+      },
+      {
+        "produto": "368626",
+        "cor": "0011",
+        "data_limite": "2026-08-31",
+        "total_computado": 5,
+        "total_esperado": 5
+      },
+      {
+        "produto": "368627",
+        "cor": "0011",
+        "data_limite": "2026-08-31",
+        "total_computado": 5,
+        "total_esperado": 5
+      },
+      {
+        "produto": "371830",
+        "cor": "07742",
+        "data_limite": "2026-08-31",
+        "total_computado": 78,
+        "total_esperado": 78
+      },
+      {
+        "produto": "371830",
+        "cor": "09269",
+        "data_limite": "2026-08-31",
+        "total_computado": 20,
+        "total_esperado": 20
+      },
+      {
+        "produto": "371832",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 71,
+        "total_esperado": 71
+      },
+      {
+        "produto": "371833",
+        "cor": "0013",
+        "data_limite": "2026-08-31",
+        "total_computado": 71,
+        "total_esperado": 71
+      },
+      {
+        "produto": "371833",
+        "cor": "05052",
+        "data_limite": "2026-08-31",
+        "total_computado": 17,
+        "total_esperado": 17
+      },
+      {
+        "produto": "371834",
+        "cor": "04097",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "371834",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 53,
+        "total_esperado": 53
+      },
+      {
+        "produto": "371846",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 19,
+        "total_esperado": 19
+      },
+      {
+        "produto": "371848",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 74,
+        "total_esperado": 74
+      },
+      {
+        "produto": "371848",
+        "cor": "07742",
+        "data_limite": "2026-08-31",
+        "total_computado": 74,
+        "total_esperado": 74
+      },
+      {
+        "produto": "371850",
+        "cor": "7122",
+        "data_limite": "2026-08-31",
+        "total_computado": 57,
+        "total_esperado": 57
+      },
+      {
+        "produto": "371860",
+        "cor": "0013",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "371863",
+        "cor": "05024",
+        "data_limite": "2026-08-31",
+        "total_computado": 13,
+        "total_esperado": 13
+      },
+      {
+        "produto": "371863",
+        "cor": "07742",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "371868",
+        "cor": "0013",
+        "data_limite": "2026-08-31",
+        "total_computado": 13,
+        "total_esperado": 13
+      },
+      {
+        "produto": "371868",
+        "cor": "05024",
+        "data_limite": "2026-08-31",
+        "total_computado": 13,
+        "total_esperado": 13
+      },
+      {
+        "produto": "371868",
+        "cor": "07836",
+        "data_limite": "2026-08-31",
+        "total_computado": 13,
+        "total_esperado": 13
+      },
+      {
+        "produto": "371880",
+        "cor": "0013",
+        "data_limite": "2026-08-31",
+        "total_computado": 19,
+        "total_esperado": 19
+      },
+      {
+        "produto": "371880",
+        "cor": "05024",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "371880",
+        "cor": "07836",
+        "data_limite": "2026-08-31",
+        "total_computado": 13,
+        "total_esperado": 13
+      },
+      {
+        "produto": "372004",
+        "cor": "59467",
+        "data_limite": "2026-08-31",
+        "total_computado": 76,
+        "total_esperado": 76
+      },
+      {
+        "produto": "372005",
+        "cor": "59467",
+        "data_limite": "2026-08-31",
+        "total_computado": 23,
+        "total_esperado": 23
+      },
+      {
+        "produto": "372006",
+        "cor": "59467",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "372012",
+        "cor": "59608",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "372014",
+        "cor": "61665",
+        "data_limite": "2026-08-31",
+        "total_computado": 46,
+        "total_esperado": 46
+      },
+      {
+        "produto": "372015",
+        "cor": "61665",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "372017",
+        "cor": "59547",
+        "data_limite": "2026-08-31",
+        "total_computado": 101,
+        "total_esperado": 101
+      },
+      {
+        "produto": "372018",
+        "cor": "59547",
+        "data_limite": "2026-08-31",
+        "total_computado": 33,
+        "total_esperado": 33
+      },
+      {
+        "produto": "372032",
+        "cor": "59602",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "372033",
+        "cor": "59602",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "372042",
+        "cor": "59614",
+        "data_limite": "2026-08-31",
+        "total_computado": 96,
+        "total_esperado": 96
+      },
+      {
+        "produto": "372045",
+        "cor": "59554",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "372046",
+        "cor": "59554",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "372073",
+        "cor": "59557",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "372087",
+        "cor": "59557",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "372093",
+        "cor": "59481",
+        "data_limite": "2026-08-31",
+        "total_computado": 82,
+        "total_esperado": 82
+      },
+      {
+        "produto": "372094",
+        "cor": "59481",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "372096",
+        "cor": "59593",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "372097",
+        "cor": "59591",
+        "data_limite": "2026-08-31",
+        "total_computado": 27,
+        "total_esperado": 27
+      },
+      {
+        "produto": "372098",
+        "cor": "59593",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "372099",
+        "cor": "59593",
+        "data_limite": "2026-08-31",
+        "total_computado": 23,
+        "total_esperado": 23
+      },
+      {
+        "produto": "372104",
+        "cor": "59548",
+        "data_limite": "2026-08-31",
+        "total_computado": 75,
+        "total_esperado": 75
+      },
+      {
+        "produto": "372249",
+        "cor": "59474",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "372250",
+        "cor": "59481",
+        "data_limite": "2026-08-31",
+        "total_computado": 83,
+        "total_esperado": 83
+      },
+      {
+        "produto": "372251",
+        "cor": "59481",
+        "data_limite": "2026-08-31",
+        "total_computado": 27,
+        "total_esperado": 27
+      },
+      {
+        "produto": "372256",
+        "cor": "59670",
+        "data_limite": "2026-08-31",
+        "total_computado": 85,
+        "total_esperado": 85
+      },
+      {
+        "produto": "372279",
+        "cor": "59473",
+        "data_limite": "2026-08-31",
+        "total_computado": 45,
+        "total_esperado": 45
+      },
+      {
+        "produto": "372280",
+        "cor": "59476",
+        "data_limite": "2026-08-31",
+        "total_computado": 70,
+        "total_esperado": 70
+      },
+      {
+        "produto": "372287",
+        "cor": "59498",
+        "data_limite": "2026-08-31",
+        "total_computado": 55,
+        "total_esperado": 55
+      },
+      {
+        "produto": "372295",
+        "cor": "59551",
+        "data_limite": "2026-08-31",
+        "total_computado": 39,
+        "total_esperado": 39
+      },
+      {
+        "produto": "372302",
+        "cor": "59709",
+        "data_limite": "2026-08-31",
+        "total_computado": 85,
+        "total_esperado": 85
+      },
+      {
+        "produto": "372307",
+        "cor": "59498",
+        "data_limite": "2026-08-31",
+        "total_computado": 67,
+        "total_esperado": 67
+      },
+      {
+        "produto": "372308",
+        "cor": "59721",
+        "data_limite": "2026-08-31",
+        "total_computado": 51,
+        "total_esperado": 51
+      },
+      {
+        "produto": "372309",
+        "cor": "59721",
+        "data_limite": "2026-08-31",
+        "total_computado": 52,
+        "total_esperado": 52
+      },
+      {
+        "produto": "372368",
+        "cor": "59548",
+        "data_limite": "2026-08-31",
+        "total_computado": 50,
+        "total_esperado": 50
+      },
+      {
+        "produto": "372370",
+        "cor": "59547",
+        "data_limite": "2026-08-31",
+        "total_computado": 32,
+        "total_esperado": 32
+      },
+      {
+        "produto": "372373",
+        "cor": "59498",
+        "data_limite": "2026-08-31",
+        "total_computado": 22,
+        "total_esperado": 22
+      },
+      {
+        "produto": "372374",
+        "cor": "59576",
+        "data_limite": "2026-08-31",
+        "total_computado": 33,
+        "total_esperado": 33
+      },
+      {
+        "produto": "372397",
+        "cor": "59574",
+        "data_limite": "2026-08-31",
+        "total_computado": 87,
+        "total_esperado": 87
+      },
+      {
+        "produto": "372429",
+        "cor": "59591",
+        "data_limite": "2026-08-31",
+        "total_computado": 42,
+        "total_esperado": 42
+      },
+      {
+        "produto": "372430",
+        "cor": "59537",
+        "data_limite": "2026-08-31",
+        "total_computado": 15,
+        "total_esperado": 15
+      },
+      {
+        "produto": "372431",
+        "cor": "59548",
+        "data_limite": "2026-08-31",
+        "total_computado": 37,
+        "total_esperado": 37
+      },
+      {
+        "produto": "372432",
+        "cor": "59548",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "372433",
+        "cor": "59547",
+        "data_limite": "2026-08-31",
+        "total_computado": 34,
+        "total_esperado": 34
+      },
+      {
+        "produto": "372438",
+        "cor": "59516",
+        "data_limite": "2026-08-31",
+        "total_computado": 27,
+        "total_esperado": 27
+      },
+      {
+        "produto": "372439",
+        "cor": "59498",
+        "data_limite": "2026-08-31",
+        "total_computado": 23,
+        "total_esperado": 23
+      },
+      {
+        "produto": "372440",
+        "cor": "59498",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "372441",
+        "cor": "59498",
+        "data_limite": "2026-08-31",
+        "total_computado": 27,
+        "total_esperado": 27
+      },
+      {
+        "produto": "372442",
+        "cor": "59498",
+        "data_limite": "2026-08-31",
+        "total_computado": 42,
+        "total_esperado": 42
+      },
+      {
+        "produto": "372446",
+        "cor": "59534",
+        "data_limite": "2026-08-31",
+        "total_computado": 39,
+        "total_esperado": 39
+      },
+      {
+        "produto": "372447",
+        "cor": "59560",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "372451",
+        "cor": "59535",
+        "data_limite": "2026-08-31",
+        "total_computado": 55,
+        "total_esperado": 55
+      },
+      {
+        "produto": "372471",
+        "cor": "59533",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "372472",
+        "cor": "59533",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "372474",
+        "cor": "59536",
+        "data_limite": "2026-08-31",
+        "total_computado": 38,
+        "total_esperado": 38
+      },
+      {
+        "produto": "372475",
+        "cor": "59587",
+        "data_limite": "2026-08-31",
+        "total_computado": 108,
+        "total_esperado": 108
+      },
+      {
+        "produto": "372476",
+        "cor": "59587",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "372477",
+        "cor": "59587",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "372478",
+        "cor": "59587",
+        "data_limite": "2026-08-31",
+        "total_computado": 38,
+        "total_esperado": 38
+      },
+      {
+        "produto": "372479",
+        "cor": "59525",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "372480",
+        "cor": "59497",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "372481",
+        "cor": "59497",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "372526",
+        "cor": "59555",
+        "data_limite": "2026-08-31",
+        "total_computado": 20,
+        "total_esperado": 20
+      },
+      {
+        "produto": "372527",
+        "cor": "59555",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "372536",
+        "cor": "59592",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "372537",
+        "cor": "59479",
+        "data_limite": "2026-08-31",
+        "total_computado": 79,
+        "total_esperado": 79
+      },
+      {
+        "produto": "372539",
+        "cor": "59479",
+        "data_limite": "2026-08-31",
+        "total_computado": 25,
+        "total_esperado": 25
+      },
+      {
+        "produto": "372540",
+        "cor": "59479",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "372541",
+        "cor": "59479",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "372557",
+        "cor": "59499",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "372558",
+        "cor": "59499",
+        "data_limite": "2026-08-31",
+        "total_computado": 17,
+        "total_esperado": 17
+      },
+      {
+        "produto": "372570",
+        "cor": "59586",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "372572",
+        "cor": "59586",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "372666",
+        "cor": "59574",
+        "data_limite": "2026-08-31",
+        "total_computado": 28,
+        "total_esperado": 28
+      },
+      {
+        "produto": "372669",
+        "cor": "59474",
+        "data_limite": "2026-08-31",
+        "total_computado": 23,
+        "total_esperado": 23
+      },
+      {
+        "produto": "372697",
+        "cor": "59500",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "372698",
+        "cor": "59500",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "372699",
+        "cor": "59500",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "372704",
+        "cor": "59594",
+        "data_limite": "2026-08-31",
+        "total_computado": 27,
+        "total_esperado": 27
+      },
+      {
+        "produto": "372706",
+        "cor": "59594",
+        "data_limite": "2026-08-31",
+        "total_computado": 15,
+        "total_esperado": 15
+      },
+      {
+        "produto": "372707",
+        "cor": "59594",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "372714",
+        "cor": "59612",
+        "data_limite": "2026-08-31",
+        "total_computado": 34,
+        "total_esperado": 34
+      },
+      {
+        "produto": "372715",
+        "cor": "59612",
+        "data_limite": "2026-08-31",
+        "total_computado": 33,
+        "total_esperado": 33
+      },
+      {
+        "produto": "372716",
+        "cor": "59612",
+        "data_limite": "2026-08-31",
+        "total_computado": 27,
+        "total_esperado": 27
+      },
+      {
+        "produto": "372717",
+        "cor": "59612",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "372718",
+        "cor": "59612",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "372719",
+        "cor": "59612",
+        "data_limite": "2026-08-31",
+        "total_computado": 28,
+        "total_esperado": 28
+      },
+      {
+        "produto": "372727",
+        "cor": "59500",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "372734",
+        "cor": "59551",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "372735",
+        "cor": "59551",
+        "data_limite": "2026-08-31",
+        "total_computado": 15,
+        "total_esperado": 15
+      },
+      {
+        "produto": "372736",
+        "cor": "59551",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "372752",
+        "cor": "55453",
+        "data_limite": "2026-08-31",
+        "total_computado": 12,
+        "total_esperado": 12
+      },
+      {
+        "produto": "372754",
+        "cor": "55454",
+        "data_limite": "2026-08-31",
+        "total_computado": 30,
+        "total_esperado": 30
+      },
+      {
+        "produto": "372755",
+        "cor": "55453",
+        "data_limite": "2026-08-31",
+        "total_computado": 13,
+        "total_esperado": 13
+      },
+      {
+        "produto": "372756",
+        "cor": "55453",
+        "data_limite": "2026-08-31",
+        "total_computado": 41,
+        "total_esperado": 41
+      },
+      {
+        "produto": "372826",
+        "cor": "07742",
+        "data_limite": "2026-08-31",
+        "total_computado": 17,
+        "total_esperado": 17
+      },
+      {
+        "produto": "372831",
+        "cor": "59481",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "372920",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "372921",
+        "cor": "07742",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "372922",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 43,
+        "total_esperado": 43
+      },
+      {
+        "produto": "372923",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 22,
+        "total_esperado": 22
+      },
+      {
+        "produto": "372927",
+        "cor": "07742",
+        "data_limite": "2026-08-31",
+        "total_computado": 38,
+        "total_esperado": 38
+      },
+      {
+        "produto": "372928",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "372931",
+        "cor": "07742",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "372932",
+        "cor": "05052",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "372936",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "372938",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "372981",
+        "cor": "59498",
+        "data_limite": "2026-08-31",
+        "total_computado": 27,
+        "total_esperado": 27
+      },
+      {
+        "produto": "372988",
+        "cor": "59534",
+        "data_limite": "2026-08-31",
+        "total_computado": 13,
+        "total_esperado": 13
+      },
+      {
+        "produto": "372989",
+        "cor": "59534",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "373022",
+        "cor": "59500",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "373028",
+        "cor": "59504",
+        "data_limite": "2026-08-31",
+        "total_computado": 55,
+        "total_esperado": 55
+      },
+      {
+        "produto": "373053",
+        "cor": "59564",
+        "data_limite": "2026-08-31",
+        "total_computado": 104,
+        "total_esperado": 104
+      },
+      {
+        "produto": "373054",
+        "cor": "60045",
+        "data_limite": "2026-08-31",
+        "total_computado": 12,
+        "total_esperado": 12
+      },
+      {
+        "produto": "373056",
+        "cor": "59564",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "373078",
+        "cor": "59567",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "373079",
+        "cor": "59567",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "373080",
+        "cor": "59567",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "373081",
+        "cor": "59567",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "373084",
+        "cor": "59504",
+        "data_limite": "2026-08-31",
+        "total_computado": 54,
+        "total_esperado": 54
+      },
+      {
+        "produto": "373085",
+        "cor": "59504",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "373086",
+        "cor": "59504",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "373087",
+        "cor": "59538",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "373088",
+        "cor": "59538",
+        "data_limite": "2026-08-31",
+        "total_computado": 34,
+        "total_esperado": 34
+      },
+      {
+        "produto": "373090",
+        "cor": "59538",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "373091",
+        "cor": "59538",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "373092",
+        "cor": "59599",
+        "data_limite": "2026-08-31",
+        "total_computado": 23,
+        "total_esperado": 23
+      },
+      {
+        "produto": "373093",
+        "cor": "59599",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "373094",
+        "cor": "59599",
+        "data_limite": "2026-08-31",
+        "total_computado": 87,
+        "total_esperado": 87
+      },
+      {
+        "produto": "373096",
+        "cor": "59599",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "373098",
+        "cor": "59600",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "373099",
+        "cor": "59600",
+        "data_limite": "2026-08-31",
+        "total_computado": 25,
+        "total_esperado": 25
+      },
+      {
+        "produto": "373108",
+        "cor": "59463",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "373109",
+        "cor": "59463",
+        "data_limite": "2026-08-31",
+        "total_computado": 46,
+        "total_esperado": 46
+      },
+      {
+        "produto": "373110",
+        "cor": "59463",
+        "data_limite": "2026-08-31",
+        "total_computado": 25,
+        "total_esperado": 25
+      },
+      {
+        "produto": "373111",
+        "cor": "59463",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "373113",
+        "cor": "59524",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "373114",
+        "cor": "59524",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "373116",
+        "cor": "59524",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "373117",
+        "cor": "59524",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "373142",
+        "cor": "59594",
+        "data_limite": "2026-08-31",
+        "total_computado": 23,
+        "total_esperado": 23
+      },
+      {
+        "produto": "373155",
+        "cor": "59492",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "373170",
+        "cor": "59481",
+        "data_limite": "2026-08-31",
+        "total_computado": 37,
+        "total_esperado": 37
+      },
+      {
+        "produto": "373184",
+        "cor": "05024",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "373184",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 38,
+        "total_esperado": 38
+      },
+      {
+        "produto": "373199",
+        "cor": "07742",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "373202",
+        "cor": "05024",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "373203",
+        "cor": "2276",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "373206",
+        "cor": "0105",
+        "data_limite": "2026-08-31",
+        "total_computado": 35,
+        "total_esperado": 35
+      },
+      {
+        "produto": "373218",
+        "cor": "2276",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "373236",
+        "cor": "2276",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "373279",
+        "cor": "02025",
+        "data_limite": "2026-08-31",
+        "total_computado": 22,
+        "total_esperado": 22
+      },
+      {
+        "produto": "373279",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "373281",
+        "cor": "05052",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "373281",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 44,
+        "total_esperado": 44
+      },
+      {
+        "produto": "373285",
+        "cor": "59557",
+        "data_limite": "2026-08-31",
+        "total_computado": 48,
+        "total_esperado": 48
+      },
+      {
+        "produto": "373286",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 19,
+        "total_esperado": 19
+      },
+      {
+        "produto": "373288",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 43,
+        "total_esperado": 43
+      },
+      {
+        "produto": "373291",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "373311",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 43,
+        "total_esperado": 43
+      },
+      {
+        "produto": "373311",
+        "cor": "11069",
+        "data_limite": "2026-08-31",
+        "total_computado": 19,
+        "total_esperado": 19
+      },
+      {
+        "produto": "373312",
+        "cor": "07039",
+        "data_limite": "2026-08-31",
+        "total_computado": 25,
+        "total_esperado": 25
+      },
+      {
+        "produto": "373312",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 43,
+        "total_esperado": 43
+      },
+      {
+        "produto": "373312",
+        "cor": "07847",
+        "data_limite": "2026-08-31",
+        "total_computado": 13,
+        "total_esperado": 13
+      },
+      {
+        "produto": "373314",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 22,
+        "total_esperado": 22
+      },
+      {
+        "produto": "373315",
+        "cor": "04097",
+        "data_limite": "2026-08-31",
+        "total_computado": 19,
+        "total_esperado": 19
+      },
+      {
+        "produto": "373360",
+        "cor": "59589",
+        "data_limite": "2026-08-31",
+        "total_computado": 30,
+        "total_esperado": 30
+      },
+      {
+        "produto": "373406",
+        "cor": "0109",
+        "data_limite": "2026-08-31",
+        "total_computado": 79,
+        "total_esperado": 79
+      },
+      {
+        "produto": "373443",
+        "cor": "0109",
+        "data_limite": "2026-08-31",
+        "total_computado": 28,
+        "total_esperado": 28
+      },
+      {
+        "produto": "373839",
+        "cor": "59503",
+        "data_limite": "2026-08-31",
+        "total_computado": 20,
+        "total_esperado": 20
+      },
+      {
+        "produto": "373840",
+        "cor": "59503",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "373841",
+        "cor": "59503",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "373942",
+        "cor": "0013",
+        "data_limite": "2026-08-31",
+        "total_computado": 40,
+        "total_esperado": 40
+      },
+      {
+        "produto": "373943",
+        "cor": "07836",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "373943",
+        "cor": "11069",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "373943",
+        "cor": "5336",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "373944",
+        "cor": "2276",
+        "data_limite": "2026-08-31",
+        "total_computado": 15,
+        "total_esperado": 15
+      },
+      {
+        "produto": "373968",
+        "cor": "0013",
+        "data_limite": "2026-08-31",
+        "total_computado": 23,
+        "total_esperado": 23
+      },
+      {
+        "produto": "373973",
+        "cor": "0013",
+        "data_limite": "2026-08-31",
+        "total_computado": 25,
+        "total_esperado": 25
+      },
+      {
+        "produto": "373982",
+        "cor": "59881",
+        "data_limite": "2026-08-31",
+        "total_computado": 52,
+        "total_esperado": 52
+      },
+      {
+        "produto": "374039",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 25,
+        "total_esperado": 25
+      },
+      {
+        "produto": "374064",
+        "cor": "59588",
+        "data_limite": "2026-08-31",
+        "total_computado": 38,
+        "total_esperado": 38
+      },
+      {
+        "produto": "374065",
+        "cor": "59588",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "374066",
+        "cor": "59588",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "374088",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 28,
+        "total_esperado": 28
+      },
+      {
+        "produto": "374090",
+        "cor": "2276",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "374093",
+        "cor": "0026",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "374096",
+        "cor": "0024",
+        "data_limite": "2026-08-31",
+        "total_computado": 30,
+        "total_esperado": 30
+      },
+      {
+        "produto": "374105",
+        "cor": "0024",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "374112",
+        "cor": "0024",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "374157",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "374159",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 45,
+        "total_esperado": 45
+      },
+      {
+        "produto": "374191",
+        "cor": "59537",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "374202",
+        "cor": "59459",
+        "data_limite": "2026-08-31",
+        "total_computado": 49,
+        "total_esperado": 49
+      },
+      {
+        "produto": "374208",
+        "cor": "59535",
+        "data_limite": "2026-08-31",
+        "total_computado": 90,
+        "total_esperado": 90
+      },
+      {
+        "produto": "374214",
+        "cor": "59556",
+        "data_limite": "2026-08-31",
+        "total_computado": 48,
+        "total_esperado": 48
+      },
+      {
+        "produto": "374231",
+        "cor": "0013",
+        "data_limite": "2026-08-31",
+        "total_computado": 22,
+        "total_esperado": 22
+      },
+      {
+        "produto": "374233",
+        "cor": "51293",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "374451",
+        "cor": "59492",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "374469",
+        "cor": "59556",
+        "data_limite": "2026-08-31",
+        "total_computado": 114,
+        "total_esperado": 114
+      },
+      {
+        "produto": "374471",
+        "cor": "59556",
+        "data_limite": "2026-08-31",
+        "total_computado": 32,
+        "total_esperado": 32
+      },
+      {
+        "produto": "374497",
+        "cor": "59473",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "374498",
+        "cor": "59473",
+        "data_limite": "2026-08-31",
+        "total_computado": 27,
+        "total_esperado": 27
+      },
+      {
+        "produto": "374499",
+        "cor": "59473",
+        "data_limite": "2026-08-31",
+        "total_computado": 22,
+        "total_esperado": 22
+      },
+      {
+        "produto": "374502",
+        "cor": "59522",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "374504",
+        "cor": "59520",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "374507",
+        "cor": "59520",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "374535",
+        "cor": "59612",
+        "data_limite": "2026-08-31",
+        "total_computado": 83,
+        "total_esperado": 83
+      },
+      {
+        "produto": "374536",
+        "cor": "59489",
+        "data_limite": "2026-08-31",
+        "total_computado": 25,
+        "total_esperado": 25
+      },
+      {
+        "produto": "374537",
+        "cor": "59489",
+        "data_limite": "2026-08-31",
+        "total_computado": 32,
+        "total_esperado": 32
+      },
+      {
+        "produto": "374720",
+        "cor": "59570",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "374758",
+        "cor": "59535",
+        "data_limite": "2026-08-31",
+        "total_computado": 27,
+        "total_esperado": 27
+      },
+      {
+        "produto": "374759",
+        "cor": "59611",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "374823",
+        "cor": "59559",
+        "data_limite": "2026-08-31",
+        "total_computado": 34,
+        "total_esperado": 34
+      },
+      {
+        "produto": "374830",
+        "cor": "61697",
+        "data_limite": "2026-08-31",
+        "total_computado": 37,
+        "total_esperado": 37
+      },
+      {
+        "produto": "374833",
+        "cor": "61697",
+        "data_limite": "2026-08-31",
+        "total_computado": 36,
+        "total_esperado": 36
+      },
+      {
+        "produto": "374850",
+        "cor": "59526",
+        "data_limite": "2026-08-31",
+        "total_computado": 48,
+        "total_esperado": 48
+      },
+      {
+        "produto": "374864",
+        "cor": "59521",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "374908",
+        "cor": "59574",
+        "data_limite": "2026-08-31",
+        "total_computado": 37,
+        "total_esperado": 37
+      },
+      {
+        "produto": "374909",
+        "cor": "59566",
+        "data_limite": "2026-08-31",
+        "total_computado": 7,
+        "total_esperado": 7
+      },
+      {
+        "produto": "374910",
+        "cor": "59566",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "374911",
+        "cor": "59566",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "374918",
+        "cor": "59526",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "374919",
+        "cor": "59526",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "374931",
+        "cor": "59536",
+        "data_limite": "2026-08-31",
+        "total_computado": 32,
+        "total_esperado": 32
+      },
+      {
+        "produto": "374934",
+        "cor": "59536",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "374952",
+        "cor": "59489",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "374955",
+        "cor": "59559",
+        "data_limite": "2026-08-31",
+        "total_computado": 27,
+        "total_esperado": 27
+      },
+      {
+        "produto": "374956",
+        "cor": "59559",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "374959",
+        "cor": "59559",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "374960",
+        "cor": "59559",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "374965",
+        "cor": "59552",
+        "data_limite": "2026-08-31",
+        "total_computado": 19,
+        "total_esperado": 19
+      },
+      {
+        "produto": "374975",
+        "cor": "59501",
+        "data_limite": "2026-08-31",
+        "total_computado": 19,
+        "total_esperado": 19
+      },
+      {
+        "produto": "374977",
+        "cor": "59555",
+        "data_limite": "2026-08-31",
+        "total_computado": 101,
+        "total_esperado": 101
+      },
+      {
+        "produto": "374978",
+        "cor": "59501",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "374979",
+        "cor": "59501",
+        "data_limite": "2026-08-31",
+        "total_computado": 22,
+        "total_esperado": 22
+      },
+      {
+        "produto": "374997",
+        "cor": "59497",
+        "data_limite": "2026-08-31",
+        "total_computado": 27,
+        "total_esperado": 27
+      },
+      {
+        "produto": "374999",
+        "cor": "55390",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "375000",
+        "cor": "55390",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "375001",
+        "cor": "55390",
+        "data_limite": "2026-08-31",
+        "total_computado": 22,
+        "total_esperado": 22
+      },
+      {
+        "produto": "375006",
+        "cor": "59476",
+        "data_limite": "2026-08-31",
+        "total_computado": 100,
+        "total_esperado": 100
+      },
+      {
+        "produto": "375008",
+        "cor": "59459",
+        "data_limite": "2026-08-31",
+        "total_computado": 45,
+        "total_esperado": 45
+      },
+      {
+        "produto": "375010",
+        "cor": "59460",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "375011",
+        "cor": "59460",
+        "data_limite": "2026-08-31",
+        "total_computado": 13,
+        "total_esperado": 13
+      },
+      {
+        "produto": "375012",
+        "cor": "59459",
+        "data_limite": "2026-08-31",
+        "total_computado": 27,
+        "total_esperado": 27
+      },
+      {
+        "produto": "375048",
+        "cor": "59560",
+        "data_limite": "2026-08-31",
+        "total_computado": 27,
+        "total_esperado": 27
+      },
+      {
+        "produto": "375049",
+        "cor": "59576",
+        "data_limite": "2026-08-31",
+        "total_computado": 42,
+        "total_esperado": 42
+      },
+      {
+        "produto": "375050",
+        "cor": "59576",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "375052",
+        "cor": "59576",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "375075",
+        "cor": "0024",
+        "data_limite": "2026-08-31",
+        "total_computado": 43,
+        "total_esperado": 43
+      },
+      {
+        "produto": "375211",
+        "cor": "07836",
+        "data_limite": "2026-08-31",
+        "total_computado": 59,
+        "total_esperado": 59
+      },
+      {
+        "produto": "375213",
+        "cor": "59500",
+        "data_limite": "2026-08-31",
+        "total_computado": 101,
+        "total_esperado": 101
+      },
+      {
+        "produto": "375214",
+        "cor": "07852",
+        "data_limite": "2026-08-31",
+        "total_computado": 100,
+        "total_esperado": 100
+      },
+      {
+        "produto": "375217",
+        "cor": "07546",
+        "data_limite": "2026-08-31",
+        "total_computado": 83,
+        "total_esperado": 83
+      },
+      {
+        "produto": "375224",
+        "cor": "59489",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "375227",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 123,
+        "total_esperado": 123
+      },
+      {
+        "produto": "375233",
+        "cor": "7122",
+        "data_limite": "2026-08-31",
+        "total_computado": 100,
+        "total_esperado": 100
+      },
+      {
+        "produto": "375237",
+        "cor": "05052",
+        "data_limite": "2026-08-31",
+        "total_computado": 83,
+        "total_esperado": 83
+      },
+      {
+        "produto": "375242",
+        "cor": "07488",
+        "data_limite": "2026-08-31",
+        "total_computado": 100,
+        "total_esperado": 100
+      },
+      {
+        "produto": "375244",
+        "cor": "07836",
+        "data_limite": "2026-08-31",
+        "total_computado": 100,
+        "total_esperado": 100
+      },
+      {
+        "produto": "375247",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 132,
+        "total_esperado": 132
+      },
+      {
+        "produto": "375248",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 100,
+        "total_esperado": 100
+      },
+      {
+        "produto": "375253",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 128,
+        "total_esperado": 128
+      },
+      {
+        "produto": "375254",
+        "cor": "1566",
+        "data_limite": "2026-08-31",
+        "total_computado": 100,
+        "total_esperado": 100
+      },
+      {
+        "produto": "375257",
+        "cor": "07039",
+        "data_limite": "2026-08-31",
+        "total_computado": 25,
+        "total_esperado": 25
+      },
+      {
+        "produto": "375260",
+        "cor": "07039",
+        "data_limite": "2026-08-31",
+        "total_computado": 100,
+        "total_esperado": 100
+      },
+      {
+        "produto": "375273",
+        "cor": "07722",
+        "data_limite": "2026-08-31",
+        "total_computado": 83,
+        "total_esperado": 83
+      },
+      {
+        "produto": "375275",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 100,
+        "total_esperado": 100
+      },
+      {
+        "produto": "375276",
+        "cor": "8391",
+        "data_limite": "2026-08-31",
+        "total_computado": 83,
+        "total_esperado": 83
+      },
+      {
+        "produto": "375277",
+        "cor": "59566",
+        "data_limite": "2026-08-31",
+        "total_computado": 70,
+        "total_esperado": 70
+      },
+      {
+        "produto": "375278",
+        "cor": "11056",
+        "data_limite": "2026-08-31",
+        "total_computado": 100,
+        "total_esperado": 100
+      },
+      {
+        "produto": "375279",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 100,
+        "total_esperado": 100
+      },
+      {
+        "produto": "375284",
+        "cor": "07891",
+        "data_limite": "2026-08-31",
+        "total_computado": 83,
+        "total_esperado": 83
+      },
+      {
+        "produto": "375287",
+        "cor": "07546",
+        "data_limite": "2026-08-31",
+        "total_computado": 99,
+        "total_esperado": 99
+      },
+      {
+        "produto": "375290",
+        "cor": "07488",
+        "data_limite": "2026-08-31",
+        "total_computado": 70,
+        "total_esperado": 70
+      },
+      {
+        "produto": "375291",
+        "cor": "07820",
+        "data_limite": "2026-08-31",
+        "total_computado": 59,
+        "total_esperado": 59
+      },
+      {
+        "produto": "375305",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 12,
+        "total_esperado": 12
+      },
+      {
+        "produto": "375351",
+        "cor": "07843",
+        "data_limite": "2026-08-31",
+        "total_computado": 83,
+        "total_esperado": 83
+      },
+      {
+        "produto": "375354",
+        "cor": "0024",
+        "data_limite": "2026-08-31",
+        "total_computado": 23,
+        "total_esperado": 23
+      },
+      {
+        "produto": "375361",
+        "cor": "0013",
+        "data_limite": "2026-08-31",
+        "total_computado": 27,
+        "total_esperado": 27
+      },
+      {
+        "produto": "375361",
+        "cor": "05024",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "375361",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 25,
+        "total_esperado": 25
+      },
+      {
+        "produto": "375361",
+        "cor": "07742",
+        "data_limite": "2026-08-31",
+        "total_computado": 17,
+        "total_esperado": 17
+      },
+      {
+        "produto": "375364",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 17,
+        "total_esperado": 17
+      },
+      {
+        "produto": "375379",
+        "cor": "59499",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "375389",
+        "cor": "11092",
+        "data_limite": "2026-08-31",
+        "total_computado": 69,
+        "total_esperado": 69
+      },
+      {
+        "produto": "375404",
+        "cor": "0101",
+        "data_limite": "2026-08-31",
+        "total_computado": 51,
+        "total_esperado": 51
+      },
+      {
+        "produto": "375470",
+        "cor": "0013",
+        "data_limite": "2026-08-31",
+        "total_computado": 25,
+        "total_esperado": 25
+      },
+      {
+        "produto": "375470",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 28,
+        "total_esperado": 28
+      },
+      {
+        "produto": "375536",
+        "cor": "60572",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "375541",
+        "cor": "60575",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "375544",
+        "cor": "60578",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "375553",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "375568",
+        "cor": "0109",
+        "data_limite": "2026-08-31",
+        "total_computado": 51,
+        "total_esperado": 51
+      },
+      {
+        "produto": "375676",
+        "cor": "60556",
+        "data_limite": "2026-08-31",
+        "total_computado": 22,
+        "total_esperado": 22
+      },
+      {
+        "produto": "375677",
+        "cor": "60556",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "375699",
+        "cor": "59547",
+        "data_limite": "2026-08-31",
+        "total_computado": 34,
+        "total_esperado": 34
+      },
+      {
+        "produto": "375711",
+        "cor": "59557",
+        "data_limite": "2026-08-31",
+        "total_computado": 27,
+        "total_esperado": 27
+      },
+      {
+        "produto": "375712",
+        "cor": "59533",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "375728",
+        "cor": "59534",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "375729",
+        "cor": "59459",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "375731",
+        "cor": "59558",
+        "data_limite": "2026-08-31",
+        "total_computado": 34,
+        "total_esperado": 34
+      },
+      {
+        "produto": "375736",
+        "cor": "59548",
+        "data_limite": "2026-08-31",
+        "total_computado": 25,
+        "total_esperado": 25
+      },
+      {
+        "produto": "375737",
+        "cor": "59476",
+        "data_limite": "2026-08-31",
+        "total_computado": 22,
+        "total_esperado": 22
+      },
+      {
+        "produto": "375738",
+        "cor": "59476",
+        "data_limite": "2026-08-31",
+        "total_computado": 12,
+        "total_esperado": 12
+      },
+      {
+        "produto": "375742",
+        "cor": "59497",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "375747",
+        "cor": "55390",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "375749",
+        "cor": "59612",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "375838",
+        "cor": "59599",
+        "data_limite": "2026-08-31",
+        "total_computado": 130,
+        "total_esperado": 130
+      },
+      {
+        "produto": "375850",
+        "cor": "59586",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "376106",
+        "cor": "59608",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "376107",
+        "cor": "59479",
+        "data_limite": "2026-08-31",
+        "total_computado": 25,
+        "total_esperado": 25
+      },
+      {
+        "produto": "376128",
+        "cor": "59473",
+        "data_limite": "2026-08-31",
+        "total_computado": 36,
+        "total_esperado": 36
+      },
+      {
+        "produto": "376133",
+        "cor": "59501",
+        "data_limite": "2026-08-31",
+        "total_computado": 23,
+        "total_esperado": 23
+      },
+      {
+        "produto": "376153",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "376236",
+        "cor": "0013",
+        "data_limite": "2026-08-31",
+        "total_computado": 39,
+        "total_esperado": 39
+      },
+      {
+        "produto": "376236",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 43,
+        "total_esperado": 43
+      },
+      {
+        "produto": "376241",
+        "cor": "59536",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "376242",
+        "cor": "59536",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "376579",
+        "cor": "2276",
+        "data_limite": "2026-08-31",
+        "total_computado": 19,
+        "total_esperado": 19
+      },
+      {
+        "produto": "376580",
+        "cor": "2276",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "376629",
+        "cor": "59569",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "376630",
+        "cor": "59569",
+        "data_limite": "2026-08-31",
+        "total_computado": 22,
+        "total_esperado": 22
+      },
+      {
+        "produto": "376635",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 59,
+        "total_esperado": 59
+      },
+      {
+        "produto": "376637",
+        "cor": "10071",
+        "data_limite": "2026-08-31",
+        "total_computado": 69,
+        "total_esperado": 69
+      },
+      {
+        "produto": "377306",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 20,
+        "total_esperado": 20
+      },
+      {
+        "produto": "378010",
+        "cor": "59559",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "378107",
+        "cor": "0101",
+        "data_limite": "2026-08-31",
+        "total_computado": 33,
+        "total_esperado": 33
+      },
+      {
+        "produto": "378122",
+        "cor": "55452",
+        "data_limite": "2026-08-31",
+        "total_computado": 17,
+        "total_esperado": 17
+      },
+      {
+        "produto": "378143",
+        "cor": "59533",
+        "data_limite": "2026-08-31",
+        "total_computado": 33,
+        "total_esperado": 33
+      },
+      {
+        "produto": "378154",
+        "cor": "59594",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "378169",
+        "cor": "59566",
+        "data_limite": "2026-08-31",
+        "total_computado": 16,
+        "total_esperado": 16
+      },
+      {
+        "produto": "378170",
+        "cor": "59566",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "378176",
+        "cor": "59566",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "378364",
+        "cor": "05024",
+        "data_limite": "2026-08-31",
+        "total_computado": 19,
+        "total_esperado": 19
+      },
+      {
+        "produto": "378364",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 66,
+        "total_esperado": 66
+      },
+      {
+        "produto": "378400",
+        "cor": "07742",
+        "data_limite": "2026-08-31",
+        "total_computado": 19,
+        "total_esperado": 19
+      },
+      {
+        "produto": "378401",
+        "cor": "07742",
+        "data_limite": "2026-08-31",
+        "total_computado": 19,
+        "total_esperado": 19
+      },
+      {
+        "produto": "378917",
+        "cor": "02542",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "378927",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 23,
+        "total_esperado": 23
+      },
+      {
+        "produto": "378930",
+        "cor": "2276",
+        "data_limite": "2026-08-31",
+        "total_computado": 15,
+        "total_esperado": 15
+      },
+      {
+        "produto": "378962",
+        "cor": "0026",
+        "data_limite": "2026-08-31",
+        "total_computado": 13,
+        "total_esperado": 13
+      },
+      {
+        "produto": "378963",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 19,
+        "total_esperado": 19
+      },
+      {
+        "produto": "379122",
+        "cor": "59479",
+        "data_limite": "2026-08-31",
+        "total_computado": 37,
+        "total_esperado": 37
+      },
+      {
+        "produto": "379139",
+        "cor": "59600",
+        "data_limite": "2026-08-31",
+        "total_computado": 22,
+        "total_esperado": 22
+      },
+      {
+        "produto": "379160",
+        "cor": "04338",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "379274",
+        "cor": "05024",
+        "data_limite": "2026-08-31",
+        "total_computado": 100,
+        "total_esperado": 100
+      },
+      {
+        "produto": "379276",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 47,
+        "total_esperado": 47
+      },
+      {
+        "produto": "379277",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 35,
+        "total_esperado": 35
+      },
+      {
+        "produto": "379277",
+        "cor": "09269",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "379277",
+        "cor": "5336",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "379278",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "379280",
+        "cor": "59494",
+        "data_limite": "2026-08-31",
+        "total_computado": 31,
+        "total_esperado": 31
+      },
+      {
+        "produto": "379282",
+        "cor": "59460",
+        "data_limite": "2026-08-31",
+        "total_computado": 24,
+        "total_esperado": 24
+      },
+      {
+        "produto": "379283",
+        "cor": "59473",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "379318",
+        "cor": "07546",
+        "data_limite": "2026-08-31",
+        "total_computado": 100,
+        "total_esperado": 100
+      },
+      {
+        "produto": "379330",
+        "cor": "59489",
+        "data_limite": "2026-08-31",
+        "total_computado": 75,
+        "total_esperado": 75
+      },
+      {
+        "produto": "379331",
+        "cor": "07722",
+        "data_limite": "2026-08-31",
+        "total_computado": 141,
+        "total_esperado": 141
+      },
+      {
+        "produto": "379332",
+        "cor": "07742",
+        "data_limite": "2026-08-31",
+        "total_computado": 114,
+        "total_esperado": 114
+      },
+      {
+        "produto": "379335",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 69,
+        "total_esperado": 69
+      },
+      {
+        "produto": "379337",
+        "cor": "0206",
+        "data_limite": "2026-08-31",
+        "total_computado": 119,
+        "total_esperado": 119
+      },
+      {
+        "produto": "379339",
+        "cor": "04097",
+        "data_limite": "2026-08-31",
+        "total_computado": 59,
+        "total_esperado": 59
+      },
+      {
+        "produto": "379353",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "379361",
+        "cor": "0011",
+        "data_limite": "2026-08-31",
+        "total_computado": 19,
+        "total_esperado": 19
+      },
+      {
+        "produto": "379361",
+        "cor": "0024",
+        "data_limite": "2026-08-31",
+        "total_computado": 21,
+        "total_esperado": 21
+      },
+      {
+        "produto": "379362",
+        "cor": "0011",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "379362",
+        "cor": "0024",
+        "data_limite": "2026-08-31",
+        "total_computado": 23,
+        "total_esperado": 23
+      },
+      {
+        "produto": "379363",
+        "cor": "57859",
+        "data_limite": "2026-08-31",
+        "total_computado": 22,
+        "total_esperado": 22
+      },
+      {
+        "produto": "379368",
+        "cor": "59592",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "379371",
+        "cor": "59503",
+        "data_limite": "2026-08-31",
+        "total_computado": 9,
+        "total_esperado": 9
+      },
+      {
+        "produto": "379435",
+        "cor": "59557",
+        "data_limite": "2026-08-31",
+        "total_computado": 26,
+        "total_esperado": 26
+      },
+      {
+        "produto": "379439",
+        "cor": "59474",
+        "data_limite": "2026-08-31",
+        "total_computado": 56,
+        "total_esperado": 56
+      },
+      {
+        "produto": "379884",
+        "cor": "59611",
+        "data_limite": "2026-08-31",
+        "total_computado": 23,
+        "total_esperado": 23
+      },
+      {
+        "produto": "379893",
+        "cor": "59614",
+        "data_limite": "2026-08-31",
+        "total_computado": 43,
+        "total_esperado": 43
+      },
+      {
+        "produto": "379918",
+        "cor": "59473",
+        "data_limite": "2026-08-31",
+        "total_computado": 18,
+        "total_esperado": 18
+      },
+      {
+        "produto": "379921",
+        "cor": "59555",
+        "data_limite": "2026-08-31",
+        "total_computado": 43,
+        "total_esperado": 43
+      },
+      {
+        "produto": "379934",
+        "cor": "59492",
+        "data_limite": "2026-08-31",
+        "total_computado": 9,
+        "total_esperado": 9
+      },
+      {
+        "produto": "379948",
+        "cor": "59564",
+        "data_limite": "2026-08-31",
+        "total_computado": 48,
+        "total_esperado": 48
+      },
+      {
+        "produto": "379990",
+        "cor": "59589",
+        "data_limite": "2026-08-31",
+        "total_computado": 14,
+        "total_esperado": 14
+      },
+      {
+        "produto": "380001",
+        "cor": "61672",
+        "data_limite": "2026-08-31",
+        "total_computado": 39,
+        "total_esperado": 39
+      },
+      {
+        "produto": "380002",
+        "cor": "61672",
+        "data_limite": "2026-08-31",
+        "total_computado": 40,
+        "total_esperado": 40
+      },
+      {
+        "produto": "380045",
+        "cor": "59612",
+        "data_limite": "2026-08-31",
+        "total_computado": 37,
+        "total_esperado": 37
+      },
+      {
+        "produto": "380102",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 23,
+        "total_esperado": 23
+      },
+      {
+        "produto": "380102",
+        "cor": "07742",
+        "data_limite": "2026-08-31",
+        "total_computado": 29,
+        "total_esperado": 29
+      },
+      {
+        "produto": "380117",
+        "cor": "2276",
+        "data_limite": "2026-08-31",
+        "total_computado": 33,
+        "total_esperado": 33
+      },
+      {
+        "produto": "381521",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 80,
+        "total_esperado": 80
+      },
+      {
+        "produto": "385657",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 59,
+        "total_esperado": 59
+      },
+      {
+        "produto": "385658",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 59,
+        "total_esperado": 59
+      },
+      {
+        "produto": "385659",
+        "cor": "07448",
+        "data_limite": "2026-08-31",
+        "total_computado": 54,
+        "total_esperado": 54
+      }
+    ],
+    "atualizados": [
+      {
+        "produto": "373207",
+        "cor": "0105",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 2
+        },
+        "old_total": 33,
+        "total_esperado": 35
+      },
+      {
+        "produto": "373404",
+        "cor": "0109",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 2
+        },
+        "old_total": 50,
+        "total_esperado": 52
+      },
+      {
+        "produto": "373407",
+        "cor": "0109",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 4
+        },
+        "old_total": 99,
+        "total_esperado": 103
+      },
+      {
+        "produto": "373408",
+        "cor": "0109",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 3
+        },
+        "old_total": 55,
+        "total_esperado": 58
+      },
+      {
+        "produto": "373409",
+        "cor": "0101",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 2
+        },
+        "old_total": 55,
+        "total_esperado": 57
+      },
+      {
+        "produto": "373410",
+        "cor": "0101",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 2
+        },
+        "old_total": 49,
+        "total_esperado": 51
+      },
+      {
+        "produto": "373420",
+        "cor": "0101",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 4
+        },
+        "old_total": 93,
+        "total_esperado": 97
+      },
+      {
+        "produto": "373421",
+        "cor": "0101",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 2
+        },
+        "old_total": 49,
+        "total_esperado": 51
+      },
+      {
+        "produto": "373423",
+        "cor": "0105",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 5
+        },
+        "old_total": 93,
+        "total_esperado": 98
+      },
+      {
+        "produto": "373445",
+        "cor": "0003",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 2
+        },
+        "old_total": 50,
+        "total_esperado": 52
+      },
+      {
+        "produto": "373449",
+        "cor": "0101",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 5
+        },
+        "old_total": 93,
+        "total_esperado": 98
+      },
+      {
+        "produto": "373450",
+        "cor": "0101",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 3
+        },
+        "old_total": 76,
+        "total_esperado": 79
+      },
+      {
+        "produto": "373451",
+        "cor": "0105",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 4
+        },
+        "old_total": 81,
+        "total_esperado": 85
+      },
+      {
+        "produto": "373852",
+        "cor": "05052",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 1
+        },
+        "old_total": 34,
+        "total_esperado": 35
+      },
+      {
+        "produto": "373857",
+        "cor": "0105",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 4
+        },
+        "old_total": 88,
+        "total_esperado": 92
+      },
+      {
+        "produto": "374215",
+        "cor": "0101",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 2
+        },
+        "old_total": 55,
+        "total_esperado": 57
+      },
+      {
+        "produto": "374995",
+        "cor": "0003",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 2
+        },
+        "old_total": 50,
+        "total_esperado": 52
+      },
+      {
+        "produto": "375053",
+        "cor": "0109",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 1
+        },
+        "old_total": 22,
+        "total_esperado": 23
+      },
+      {
+        "produto": "375396",
+        "cor": "03328",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 1
+        },
+        "old_total": 33,
+        "total_esperado": 34
+      },
+      {
+        "produto": "375399",
+        "cor": "0105",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 4
+        },
+        "old_total": 99,
+        "total_esperado": 103
+      },
+      {
+        "produto": "375524",
+        "cor": "0105",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 3
+        },
+        "old_total": 52,
+        "total_esperado": 55
+      },
+      {
+        "produto": "375851",
+        "cor": "0101",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 2
+        },
+        "old_total": 38,
+        "total_esperado": 40
+      },
+      {
+        "produto": "378106",
+        "cor": "0105",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 3
+        },
+        "old_total": 87,
+        "total_esperado": 90
+      },
+      {
+        "produto": "378109",
+        "cor": "0003",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 1
+        },
+        "old_total": 35,
+        "total_esperado": 36
+      },
+      {
+        "produto": "378112",
+        "cor": "0109",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 2
+        },
+        "old_total": 55,
+        "total_esperado": 57
+      },
+      {
+        "produto": "379024",
+        "cor": "0101",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 5
+        },
+        "old_total": 98,
+        "total_esperado": 103
+      },
+      {
+        "produto": "379040",
+        "cor": "0101",
+        "data_limite": "2026-08-31",
+        "campos": [
+          "EX7"
+        ],
+        "old": {
+          "EX7": 0
+        },
+        "new": {
+          "EX7": 4
+        },
+        "old_total": 99,
+        "total_esperado": 103
+      }
+    ],
+    "inseridos": [],
+    "updated_rowcount": 27,
+    "inserted_rowcount": 0,
+    "final_mismatches": [],
+    "total_written_directly": false
+  },
+  "block2": {
+    "status": "COMMIT",
+    "error": null,
+    "ja_habilitado": [
+      "367117",
+      "367234",
+      "367846",
+      "367847",
+      "368530",
+      "368531",
+      "368537",
+      "368626",
+      "368627",
+      "371830",
+      "371832",
+      "371833",
+      "371834",
+      "371846",
+      "371848",
+      "371850",
+      "371860",
+      "371863",
+      "371868",
+      "371880",
+      "372004",
+      "372005",
+      "372006",
+      "372012",
+      "372014",
+      "372015",
+      "372017",
+      "372018",
+      "372032",
+      "372033",
+      "372042",
+      "372045",
+      "372046",
+      "372073",
+      "372087",
+      "372093",
+      "372094",
+      "372096",
+      "372097",
+      "372098",
+      "372099",
+      "372104",
+      "372249",
+      "372250",
+      "372251",
+      "372256",
+      "372279",
+      "372280",
+      "372287",
+      "372295",
+      "372302",
+      "372307",
+      "372308",
+      "372309",
+      "372368",
+      "372370",
+      "372373",
+      "372374",
+      "372397",
+      "372429",
+      "372430",
+      "372431",
+      "372432",
+      "372433",
+      "372438",
+      "372439",
+      "372440",
+      "372441",
+      "372442",
+      "372446",
+      "372447",
+      "372451",
+      "372471",
+      "372472",
+      "372474",
+      "372475",
+      "372476",
+      "372477",
+      "372478",
+      "372479",
+      "372480",
+      "372481",
+      "372526",
+      "372527",
+      "372536",
+      "372537",
+      "372539",
+      "372540",
+      "372541",
+      "372557",
+      "372558",
+      "372570",
+      "372572",
+      "372666",
+      "372669",
+      "372697",
+      "372698",
+      "372699",
+      "372704",
+      "372706",
+      "372707",
+      "372714",
+      "372715",
+      "372716",
+      "372717",
+      "372718",
+      "372719",
+      "372727",
+      "372734",
+      "372735",
+      "372736",
+      "372752",
+      "372754",
+      "372755",
+      "372756",
+      "372826",
+      "372831",
+      "372920",
+      "372921",
+      "372922",
+      "372923",
+      "372927",
+      "372928",
+      "372931",
+      "372932",
+      "372936",
+      "372938",
+      "372981",
+      "372988",
+      "372989",
+      "373022",
+      "373028",
+      "373053",
+      "373054",
+      "373056",
+      "373078",
+      "373079",
+      "373080",
+      "373081",
+      "373084",
+      "373085",
+      "373086",
+      "373087",
+      "373088",
+      "373090",
+      "373091",
+      "373092",
+      "373093",
+      "373094",
+      "373096",
+      "373098",
+      "373099",
+      "373108",
+      "373109",
+      "373110",
+      "373111",
+      "373113",
+      "373114",
+      "373116",
+      "373117",
+      "373142",
+      "373155",
+      "373170",
+      "373184",
+      "373199",
+      "373202",
+      "373203",
+      "373206",
+      "373207",
+      "373218",
+      "373236",
+      "373279",
+      "373281",
+      "373285",
+      "373286",
+      "373288",
+      "373291",
+      "373311",
+      "373312",
+      "373314",
+      "373315",
+      "373360",
+      "373404",
+      "373406",
+      "373407",
+      "373408",
+      "373409",
+      "373410",
+      "373420",
+      "373421",
+      "373423",
+      "373443",
+      "373445",
+      "373449",
+      "373450",
+      "373451",
+      "373839",
+      "373840",
+      "373841",
+      "373852",
+      "373857",
+      "373942",
+      "373943",
+      "373944",
+      "373968",
+      "373973",
+      "373982",
+      "374039",
+      "374064",
+      "374065",
+      "374066",
+      "374088",
+      "374090",
+      "374093",
+      "374096",
+      "374105",
+      "374112",
+      "374157",
+      "374159",
+      "374191",
+      "374202",
+      "374208",
+      "374214",
+      "374215",
+      "374231",
+      "374233",
+      "374451",
+      "374469",
+      "374471",
+      "374497",
+      "374498",
+      "374499",
+      "374502",
+      "374504",
+      "374507",
+      "374535",
+      "374536",
+      "374537",
+      "374720",
+      "374758",
+      "374759",
+      "374823",
+      "374830",
+      "374833",
+      "374850",
+      "374864",
+      "374908",
+      "374909",
+      "374910",
+      "374911",
+      "374918",
+      "374919",
+      "374931",
+      "374934",
+      "374952",
+      "374955",
+      "374956",
+      "374959",
+      "374960",
+      "374965",
+      "374975",
+      "374977",
+      "374978",
+      "374979",
+      "374995",
+      "374997",
+      "374999",
+      "375000",
+      "375001",
+      "375006",
+      "375008",
+      "375010",
+      "375011",
+      "375012",
+      "375048",
+      "375049",
+      "375050",
+      "375052",
+      "375053",
+      "375075",
+      "375211",
+      "375213",
+      "375214",
+      "375217",
+      "375224",
+      "375227",
+      "375233",
+      "375237",
+      "375242",
+      "375244",
+      "375247",
+      "375248",
+      "375253",
+      "375254",
+      "375257",
+      "375260",
+      "375273",
+      "375275",
+      "375276",
+      "375277",
+      "375278",
+      "375279",
+      "375284",
+      "375287",
+      "375290",
+      "375291",
+      "375305",
+      "375351",
+      "375354",
+      "375361",
+      "375364",
+      "375379",
+      "375389",
+      "375396",
+      "375399",
+      "375404",
+      "375470",
+      "375524",
+      "375536",
+      "375541",
+      "375544",
+      "375553",
+      "375568",
+      "375676",
+      "375677",
+      "375699",
+      "375711",
+      "375712",
+      "375728",
+      "375729",
+      "375731",
+      "375736",
+      "375737",
+      "375738",
+      "375742",
+      "375747",
+      "375749",
+      "375838",
+      "375850",
+      "375851",
+      "376106",
+      "376107",
+      "376128",
+      "376133",
+      "376153",
+      "376236",
+      "376241",
+      "376242",
+      "376579",
+      "376580",
+      "376629",
+      "376630",
+      "376635",
+      "376637",
+      "377306",
+      "378010",
+      "378106",
+      "378107",
+      "378109",
+      "378112",
+      "378122",
+      "378143",
+      "378154",
+      "378169",
+      "378170",
+      "378176",
+      "378364",
+      "378400",
+      "378401",
+      "378917",
+      "378927",
+      "378930",
+      "378962",
+      "378963",
+      "379024",
+      "379040",
+      "379122",
+      "379139",
+      "379160",
+      "379274",
+      "379276",
+      "379277",
+      "379278",
+      "379280",
+      "379282",
+      "379283",
+      "379318",
+      "379330",
+      "379331",
+      "379332",
+      "379335",
+      "379337",
+      "379339",
+      "379353",
+      "379361",
+      "379362",
+      "379363",
+      "379368",
+      "379371",
+      "379435",
+      "379439",
+      "379884",
+      "379893",
+      "379918",
+      "379921",
+      "379934",
+      "379948",
+      "379990",
+      "380001",
+      "380002",
+      "380045",
+      "380102",
+      "380117",
+      "381521",
+      "385657",
+      "385658",
+      "385659"
+    ],
+    "habilitado_nesta_execucao": [],
+    "updated_rowcount": 0
+  },
+  "block3": {
+    "dl_ok": [
+      "367234",
+      "367846",
+      "367847",
+      "368530",
+      "368531",
+      "368537",
+      "371830",
+      "371832",
+      "371833",
+      "371834",
+      "371846",
+      "371848",
+      "371850",
+      "371860",
+      "371863",
+      "371868",
+      "371880",
+      "372004",
+      "372005",
+      "372006",
+      "372014",
+      "372015",
+      "372017",
+      "372018",
+      "372032",
+      "372033",
+      "372042",
+      "372046",
+      "372073",
+      "372087",
+      "372093",
+      "372094",
+      "372096",
+      "372097",
+      "372098",
+      "372099",
+      "372104",
+      "372249",
+      "372250",
+      "372251",
+      "372256",
+      "372279",
+      "372280",
+      "372287",
+      "372302",
+      "372307",
+      "372308",
+      "372309",
+      "372368",
+      "372370",
+      "372373",
+      "372374",
+      "372397",
+      "372429",
+      "372430",
+      "372431",
+      "372432",
+      "372433",
+      "372438",
+      "372439",
+      "372440",
+      "372441",
+      "372442",
+      "372446",
+      "372447",
+      "372451",
+      "372471",
+      "372472",
+      "372474",
+      "372475",
+      "372476",
+      "372477",
+      "372478",
+      "372479",
+      "372480",
+      "372481",
+      "372526",
+      "372527",
+      "372536",
+      "372537",
+      "372539",
+      "372540",
+      "372541",
+      "372557",
+      "372558",
+      "372666",
+      "372669",
+      "372697",
+      "372698",
+      "372699",
+      "372704",
+      "372706",
+      "372707",
+      "372714",
+      "372715",
+      "372716",
+      "372717",
+      "372718",
+      "372719",
+      "372752",
+      "372754",
+      "372755",
+      "372756",
+      "372831",
+      "372920",
+      "372922",
+      "372923",
+      "372927",
+      "372928",
+      "372931",
+      "372932",
+      "372936",
+      "372938",
+      "372981",
+      "372988",
+      "372989",
+      "373022",
+      "373028",
+      "373053",
+      "373054",
+      "373056",
+      "373078",
+      "373079",
+      "373080",
+      "373081",
+      "373084",
+      "373085",
+      "373086",
+      "373087",
+      "373088",
+      "373090",
+      "373091",
+      "373092",
+      "373093",
+      "373094",
+      "373096",
+      "373098",
+      "373099",
+      "373108",
+      "373109",
+      "373110",
+      "373111",
+      "373113",
+      "373114",
+      "373116",
+      "373117",
+      "373142",
+      "373170",
+      "373184",
+      "373199",
+      "373202",
+      "373203",
+      "373206",
+      "373207",
+      "373218",
+      "373236",
+      "373279",
+      "373281",
+      "373285",
+      "373286",
+      "373288",
+      "373291",
+      "373311",
+      "373312",
+      "373314",
+      "373315",
+      "373404",
+      "373406",
+      "373407",
+      "373408",
+      "373409",
+      "373410",
+      "373420",
+      "373421",
+      "373423",
+      "373443",
+      "373445",
+      "373449",
+      "373450",
+      "373451",
+      "373839",
+      "373840",
+      "373841",
+      "373852",
+      "373857",
+      "373942",
+      "373943",
+      "373944",
+      "373968",
+      "373973",
+      "373982",
+      "374039",
+      "374064",
+      "374065",
+      "374066",
+      "374088",
+      "374090",
+      "374093",
+      "374096",
+      "374105",
+      "374157",
+      "374159",
+      "374191",
+      "374202",
+      "374208",
+      "374214",
+      "374215",
+      "374231",
+      "374233",
+      "374469",
+      "374471",
+      "374497",
+      "374498",
+      "374499",
+      "374502",
+      "374504",
+      "374535",
+      "374536",
+      "374537",
+      "374720",
+      "374758",
+      "374759",
+      "374830",
+      "374833",
+      "374850",
+      "374864",
+      "374908",
+      "374910",
+      "374918",
+      "374919",
+      "374931",
+      "374934",
+      "374952",
+      "374955",
+      "374956",
+      "374959",
+      "374960",
+      "374965",
+      "374975",
+      "374977",
+      "374978",
+      "374979",
+      "374995",
+      "374997",
+      "374999",
+      "375000",
+      "375001",
+      "375006",
+      "375008",
+      "375010",
+      "375012",
+      "375048",
+      "375049",
+      "375050",
+      "375052",
+      "375053",
+      "375075",
+      "375213",
+      "375214",
+      "375217",
+      "375224",
+      "375227",
+      "375233",
+      "375237",
+      "375242",
+      "375244",
+      "375247",
+      "375248",
+      "375253",
+      "375254",
+      "375257",
+      "375260",
+      "375273",
+      "375275",
+      "375276",
+      "375277",
+      "375278",
+      "375279",
+      "375284",
+      "375287",
+      "375290",
+      "375291",
+      "375305",
+      "375354",
+      "375364",
+      "375379",
+      "375389",
+      "375396",
+      "375399",
+      "375404",
+      "375470",
+      "375524",
+      "375536",
+      "375541",
+      "375544",
+      "375553",
+      "375568",
+      "375676",
+      "375677",
+      "375699",
+      "375711",
+      "375712",
+      "375728",
+      "375729",
+      "375731",
+      "375736",
+      "375738",
+      "375742",
+      "375747",
+      "375749",
+      "375838",
+      "375851",
+      "376106",
+      "376128",
+      "376236",
+      "376635",
+      "376637",
+      "378010",
+      "378106",
+      "378109",
+      "378112",
+      "378122",
+      "378143",
+      "378169",
+      "378170",
+      "378364",
+      "378400",
+      "378401",
+      "378917",
+      "378930",
+      "378962",
+      "379024",
+      "379040",
+      "379122",
+      "379139",
+      "379160",
+      "379278",
+      "379280",
+      "379282",
+      "379318",
+      "379330",
+      "379331",
+      "379332",
+      "379335",
+      "379337",
+      "379361",
+      "379362",
+      "379368",
+      "379371",
+      "379435",
+      "379439",
+      "379884",
+      "379893",
+      "379918",
+      "379921",
+      "379948",
+      "380001",
+      "380002",
+      "380045",
+      "380102",
+      "380117",
+      "385659"
+    ],
+    "sem_tabela_dl": [
+      "367117",
+      "368626",
+      "368627",
+      "372012",
+      "372045",
+      "372295",
+      "372570",
+      "372572",
+      "372727",
+      "372734",
+      "372735",
+      "372736",
+      "372826",
+      "372921",
+      "373155",
+      "373360",
+      "374112",
+      "374451",
+      "374507",
+      "374823",
+      "374909",
+      "374911",
+      "375011",
+      "375211",
+      "375351",
+      "375361",
+      "375737",
+      "375850",
+      "376107",
+      "376133",
+      "376153",
+      "376241",
+      "376242",
+      "376579",
+      "376580",
+      "376629",
+      "376630",
+      "377306",
+      "378107",
+      "378154",
+      "378176",
+      "378927",
+      "378963",
+      "379274",
+      "379276",
+      "379277",
+      "379283",
+      "379339",
+      "379353",
+      "379363",
+      "379934",
+      "379990",
+      "381521",
+      "385657",
+      "385658"
+    ]
+  },
+  "errors": []
+}

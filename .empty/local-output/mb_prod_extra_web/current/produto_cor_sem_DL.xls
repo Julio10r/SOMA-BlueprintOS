@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">
+<Styles><Style ss:ID="Header"><Font ss:FontName="Arial" ss:Bold="1"/><Interior ss:Color="#D9EAF7" ss:Pattern="Solid"/></Style><Style ss:ID="Text"><Font ss:FontName="Arial"/></Style></Styles>
+<Worksheet ss:Name="ProdutoCorSemDL"><Table>
+<Column ss:Width="90"/><Column ss:Width="110"/><Column ss:Width="160"/>
+<Row><Cell ss:StyleID="Header"><Data ss:Type="String">PRODUTO</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">COR_PRODUTO</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">LINHA_PLANILHA_ORIGINAL</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">367117</Data></Cell><Cell><Data ss:Type="String">07448</Data></Cell><Cell><Data ss:Type="Number">2</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">368626</Data></Cell><Cell><Data ss:Type="String">0011</Data></Cell><Cell><Data ss:Type="Number">4</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">368627</Data></Cell><Cell><Data ss:Type="String">0011</Data></Cell><Cell><Data ss:Type="Number">5</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">372012</Data></Cell><Cell><Data ss:Type="String">59608</Data></Cell><Cell><Data ss:Type="Number">6</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">372045</Data></Cell><Cell><Data ss:Type="String">59554</Data></Cell><Cell><Data ss:Type="Number">7</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">372295</Data></Cell><Cell><Data ss:Type="String">59551</Data></Cell><Cell><Data ss:Type="Number">9</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">385658</Data></Cell><Cell><Data ss:Type="String">07448</Data></Cell><Cell><Data ss:Type="Number">10</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">385657</Data></Cell><Cell><Data ss:Type="String">07448</Data></Cell><Cell><Data ss:Type="Number">11</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">381521</Data></Cell><Cell><Data ss:Type="String">07448</Data></Cell><Cell><Data ss:Type="Number">12</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">372570</Data></Cell><Cell><Data ss:Type="String">59586</Data></Cell><Cell><Data ss:Type="Number">13</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">372572</Data></Cell><Cell><Data ss:Type="String">59586</Data></Cell><Cell><Data ss:Type="Number">14</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">372727</Data></Cell><Cell><Data ss:Type="String">59500</Data></Cell><Cell><Data ss:Type="Number">15</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">372734</Data></Cell><Cell><Data ss:Type="String">59551</Data></Cell><Cell><Data ss:Type="Number">16</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">372735</Data></Cell><Cell><Data ss:Type="String">59551</Data></Cell><Cell><Data ss:Type="Number">17</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">372736</Data></Cell><Cell><Data ss:Type="String">59551</Data></Cell><Cell><Data ss:Type="Number">18</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">372826</Data></Cell><Cell><Data ss:Type="String">07742</Data></Cell><Cell><Data ss:Type="Number">19</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">372921</Data></Cell><Cell><Data ss:Type="String">07742</Data></Cell><Cell><Data ss:Type="Number">21</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">373155</Data></Cell><Cell><Data ss:Type="String">59492</Data></Cell><Cell><Data ss:Type="Number">22</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">373360</Data></Cell><Cell><Data ss:Type="String">59589</Data></Cell><Cell><Data ss:Type="Number">24</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">379990</Data></Cell><Cell><Data ss:Type="String">59589</Data></Cell><Cell><Data ss:Type="Number">25</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">379934</Data></Cell><Cell><Data ss:Type="String">59492</Data></Cell><Cell><Data ss:Type="Number">26</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">379363</Data></Cell><Cell><Data ss:Type="String">57859</Data></Cell><Cell><Data ss:Type="Number">27</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">379353</Data></Cell><Cell><Data ss:Type="String">07448</Data></Cell><Cell><Data ss:Type="Number">28</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">379339</Data></Cell><Cell><Data ss:Type="String">04097</Data></Cell><Cell><Data ss:Type="Number">29</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">379283</Data></Cell><Cell><Data ss:Type="String">59473</Data></Cell><Cell><Data ss:Type="Number">30</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">379277</Data></Cell><Cell><Data ss:Type="String">5336</Data></Cell><Cell><Data ss:Type="Number">32</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">379277</Data></Cell><Cell><Data ss:Type="String">09269</Data></Cell><Cell><Data ss:Type="Number">33</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">379277</Data></Cell><Cell><Data ss:Type="String">07448</Data></Cell><Cell><Data ss:Type="Number">34</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">379276</Data></Cell><Cell><Data ss:Type="String">07448</Data></Cell><Cell><Data ss:Type="Number">35</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">379274</Data></Cell><Cell><Data ss:Type="String">05024</Data></Cell><Cell><Data ss:Type="Number">36</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">378963</Data></Cell><Cell><Data ss:Type="String">07448</Data></Cell><Cell><Data ss:Type="Number">37</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">378927</Data></Cell><Cell><Data ss:Type="String">07448</Data></Cell><Cell><Data ss:Type="Number">38</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">378176</Data></Cell><Cell><Data ss:Type="String">59566</Data></Cell><Cell><Data ss:Type="Number">39</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">378154</Data></Cell><Cell><Data ss:Type="String">59594</Data></Cell><Cell><Data ss:Type="Number">40</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">378107</Data></Cell><Cell><Data ss:Type="String">0101</Data></Cell><Cell><Data ss:Type="Number">41</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">377306</Data></Cell><Cell><Data ss:Type="String">07448</Data></Cell><Cell><Data ss:Type="Number">44</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">376630</Data></Cell><Cell><Data ss:Type="String">59569</Data></Cell><Cell><Data ss:Type="Number">45</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">376629</Data></Cell><Cell><Data ss:Type="String">59569</Data></Cell><Cell><Data ss:Type="Number">46</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">376580</Data></Cell><Cell><Data ss:Type="String">2276</Data></Cell><Cell><Data ss:Type="Number">47</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">374112</Data></Cell><Cell><Data ss:Type="String">0024</Data></Cell><Cell><Data ss:Type="Number">49</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">376579</Data></Cell><Cell><Data ss:Type="String">2276</Data></Cell><Cell><Data ss:Type="Number">50</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">376242</Data></Cell><Cell><Data ss:Type="String">59536</Data></Cell><Cell><Data ss:Type="Number">51</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">376241</Data></Cell><Cell><Data ss:Type="String">59536</Data></Cell><Cell><Data ss:Type="Number">52</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">376153</Data></Cell><Cell><Data ss:Type="String">07448</Data></Cell><Cell><Data ss:Type="Number">53</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">376133</Data></Cell><Cell><Data ss:Type="String">59501</Data></Cell><Cell><Data ss:Type="Number">54</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">374451</Data></Cell><Cell><Data ss:Type="String">59492</Data></Cell><Cell><Data ss:Type="Number">55</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">376107</Data></Cell><Cell><Data ss:Type="String">59479</Data></Cell><Cell><Data ss:Type="Number">56</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">374507</Data></Cell><Cell><Data ss:Type="String">59520</Data></Cell><Cell><Data ss:Type="Number">57</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">375850</Data></Cell><Cell><Data ss:Type="String">59586</Data></Cell><Cell><Data ss:Type="Number">58</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">374823</Data></Cell><Cell><Data ss:Type="String">59559</Data></Cell><Cell><Data ss:Type="Number">59</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">374909</Data></Cell><Cell><Data ss:Type="String">59566</Data></Cell><Cell><Data ss:Type="Number">60</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">374911</Data></Cell><Cell><Data ss:Type="String">59566</Data></Cell><Cell><Data ss:Type="Number">61</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">375011</Data></Cell><Cell><Data ss:Type="String">59460</Data></Cell><Cell><Data ss:Type="Number">62</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">375737</Data></Cell><Cell><Data ss:Type="String">59476</Data></Cell><Cell><Data ss:Type="Number">63</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">375211</Data></Cell><Cell><Data ss:Type="String">07836</Data></Cell><Cell><Data ss:Type="Number">64</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">375351</Data></Cell><Cell><Data ss:Type="String">07843</Data></Cell><Cell><Data ss:Type="Number">65</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">375361</Data></Cell><Cell><Data ss:Type="String">0013</Data></Cell><Cell><Data ss:Type="Number">66</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">375361</Data></Cell><Cell><Data ss:Type="String">05024</Data></Cell><Cell><Data ss:Type="Number">67</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">375361</Data></Cell><Cell><Data ss:Type="String">07448</Data></Cell><Cell><Data ss:Type="Number">68</Data></Cell></Row>
+<Row><Cell><Data ss:Type="String">375361</Data></Cell><Cell><Data ss:Type="String">07742</Data></Cell><Cell><Data ss:Type="Number">69</Data></Cell></Row>
+</Table><AutoFilter x:Range="R1C1:R1C3" xmlns="urn:schemas-microsoft-com:office:excel"/></Worksheet></Workbook>
