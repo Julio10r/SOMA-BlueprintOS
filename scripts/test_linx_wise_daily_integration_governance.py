@@ -4,7 +4,7 @@ linx_wise_daily_integration.py: build_governed_plan(), consult_governed_plan_bri
 and check_execution_approval(). No pyodbc connection, no real WISE/Linx access —
 consult_governed_plan_bridge exercises the real .NET governed-plan CLI (in-memory,
 no external connection), which must already be built
-(`dotnet build backend/src/BlueprintOS.Api`) for the bridge assertions to run.
+(`dotnet build applications/mais-compras/backend/src/BlueprintOS.Api`) for the bridge assertions to run.
 """
 import importlib.util
 import json
@@ -50,7 +50,7 @@ def test_build_governed_plan_matches_bridge_contract():
 
 def test_bridge_consultation_and_approval_gate_end_to_end():
     if not wise.GOVERNED_PLAN_CLI_DLL.exists():
-        print(f"SKIP: {wise.GOVERNED_PLAN_CLI_DLL} not built — run `dotnet build backend/src/BlueprintOS.Api` first")
+        print(f"SKIP: {wise.GOVERNED_PLAN_CLI_DLL} not built — run `dotnet build applications/mais-compras/backend/src/BlueprintOS.Api` first")
         return
 
     plan = wise.build_governed_plan(Args(), rows=[{"a": 1}] * 3, diff_summary={"x": 1})

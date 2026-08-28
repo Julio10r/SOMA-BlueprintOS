@@ -8,7 +8,7 @@ This script used to open a direct pyodbc connection to production (LINX_PROD_*)
 and execute INSERT/UPDATE/executemany/commit with no governance in the loop at
 all — a direct bypass of agents/EXECUTION_POLICY.md ("No Direct Bypass") and of
 the whole ActionProposal/AIGovernancePolicyEngine/ApprovalPolicy/GovernedWriteStack
-pipeline in backend/src/BlueprintOS.Core/AI/Governance/.
+pipeline in applications/mais-compras/backend/src/BlueprintOS.Core/AI/Governance/.
 
 The parsing/validation/planning logic (spreadsheet reading, environment gate,
 missing-product/color checks, WISE expected-vs-remote comparisons, price/stock
@@ -26,7 +26,7 @@ Resource, Intent, Filter, ExpectedAffectedRows, DataClassification, Purpose,
 ConnectionProfile — matching the plan contract produced by
 tools/agents/governed-orchestrator.js and consumed by the .NET
 GovernedWriteStack.PrepareAsync bridge (see
-backend/src/BlueprintOS.Application/Governance/GovernedPlanBridge.cs).
+applications/mais-compras/backend/src/BlueprintOS.Application/Governance/GovernedPlanBridge.cs).
 
 Real mutation is only reachable when ALL of the following hold:
   1. --execute is passed explicitly (dry-run is the implicit default), AND
@@ -76,7 +76,7 @@ APPROVALS_DIR = ROOT / ".ai" / "local-output" / "governance" / "wise_approvals"
 CONNECTION_PROFILE = "wise-governed-write"  # must match WiseGovernedAdapter.AllowedConnectionProfiles
 CAPABILITY = "wise-database-write-proposal"  # must match WiseGovernedAdapter.Capability
 AGENT_ID = "wise-agent"  # must match WiseGovernedAdapter.OwnerAgent
-GOVERNED_PLAN_CLI_DLL = ROOT / "backend/src/BlueprintOS.Api/bin/Debug/net9.0/BlueprintOS.Api.dll"
+GOVERNED_PLAN_CLI_DLL = ROOT / "applications/mais-compras/backend/src/BlueprintOS.Api/bin/Debug/net9.0/BlueprintOS.Api.dll"
 
 
 def load_env():
@@ -285,7 +285,7 @@ def _plan_hash(plan: dict) -> str:
 
 def build_governed_plan(args, rows, diff_summary: dict) -> dict:
     """Build the exact GovernedPlanPayload contract consumed by the .NET
-    GovernedPlanBridge (backend/src/BlueprintOS.Application/Governance/GovernedPlanBridge.cs),
+    GovernedPlanBridge (applications/mais-compras/backend/src/BlueprintOS.Application/Governance/GovernedPlanBridge.cs),
     field-for-field identical to what GovernedOrchestrator.buildActionProposalPayload()
     emits on the JS side (tools/agents/governed-orchestrator.js) — this script is a
     second, independent producer of the same wire contract, not a parallel one."""
