@@ -26,6 +26,15 @@ public enum ToolGatewayStatus
 {
     Blocked = 1,
     DryRunCompleted = 2,
+
+    /// <summary>A live write ran and its adapter reported success. Only reachable through the guarded live
+    /// path: an allowed/approved decision, a recovery package receipt when the profile requires a backup, and
+    /// a resolved post-write validation rule when the profile requires validation.</summary>
+    LiveExecutionCompleted = 3,
+
+    /// <summary>The live path was permitted and attempted, but the adapter reported failure. Never a silent
+    /// success: callers must treat this as "state unknown until validated/rolled back".</summary>
+    LiveExecutionFailed = 4,
 }
 
 public sealed record StructuredActionContext(
@@ -113,7 +122,23 @@ public sealed record ToolGatewayRequest(
     IReadOnlyList<string> CrossCuttingAgents,
     string ConnectionProfile,
     IdentityPermissionContext Identity,
-    GovernedExecutionMode ExecutionMode);
+    GovernedExecutionMode ExecutionMode,
+
+    // --- Additive live-execution guarantees (default null) --------------------------------------------
+    // All three default to null so every existing DryRun caller keeps compiling and behaving identically.
+    // A LiveExecution request with any required guarantee missing stays blocked.
+
+    // Proof that a recovery package was written BEFORE this write was attempted. Required when the
+    // resolved write verification profile sets BackupRequired.
+    Recovery.RecoveryPackageReceipt? RecoveryPackageReceipt = null,
+
+    // The rule that will prove the write actually happened. Required when the resolved profile sets
+    // PostWriteValidationRequired.
+    PostWriteValidationRule? PostWriteValidationRule = null,
+
+    // The write safety policy resolved from the profile store for this connection profile. Always
+    // required for a live execution; never inferred from a database name.
+    WriteVerificationProfile? WriteVerificationProfile = null);
 
 public sealed record ToolGatewayResult(
     ToolGatewayStatus Status,
@@ -121,7 +146,17 @@ public sealed record ToolGatewayResult(
     SomaLinxDryRunPreview? Preview,
     bool LiveExecutionEnabled = false,
     bool DirectBypassAllowed = false,
-    bool PrivilegeEscalationAllowed = false);
+    bool PrivilegeEscalationAllowed = false,
+    WriteExecutionResult? Execution = null);
+
+/// <summary>What a write execution adapter reports back after a real write.</summary>
+public sealed record WriteExecutionResult(
+    bool Succeeded,
+    int RecordsAffected,
+    IReadOnlyList<Recovery.RecoveryDataSet> AfterData,
+    IReadOnlyList<string> Reasons,
+    string? ErrorMessage = null,
+    string? ExternalIdentifier = null);
 
 public sealed record GovernanceAuditEvent(
     Guid Id,

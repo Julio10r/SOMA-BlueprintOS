@@ -21,6 +21,10 @@ public enum ActionResourceType
     Log = 6,
     Permission = 7,
     ExternalSystem = 8,
+
+    /// <summary>A governance policy record that is itself governed (e.g. a WriteVerificationProfile
+    /// version). Changing one is an ActionProposal, never a direct store write.</summary>
+    GovernancePolicy = 9,
 }
 
 public enum ActionOperation
@@ -45,6 +49,10 @@ public enum ActionOperation
     PersistSecret = 17,
     LogSecret = 18,
     PromptWithSecret = 19,
+
+    /// <summary>Creation of a new governed record/version (e.g. a new WriteVerificationProfile version).
+    /// Distinct from <see cref="Insert"/>, which means a physical row insert into a business table.</summary>
+    Create = 20,
 }
 
 public enum DataClassification

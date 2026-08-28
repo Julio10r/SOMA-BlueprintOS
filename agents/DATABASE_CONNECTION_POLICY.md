@@ -428,10 +428,17 @@ tables, timestamp, responsible Agent/use case, and related `ActionProposal` wher
 define an explicit cleanup strategy — never assume a `DELETE` is authorized without an explicit
 governed decision for that specific case.
 
-**Status of this section: DOCUMENTED, not yet ENFORCED in code.** No tool, Agent, or code path in
-this repository currently executes a Production -> Development data copy; this section defines the
-policy a future implementation must follow. No copy was performed as part of adding this section
-(§ 26 of the governing task explicitly excluded it).
+**Status of this section (updated 2026-08-28).** The PROD -> DEV *copy* itself remains **DOCUMENTED,
+not yet ENFORCED**: no tool, Agent, or code path in this repository executes a Production ->
+Development data copy, and none was performed when this section was written (§ 26 of the governing
+task explicitly excluded it).
+
+What HAS since been implemented and enforced in code is the write-side machinery any such copy must
+run through — write verification profiles, mandatory recovery package before a live write, post-write
+validation, governed rollback, retention vs. permanent audit. See **§ 24, Production Write
+Verification & Recovery Policy**. In other words: the Development **write** half of this flow is now
+governed by enforced code; the Production **read** half and the copy orchestration are still policy
+text awaiting an implementation, which must be built on § 24 rather than beside it.
 
 ## 23. Agent Factory / new agents
 
@@ -442,3 +449,186 @@ inherited today via `agents/AGENT_CONTRACT.md` § "Politicas Canonicas Relaciona
 document, and via each Agent's own `knowledge.update_rules` (see
 `agents/linx-database-specialist-agent/agent.yaml` and
 `agents/linx-erp-specialist-agent/agent.yaml`) — no `agent.schema.json` change was needed for this.
+
+## 24. Production Write Verification & Recovery Policy
+
+Status: **IMPLEMENTED and ENFORCED in code** (backend, .NET 9). This section is the canonical
+description of the guarded live-write path added on top of the Governed Write Stack. It expands
+§ 22 (controlled PROD -> DEV reproduction), which pairs a Production read with a Development
+**write**: any such write, and any other live write, must satisfy everything below. It does not
+weaken §§ 11, 12, 18 or 22 — it is the mechanism those sections assume.
+
+### 24.1 What changed
+
+The Governed Write Stack (`ActionProposal` -> `AIGovernancePolicyEngine` -> `ApprovalPolicy` ->
+`ToolGateway` -> Audit) was previously DryRun-only: the Tool Gateway rejected every
+`LiveExecution` request unconditionally with `LIVE_EXECUTION_DISABLED`. That blanket rejection is
+now a **guarded gate**, not an open door. Live execution is possible only when ALL of the following
+hold; a request missing any of them is still blocked with `LIVE_EXECUTION_DISABLED` plus a specific
+reason code:
+
+1. every pre-existing check still passes (routing, capability, owner, connection profile, identity
+   and effective permission, policy decision, valid approval bound to the exact proposal hash);
+2. a `WriteVerificationProfile` was resolved from the store for that connection profile;
+3. when that profile sets `BackupRequired`, a valid `RecoveryPackageReceipt` is present — proof
+   that a recovery package was written to durable storage BEFORE the write;
+4. when that profile sets `PostWriteValidationRequired`, a `PostWriteValidationRule` covering the
+   (operation, resource) pair was resolved;
+5. the adapter implements `IWriteExecutionAdapter`. A DryRun-only adapter can never execute live,
+   however complete the request is.
+
+### 24.2 Write verification profile — policy, not infrastructure
+
+`WriteVerificationProfile` is versionable POLICY (`BackupRequired`, `RollbackSupported`,
+`BackupRetentionDays`, `PostWriteValidationRequired`, `PolicyVersion`, `ApprovedBy`,
+`EffectiveFrom`), deliberately distinct from `LinxConnectionProfile` (§ 2), which is physical
+infrastructure. It is resolved exclusively through `IWriteVerificationProfileStore`; **guarantees
+are never inferred from a database or server name**. An unknown profile resolves to null, which
+means "not governed for live writes" — never "no guarantees needed".
+
+Seeded versions:
+
+| Profile | Version | Backup | Rollback | Retention | Post-write validation |
+| --- | --- | --- | --- | --- | --- |
+| `linx-development` | `1.0-phase-a` (effective) | yes | yes | 30 d | yes |
+| `linx-development` | `2.0-phase-b` (recorded, not yet effective) | no | no | — | yes |
+| `linx-production` | `1.0` | yes | yes | 90 d | yes |
+| `wise` | `1.0-config-only` | no | no | — | yes |
+
+Phase B exists as a separate append-only version, never as an edit of phase A, and carries a
+far-future `EffectiveFrom` so resolution today still returns the stricter phase A. Note that
+post-write validation is required in every profile, including phase B and WISE.
+
+### 24.3 Changing a profile is itself governed
+
+There is no `SetAsync`. A profile change becomes an `ActionProposal` with
+`ActionResourceType.GovernancePolicy` and `ActionOperation.Create`, evaluated by the policy engine
+like any other action. A fixed rule applies: **a proposal that reduces a write safety guarantee
+(`BackupRequired`, `RollbackSupported` or `PostWriteValidationRequired` going true -> false) in
+Production is always Red/Blocked** and no approval can unblock it. Outside Production the same
+reduction requires an explicit, specific human authorization.
+
+### 24.4 Recovery package
+
+Before any backup-requiring live write, a recovery package is written to
+`runtime/backups/<agent-id>/<connection-profile>/<yyyy-MM-dd>/<HHmm>-<action>__<execution-id>/`
+containing `manifest.json`, `before-data.json`, `expected-after.json`, and — after the write —
+`after-data.json` and `validation-report.json`. The manifest records execution identity, server,
+database, requester, original request summary, operation types, tables, business keys, expected
+record count, the guarantees in force, retention and expiry, the validation rule id, the proposal
+hash, and a SHA-256 checksum of itself. `runtime/backups/` is git-ignored: these are runtime
+artifacts that may contain real record snapshots, and are never committed.
+
+Every package is registered in a searchable recovery index. `IRecoveryIndexStore.FindAsync` ALWAYS
+returns a list, even for one match: a silent "first result" is how a rollback reaches the wrong
+execution.
+
+### 24.5 Post-write validation
+
+A write is not "done" because the driver returned no error. The affected records are re-read after
+the write and compared, by business key, against the state the proposal expected. A missing rule for
+an (operation, resource) pair blocks the write with `WRITE_VALIDATION_RULE_UNKNOWN` and records a
+`WriteValidationKnowledgeGap` — an application of the Knowledge Gap flow in
+`agents/CAPABILITY_GAP_AND_AGENT_EVOLUTION_POLICY.md`: the capability exists, the knowledge of how
+to verify it does not, so the flow stops and a human closes the gap. Seeded rules today cover
+`CADASTRO_CLI_FOR` and `FORNECEDORES` for Insert/Update.
+
+### 24.6 Rollback — DISCOVER != SELECT != AUTHORIZE != EXECUTE
+
+Rollback is four separate, explicit steps. No step performs the next one's job:
+
+1. **Discovery** (automatic): searches the recovery index by execution id, period, agent, connection
+   profile, tables, business keys, requester or status. Zero results -> `ROLLBACK_NOT_FOUND`. Many
+   results -> the whole list is returned and nothing is chosen. One result -> returned, not executed.
+   Discovery works from a cold start with only the index; it never depends on session state.
+2. **Selection**: a human act. The runtime has no method for it.
+3. **Safety pre-analysis** (automatic, for one selected execution): verifies manifest integrity
+   against the index checksum, expiry, and that a backup exists and rollback is supported; re-reads
+   the current state and compares it with what the original execution left behind. Concurrent change
+   -> `ROLLBACK_BLOCKED_CONCURRENT_CHANGE`. Expired, removed, no backup, rollback unsupported, or a
+   failed checksum -> `ROLLBACK_NOT_AVAILABLE`. Nothing is written; on success a confirmation handle
+   bound to that execution and that analysis is issued.
+4. **Execution**: runs only when handed back that exact handle for that exact execution — a handle
+   from another execution or another analysis is `ROLLBACK_CONFIRMATION_MISMATCH`. It then builds a
+   `RollbackActionProposal` from the captured before-data, evaluates it through the policy engine,
+   obtains a **new** approval (the original execution's approval is never reused), writes through the
+   ordinary Tool Gateway live path, and re-reads the state to confirm the original values are back
+   (`ROLLBACK_VALIDATION` PASS/FAIL).
+
+Every rollback attempt, successful or not, is recorded permanently: rollback and original execution
+ids, requester, request and confirmation timestamps, justification, tables and records, concurrency
+findings, expected vs. observed state, result, post-rollback validation and errors.
+
+### 24.7 Retention vs. audit — the distinction that matters
+
+Recovery packages EXPIRE; the record that a write happened does NOT.
+`RecoveryRetentionCleanupService.RunOnceAsync(now)` — `now` is an explicit argument, never the wall
+clock — deletes the package directory of every active entry past its retention, and marks the index
+row `Expired`. It never deletes an index row and **never touches the permanent write execution
+audit**, which lives in its own table and holds a compact before -> after summary (counts and
+resources, never full payloads, so it can be retained indefinitely without becoming a second copy of
+business or personal data).
+
+### 24.8 Scope and current wiring
+
+`SomaGarantirFornecedorErpAdapter` exposes read-only snapshot capture and declares itself to the Tool
+Gateway, with every line of its SQL, its transaction, its `UPDLOCK, HOLDLOCK` reconsult and its
+commit/rollback unchanged; the governed entry point `GovernedGarantirFornecedorService` exists and is
+testable in isolation but is deliberately NOT yet wired into any controller or handler. Nothing here
+has ever touched Production or a real WISE connection.
+
+**Before-state, typed.** `RecoveryPackageReceipt.BeforeDataCaptured` (a bare bool) was replaced with
+`BeforeStateStatus` (`Captured` / `NotExistent` / `CaptureFailed`), decided once by
+`BeforeStateEvaluator.Evaluate(operation, beforeData, allowsMissingPriorState)`: an empty snapshot is
+`NotExistent` only for `Insert`/`Create`, or when the caller explicitly declares
+`GovernedWriteExecutionRequest.AllowsMissingBeforeState` (used by "garantir fornecedor" — insert-or-
+update by business key, decided by the write itself at execution time) — never inferred from an empty
+collection alone. `ToolGateway.IsUsableReceipt` blocks only on `CaptureFailed`.
+
+**Rollback capability vs. rollback strategy — modelled separately (2026-08-28).**
+`WriteVerificationProfile.RollbackSupported` is a policy fact about the CONNECTION PROFILE ("does this
+environment require rollback capability"). `IWriteExecutionAdapter.RollbackStrategy`
+(`RestoreBeforeState` / `CompensatingAction` / `NotSupported`, default `NotSupported`) is a fact about
+the CAPABILITY itself, declared by the adapter, never inferred or hardcoded per resource. When a
+profile requires rollback but the capability declares `NotSupported`,
+`GovernedWriteExecutionOrchestrator` blocks the write BEFORE any backup or execution and records a
+`RollbackCapabilityGap` (`ROLLBACK_STRATEGY_NOT_SUPPORTED`) — the gap is discovered up front, never at
+rollback time. `GarantirFornecedorGovernedWriteAdapter` declares `NotSupported` deliberately: it is a
+real business rule ("garantir" never destroys an existing supplier/role, so it offers no delete), not
+an infrastructure limitation — see `RollbackCapabilityGapTests` for the framework-level proof and
+`GovernedGarantirFornecedorServiceTests` for the realistic profile (backup required, rollback not
+required) this capability actually runs under.
+
+**Rollback restores the recorded before-state; the physical operation follows objectively.**
+`RollbackOrchestrator.BuildEquivalentProposal` derives Insert/Update/Delete from what the Recovery
+Package and a live re-read prove, never from assumption: before absent + current present → Delete
+(undo a create); before present + current present → Update (restore old values); before present +
+current absent → Insert (recreate). A resulting `Delete` proposal carries
+`ActionProposal.RollbackOfExecutionId`, the only thing that keeps `AIGovernancePolicyEngine`'s
+unconditional "DELETE is always Red/Blocked" rule from applying — that rule still blocks every OTHER
+delete unconditionally; a rollback-derived delete instead reaches Yellow/RequiresApproval, same as any
+other governed write, never auto-allowed. This mechanism is exercised by
+`RecoveryHomologationE2EIntegrationTests` (Update case, real SOMA_DESENV) and does not apply to
+`GarantirFornecedorGovernedWriteAdapter` (declares `NotSupported`, so rollback for that capability is
+blocked before the write, never reaches this logic).
+
+**First real end-to-end run against `SOMA_DESENV`: 2026-08-28, PASS.** Deliberately does NOT use
+`GarantirFornecedorGovernedWriteAdapter` to prove rollback — that capability has its own real business
+rule and is not a generic rollback fixture. Instead `RecoveryHomologationE2EIntegrationTests` creates
+a disposable, non-business table (`BLUEPRINTOS_RECOVERY_HOMOLOGATION`, ID/VALOR) that exists ONLY in
+SOMA_DESENV for the duration of the run and is dropped unconditionally at the end. Phase A (backup and
+rollback required): real UPDATE ANTES→DEPOIS, Recovery Package written before the write, post-write
+validation PASS, full governed rollback (discovery by criteria → single-candidate → safety analysis,
+no concurrency → explicit confirmation → new approval → live restore → `ROLLBACK_VALIDATION=PASS`,
+value back to ANTES). Phase B (backup and rollback not required): write succeeds, post-write
+validation still runs, no Recovery Package created, Audit records `BACKUP_REQUIRED=false`, discovery
+of a later rollback returns `ROLLBACK_NOT_FOUND` (no index entry — the write orchestrator never
+created one), and no write is attempted; the row is then reset administratively. Phase C (retention):
+a fresh Recovery Package is force-expired via an explicit clock rather than a real 30-day wait; cleanup
+removes 100% of the package directory, the Recovery Index marks the entry `Expired` (never deletes the
+row), the permanent Audit stays queryable, and a rollback attempt returns
+`RECOVERY_PACKAGE_EXPIRED_OR_REMOVED`. Concurrency: after a governed write, the same row is changed
+directly (simulating a third party); a subsequent rollback attempt returns
+`ROLLBACK_BLOCKED_CONCURRENT_CHANGE` with zero writes. Every phase leaves SOMA_DESENV clean; the table
+itself is dropped at the end regardless of outcome. Production (192.168.9.200) and WISE were never
+referenced by any code path exercised in this run.

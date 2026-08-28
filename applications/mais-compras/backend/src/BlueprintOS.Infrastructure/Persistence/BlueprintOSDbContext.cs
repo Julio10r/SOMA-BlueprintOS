@@ -53,6 +53,11 @@ public sealed class BlueprintOSDbContext(DbContextOptions<BlueprintOSDbContext> 
     public DbSet<GovernanceApprovalRequestEntity> AIGovernanceApprovalRequests => Set<GovernanceApprovalRequestEntity>();
     public DbSet<GovernanceApprovalGrantEntity> AIGovernanceApprovalGrants => Set<GovernanceApprovalGrantEntity>();
     public DbSet<GovernanceAuditEventEntity> AIGovernanceAuditEvents => Set<GovernanceAuditEventEntity>();
+    public DbSet<WriteVerificationProfileEntity> AIGovernanceWriteVerificationProfiles => Set<WriteVerificationProfileEntity>();
+    public DbSet<WriteValidationKnowledgeGapEntity> AIGovernanceWriteValidationKnowledgeGaps => Set<WriteValidationKnowledgeGapEntity>();
+    public DbSet<RecoveryIndexEntryEntity> AIGovernanceRecoveryIndex => Set<RecoveryIndexEntryEntity>();
+    public DbSet<WriteExecutionAuditEntity> AIGovernanceWriteExecutionAudit => Set<WriteExecutionAuditEntity>();
+    public DbSet<RollbackAuditEntity> AIGovernanceRollbackAudit => Set<RollbackAuditEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

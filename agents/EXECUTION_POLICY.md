@@ -95,6 +95,16 @@ EXECUCAO PERMITIDA
 + POLICY/GOVERNANCE DO BLUEPRINTOS
 ```
 
+Escrita real (live execution) tem uma terceira exigencia, independente das duas acima:
+`agents/DATABASE_CONNECTION_POLICY.md` § 24 "Production Write Verification & Recovery Policy" e
+canonica e esta ENFORCED em codigo. Nenhuma escrita real ocorre sem `WriteVerificationProfile`
+resolvido do store (nunca inferido por nome de banco), sem Recovery Package gravado ANTES da escrita
+quando a politica exige backup, e sem regra de validacao pos-escrita resolvida — na ausencia de
+qualquer uma delas o Tool Gateway mantem o bloqueio. Reduzir garantia de seguranca de escrita
+(backup, rollback ou validacao pos-escrita) em Producao e sempre Red/Blocked e nenhuma aprovacao
+desbloqueia. Rollback segue DESCOBRIR != SELECIONAR != AUTORIZAR != EXECUTAR, com confirmacao
+explicita e aprovacao nova — nunca reaproveita a aprovacao da execucao original.
+
 As duas autorizacoes sao independentes e obrigatorias. Se a policy aprovar e a identidade nao possuir permissao, a execucao deve parar e informar: "A acao foi considerada permitida pela governanca, mas a identidade atual nao possui permissao suficiente."
 
 E proibido tentar outro usuario, procurar credencial mais privilegiada, usar credencial de colega, alterar `GRANT`/role, pedir senha administrativa ou contornar o sistema alvo.

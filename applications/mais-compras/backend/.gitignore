@@ -1,0 +1,4 @@
+# Recovery packages written by the governed live-write path (manifest, before/after data, validation
+# reports). They can contain real record snapshots from a governed database and are retained/expired by
+# RecoveryRetentionCleanupService — they are runtime artifacts, never source, and must never be committed.
+runtime/backups/

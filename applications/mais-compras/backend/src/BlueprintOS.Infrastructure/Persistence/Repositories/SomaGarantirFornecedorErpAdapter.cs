@@ -1,4 +1,7 @@
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
+using BlueprintOS.Core.AI.Governance.Contracts;
+using BlueprintOS.Core.AI.Governance.Models;
+using BlueprintOS.Core.AI.Governance.Recovery;
 using BlueprintOS.Infrastructure.Persistence;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -19,11 +22,132 @@ namespace BlueprintOS.Infrastructure.Persistence.Repositories;
 /// EMPRESA do Linx é fixada em 1 (decisão do Product Owner — a SOMA não usa a separação de
 /// empresa/grupo econômico) e nunca é exposta acima desta classe.
 /// </summary>
-public sealed class SomaGarantirFornecedorErpAdapter(IConfiguration configuration, ILogger<SomaGarantirFornecedorErpAdapter> logger) : IGarantirFornecedorErpAdapter
+public sealed class SomaGarantirFornecedorErpAdapter(IConfiguration configuration, ILogger<SomaGarantirFornecedorErpAdapter> logger)
+    : IGarantirFornecedorErpAdapter, IGovernedToolAdapter, ISnapshotCapableAdapter
 {
     private const int Empresa = 1;
 
     public string ErpSistema => "SOMA_DESENV";
+
+    // --- Governed write stack surface -------------------------------------------------------------------
+    // Added additively in the Production Write Verification & Recovery work. NONE of the SQL, transaction,
+    // UPDLOCK/HOLDLOCK, commit/rollback or error-classification logic below was changed: GarantirAsync is
+    // byte-for-byte the same flow it was. What is new is (a) declaring this adapter to the Tool Gateway and
+    // (b) exposing a READ-ONLY snapshot capture so a recovery package can hold a real before/after state.
+
+    public const string CapabilityId = "soma-fornecedor-governed-write";
+    public const string OwnerAgentId = "linx-database-specialist-agent";
+
+    public string Capability => CapabilityId;
+
+    public string OwnerAgent => OwnerAgentId;
+
+    /// <summary>Development only. This adapter resolves the DEVELOPMENT connection profile and nothing else;
+    /// it can never be pointed at Production by a request.</summary>
+    public IReadOnlyList<string> AllowedConnectionProfiles => [WriteVerificationProfileSeeds.LinxDevelopment];
+
+    public Task<SomaLinxDryRunPreview> DryRunAsync(ToolGatewayRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return Task.FromResult(new SomaLinxDryRunPreview(
+            request.Proposal.System,
+            request.Proposal.Environment,
+            request.Proposal.Resource,
+            request.Proposal.Operation,
+            request.Proposal.Fields,
+            request.Proposal.FilterSummary,
+            request.Proposal.ExpectedAffectedRows,
+            request.Proposal.Purpose,
+            request.ConnectionProfile,
+            request.PolicyDecision.RiskClassification,
+            request.PolicyDecision.Status,
+            request.ApprovalGrant is null ? "none" : "granted",
+            request.Proposal.Reversibility,
+            request.ExecutionMode,
+            CredentialResolutionRequired: true,
+            IdentityPermissionCheckRequired: true,
+            SqlGenerated: false,
+            ExternalExecutionPerformed: false));
+    }
+
+    /// <summary>
+    /// READ-ONLY capture of the current state of the records a write is about to touch, keyed by
+    /// <c>CGC_CPF=&lt;digits&gt;</c> business keys. No transaction, no lock, no mutation — this is the
+    /// before/after photograph a recovery package and a post-write validation are built on.
+    /// </summary>
+    public async Task<IReadOnlyList<RecoveryDataSet>> CaptureSnapshotAsync(IReadOnlyList<string> businessKeys, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(businessKeys);
+        var cnpjs = businessKeys.Select(ExtrairCnpjDaChaveDeNegocio).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.Ordinal).ToList();
+        if (cnpjs.Count == 0) return [];
+
+        var cadastro = new List<IReadOnlyDictionary<string, string?>>();
+        var fornecedores = new List<IReadOnlyDictionary<string, string?>>();
+
+        await using var connection = await OpenAsync(cancellationToken);
+        foreach (var cnpj in cnpjs)
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandTimeout = TimeoutSeconds;
+            command.CommandText =
+                "SELECT c.[COD_CLIFOR], c.[NOME_CLIFOR], c.[CGC_CPF], c.[INDICA_FORNECEDOR], " +
+                "f.[COD_FORNECEDOR], f.[FORNECEDOR], f.[CGC_CPF] AS FORNECEDOR_CGC_CPF, f.[INATIVO] " +
+                "FROM [dbo].[CADASTRO_CLI_FOR] c " +
+                "LEFT JOIN [dbo].[FORNECEDORES] f ON f.[CLIFOR] = c.[COD_CLIFOR] " +
+                "WHERE c.[CGC_CPF] = @cnpj";
+            command.Parameters.Add(new SqlParameter("@cnpj", cnpj));
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                cadastro.Add(new Dictionary<string, string?>
+                {
+                    ["COD_CLIFOR"] = Texto(reader["COD_CLIFOR"]),
+                    ["NOME_CLIFOR"] = Texto(reader["NOME_CLIFOR"]),
+                    ["CGC_CPF"] = Texto(reader["CGC_CPF"]),
+                    ["INDICA_FORNECEDOR"] = Texto(reader["INDICA_FORNECEDOR"]),
+                });
+
+                if (reader["COD_FORNECEDOR"] is not null and not DBNull)
+                {
+                    fornecedores.Add(new Dictionary<string, string?>
+                    {
+                        ["COD_FORNECEDOR"] = Texto(reader["COD_FORNECEDOR"]),
+                        ["FORNECEDOR"] = Texto(reader["FORNECEDOR"]),
+                        ["CGC_CPF"] = Texto(reader["FORNECEDOR_CGC_CPF"]),
+                        ["INATIVO"] = Texto(reader["INATIVO"]),
+                    });
+                }
+            }
+        }
+
+        return
+        [
+            new RecoveryDataSet("CADASTRO_CLI_FOR", cadastro),
+            new RecoveryDataSet("FORNECEDORES", fornecedores),
+        ];
+    }
+
+    /// <summary>Accepts <c>CGC_CPF=00000000000191</c> or a bare document, and keeps only digits.</summary>
+    internal static string ExtrairCnpjDaChaveDeNegocio(string businessKey)
+    {
+        if (string.IsNullOrWhiteSpace(businessKey)) return string.Empty;
+        var separador = businessKey.IndexOf('=');
+        var valor = separador >= 0 ? businessKey[(separador + 1)..] : businessKey;
+        return SomenteDigitos(valor);
+    }
+
+    /// <summary>Stringifies a column value for a recovery snapshot. A SQL <c>bit</c> column arrives as a CLR
+    /// <see cref="bool"/> and <see cref="Convert.ToString(object)"/> would render it "True"/"False" —
+    /// inconsistent with the "0"/"1" convention every expected-after payload in this codebase already uses for
+    /// bit columns (see <c>GovernedGarantirFornecedorService</c>). Normalizing here, once, is what makes
+    /// post-write validation's string comparison actually match a real bit column instead of failing on a
+    /// harmless formatting difference.</summary>
+    private static string? Texto(object? value) => value switch
+    {
+        null or DBNull => null,
+        bool boolValue => boolValue ? "1" : "0",
+        _ => Convert.ToString(value)?.Trim(),
+    };
 
     public async Task<GarantirFornecedorErpResultado> GarantirAsync(GarantirFornecedorErpRequest request, CancellationToken cancellationToken = default)
     {

@@ -31,14 +31,52 @@ public sealed class AIGovernancePolicyEngine : IAIGovernancePolicyEngine
             Raise(RiskClassification.Red, PolicyDecisionStatus.Blocked, "Tentativa de persistir, logar ou enviar segredo em prompt.");
         }
 
-        if (proposal.Operation is ActionOperation.Delete or ActionOperation.Truncate or ActionOperation.Drop or ActionOperation.Grant or ActionOperation.Revoke)
+        if (proposal.Operation is ActionOperation.Truncate or ActionOperation.Drop or ActionOperation.Grant or ActionOperation.Revoke)
         {
             Raise(RiskClassification.Red, PolicyDecisionStatus.Blocked, $"Operacao destrutiva ou de privilegio: {proposal.Operation}.");
+        }
+
+        // DELETE is always Red/Blocked UNLESS it is provably "undo the CREATE recorded in a verified Recovery
+        // Package" (RollbackOfExecutionId set — see ActionProposal.RollbackOfExecutionId): that is a different,
+        // narrower thing than an arbitrary delete, and still never auto-allowed — it only reaches Yellow /
+        // RequiresApproval, same as any other governed write. Rollback = restore the recorded before-state,
+        // and the mechanism that restoration needs (insert/update/delete) is decided objectively from what the
+        // Recovery Package proves, not assumed forbidden.
+        if (proposal.Operation == ActionOperation.Delete)
+        {
+            if (proposal.RollbackOfExecutionId is null)
+            {
+                Raise(RiskClassification.Red, PolicyDecisionStatus.Blocked, "Operacao destrutiva ou de privilegio: Delete.");
+            }
+            else
+            {
+                Raise(RiskClassification.Yellow, PolicyDecisionStatus.RequiresApproval,
+                    "DELETE como restauracao de rollback verificado exige aprovacao explicita.");
+            }
         }
 
         if (proposal.Operation == ActionOperation.Alter && proposal.Reversibility != ActionReversibility.Reversible)
         {
             Raise(RiskClassification.Red, PolicyDecisionStatus.Blocked, "ALTER nao reversivel ou sem reversibilidade comprovada.");
+        }
+
+        // Fixed rule (Production Write Verification & Recovery Policy): a proposal that REDUCES a write
+        // safety guarantee — backup required, rollback supported, or post-write validation — is always
+        // Red/Blocked in Production. No approval can unblock it; the only route is a proposal that does not
+        // reduce the guarantee. Outside Production the same reduction is still material enough to demand an
+        // explicit, specific human authorization.
+        if (proposal.ReducesWriteSafetyGuarantees == true)
+        {
+            if (proposal.Environment == GovernanceEnvironment.Production)
+            {
+                Raise(RiskClassification.Red, PolicyDecisionStatus.Blocked,
+                    "Reducao de garantia de seguranca de escrita (backup/rollback/validacao) em Producao e sempre bloqueada.");
+            }
+            else
+            {
+                Raise(RiskClassification.Yellow, PolicyDecisionStatus.RequiresApproval,
+                    "Reducao de garantia de seguranca de escrita exige autorizacao humana explicita e especifica.");
+            }
         }
 
         if (proposal.Operation == ActionOperation.ExecuteProcedure && !proposal.IsRunbookApprovedOperation)

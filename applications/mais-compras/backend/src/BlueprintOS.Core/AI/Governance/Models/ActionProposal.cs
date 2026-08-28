@@ -31,6 +31,27 @@ public sealed record ActionProposal
     public int? RunbookExpectedAffectedRows { get; init; }
     public string? AdditionalContext { get; init; }
 
+    /// <summary>
+    /// True when this proposal would REDUCE a write-safety guarantee (backup required, rollback supported,
+    /// post-write validation) rather than merely change unrelated data. Null means "not applicable / not
+    /// declared" and is the additive default: a null value is omitted from the canonical hash payload, so
+    /// hashes of proposals created before this field existed remain byte-identical.
+    /// </summary>
+    public bool? ReducesWriteSafetyGuarantees { get; init; }
+
+    /// <summary>
+    /// Set ONLY by <c>RollbackOrchestrator</c>, to the ORIGINAL execution's id, when this proposal is the
+    /// objectively-derived restoration of that execution's recorded before-state — never set by inference or
+    /// convenience elsewhere. Its sole effect on policy is narrow and typed: a <see cref="ActionOperation.Delete"/>
+    /// proposal is normally always Red/Blocked (see <c>AIGovernancePolicyEngine</c>), because an arbitrary
+    /// delete anywhere else in the system is exactly the risk that rule exists to stop. A delete that is
+    /// provably "undo the CREATE recorded in this verified Recovery Package" is a different, narrower thing —
+    /// this field is how a proposal proves that provenance, so the policy can require approval instead of an
+    /// unconditional block, without loosening the rule for anything else. Null is the additive default and is
+    /// omitted from the hash, so every existing proposal keeps its hash.
+    /// </summary>
+    public Guid? RollbackOfExecutionId { get; init; }
+
     [JsonIgnore]
     public string ProposalHash => ComputeHash(this);
 
@@ -55,7 +76,9 @@ public sealed record ActionProposal
             NormalizeNullable(proposal.RunbookReference),
             proposal.IsRunbookApprovedOperation,
             proposal.RunbookExpectedAffectedRows,
-            NormalizeNullable(proposal.AdditionalContext));
+            NormalizeNullable(proposal.AdditionalContext),
+            proposal.ReducesWriteSafetyGuarantees,
+            proposal.RollbackOfExecutionId);
 
         var json = JsonSerializer.Serialize(payload, HashJsonOptions);
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(json));
@@ -91,6 +114,12 @@ public sealed record ActionProposal
         string? RunbookReference,
         bool IsRunbookApprovedOperation,
         int? RunbookExpectedAffectedRows,
-        string? AdditionalContext);
+        string? AdditionalContext,
+        // Appended LAST and omitted when null, so every proposal that predates this field keeps its
+        // original hash. Only a proposal that explicitly declares the flag changes its hash.
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        bool? ReducesWriteSafetyGuarantees,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        Guid? RollbackOfExecutionId);
 }
 
