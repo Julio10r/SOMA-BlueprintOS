@@ -44,17 +44,29 @@ function finding(agentId, id, severity, category, criterion, evidence, actual, e
 }
 
 // Attaches a machine-readable classification to a finding using the manifest's own
-// governance.by_design_findings declarations — never changes severity or removes the
-// finding (it still counts, still shows up, still requires the same human review). This
-// is the semantic distinction the AUDIT report needs between "nobody looked at this yet"
-// (ACTION_REQUIRED, the default when nothing is declared) and "looked at, and here is why
-// it is intentionally not ENFORCED / not implementable yet" (BY_DESIGN / NOT_IMPLEMENTED
-// with an explicit, evidenced justification the manifest author is accountable for).
+// governance.by_design_findings declarations, and normalizes severity to match: this is
+// the semantic distinction the AUDIT report needs between "nobody looked at this yet"
+// (ACTION_REQUIRED, the default when nothing is declared — stays WARNING, still blocks
+// overall status) and "looked at, and here is why it is intentionally not ENFORCED / not
+// implementable yet" (BY_DESIGN / NOT_IMPLEMENTED with an explicit, evidenced
+// justification the manifest author is accountable for — downgraded to INFO, since it
+// requires no further action right now). Nothing is removed and nothing is silently
+// upgraded to PASS: the finding keeps its id, agent, evidence, actual/expected,
+// recommendation and justification untouched, and its pre-normalization severity is kept
+// verbatim in original_severity so the raw signal is never lost. ERROR findings are never
+// touched by this — only a manifest's own governance declarations can move a WARNING to
+// INFO, never an ERROR.
 function classifyFinding(manifestFinding, byDesignDeclarations) {
   const declared = (byDesignDeclarations || []).find((entry) => entry.code === manifestFinding.id);
+  const classification = declared ? declared.classification : "ACTION_REQUIRED";
+  const severity = manifestFinding.severity === "WARNING" && classification !== "ACTION_REQUIRED"
+    ? "INFO"
+    : manifestFinding.severity;
   return {
     ...manifestFinding,
-    classification: declared ? declared.classification : "ACTION_REQUIRED",
+    severity,
+    original_severity: manifestFinding.severity,
+    classification,
     classification_justification: declared ? declared.justification : null,
   };
 }
@@ -181,9 +193,15 @@ class AgentFactoryV2 {
 
     const allFindings = [...repositoryFindings, ...agents.flatMap((item) => item.findings)];
     const classificationSummary = { ACTION_REQUIRED: 0, BY_DESIGN: 0, NOT_IMPLEMENTED: 0 };
+    const severitySummary = { ERROR: 0, WARN: 0, INFO: 0 };
     for (const item of allFindings) {
-      if (item.severity !== "WARNING") continue; // classification is meaningful for WARNING findings; ERRORs are never BY_DESIGN.
+      if (item.original_severity === "ERROR") continue; // classification/severity-normalization never applies to ERROR findings.
       classificationSummary[item.classification] = (classificationSummary[item.classification] || 0) + 1;
+    }
+    for (const item of allFindings) {
+      if (item.severity === "ERROR") severitySummary.ERROR += 1;
+      else if (item.severity === "WARNING") severitySummary.WARN += 1;
+      else if (item.severity === "INFO") severitySummary.INFO += 1;
     }
 
     return {
@@ -194,6 +212,7 @@ class AgentFactoryV2 {
       agents,
       findings: repositoryFindings,
       classification_summary: classificationSummary,
+      severity_summary: severitySummary,
     };
   }
 

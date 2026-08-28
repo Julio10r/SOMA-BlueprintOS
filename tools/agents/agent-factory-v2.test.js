@@ -64,19 +64,35 @@ assert.equal(audit.agents.length, 8);
 assert(audit.agents.some((item) => item.findings.length > 0), "Audit must generate objective findings");
 assert.deepEqual(manifestHashes(), beforeAudit, "AUDIT must not modify Agent files");
 
-// Semantic classification (Agents v1 final certification wave): every WARNING finding must
-// carry a machine-readable classification, and it must never default to hiding a real gap —
-// ACTION_REQUIRED is the default when the manifest declares nothing for that finding code.
-const allWarnings = audit.agents.flatMap((item) => item.findings).filter((f) => f.severity === "WARNING");
-assert(allWarnings.length >= 12, "classification must not remove or hide any pre-existing WARNING finding");
-for (const item of allWarnings) {
+// Semantic classification (Agents v1 final certification wave): every originally-WARNING
+// finding must carry a machine-readable classification, and it must never default to
+// hiding a real gap — ACTION_REQUIRED is the default when the manifest declares nothing
+// for that finding code. Severity normalization (a later wave) downgrades a classified
+// WARNING to INFO for reporting, but the finding itself, its code, evidence and
+// original_severity must all survive unchanged — this is a severity fix, not deletion.
+const allOriginallyWarnings = audit.agents.flatMap((item) => item.findings).filter((f) => f.original_severity === "WARNING");
+assert(allOriginallyWarnings.length >= 12, "classification/severity-normalization must not remove or hide any pre-existing WARNING finding");
+for (const item of allOriginallyWarnings) {
   assert(["ACTION_REQUIRED", "BY_DESIGN", "NOT_IMPLEMENTED"].includes(item.classification), `unexpected classification ${item.classification}`);
-  if (item.classification !== "ACTION_REQUIRED") {
+  if (item.classification === "ACTION_REQUIRED") {
+    assert.equal(item.severity, "WARNING", `${item.agent_id}/${item.id} is ACTION_REQUIRED and must stay WARNING, not be silently downgraded`);
+  } else {
     assert(item.classification_justification && item.classification_justification.trim().length > 0, `${item.agent_id}/${item.id} classification requires a non-empty justification`);
+    assert.equal(item.severity, "INFO", `${item.agent_id}/${item.id} is ${item.classification} and must be reported as INFO, not WARNING`);
   }
 }
 assert.equal(audit.classification_summary.ACTION_REQUIRED, 0, "this canonical repository state must have zero unclassified/unaddressed architectural WARNING findings");
 assert(audit.classification_summary.BY_DESIGN + audit.classification_summary.NOT_IMPLEMENTED >= 12);
+assert.equal(audit.severity_summary.WARN, 0, "with zero ACTION_REQUIRED, WARN count must be zero");
+assert.equal(audit.severity_summary.INFO, 12, "all 12 BY_DESIGN/NOT_IMPLEMENTED findings must be reported as INFO");
+assert.equal(audit.status, "PASS", "zero ERROR and zero ACTION_REQUIRED must yield overall PASS");
+
+// An ERROR finding must never be eligible for the WARNING->INFO downgrade, no matter what
+// a manifest declares in governance.by_design_findings for that same code.
+const errorFindings = audit.agents.flatMap((item) => item.findings).filter((f) => f.original_severity === "ERROR");
+for (const item of errorFindings) {
+  assert.equal(item.severity, "ERROR", `${item.agent_id}/${item.id} is an ERROR and must never be downgraded to INFO`);
+}
 
 // An agent with no by_design_findings declared at all must still get ACTION_REQUIRED, not a
 // silent pass-through — classification is opt-in evidence, never an opt-out from scrutiny.
@@ -105,12 +121,16 @@ try {
   const echoGov = reaudited.agents.find((item) => item.id === "echo-agent").findings.find((f) => f.id === "AFV2-GOV-001");
   assert.equal(echoGov.classification, "ACTION_REQUIRED");
   assert.equal(echoGov.classification_justification, null);
+  assert.equal(echoGov.severity, "WARNING", "ACTION_REQUIRED must stay WARNING, never silently downgraded to INFO");
 } finally {
   fs.rmSync(classificationFixtureRoot, { recursive: true, force: true });
 }
 assert.equal(statusFromFindings([]), "PASS");
 assert.equal(statusFromFindings([{ severity: "WARNING" }]), "WARN");
 assert.equal(statusFromFindings([{ severity: "ERROR" }]), "FAIL");
+assert.equal(statusFromFindings([{ severity: "INFO" }]), "PASS", "INFO findings (BY_DESIGN/NOT_IMPLEMENTED) must never affect overall status");
+assert.equal(statusFromFindings([{ severity: "INFO" }, { severity: "WARNING" }]), "WARN");
+assert.equal(statusFromFindings([{ severity: "INFO" }, { severity: "ERROR" }]), "FAIL");
 
 const proposed = clone(echoRecord.manifest);
 proposed.id = "proposed-agent";
@@ -152,7 +172,16 @@ assert.throws(() => factory.catalog({ apply: true }), /explicit human approval/)
 assert.throws(() => assertSafeOutput("../../outside.json", "audit"), /Unsafe/);
 assert.throws(() => assertSafeOutput("docs/agents/not-json.json", "catalog"), /Unsupported/);
 assert.equal(assertSafeOutput("docs/audits/audit.json", "audit"), "docs/audits/audit.json");
-assert.equal(fs.existsSync(path.join(repoRoot, "docs/agents/AgentsCatalog.generated.html")), false);
+// docs/agents/AgentsCatalog.generated.html now legitimately exists on disk (written directly,
+// under explicit human instruction, during the Agents v1 final certification wave — see
+// docs/audits/AgentsV1-FinalCertification.md section 11) — its mere presence is not a
+// regression. What must still hold is that catalog() in preview mode (apply not set) never
+// itself writes or modifies that file.
+const catalogGeneratedPath = path.join(repoRoot, "docs/agents/AgentsCatalog.generated.html");
+const catalogGeneratedBefore = fs.existsSync(catalogGeneratedPath) ? fs.readFileSync(catalogGeneratedPath) : null;
+factory.catalog();
+const catalogGeneratedAfter = fs.existsSync(catalogGeneratedPath) ? fs.readFileSync(catalogGeneratedPath) : null;
+assert.deepEqual(catalogGeneratedAfter, catalogGeneratedBefore, "catalog() preview mode must never write to disk");
 assert(knownIds.has("agent-factory"), "Agent Factory must validate against its own contract");
 
 console.log("PASS: Agent Factory v2 lifecycle, audit and safety tests");
