@@ -1,0 +1,67 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Categoria-grid selector" subtitle="4 frentes com cor própria (laranja/verde/azul/roxo) reaproveitando a paleta de status" viewport="700x320" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Categoria selector</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:14px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+
+  .grid { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+  .opt {
+    display:flex; align-items:flex-start; gap:12px;
+    padding:14px 16px; border:2px solid var(--border); border-radius:12px;
+    background:var(--surface); cursor:pointer; transition:all 150ms ease;
+  }
+  .opt:hover { border-color:var(--accent); background:var(--bg); }
+  .opt.selected { border-color:var(--accent); background:var(--bg); box-shadow:0 0 0 3px rgba(26,25,22,0.07); }
+  .opt .icon {
+    width:36px; height:36px; border-radius:8px;
+    display:grid; place-items:center; flex-shrink:0;
+    border:1px solid transparent;
+  }
+  .opt .icon svg { width:18px; height:18px; }
+  .opt .body { display:flex; flex-direction:column; gap:3px; min-width:0; }
+  .opt .ttl { font-family:var(--font); font-size:13px; font-weight:600; color:var(--text-primary); line-height:1.2; }
+  .opt .dsc { font-family:var(--font); font-size:12px; color:var(--text-muted); font-weight:300; line-height:1.5; }
+
+  /* Cor por tipo de frente — bg pastel + ícone na cor sólida */
+  .opt.produtividade .icon { background:var(--avaliacao-bg); color:var(--avaliacao); }
+  .opt.receita       .icon { background:var(--aprovado-bg);  color:var(--aprovado); }
+  .opt.risco         .icon { background:var(--novo-bg);      color:var(--novo); }
+  .opt.sistemas      .icon { background:var(--aguardando-bg);color:var(--aguardando); }
+
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; }
+  .note code { font-family:var(--mono); font-size:11px; color:var(--text-primary); }
+  .note .dot { display:inline-block; width:8px; height:8px; border-radius:50%; vertical-align:middle; margin:0 4px 1px 0; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Categoria-grid · 4 frentes com cor própria (mantém a paleta de status)</div>
+  <div class="grid">
+    <label class="opt produtividade selected">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <div class="body"><div class="ttl">Automação e produtividade</div><div class="dsc">Reduzir tarefas manuais, ganhar eficiência operacional.</div></div>
+    </label>
+    <label class="opt receita">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg></div>
+      <div class="body"><div class="ttl">Aumento de vendas ou receita</div><div class="dsc">Melhorias que ajudam a vender mais ou gerar retorno comercial.</div></div>
+    </label>
+    <label class="opt risco">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2 4 5v7c0 5 3.5 9 8 10 4.5-1 8-5 8-10V5l-8-3z"/></svg></div>
+      <div class="body"><div class="ttl">Obrigação legal ou risco</div><div class="dsc">Exigências legais, auditoria, segurança ou mitigação de risco.</div></div>
+    </label>
+    <label class="opt sistemas">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      <div class="body"><div class="ttl">Melhoria ou atualização de sistemas</div><div class="dsc">Performance, estabilidade, correções, integrações técnicas.</div></div>
+    </label>
+  </div>
+  <p class="note">
+    Cada frente recebe uma cor da paleta de status (não cria cor nova):
+    <span class="dot" style="background:var(--avaliacao)"></span><b>Produtividade</b> = <code>--avaliacao</code> (laranja) ·
+    <span class="dot" style="background:var(--aprovado)"></span><b>Receita</b> = <code>--aprovado</code> (verde) ·
+    <span class="dot" style="background:var(--novo)"></span><b>Risco</b> = <code>--novo</code> (azul) ·
+    <span class="dot" style="background:var(--aguardando)"></span><b>Sistemas</b> = <code>--aguardando</code> (roxo).
+    Apenas o ícone é colorido (bg pastel + ícone sólido na cor) — o resto do card fica monocromático.
+  </p>
+</div>
+</body></html>

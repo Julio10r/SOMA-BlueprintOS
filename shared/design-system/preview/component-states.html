@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Loading, empty, skeleton" subtitle="Três estados auxiliares" viewport="700x230" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Loading · empty · skeleton</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .box { background:#fff; border:1px solid #E2E0DB; border-radius:12px; padding:24px 18px; min-height:170px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center; }
+  .spinner {
+    width:28px; height:28px; border:2px solid #E2E0DB; border-top-color:#1A1916;
+    border-radius:50%; animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ms-p { font-family:var(--font); font-size:13px; font-weight:500; color:#6B6860; margin:0; }
+  .ms-s { font-family:var(--font); font-size:12px; color:#9B9890; font-weight:300; margin:0; }
+  .empty h3 { font-family:var(--font); font-size:14px; font-weight:500; color:#6B6860; margin:0; }
+  .empty p { font-family:var(--font); font-size:12px; color:#9B9890; font-weight:300; line-height:1.5; margin:0; }
+  .empty svg { width:36px; height:36px; color:#C8C5BE; }
+
+  .skel { padding:18px; align-items:stretch; gap:8px; }
+  .line { background:#E2E0DB; border-radius:4px; animation: shimmer 1.2s ease-in-out infinite; }
+  .l-s { height:10px; width:30%; }
+  .l-m { height:13px; width:65%; }
+  .l-l { height:10px; width:80%; }
+  @keyframes shimmer { 0%,100%{opacity:.4} 50%{opacity:.9} }
+</style></head>
+<body>
+<div class="frame">
+  <div class="box">
+    <div class="spinner"></div>
+    <p class="ms-p">Carregando dados...</p>
+    <p class="ms-s">Conectando ao sistema</p>
+  </div>
+  <div class="box empty">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    <h3>Nenhum resultado</h3>
+    <p>Não foram encontradas demandas com os filtros selecionados.</p>
+  </div>
+  <div class="box skel">
+    <div class="line l-s"></div>
+    <div class="line l-m"></div>
+    <div class="line l-l"></div>
+    <div style="height:6px"></div>
+    <div class="line l-s"></div>
+    <div class="line l-m"></div>
+    <div class="line l-l"></div>
+  </div>
+</div>
+</body></html>

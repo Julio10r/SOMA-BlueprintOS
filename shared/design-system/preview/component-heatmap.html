@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Heatmap (mês × tipo)" subtitle="Grid 5 níveis (bg → accent), cross-analysis temporal" viewport="700x280" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Heatmap mês × tipo</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:14px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .legend { display:inline-flex; align-items:center; gap:6px; }
+  .legend .scale { display:inline-flex; gap:2px; }
+  .legend .scale span { width:14px; height:14px; border-radius:3px; }
+
+  .grid { display:grid; grid-template-columns: 130px repeat(6, 1fr); gap:3px; }
+  .col-lbl, .row-lbl { font-family:var(--mono); font-size:9.5px; font-weight:500; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); display:flex; align-items:center; }
+  .col-lbl { justify-content:center; padding:4px 0; }
+  .row-lbl { justify-content:flex-end; padding:0 8px 0 0; }
+  .cell { height:28px; border-radius:4px; display:grid; place-items:center; font-family:var(--mono); font-size:10.5px; font-weight:500; }
+  .h0 { background:var(--bg);  color:var(--text-muted); }
+  .h1 { background:#DEDCD3;    color:var(--text-secondary); }
+  .h2 { background:#B4B1A4;    color:var(--text-primary); }
+  .h3 { background:#6F6C61;    color:#fff; }
+  .h4 { background:var(--accent); color:#fff; }
+
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; }
+  .note code { font-family:var(--mono); font-size:11px; color:var(--text-primary); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">
+    Heatmap · cross-analysis (mês × tipo)
+    <span class="legend"><span>menos</span><span class="scale"><span class="h0"></span><span class="h1"></span><span class="h2"></span><span class="h3"></span><span class="h4"></span></span><span>mais</span></span>
+  </div>
+  <div class="grid">
+    <span></span><span class="col-lbl">Jan</span><span class="col-lbl">Fev</span><span class="col-lbl">Mar</span><span class="col-lbl">Abr</span><span class="col-lbl">Mai</span><span class="col-lbl">Jun</span>
+    <span class="row-lbl">NDA</span><span class="cell h3">18</span><span class="cell h4">32</span><span class="cell h3">24</span><span class="cell h3">21</span><span class="cell h4">28</span><span class="cell h2">14</span>
+    <span class="row-lbl">Análise contratual</span><span class="cell h2">12</span><span class="cell h3">21</span><span class="cell h3">19</span><span class="cell h3">18</span><span class="cell h2">15</span><span class="cell h2">11</span>
+    <span class="row-lbl">Aditivo</span><span class="cell h1">6</span><span class="cell h2">11</span><span class="cell h2">13</span><span class="cell h2">10</span><span class="cell h1">8</span><span class="cell h1">5</span>
+    <span class="row-lbl">T.I</span><span class="cell h1">5</span><span class="cell h1">7</span><span class="cell h1">6</span><span class="cell h1">8</span><span class="cell h2">10</span><span class="cell h2">11</span>
+    <span class="row-lbl">Cessão de Imagem</span><span class="cell h0">2</span><span class="cell h1">5</span><span class="cell h1">6</span><span class="cell h2">11</span><span class="cell h3">18</span><span class="cell h3">21</span>
+  </div>
+  <p class="note">
+    5 níveis discretos da <code>--bg</code> até <code>--accent</code>. Calcular nível via <code>val/max</code>: 0 → h0, &lt;0.2 → h1, &lt;0.5 → h2, &lt;0.8 → h3, restante → h4. Hover faz a célula crescer 8% + sombra leve.
+  </p>
+</div>
+</body></html>

@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Status badges" subtitle="Pill badges + profile badges" viewport="700x200" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Status badges</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:12px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .badge {
+    display:inline-flex; align-items:center; gap:5px;
+    padding:3px 10px; border-radius:100px;
+    font-family:var(--font); font-size:11px; font-weight:500; white-space:nowrap;
+  }
+  .badge .dot { width:6px; height:6px; border-radius:50%; }
+  .b-novo        { background:#EBF3FB; color:#4A90D9; }
+  .b-avaliacao   { background:#FDF3E3; color:#E09B3D; }
+  .b-aprovado    { background:#D8F3DC; color:#2D6A4F; }
+  .b-rejeitado   { background:#FAE5E3; color:#C0392B; }
+  .b-aguardando  { background:#F3EBF9; color:#9B6CC8; }
+  .b-execucao    { background:#EBF3FB; color:#4A90D9; }
+  .b-concluida   { background:#DDEEFF; color:#1A6FB5; }
+  .b-type        { background:#F7F6F3; color:#6B6860; border:1px solid #E2E0DB; }
+  .b-profile {
+    font-family:var(--font); font-size:10px; font-weight:600; padding:2px 8px; border-radius:100px;
+    text-transform:uppercase; letter-spacing:.04em;
+  }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Status semânticos (badge pill)</div>
+  <div class="row">
+    <span class="badge b-novo"><span class="dot" style="background:#4A90D9"></span>Novo</span>
+    <span class="badge b-avaliacao"><span class="dot" style="background:#E09B3D"></span>Em Avaliação</span>
+    <span class="badge b-aprovado"><span class="dot" style="background:#2D6A4F"></span>Aprovado</span>
+    <span class="badge b-rejeitado"><span class="dot" style="background:#C0392B"></span>Rejeitado</span>
+    <span class="badge b-aguardando"><span class="dot" style="background:#9B6CC8"></span>Aguardando</span>
+    <span class="badge b-execucao"><span class="dot" style="background:#4A90D9"></span>Em Execução</span>
+    <span class="badge b-concluida"><span class="dot" style="background:#1A6FB5"></span>Concluída</span>
+    <span class="badge b-type">Automação</span>
+  </div>
+  <div class="head">Perfis de usuário</div>
+  <div class="row">
+    <span class="b-profile" style="background:#D8F3DC;color:#2D6A4F">APROVADOR</span>
+    <span class="b-profile" style="background:#FDF3E3;color:#E09B3D">VISUALIZAÇÃO</span>
+    <span class="b-profile" style="background:#EBF3FB;color:#4A90D9">ADMIN</span>
+    <span class="b-profile" style="background:#F3EBF9;color:#9B6CC8">CURADOR</span>
+  </div>
+</div>
+</body></html>

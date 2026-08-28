@@ -142,9 +142,10 @@ Essa separação evita atualizar saldo de registro que deva permanecer inativo e
 ## Produto, Cor, Preço e Barras
 
 - `WS_PRODUTOS`, `WS_PRODUTO_CORES`, `WS_PRODUTOS_BARRA` e `WS_PROP_PRODUTOS`: para o conjunto aprovado, inserir quando a chave não existir e atualizar somente os campos divergentes quando existir.
-- `WS_PRODUTOS_PRECOS`: para este workflow diário, verificar somente `CODIGO_TAB_PRECO = 'DL'`. Para cada produto aprovado, localizar o registro remoto da campanha com `CODIGO_TAB_PRECO = 'DL'`: quando ausente, registrar como pendência; quando existir, comparar `PRODUTOS_PRECOS.PRECO1` com `WS_PRODUTOS_PRECOS.PRECO1`. Quando diferente, atualizar somente `WS_PRODUTOS_PRECOS.PRECO1`, restringindo por `ID_CAMPANHA`, `PRODUTO` e `CODIGO_TAB_PRECO = 'DL'`.
+- `WS_PRODUTOS_PRECOS`: para este workflow diário, verificar somente `CODIGO_TAB_PRECO = 'DL'`. O Linx/SOMA é a fonte de verdade para preço. Para cada produto aprovado, localizar o registro remoto da campanha com `CODIGO_TAB_PRECO = 'DL'`: quando ausente, registrar como pendência e não inserir; quando existir, comparar `PRODUTOS_PRECOS.PRECO1` com `WS_PRODUTOS_PRECOS.PRECO1`. Quando diferente, atualizar somente o `PRECO1` remoto no WISE para igualar o Linx/SOMA, restringindo por `ID_CAMPANHA`, `PRODUTO` e `CODIGO_TAB_PRECO = 'DL'`.
 
 Não executar tabelas auxiliares amplas de campanha/rede sem novo escopo aprovado.
+Nunca alterar preço em `PRODUTOS_PRECOS` no Linx/SOMA durante esta integração.
 
 ## Comandos Proibidos
 
@@ -157,6 +158,7 @@ Não executar:
 - `UPDATE` sem `WHERE`
 - alteração de outra campanha
 - escrita em `PRODUTOS_PRECOS`
+- ajuste de preço no Linx/SOMA a partir do WISE
 - escrita em `PRODUTO_CORES`
 - escrita direta em `MB_PROD_EXTRA_WEB.TOTAL`
 

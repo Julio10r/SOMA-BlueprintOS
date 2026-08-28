@@ -1,0 +1,310 @@
+/* ══════════════════════════════════════════════════════════════════
+   AZZAS 2154 · GDT DESIGN SYSTEM
+   colors_and_type.css — single source of truth for tokens
+   ══════════════════════════════════════════════════════════════════
+   Two surfaces share these tokens:
+   · CORPORATE — editorial/marketing (heroes, decks, brand pages)
+   · PORTAL    — GDT internal tooling (dashboards, forms, tables)
+
+   Portal tokens preserve the existing GDT v4.x palette so all
+   running portals (curadoria, avaliação, execução…) stay aligned.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Fonts (Google Fonts — see fonts.css for @import) ─────────── */
+@import url("./fonts.css");
+
+:root {
+  /* ──────────────────────────────────────────────────────────────
+     1. BRAND COLORS
+        Sourced from Template PPT Azzas_04092024.pptx → slide 1
+        ("Priorize as cores oficiais")
+     ────────────────────────────────────────────────────────────── */
+
+  /* Cores principais */
+  --brand-ink:        #000000;   /* AZZAS preto — logo, títulos editoriais */
+  --brand-paper:      #FFFFFF;   /* AZZAS branco — fundo editorial */
+
+  /* Cores de apoio */
+  --brand-mist:       #E8E8E8;   /* cinza claro, separadores editoriais */
+  --brand-sky:        #6EB6E4;   /* azul céu — destaque secundário */
+  --brand-deep:       #274566;   /* azul profundo — texto sobre claro */
+  --brand-teal:       #539193;   /* verde-azulado — categorias */
+  --brand-sand:       #B7A696;   /* warm tan — fundo editorial cálido */
+  --brand-sky-soft:   #A0C6ED;   /* azul claro — backgrounds suaves */
+  --brand-blue:       #3B80D9;   /* azul vibrante — links/CTAs */
+  --brand-iris:       #7A8FE4;   /* azul-violeta — acento raro */
+
+  /* ──────────────────────────────────────────────────────────────
+     2. PORTAL FOUNDATION (GDT v4.x — bege neutro)
+     ────────────────────────────────────────────────────────────── */
+
+  --bg:             #F7F6F3;   /* fundo geral (bege quente) */
+  --surface:        #FFFFFF;   /* cards, modais, header */
+  --surface-2:      #FAF9F6;   /* superfície intermediária */
+  --border:         #E2E0DB;   /* bordas padrão */
+  --border-hover:   #C8C5BE;   /* bordas em hover */
+  --border-strong:  #ADAA9F;   /* bordas fortes (raro) */
+
+  /* Texto */
+  --text-primary:   #1A1916;   /* títulos, corpo principal */
+  --text-secondary: #6B6860;   /* descrições, subtextos */
+  --text-muted:     #9B9890;   /* labels, placeholders, meta */
+  --text-on-dark:   #F7F6F3;   /* texto sobre fundo escuro */
+
+  /* Accent (botão primário) — quase-preto, deriva do --brand-ink */
+  --accent:         #1A1916;
+  --accent-hover:   #2D2C29;
+
+  /* ──────────────────────────────────────────────────────────────
+     3. STATUS SEMÁNTICOS — cor + bg pastel
+        Sempre use as duplas (--xxx + --xxx-bg).
+     ────────────────────────────────────────────────────────────── */
+
+  --novo:           #4A90D9;   --novo-bg:           #EBF3FB;
+  --avaliacao:      #E09B3D;   --avaliacao-bg:      #FDF3E3;
+  --aprovado:       #2D6A4F;   --aprovado-bg:       #D8F3DC;
+  --rejeitado:      #C0392B;   --rejeitado-bg:      #FAE5E3;
+  --aguardando:     #9B6CC8;   --aguardando-bg:     #F3EBF9;
+  --execucao:       #4A90D9;   --execucao-bg:       #EBF3FB;
+  --concluida:      #1A6FB5;   --concluida-bg:      #DDEEFF;
+  --warn:           #E09B3D;   --warn-bg:           #FDF3E3;
+
+  /* ──────────────────────────────────────────────────────────────
+     3b. ALIASES SEMÂNTICOS
+         Os portais GDT mesclam dois sistemas de nomeacao:
+         por estado (--novo, --aprovado) e por papel genérico
+         (--ok, --info, --crit). Para evitar tokens conflitantes,
+         expõe aliases que mapeiam para os semantics oficiais.
+     ────────────────────────────────────────────────────────────── */
+
+  --ok:            var(--aprovado);     --ok-bg:            var(--aprovado-bg);
+  --info:          var(--novo);         --info-bg:          var(--novo-bg);
+  --crit:          var(--rejeitado);    --crit-bg:          var(--rejeitado-bg);
+  --done:          var(--concluida);    --done-bg:          var(--concluida-bg);
+  --aprovado-jira: var(--concluida);    --aprovado-jira-bg: var(--concluida-bg);
+  --nao-priorizada:var(--rejeitado);    --nao-priorizada-bg:var(--rejeitado-bg);
+
+  /* ──────────────────────────────────────────────────────────────
+     3c. NOVOS TOKENS DE STATUS (não cobertos pelos semantics)
+     ────────────────────────────────────────────────────────────── */
+
+  /* Warn intenso — usado em esteira para alertas de SLA */
+  --warn-bright:    #D97706;   --warn-bright-bg:    #FEF3C7;
+
+  /* Estado "registrada" — neutro morno, primeira etapa do funil */
+  --registrada:     #6B6860;   --registrada-bg:     #F0EEEB;
+
+  /* SLA pausado — fila D em standby */
+  --sla-pausado:    #888888;   --sla-pausado-bg:    #F4F4F4;
+
+  /* Border-soft — separador interno em cards densos (esteira) */
+  --border-soft:    #EDEBE6;
+
+  /* ──────────────────────────────────────────────────────────────
+     3d. FILAS SLA (color-coded queue groupings — curadoria/admin)
+     ────────────────────────────────────────────────────────────── */
+
+  --fila-a:         #C0392B;   --fila-a-bg:         #FDF2F0;   --fila-a-border: #F1948A;
+  --fila-b:         #E09B3D;   --fila-b-bg:         #FEF9E7;   --fila-b-border: #F9E79F;
+  --fila-c:         #1A5276;   --fila-c-bg:         #EBF5FB;   --fila-c-border: #AED6F1;
+  --fila-d:         #6B6860;   --fila-d-bg:         #F4F4F4;   --fila-d-border: #CCCCCC;
+
+  /* ──────────────────────────────────────────────────────────────
+     3e. SHELL CHROME — header heights, nav widths
+     ────────────────────────────────────────────────────────────── */
+
+  --header-h:        56px;   /* SHELL com tab-nav embutida */
+  --header-h-portal: 64px;   /* portal standalone (sem tab-nav) */
+  --sidebar-w:      240px;
+  --sidebar-w-narrow: 200px; /* curadoria/avaliacao */
+  --sidebar-w-compact: 220px;/* admin */
+
+  /* ──────────────────────────────────────────────────────────────
+     4. TIPOGRAFIA
+        Hierarquia em três níveis:
+        · display (editorial, baseado no wordmark AZZAS) — Inter Tight
+        · ui      (DM Sans) — corpo, controles, dashboards
+        · mono    (DM Mono) — IDs, KPIs, section titles, metadados
+     ────────────────────────────────────────────────────────────── */
+
+  --font-display: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+  --font:         "DM Sans", "Inter", system-ui, sans-serif;
+  --mono:         "DM Mono", "JetBrains Mono", ui-monospace, monospace;
+
+  /* Type scale — porta + editorial */
+  --t-hero:    clamp(48px, 8vw, 120px);   /* capas, slides de abertura */
+  --t-h1:      28px;                       /* título de página executivo */
+  --t-h2:      22px;                       /* títulos de seção principais */
+  --t-h3:      18px;                       /* títulos de cards / modais */
+  --t-h4:      15px;                       /* card name, sub-blocos */
+  --t-body:    14px;                       /* corpo padrão */
+  --t-body-sm: 13px;                       /* UI / controles */
+  --t-caption: 12px;                       /* labels, meta */
+  --t-micro:   11px;                       /* nav-badge, footnotes */
+  --t-section: 10px;                       /* section titles mono uppercase */
+
+  /* Letter-spacing — wordmark AZZAS é levemente apertado */
+  --tracking-tight:   -0.02em;
+  --tracking-normal:    0;
+  --tracking-loose:  0.04em;
+  --tracking-caps:   0.07em;
+  --tracking-wide:   0.12em;
+
+  /* Line-height */
+  --lh-tight:  1.05;   /* hero/display */
+  --lh-snug:   1.25;   /* h1–h3 */
+  --lh-base:   1.5;    /* corpo */
+  --lh-loose:  1.65;   /* longas descrições */
+
+  /* ──────────────────────────────────────────────────────────────
+     5. RAIOS, ESPAÇAMENTO, SOMBRAS
+     ────────────────────────────────────────────────────────────── */
+
+  --radius-xs:  4px;     /* nivel badges, skel lines */
+  --radius-sm:  8px;     /* botões, inputs, badges grandes */
+  --radius:    12px;     /* cards, modais */
+  --radius-lg: 16px;     /* containers grandes, hero modals */
+  --radius-pill: 100px;  /* filtros, badges status, search */
+
+  /* 4px base spacing scale */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 56px;
+  --space-10:80px;
+
+  /* Sombras — derivadas de --text-primary (rgba 26,25,22,x). NUNCA preto puro. */
+  --shadow-0: none;
+  --shadow-1: 0 2px 8px  rgba(26,25,22,0.07);   /* hover card */
+  --shadow-2: 0 2px 16px rgba(26,25,22,0.07);   /* card flutuante */
+  --shadow-3: 0 8px 32px rgba(26,25,22,0.20);   /* modal */
+  --shadow-4: 0 4px 16px rgba(26,25,22,0.25);   /* toast */
+
+  /* Backdrop blur — padrão real do GDT é 2px (sutil) */
+  --backdrop-blur:  2px;
+  --modal-overlay:  rgba(26,25,22,0.40);
+
+  /* Transições padrão */
+  --ease-snap:   cubic-bezier(0.34, 1.56, 0.64, 1); /* modal in, toast in */
+  --ease-out:    cubic-bezier(0.4, 0, 0.2, 1);
+  --t-fast:      120ms;
+  --t-base:      150ms;
+  --t-slow:      300ms;
+  --t-progress:  600ms;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   6. SEMANTIC TYPE CLASSES
+   Use directly as .display-1, .h1, .body, .mono-label, etc.
+   ══════════════════════════════════════════════════════════════════ */
+
+.display-hero {
+  font-family: var(--font-display);
+  font-size: var(--t-hero);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-tight);
+  color: var(--text-primary);
+}
+
+.display-1 {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-tight);
+}
+
+.h1 {
+  font-family: var(--font);
+  font-size: var(--t-h1);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-snug);
+}
+
+.h2 {
+  font-family: var(--font);
+  font-size: var(--t-h2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-snug);
+}
+
+.h3 {
+  font-family: var(--font);
+  font-size: var(--t-h3);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+}
+
+.h4 {
+  font-family: var(--font);
+  font-size: var(--t-h4);
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-snug);
+}
+
+.body {
+  font-family: var(--font);
+  font-size: var(--t-body);
+  font-weight: 400;
+  line-height: var(--lh-base);
+  color: var(--text-primary);
+}
+
+.body-sm {
+  font-family: var(--font);
+  font-size: var(--t-body-sm);
+  font-weight: 400;
+  line-height: var(--lh-base);
+}
+
+.caption {
+  font-family: var(--font);
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+  font-weight: 300;
+  line-height: var(--lh-base);
+}
+
+/* Section title — DM Mono uppercase. Padrão dos portais GDT. */
+.section-title,
+.mono-section {
+  font-family: var(--mono);
+  font-size: var(--t-section);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  color: var(--text-muted);
+}
+
+/* KPI / valor numérico — DM Mono 600, tracking apertado */
+.mono-kpi {
+  font-family: var(--mono);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1;
+}
+
+.mono-label {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  color: var(--text-muted);
+}

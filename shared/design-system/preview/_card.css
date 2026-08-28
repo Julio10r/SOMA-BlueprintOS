@@ -1,0 +1,50 @@
+/* Shared card chrome for preview/* files. Imports tokens. */
+@import url("../colors_and_type.css");
+
+html, body {
+  margin: 0; padding: 0;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.card-frame {
+  width: 700px;
+  min-height: 120px;
+  padding: 22px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--surface);
+}
+
+.card-frame.dense { padding: 18px 24px; gap: 10px; }
+.card-frame.bege { background: var(--bg); }
+.card-frame.ink { background: var(--text-primary); color: var(--text-on-dark); }
+
+.card-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.card-row.tight { gap: 8px; }
+.card-row.between { justify-content: space-between; }
+
+.swatch { width: 60px; height: 60px; border-radius: var(--radius-sm); border: 1px solid var(--border); position: relative; }
+.swatch.lg { width: 84px; height: 64px; }
+.swatch.sm { width: 44px; height: 44px; }
+
+.swatch-meta { display: flex; flex-direction: column; gap: 2px; }
+.swatch-meta .name { font-size: 12px; font-weight: 500; color: var(--text-primary); }
+.swatch-meta .hex  { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+
+.swatch-tile {
+  display: flex; flex-direction: column; gap: 6px;
+  min-width: 0;
+}
+.swatch-tile .chip {
+  width: 100%; height: 56px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.swatch-tile .lbl { font-size: 11px; font-weight: 500; color: var(--text-primary); line-height: 1.2; }
+.swatch-tile .hex { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+
+.label { font-size: 11px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }

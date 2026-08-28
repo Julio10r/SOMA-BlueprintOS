@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · User avatar mini" subtitle="Iniciais em círculo pastel · 6 paletas determinísticas · 3 tamanhos" viewport="700x240" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>User avatar mini</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:14px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .row { display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  .av { display:inline-flex; align-items:center; justify-content:center; border-radius:50%; font-family:var(--font); font-weight:600; flex-shrink:0; }
+  .sm { width:24px; height:24px; font-size:9.5px; }
+  .md { width:32px; height:32px; font-size:11px; }
+  .lg { width:44px; height:44px; font-size:14px; }
+  .c0 { background:var(--novo-bg);      color:var(--novo); }
+  .c1 { background:var(--avaliacao-bg); color:var(--avaliacao); }
+  .c2 { background:var(--aprovado-bg);  color:var(--aprovado); }
+  .c3 { background:var(--aguardando-bg); color:var(--aguardando); }
+  .c4 { background:var(--concluida-bg); color:var(--concluida); }
+  .c5 { background:var(--rejeitado-bg); color:var(--rejeitado); }
+
+  .cell { display:flex; align-items:center; gap:8px; }
+  .cell .un { font-family:var(--font); font-size:12.5px; color:var(--text-primary); }
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; }
+  .note code { font-family:var(--mono); font-size:11px; color:var(--text-primary); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">User avatar mini · iniciais com cor pastel determinística (6 paletas)</div>
+  <div class="row">
+    <span class="av sm c0">NC</span><span class="av sm c1">YL</span><span class="av sm c2">AL</span><span class="av sm c3">JL</span><span class="av sm c4">DB</span><span class="av sm c5">BL</span>
+  </div>
+  <div class="row">
+    <span class="av md c0">NC</span><span class="av md c1">YL</span><span class="av md c2">AL</span><span class="av md c3">JL</span><span class="av md c4">DB</span><span class="av md c5">BL</span>
+  </div>
+  <div class="row">
+    <span class="cell"><span class="av sm c0">NC</span><span class="un">Nicole Cancela</span></span>
+    <span class="cell"><span class="av sm c2">AL</span><span class="un">Alícia</span></span>
+    <span class="cell"><span class="av sm c5">BL</span><span class="un">Beatriz Leão</span></span>
+  </div>
+  <p class="note">
+    3 tamanhos: <b>sm 24px</b> (tabela), <b>md 32px</b>, <b>lg 44px</b> (pódio). Cor calculada via hash determinístico: <code>name.split('').reduce((h,c)=&gt;h+c.charCodeAt(0),0) % 6</code>. Mesmo nome → sempre mesma cor.
+  </p>
+</div>
+</body></html>

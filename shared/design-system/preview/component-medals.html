@@ -1,0 +1,58 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Medalhas (1º/2º/3º)" subtitle="Círculo metálico + número + fita em V (ouro/prata/bronze)" viewport="700x220" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Medalhas (1º/2º/3º)</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:24px 28px; background:var(--surface); display:flex; flex-direction:column; gap:14px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .row { display:flex; align-items:center; gap:24px; padding:14px 18px; background:var(--bg); border-radius:8px; }
+  .row .lbl { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); min-width:80px; }
+
+  .medal {
+    position:relative;
+    display:inline-grid; place-items:center;
+    border-radius:50%; border:1.5px solid; flex-shrink:0;
+    font-family:var(--mono); font-weight:700;
+    line-height:1; letter-spacing:-0.02em;
+  }
+  .medal::before {
+    content:"";
+    position:absolute; left:50%; transform:translateX(-50%);
+    top:-7px; width:14px; height:9px;
+    background:currentColor;
+    clip-path: polygon(0 0, 100% 0, 75% 100%, 50% 60%, 25% 100%);
+    opacity:0.85;
+  }
+  .medal.gold   { background: linear-gradient(135deg, #F4D27A 0%, #D4A036 100%); border-color:#B8862A; color:#6B4A12; }
+  .medal.silver { background: linear-gradient(135deg, #E8E8E8 0%, #B9BCC2 100%); border-color:#98989E; color:#4A4A4D; }
+  .medal.bronze { background: linear-gradient(135deg, #E2A877 0%, #B07235 100%); border-color:#8A5722; color:#5D3713; }
+
+  /* Pódio (28×28) */
+  .m-podium .medal { width:28px; height:28px; font-size:13px; filter:drop-shadow(0 2px 3px rgba(26,25,22,0.18)); margin-top:6px; }
+  /* Tabela (16×16) */
+  .m-table .medal { width:16px; height:16px; border-width:1px; font-size:9px; margin-top:5px; }
+  .m-table .medal::before { top:-5px; width:10px; height:7px; }
+
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; }
+  .note code { font-family:var(--mono); font-size:11px; color:var(--text-primary); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Medalhas · 1º ouro / 2º prata / 3º bronze · estilo olímpico</div>
+  <div class="row m-podium">
+    <span class="lbl">Pódio · 28px</span>
+    <span class="medal gold">1</span>
+    <span class="medal silver">2</span>
+    <span class="medal bronze">3</span>
+  </div>
+  <div class="row m-table">
+    <span class="lbl">Tabela · 16px</span>
+    <span class="medal gold">1</span>
+    <span class="medal silver">2</span>
+    <span class="medal bronze">3</span>
+  </div>
+  <p class="note">
+    Círculo com gradiente metálico + número em DM Mono bold + fita em V no topo (CSS clip-path, sem SVG/emoji). Use <b>28px no pódio</b> e <b>16px na tabela</b>. Cores: ouro <code>#F4D27A→#D4A036</code>, prata <code>#E8E8E8→#B9BCC2</code>, bronze <code>#E2A877→#B07235</code>. A fita usa <code>currentColor</code> com opacidade 0.85.
+  </p>
+</div>
+</body></html>

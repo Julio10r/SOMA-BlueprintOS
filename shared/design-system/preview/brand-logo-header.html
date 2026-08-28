@@ -1,0 +1,40 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Brand · Logo no header (inline)" subtitle="PNG oficial empilhado · 26px de altura · light + dark" viewport="700x240" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Logo · header inline</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:14px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .row { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:10px 14px; background:var(--bg); border:1px solid var(--border); border-radius:10px; }
+  .row .left { display:flex; align-items:center; gap:14px; }
+  .row .logo { height:22px; width:auto; display:block; }
+  .row .divider { width:1px; height:20px; background:var(--border); }
+  .row .label { font-family:var(--font); font-size:13px; font-weight:500; color:var(--text-secondary); letter-spacing:-0.01em; }
+  .row .meta  { font-family:var(--mono); font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.07em; }
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; }
+  .note b { color:var(--text-primary); font-weight:500; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Logo no header de portal · marca empilhada AZZAS 2154 · 22px</div>
+  <div class="row">
+    <div class="left">
+      <img class="logo" src="../assets/logos/azzas-2154-mark-black.png" alt="AZZAS 2154">
+      <div class="divider"></div>
+      <span class="label">Portal de Curadoria</span>
+    </div>
+    <span class="meta">Q2 · 2026</span>
+  </div>
+  <div class="row" style="background:#1A1916;border-color:#1A1916">
+    <div class="left">
+      <img class="logo" src="../assets/logos/azzas-2154-mark-black.png" alt="AZZAS 2154" style="filter:invert(1);opacity:.95">
+      <div class="divider" style="background:rgba(247,246,243,0.25)"></div>
+      <span class="label" style="color:rgba(247,246,243,0.7)">Portal Administração</span>
+    </div>
+    <span class="meta" style="color:rgba(247,246,243,0.55)">v4.2.0</span>
+  </div>
+  <p class="note">
+    <b>Use sempre o PNG oficial</b> (<code style="font-family:var(--mono);font-size:11px">assets/logos/azzas-2154-mark-black.png</code>) em <b>22px de altura</b> dentro do header. Sobre fundo escuro, aplique <code style="font-family:var(--mono);font-size:11px">filter: invert(1); opacity: .95</code>. <b>Não substitua</b> por SVG-texto, ícones improvisados ou wordmark inline.
+  </p>
+</div>
+</body></html>

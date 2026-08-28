@@ -1,0 +1,55 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · App header" subtitle="Logo + divider + label + user chip + profile" viewport="700x140" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Header & user chip</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); }
+  header {
+    background:#fff; border:1px solid #E2E0DB; border-radius:12px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 24px; height:64px;
+  }
+  .left { display:flex; align-items:center; gap:14px; }
+  .logo { height:20px; display:block; }
+  .divider { width:1px; height:20px; background:#E2E0DB; }
+  .label { font-family:var(--font); font-size:13px; font-weight:500; color:#6B6860; }
+  .right { display:flex; align-items:center; gap:10px; }
+  .chip {
+    display:flex; align-items:center; gap:9px;
+    padding:6px 12px 6px 8px;
+    background:#F7F6F3; border:1px solid #E2E0DB; border-radius:8px;
+    cursor:pointer;
+  }
+  .avatar {
+    width:26px; height:26px; border-radius:50%;
+    background:#1A1916; color:#fff;
+    font-family:var(--font); font-size:10px; font-weight:600;
+    display:grid; place-items:center;
+  }
+  .email { font-family:var(--font); font-size:12px; font-weight:500; color:#1A1916; }
+  .pbadge {
+    font-family:var(--font); font-size:10px; font-weight:600;
+    padding:2px 8px; border-radius:100px;
+    text-transform:uppercase; letter-spacing:.04em;
+    background:#EBF3FB; color:#4A90D9;
+  }
+</style></head>
+<body>
+<div class="frame">
+  <header>
+    <div class="left">
+      <img class="logo" src="../assets/logos/azzas-2154-mark-black.png">
+      <span class="divider"></span>
+      <span class="label">Portal de Curadoria</span>
+    </div>
+    <div class="right">
+      <div class="chip">
+        <div class="avatar">BA</div>
+        <span class="email">bruno.afonso@somagrupo.com.br</span>
+      </div>
+      <span class="pbadge">Admin</span>
+    </div>
+  </header>
+</div>
+</body></html>

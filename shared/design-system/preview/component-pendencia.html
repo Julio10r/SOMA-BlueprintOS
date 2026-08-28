@@ -1,0 +1,68 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Pendência tag + required-missing" subtitle="Pill dashed vermelho + estado de campo obrigatório" viewport="700x280" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Pendência tag + required-missing</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:14px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .row { display:flex; flex-direction:column; gap:8px; }
+  .lbl { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+
+  /* Pendência tag */
+  .pendencias { display:flex; flex-wrap:wrap; gap:6px; }
+  .pend {
+    display:inline-flex; align-items:center; gap:4px;
+    padding:3px 10px; border-radius:100px;
+    font-family:var(--mono); font-size:10.5px; font-weight:500;
+    background:#FDEDEC; color:var(--rejeitado);
+    border:1px dashed #F5B7B1;
+  }
+  .pend::before { content:""; width:5px; height:5px; border-radius:50%; background:currentColor; }
+
+  /* Field validation */
+  .fieldset { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+  .f { display:flex; flex-direction:column; gap:5px; }
+  .f label { font-family:var(--font); font-size:12px; font-weight:500; color:var(--text-secondary); }
+  .f input {
+    font-family:var(--font); font-size:13px;
+    padding:8px 12px; border:1px solid var(--border); border-radius:8px;
+    background:#fff; color:var(--text-primary);
+  }
+  .f.required-missing input { border-color:var(--rejeitado); background:#FFF5F5; }
+  .f .err { font-family:var(--font); font-size:11px; color:var(--rejeitado); font-weight:500; }
+
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; }
+  .note code { font-family:var(--mono); font-size:11px; color:var(--text-primary); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Pendência tag · pill mono com border vermelha dashed</div>
+  <div class="pendencias">
+    <span class="pend">Área não definida</span>
+    <span class="pend">Saving sem valor</span>
+    <span class="pend">FTE faltando</span>
+    <span class="pend">Sem descrição</span>
+  </div>
+
+  <div class="row">
+    <span class="lbl">Required-missing · campo + mensagem</span>
+    <div class="fieldset">
+      <div class="f">
+        <label>Área solicitante</label>
+        <input value="Financeiro">
+      </div>
+      <div class="f required-missing">
+        <label>FTE estimado <span style="color:var(--rejeitado)">*</span></label>
+        <input placeholder="0.0">
+        <span class="err">Campo obrigatório — informe um valor para curar.</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">
+    <b>Pendência tag</b> aparece em listas de "o que falta validar antes de marcar como curado". Sempre vermelho-pastel + border dashed (#F5B7B1) — visualmente diferente de uma badge de status.
+    <br><br>
+    <b>Required-missing:</b> aplique a classe no wrapper do campo. Border-color vira <code>--rejeitado</code>, background <code>#FFF5F5</code>, mensagem 11px na cor <code>--rejeitado</code> abaixo. Use só durante validação ativa, não no carregamento inicial.
+  </p>
+</div>
+</body></html>

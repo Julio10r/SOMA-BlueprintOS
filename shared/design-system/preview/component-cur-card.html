@@ -1,0 +1,89 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Cur-card 4 estados" subtitle="Pendente · parcial (com compare-row) · curado · descartada" viewport="700x360" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Cur-card 4-state</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); display:flex; flex-direction:column; gap:10px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin-bottom:2px; }
+
+  .cur {
+    background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden;
+  }
+  .cur.pendente   { border-left:4px solid var(--rejeitado); }
+  .cur.parcial    { border-left:4px solid var(--avaliacao); }
+  .cur.curado     { border-left:4px solid var(--aprovado); }
+  .cur.descartada { border-left:4px solid #CCCCCC; opacity:.6; }
+
+  .cur-h { padding:12px 16px; display:flex; align-items:center; gap:12px; }
+  .cur-id { font-family:var(--mono); font-size:11px; color:var(--text-muted); flex-shrink:0; }
+  .cur-nome { font-family:var(--font); font-size:13.5px; font-weight:500; flex:1; color:var(--text-primary); }
+  .cur-area { font-family:var(--font); font-size:11.5px; color:var(--text-muted); }
+
+  .badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:4px; font-family:var(--mono); font-size:10.5px; font-weight:500; }
+  .b-pendente { background:var(--rejeitado-bg); color:var(--rejeitado); }
+  .b-parcial  { background:var(--avaliacao-bg); color:var(--avaliacao); }
+  .b-curado   { background:var(--aprovado-bg);  color:var(--aprovado); }
+  .b-descart  { background:#F4F4F4; color:#888; }
+
+  .compare {
+    display:grid; grid-template-columns: 1fr 1fr; gap:10px;
+    padding:10px 16px 14px; background:var(--bg); border-top:1px solid var(--border);
+    font-family:var(--font); font-size:12px;
+  }
+  .compare .col { display:flex; flex-direction:column; gap:3px; }
+  .compare .lbl { font-family:var(--mono); font-size:9.5px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); }
+  .compare .col.validado .lbl { color:#1A5276; }
+  .compare .val { font-size:12.5px; color:var(--text-primary); padding:5px 9px; background:#fff; border:1px solid var(--border); border-radius:6px; font-family:var(--mono); }
+
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Cur-card · 4 estados (pendente / parcial / curado / descartada) + compare-row interna</div>
+
+  <div class="cur pendente">
+    <div class="cur-h">
+      <span class="cur-id">GDT-042</span>
+      <span class="cur-nome">Automação de relatórios financeiros</span>
+      <span class="cur-area">Financeiro</span>
+      <span class="badge b-pendente">● Pendente</span>
+    </div>
+  </div>
+
+  <div class="cur parcial">
+    <div class="cur-h">
+      <span class="cur-id">GDT-041</span>
+      <span class="cur-nome">Pricing dinâmico — Outlet</span>
+      <span class="cur-area">Comercial</span>
+      <span class="badge b-parcial">● Parcial</span>
+    </div>
+    <div class="compare">
+      <div class="col"><span class="lbl">Original (ticket)</span><span class="val">elasticidade preco outlet</span></div>
+      <div class="col validado"><span class="lbl">Validado (curadoria)</span><span class="val">Pricing dinâmico · Outlet Anacapri</span></div>
+    </div>
+  </div>
+
+  <div class="cur curado">
+    <div class="cur-h">
+      <span class="cur-id">GDT-039</span>
+      <span class="cur-nome">Integração SAP × E-commerce</span>
+      <span class="cur-area">Tecnologia</span>
+      <span class="badge b-curado">● Curado</span>
+    </div>
+  </div>
+
+  <div class="cur descartada">
+    <div class="cur-h">
+      <span class="cur-id">GDT-035</span>
+      <span class="cur-nome">Dashboard de KPIs (duplicado)</span>
+      <span class="cur-area">Operações</span>
+      <span class="badge b-descart">● Descartada</span>
+    </div>
+  </div>
+
+  <p class="note" style="margin-top:6px">
+    Estado <b>parcial</b> abre a <b>compare-row</b> para confrontar texto original (do ticket) com a versão validada na curadoria. Estado <b>descartada</b> aplica opacity 0.6 + border-left cinza neutro.
+  </p>
+</div>
+</body></html>

@@ -1,0 +1,100 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Area modal drill-down" subtitle="Modal centralizado com 4px left-color, bands de status, drill rows com bar de prazo" viewport="700x360" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Area modal drill-down</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); display:flex; flex-direction:column; gap:10px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+
+  /* Modal box (área = tecnologia, azul) */
+  .modal {
+    --c: #4A90D9;
+    background:#fff; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 32px rgba(26,25,22,0.20);
+    position:relative;
+  }
+  .modal::before { content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--c); }
+  .m-h {
+    display:flex; align-items:flex-start; justify-content:space-between;
+    padding:14px 18px 12px 22px; border-bottom:1px solid var(--border-soft);
+    background:#fcfcfd;
+  }
+  .m-eyebrow {
+    font-family:var(--mono); font-size:9.5px; font-weight:600;
+    text-transform:uppercase; letter-spacing:.06em; color:var(--c);
+  }
+  .m-heading { font-family:var(--font); font-size:16px; font-weight:600; letter-spacing:-0.01em; margin-top:3px; }
+  .m-sub { font-family:var(--mono); font-size:11px; color:var(--text-muted); margin-top:2px; }
+  .m-close { background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:18px; line-height:1; padding:4px 6px; border-radius:6px; }
+
+  /* Bands */
+  .bands { display:grid; grid-template-columns:1fr 1fr; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .band { padding:10px 20px; display:flex; flex-direction:column; gap:5px; }
+  .band.open  { background:rgba(217,118,6,0.05); border-right:1px solid var(--border); }
+  .band.done  { background:rgba(45,106,79,0.05); }
+  .b-lbl { font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:.07em; font-weight:600; }
+  .b-lbl.open { color:#D97706; }
+  .b-lbl.done { color:var(--aprovado); }
+  .b-vals { display:flex; gap:14px; align-items:baseline; }
+  .b-val { font-family:var(--mono); font-size:12px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .b-val .u { font-family:var(--mono); font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-left:2px; }
+
+  /* Drill rows */
+  .drill-h, .drill-r {
+    display:grid; grid-template-columns: 80px 1fr 100px 110px 70px;
+    gap:10px; padding:8px 20px;
+    font-family:var(--font); font-size:11.5px;
+  }
+  .drill-h {
+    background:#fcfcfd; border-bottom:1px solid var(--border-soft);
+    font-family:var(--mono); font-size:9px; color:var(--text-muted);
+    text-transform:uppercase; letter-spacing:.06em;
+  }
+  .drill-h span:nth-child(n+4), .drill-r span:nth-child(n+4) { text-align:right; }
+  .drill-r { border-bottom:1px solid var(--border-soft); align-items:center; }
+  .drill-r:last-child { border-bottom:none; }
+  .drill-r .id { font-family:var(--mono); font-size:10.5px; color:var(--text-muted); }
+  .drill-r .nm { color:var(--text-primary); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .drill-r .st {
+    display:inline-block; font-family:var(--mono); font-size:9.5px; font-weight:600;
+    text-transform:uppercase; letter-spacing:.04em;
+    padding:2px 7px; border-radius:100px;
+    background:rgba(37,99,235,0.10); color:var(--c);
+  }
+  .drill-r .v { font-family:var(--mono); font-weight:600; font-variant-numeric:tabular-nums; }
+  .drill-r .pz { font-family:var(--mono); font-size:10.5px; display:flex; flex-direction:column; gap:3px; align-items:flex-end; }
+  .pz-bar { width:60px; height:3px; background:var(--border-soft); border-radius:100px; overflow:hidden; }
+  .pz-fill { height:100%; border-radius:100px; }
+  .pz.ok .pz-fill { background:var(--aprovado); }
+  .pz.warn .pz-fill { background:#D97706; }
+  .pz.crit .pz-fill { background:var(--rejeitado); }
+  .pz.ok   { color:var(--aprovado); }
+  .pz.warn { color:#D97706; }
+  .pz.crit { color:var(--rejeitado); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Area modal · drill-down centralizado (frentes da área Tecnologia)</div>
+  <div class="modal">
+    <div class="m-h">
+      <div>
+        <span class="m-eyebrow">Área · Tecnologia</span>
+        <div class="m-heading">Frentes abertas e entregues</div>
+        <div class="m-sub">13 abertas · 6 entregues · R$ 1.8M saving acumulado</div>
+      </div>
+      <button class="m-close">×</button>
+    </div>
+
+    <div class="bands">
+      <div class="band open"><span class="b-lbl open">Abertas</span><div class="b-vals"><span class="b-val">13<span class="u">demandas</span></span><span class="b-val">R$ 1.2M<span class="u">previsto</span></span></div></div>
+      <div class="band done"><span class="b-lbl done">Entregues 2026</span><div class="b-vals"><span class="b-val">6<span class="u">demandas</span></span><span class="b-val">R$ 620K<span class="u">realizado</span></span></div></div>
+    </div>
+
+    <div class="drill-h"><span>ID</span><span>Demanda</span><span>Status</span><span>Saving</span><span>Prazo</span></div>
+    <div class="drill-r"><span class="id">GDT-039</span><span class="nm">Integração SAP × E-commerce</span><span><span class="st">execução</span></span><span class="v">R$ 240K</span><span class="pz ok"><span>+8d</span><span class="pz-bar"><span class="pz-fill" style="width:70%"></span></span></span></div>
+    <div class="drill-r"><span class="id">GDT-038</span><span class="nm">Curadoria de imagens via IA</span><span><span class="st">execução</span></span><span class="v">R$ 180K</span><span class="pz warn"><span>+1d</span><span class="pz-bar"><span class="pz-fill" style="width:95%"></span></span></span></div>
+    <div class="drill-r"><span class="id">GDT-029</span><span class="nm">Refactor do portal de avaliação</span><span><span class="st">execução</span></span><span class="v">R$ 110K</span><span class="pz crit"><span>−2d</span><span class="pz-bar"><span class="pz-fill" style="width:100%"></span></span></span></div>
+  </div>
+</div>
+</body></html>

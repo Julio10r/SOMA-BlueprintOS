@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Buttons" subtitle="Primary, approve, reject, secondary, ghost + estados" viewport="700x200" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Buttons</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:12px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .btn {
+    display:inline-flex; align-items:center; gap:7px;
+    padding:10px 18px; border-radius:8px;
+    font-family:var(--font); font-size:13px; font-weight:500;
+    cursor:pointer; border:none; transition:all 150ms ease; white-space:nowrap;
+  }
+  .primary  { background:#1A1916; color:#fff; }
+  .approve  { background:#2D6A4F; color:#fff; box-shadow:0 2px 6px rgba(26,107,58,.25); }
+  .reject   { background:#FAE5E3; color:#C0392B; border:1px solid #EAB8B3; }
+  .secondary { background:transparent; color:#6B6860; border:1px solid #E2E0DB; }
+  .ghost    { background:transparent; color:#6B6860; padding:10px 12px; }
+  .disabled { opacity:.4; cursor:not-allowed; }
+  .spinner {
+    width:13px; height:13px; border:2px solid rgba(255,255,255,.35);
+    border-top-color:#fff; border-radius:50%; animation: spin 600ms linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  svg { width:14px; height:14px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Variantes</div>
+  <div class="row">
+    <button class="btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Novo Item</button>
+    <button class="btn approve"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Aprovar</button>
+    <button class="btn reject"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Rejeitar</button>
+    <button class="btn secondary">Cancelar</button>
+    <button class="btn ghost">Ver mais</button>
+  </div>
+  <div class="head">Estados</div>
+  <div class="row">
+    <button class="btn primary"><span class="spinner"></span>Salvando...</button>
+    <button class="btn primary disabled">Desabilitado</button>
+    <button class="btn secondary disabled">Desabilitado</button>
+    <button class="btn primary" style="background:#2D2C29">Hover</button>
+  </div>
+</div>
+</body></html>

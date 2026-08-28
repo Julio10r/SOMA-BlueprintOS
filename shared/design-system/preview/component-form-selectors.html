@@ -1,0 +1,105 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Form selectors (zoo)" subtitle="Tag pills, scale 1–5, people stepper, duration grid" viewport="700x360" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Form selectors zoo</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:16px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .row { display:flex; flex-direction:column; gap:8px; }
+  .row .lbl { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+
+  /* Tag option pills */
+  .tags { display:flex; flex-wrap:wrap; gap:6px; }
+  .tag {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:7px 14px; border-radius:100px;
+    font-family:var(--font); font-size:13px;
+    border:1px solid var(--border); background:var(--surface); color:var(--text-primary);
+    cursor:pointer;
+  }
+  .tag.active { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:500; }
+
+  /* Scale option */
+  .scale { display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; }
+  .scale-opt {
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    padding:10px 6px; border:1px solid var(--border); border-radius:8px;
+    background:var(--surface); cursor:pointer;
+  }
+  .scale-opt .n { font-family:var(--mono); font-size:14px; font-weight:600; color:var(--text-muted); }
+  .scale-opt .d { font-family:var(--font); font-size:10px; color:var(--text-muted); line-height:1.2; text-align:center; }
+  .scale-opt.active { background:var(--accent); border-color:var(--accent); }
+  .scale-opt.active .n, .scale-opt.active .d { color:#fff; }
+
+  /* People stepper + duration */
+  .pair { display:grid; grid-template-columns: auto 1fr; gap:14px; align-items:flex-start; }
+  .stepper {
+    display:flex; align-items:center; gap:12px;
+    background:var(--bg); border:1px solid var(--border); border-radius:8px;
+    padding:10px 14px;
+  }
+  .stepper-btn {
+    width:28px; height:28px; border-radius:50%;
+    border:1px solid var(--border); background:var(--surface);
+    font-family:var(--font); font-size:16px; cursor:pointer;
+    display:grid; place-items:center; color:var(--text-secondary);
+  }
+  .stepper-num { font-family:var(--mono); font-size:20px; font-weight:600; min-width:28px; text-align:center; }
+  .stepper-unit { font-family:var(--mono); font-size:11px; color:var(--text-muted); }
+
+  .duration { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  .dur {
+    background:var(--bg); border:1px solid var(--border); border-radius:8px;
+    padding:10px 14px; display:flex; flex-direction:column; gap:4px;
+  }
+  .dur .dlbl { font-family:var(--mono); font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; }
+  .dur .drow { display:flex; align-items:baseline; gap:8px; }
+  .dur .dnum { font-family:var(--mono); font-size:18px; font-weight:600; color:var(--text-primary); }
+  .dur .dunit { font-family:var(--mono); font-size:11px; color:var(--text-muted); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Selectors do form de entrada · tag pills · scale 1-5 · people stepper · duration</div>
+
+  <div class="row">
+    <span class="lbl">Tag-option (single ou multi)</span>
+    <div class="tags">
+      <button class="tag active">Financeiro</button>
+      <button class="tag">Tecnologia</button>
+      <button class="tag">Operações</button>
+      <button class="tag">Comercial</button>
+      <button class="tag">Supply chain</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <span class="lbl">Scale 1-5 (impacto / esforço / NPS)</span>
+    <div class="scale">
+      <div class="scale-opt"><span class="n">1</span><span class="d">Baixo</span></div>
+      <div class="scale-opt"><span class="n">2</span><span class="d">·</span></div>
+      <div class="scale-opt active"><span class="n">3</span><span class="d">Médio</span></div>
+      <div class="scale-opt"><span class="n">4</span><span class="d">·</span></div>
+      <div class="scale-opt"><span class="n">5</span><span class="d">Alto</span></div>
+    </div>
+  </div>
+
+  <div class="pair">
+    <div class="row" style="min-width:180px">
+      <span class="lbl">People stepper</span>
+      <div class="stepper">
+        <button class="stepper-btn">−</button>
+        <span class="stepper-num">2</span>
+        <button class="stepper-btn">+</button>
+        <span class="stepper-unit">pessoas</span>
+      </div>
+    </div>
+    <div class="row">
+      <span class="lbl">Duration grid (2 colunas)</span>
+      <div class="duration">
+        <div class="dur"><span class="dlbl">FTE estimado</span><div class="drow"><span class="dnum">2.5</span><span class="dunit">FTE</span></div></div>
+        <div class="dur"><span class="dlbl">Duração</span><div class="drow"><span class="dnum">3</span><span class="dunit">meses</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

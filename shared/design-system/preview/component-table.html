@@ -1,0 +1,45 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Ranking table" subtitle="Header mono uppercase, hover row, badges no status" viewport="700x240" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Table</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); }
+  .wrap { background:#fff; border:1px solid #E2E0DB; border-radius:12px; overflow:hidden; }
+  table { width:100%; border-collapse:collapse; }
+  th {
+    font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.05em;
+    color:#9B9890; font-weight:500; padding:10px 14px; border-bottom:1px solid #E2E0DB;
+    text-align:left; background:#FAF9F6;
+  }
+  td { font-family:var(--font); font-size:13px; padding:10px 14px; border-bottom:1px solid #E2E0DB; vertical-align:middle; color:#1A1916; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:#F7F6F3; }
+  td.id { font-family:var(--mono); font-size:11px; color:#9B9890; }
+  td.score { font-family:var(--mono); font-weight:500; }
+  td.name { font-weight:500; }
+  .badge {
+    display:inline-flex; padding:2px 8px; border-radius:100px;
+    font-family:var(--font); font-size:11px; font-weight:500;
+  }
+  .b-apr { background:#D8F3DC; color:#2D6A4F; }
+  .b-ava { background:#FDF3E3; color:#E09B3D; }
+  .b-rej { background:#FAE5E3; color:#C0392B; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="wrap">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Demanda</th><th>Área</th><th>Score</th><th>Status</th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="id">01</td><td class="name">Automação financeira</td><td>Financeiro</td><td class="score">87.4</td><td><span class="badge b-apr">Aprovado</span></td></tr>
+        <tr><td class="id">02</td><td class="name">Integração SAP × E-commerce</td><td>Tecnologia</td><td class="score">72.1</td><td><span class="badge b-ava">Avaliação</span></td></tr>
+        <tr><td class="id">03</td><td class="name">Dashboard de KPIs operacionais</td><td>Operações</td><td class="score">45.8</td><td><span class="badge b-rej">Rejeitado</span></td></tr>
+        <tr><td class="id">04</td><td class="name">Pricing dinâmico — Outlet</td><td>Comercial</td><td class="score">68.9</td><td><span class="badge b-ava">Avaliação</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body></html>

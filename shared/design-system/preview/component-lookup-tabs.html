@@ -1,0 +1,75 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Lookup tabs (binário)" subtitle="Switch 'por ID' vs 'por e-mail' · agrupado num container" viewport="700x440" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Lookup tabs binary</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); display:flex; flex-direction:column; gap:14px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+
+  .lookup {
+    background:#fff; border:1px solid var(--border); border-radius:12px;
+    padding:24px; max-width:420px; box-shadow:0 1px 3px rgba(26,25,22,0.06);
+  }
+  .icon-h {
+    width:40px; height:40px; background:var(--bg); border:1px solid var(--border);
+    border-radius:8px; display:grid; place-items:center; color:var(--text-secondary);
+    margin-bottom:16px;
+  }
+  .icon-h svg { width:18px; height:18px; }
+  h2 { font-family:var(--font); font-size:17px; font-weight:600; letter-spacing:-0.02em; margin:0 0 4px; }
+  .sub { font-family:var(--font); font-size:12.5px; color:var(--text-secondary); font-weight:300; line-height:1.55; margin:0 0 18px; }
+
+  .tabs {
+    display:flex; border:1px solid var(--border); border-radius:8px; overflow:hidden;
+    margin-bottom:16px;
+  }
+  .tab {
+    flex:1; padding:9px; font-family:var(--font); font-size:12.5px; font-weight:500;
+    background:transparent; color:var(--text-muted); border:none; cursor:pointer;
+  }
+  .tab.active { background:var(--accent); color:#fff; }
+
+  .field { display:flex; flex-direction:column; gap:5px; margin-bottom:12px; }
+  .field label { font-family:var(--font); font-size:12px; font-weight:500; color:var(--text-secondary); }
+  .field input {
+    font-family:var(--font); font-size:13px;
+    padding:9px 12px; border:1px solid var(--border); border-radius:8px;
+    background:var(--bg); color:var(--text-primary);
+  }
+  .field input.focus { border-color:var(--accent); background:#fff; box-shadow:0 0 0 3px rgba(26,25,22,0.06); }
+  .hint { font-family:var(--font); font-size:11px; color:var(--text-muted); }
+
+  .btn {
+    width:100%; padding:10px; background:var(--accent); color:#fff;
+    border:none; border-radius:8px; font-family:var(--font); font-size:13px; font-weight:500;
+    cursor:pointer;
+  }
+
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Lookup tabs · switch binário "por ID" vs "por e-mail"</div>
+  <div class="lookup">
+    <div class="icon-h">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+    </div>
+    <h2>Acompanhar demanda</h2>
+    <p class="sub">Localize uma demanda registrada usando o código GDT ou o e-mail do solicitante.</p>
+    <div class="tabs">
+      <button class="tab active">Por ID</button>
+      <button class="tab">Por e-mail</button>
+    </div>
+    <div class="field">
+      <label>Código da demanda</label>
+      <input class="focus" value="GDT-042" placeholder="GDT-000">
+      <span class="hint">Encontrado no e-mail de confirmação ou no portal de origem.</span>
+    </div>
+    <button class="btn">Buscar</button>
+  </div>
+  <p class="note">
+    Tabs binárias usam o estilo de container <code style="font-family:var(--mono);font-size:11px">border: 1px solid var(--border); border-radius: 8px; overflow:hidden</code>. Active = bg preto sólido + texto branco. Visualmente diferente do filter-pill (que é solto, não agrupado).
+  </p>
+</div>
+</body></html>

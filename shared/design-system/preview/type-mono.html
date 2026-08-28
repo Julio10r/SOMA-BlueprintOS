@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Type · Mono (DM Mono)" subtitle="KPIs, IDs, section titles em DM Mono" viewport="700x220" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Mono type — DM Mono</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:14px; }
+  .group { display:flex; gap:24px; align-items:flex-end; }
+  .item { display:flex; flex-direction:column; gap:4px; }
+  .lbl  { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .v    { font-family:var(--mono); color:var(--text-primary); }
+  .kpi  { font-size:30px; font-weight:600; letter-spacing:-0.02em; line-height:1; }
+  .id   { font-size:13px; font-weight:500; background:var(--bg); border-radius:6px; padding:4px 8px; color:var(--text-muted); }
+  .sec  { font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .bar  { display:flex; align-items:center; gap:8px; }
+  .meta { font-family:var(--mono); font-size:10px; color:var(--text-muted); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="group">
+    <div class="item">
+      <div class="lbl">KPI grande</div>
+      <div class="v kpi">87.4</div>
+    </div>
+    <div class="item">
+      <div class="lbl">Saving</div>
+      <div class="v kpi" style="color:var(--aprovado)">R$ 2.4M</div>
+    </div>
+    <div class="item">
+      <div class="lbl">FTE</div>
+      <div class="v kpi">34.2</div>
+    </div>
+    <div class="item">
+      <div class="lbl">ID</div>
+      <div class="v id">GDT-042</div>
+    </div>
+  </div>
+  <div class="bar">
+    <span class="sec">Pipeline executivo</span>
+    <span class="meta">·  DM Mono 500 · uppercase · 0.07em</span>
+  </div>
+  <div class="bar">
+    <span class="meta">DM Mono 300</span>
+    <span class="meta" style="color:var(--text-secondary)">DM Mono 400</span>
+    <span class="meta" style="color:var(--text-primary);font-weight:500">DM Mono 500</span>
+    <span class="meta" style="color:var(--text-primary);font-weight:600">DM Mono 600</span>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,25 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Spacing · Shadows" subtitle="5 níveis · todas derivadas de rgba(26,25,22,x)" viewport="700x220" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Shadows</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:36px 28px; background:var(--bg); display:flex; gap:24px; }
+  .item { flex:1; display:flex; flex-direction:column; gap:10px; align-items:center; }
+  .box { background:var(--surface); border:1px solid var(--border); width:100%; height:70px; border-radius:12px; }
+  .name { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .val  { font-family:var(--mono); font-size:10px; color:var(--text-secondary); text-align:center; }
+  .s1 { box-shadow: 0 2px 8px rgba(26,25,22,0.07); }
+  .s2 { box-shadow: 0 2px 16px rgba(26,25,22,0.07); }
+  .s3 { box-shadow: 0 8px 32px rgba(26,25,22,0.20); }
+  .s4 { box-shadow: 0 4px 16px rgba(26,25,22,0.25); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="item"><div class="box"></div><div class="name">Nível 0 · flat</div><div class="val">none · padrão</div></div>
+  <div class="item"><div class="box s1"></div><div class="name">Nível 1 · hover</div><div class="val">2/8 · α 0.07</div></div>
+  <div class="item"><div class="box s2"></div><div class="name">Nível 2 · float</div><div class="val">2/16 · α 0.07</div></div>
+  <div class="item"><div class="box s3"></div><div class="name">Nível 3 · modal</div><div class="val">8/32 · α 0.20</div></div>
+  <div class="item"><div class="box s4" style="background:#1A1916"></div><div class="name">Nível 4 · toast</div><div class="val">4/16 · α 0.25</div></div>
+</div>
+</body></html>

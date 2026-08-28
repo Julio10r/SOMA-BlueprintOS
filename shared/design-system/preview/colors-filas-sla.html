@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Colors · Filas SLA" subtitle="A urgente · B rápida · C analítica · D aguardando" viewport="700x180" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Filas SLA</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:10px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+  .row { display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; }
+  .fila { border-radius:8px; overflow:hidden; border:1px solid; }
+  .fila-head { padding:8px 12px; display:flex; align-items:center; gap:8px; }
+  .tag { font-family:var(--mono); font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#fff; padding:2px 7px; border-radius:4px; }
+  .name { font-family:var(--font); font-size:12px; font-weight:500; color:var(--text-primary); }
+  .body { padding:8px 12px 10px; background:var(--surface); font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.5; }
+  .sla { font-family:var(--mono); font-size:10px; color:var(--text-muted); margin-top:4px; display:block; }
+
+  .a { border-color:#F1948A; }
+  .a .fila-head { background:#FDF2F0; }
+  .a .tag { background:#C0392B; }
+  .b { border-color:#F9E79F; }
+  .b .fila-head { background:#FEF9E7; }
+  .b .tag { background:#E09B3D; }
+  .c { border-color:#AED6F1; }
+  .c .fila-head { background:#EBF5FB; }
+  .c .tag { background:#1A5276; }
+  .d { border-color:#CCCCCC; }
+  .d .fila-head { background:#F4F4F4; }
+  .d .tag { background:#6B6860; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Filas SLA · agrupamento de itens da curadoria por urgência</div>
+  <div class="row">
+    <div class="fila a"><div class="fila-head"><span class="tag">A</span><span class="name">Urgente</span></div><div class="body">Decisão obrigatória.<span class="sla">SLA: 1 dia</span></div></div>
+    <div class="fila b"><div class="fila-head"><span class="tag">B</span><span class="name">Rápida</span></div><div class="body">Curadoria expressa.<span class="sla">SLA: 2 dias</span></div></div>
+    <div class="fila c"><div class="fila-head"><span class="tag">C</span><span class="name">Analítica</span></div><div class="body">Demanda mais discutida.<span class="sla">SLA: 5 dias</span></div></div>
+    <div class="fila d"><div class="fila-head"><span class="tag">D</span><span class="name">Aguardando</span></div><div class="body">Em espera externa.<span class="sla">SLA: pausado</span></div></div>
+  </div>
+</div>
+</body></html>

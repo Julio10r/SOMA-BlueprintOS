@@ -1,0 +1,73 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Pódio Top 3" subtitle="3 cards alinhados, 1º destacado, medalha sobre avatar" viewport="700x280" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Pódio top 3</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin-bottom:10px; }
+  .podium { display:grid; grid-template-columns: 1fr 1.18fr 1fr; gap:12px; align-items:flex-end; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; display:flex; flex-direction:column; gap:8px; position:relative; }
+  .card.gold   { border-color:#D4A036; background:linear-gradient(180deg,#FFFCF4 0%,#fff 75%); box-shadow:0 4px 14px rgba(212,160,54,0.18); }
+  .card.silver { border-color:#C8CACE; background:linear-gradient(180deg,#FAFAFB 0%,#fff 75%); }
+  .card.bronze { border-color:#C99066; background:linear-gradient(180deg,#FDF8F3 0%,#fff 75%); }
+  .pos { position:absolute; top:14px; right:16px; font-family:var(--mono); font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; }
+  .gold .pos   { color:#8A6418; }
+  .silver .pos { color:#6B6E72; }
+  .bronze .pos { color:#7C4F22; }
+
+  .av-wrap { position:relative; display:inline-grid; place-items:center; align-self:flex-start; margin-bottom:4px; }
+  .av { width:44px; height:44px; border-radius:50%; display:grid; place-items:center; font-family:var(--font); font-size:14px; font-weight:600; }
+  .av.c0 { background:var(--novo-bg); color:var(--novo); }
+  .av.c1 { background:var(--avaliacao-bg); color:var(--avaliacao); }
+  .av.c2 { background:var(--aprovado-bg); color:var(--aprovado); }
+
+  .medal { position:absolute; top:0; right:-8px; width:22px; height:22px; display:inline-grid; place-items:center; border-radius:50%; border:1.5px solid; font-family:var(--mono); font-weight:700; font-size:11px; filter:drop-shadow(0 2px 3px rgba(26,25,22,0.18)); }
+  .medal::before { content:""; position:absolute; left:50%; transform:translateX(-50%); top:-7px; width:14px; height:9px; background:currentColor; clip-path: polygon(0 0,100% 0,75% 100%,50% 60%,25% 100%); opacity:0.85; }
+  .medal.g { background:linear-gradient(135deg,#F4D27A 0%,#D4A036 100%); border-color:#B8862A; color:#6B4A12; }
+  .medal.s { background:linear-gradient(135deg,#E8E8E8 0%,#B9BCC2 100%); border-color:#98989E; color:#4A4A4D; }
+  .medal.b { background:linear-gradient(135deg,#E2A877 0%,#B07235 100%); border-color:#8A5722; color:#5D3713; }
+
+  .name { font-family:var(--font); font-size:15px; font-weight:600; letter-spacing:-0.01em; color:var(--text-primary); }
+  .team { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); }
+  .stats { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:8px; padding-top:12px; border-top:1px solid var(--border-soft, #EDEBE6); }
+  .s-l { font-family:var(--mono); font-size:9.5px; font-weight:500; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); }
+  .s-v { font-family:var(--mono); font-size:20px; font-weight:500; letter-spacing:-0.02em; color:var(--text-primary); margin-top:2px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Pódio top 3 · 1º levemente maior, com medalha sobreposta no avatar</div>
+  <div class="podium">
+    <div class="card silver">
+      <span class="pos">2º</span>
+      <div class="av-wrap"><span class="av c2">NA</span><span class="medal s">2</span></div>
+      <span class="name">Nicole Azevedo</span>
+      <span class="team">Contratos PI</span>
+      <div class="stats">
+        <div><div class="s-l">Resolvidos</div><div class="s-v">14</div></div>
+        <div><div class="s-l">Tempo médio</div><div class="s-v">2d 4h</div></div>
+      </div>
+    </div>
+    <div class="card gold">
+      <span class="pos">1º</span>
+      <div class="av-wrap"><span class="av c0">NC</span><span class="medal g">1</span></div>
+      <span class="name">Nicole Cancela</span>
+      <span class="team">Contratos PI</span>
+      <div class="stats">
+        <div><div class="s-l">Resolvidos</div><div class="s-v">18</div></div>
+        <div><div class="s-l">Tempo médio</div><div class="s-v">1d 18h</div></div>
+      </div>
+    </div>
+    <div class="card bronze">
+      <span class="pos">3º</span>
+      <div class="av-wrap"><span class="av c1">AL</span><span class="medal b">3</span></div>
+      <span class="name">Alícia</span>
+      <span class="team">Contratos PI</span>
+      <div class="stats">
+        <div><div class="s-l">Resolvidos</div><div class="s-v">12</div></div>
+        <div><div class="s-l">Tempo médio</div><div class="s-v">2d 9h</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

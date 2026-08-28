@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Type · UI scale (DM Sans)" subtitle="Hierarquia H1→Caption · DM Sans 300–600" viewport="700x260" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>UI type — DM Sans</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); }
+  .specimen { font-family:var(--font); color:var(--text-primary); }
+  .row { display:flex; align-items:baseline; justify-content:space-between; gap:16px; padding:5px 0; border-bottom:1px dashed var(--border); }
+  .row:last-child { border-bottom:none; }
+  .l { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); flex-shrink:0; width:96px; }
+  .sample { flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  .meta { font-family:var(--mono); font-size:10px; color:var(--text-muted); flex-shrink:0; }
+
+  .s-h1   { font-size:28px; font-weight:600; letter-spacing:-0.02em; }
+  .s-h2   { font-size:22px; font-weight:600; letter-spacing:-0.02em; }
+  .s-h3   { font-size:18px; font-weight:600; }
+  .s-h4   { font-size:15px; font-weight:500; }
+  .s-body { font-size:14px; font-weight:400; }
+  .s-sm   { font-size:13px; font-weight:400; }
+  .s-cap  { font-size:12px; font-weight:300; color:var(--text-secondary); }
+</style></head>
+<body>
+<div class="frame specimen">
+  <div class="row"><span class="l">H1</span><span class="sample s-h1">DM Sans · 28/600</span><span class="meta">−0.02em</span></div>
+  <div class="row"><span class="l">H2</span><span class="sample s-h2">Título de seção principal</span><span class="meta">22/600</span></div>
+  <div class="row"><span class="l">H3</span><span class="sample s-h3">Subtítulo de card ou modal</span><span class="meta">18/600</span></div>
+  <div class="row"><span class="l">H4</span><span class="sample s-h4">Card name · subsection</span><span class="meta">15/500</span></div>
+  <div class="row"><span class="l">Body</span><span class="sample s-body">Texto corrido em DM Sans 14/400 — a fonte padrão para conteúdo de UI nos portais GDT.</span><span class="meta">14/400</span></div>
+  <div class="row"><span class="l">Body sm</span><span class="sample s-sm">Texto pequeno em controles, botões, labels de formulário (13px).</span><span class="meta">13/400</span></div>
+  <div class="row"><span class="l">Caption</span><span class="sample s-cap">Descrições, ajudas e meta-informação. Sempre em weight 300.</span><span class="meta">12/300</span></div>
+</div>
+</body></html>

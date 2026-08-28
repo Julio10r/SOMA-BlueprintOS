@@ -1,0 +1,73 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Sidebar (duas variantes)" subtitle="Quieta (bg active) vs afirmativa (accent active)" viewport="700x320" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Sidebar — duas variantes</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); display:flex; flex-direction:column; gap:12px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin-bottom:2px; }
+  .row { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+
+  aside {
+    background:#fff; border:1px solid #E2E0DB; border-radius:10px;
+    padding:14px 10px; display:flex; flex-direction:column; gap:2px;
+  }
+  .sec {
+    font-family:var(--mono); font-size:10px; font-weight:500;
+    text-transform:uppercase; letter-spacing:.07em;
+    color:#9B9890; padding:8px 12px 4px;
+  }
+  .item {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:7px 12px; border-radius:8px;
+    font-family:var(--font); font-size:13px; color:#6B6860;
+    cursor:pointer;
+  }
+  .item .l { display:flex; align-items:center; gap:8px; }
+  .item .nb {
+    font-family:var(--mono); font-size:11px; padding:1px 7px; border-radius:100px;
+    background:#F7F6F3; color:#9B9890; border:1px solid #E2E0DB;
+  }
+  .item svg { width:14px; height:14px; flex-shrink:0; }
+
+  /* Variante A — quieta (curadoria, avaliação, acompanhamento) */
+  .quieta .item:hover  { background:#F7F6F3; color:#1A1916; }
+  .quieta .item.active { background:#F7F6F3; color:#1A1916; font-weight:500; }
+
+  /* Variante B — afirmativa (admin) */
+  .afirmativa .item:hover  { background:#F7F6F3; color:#1A1916; }
+  .afirmativa .item.active { background:#1A1916; color:#fff; font-weight:500; }
+  .afirmativa .item.active .nb { background:rgba(255,255,255,0.15); color:#fff; border-color:transparent; }
+  .afirmativa .item.active svg { color:#fff; }
+
+  .label { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin-bottom:6px; display:block; }
+  .note  { font-family:var(--font); font-size:11px; color:var(--text-secondary); line-height:1.55; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Duas variantes de sidebar — mesma estrutura, intensidade diferente</div>
+  <div class="row">
+    <div>
+      <span class="label">Variante A · "quieta"</span>
+      <aside class="quieta">
+        <span class="sec">Visão geral</span>
+        <div class="item active"><span class="l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Todas</span><span class="nb">42</span></div>
+        <div class="item"><span class="l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>Urgente</span><span class="nb">3</span></div>
+        <div class="item"><span class="l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>Aguardando</span><span class="nb">7</span></div>
+      </aside>
+      <p class="note" style="margin-top:8px">Active = <code style="font-family:var(--mono);font-size:11px">background: var(--bg)</code>. Usar em <b>portais densos</b> (curadoria, avaliação) onde a lista do main já chama atenção.</p>
+    </div>
+
+    <div>
+      <span class="label">Variante B · "afirmativa"</span>
+      <aside class="afirmativa">
+        <span class="sec">Navegação</span>
+        <div class="item active"><span class="l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Usuários</span><span class="nb">28</span></div>
+        <div class="item"><span class="l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Parâmetros</span></div>
+        <div class="item"><span class="l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>Histórico</span></div>
+      </aside>
+      <p class="note" style="margin-top:8px">Active = <code style="font-family:var(--mono);font-size:11px">background: var(--accent)</code> + texto branco. Usar em <b>portais de configuração</b> (admin) onde a sidebar é a navegação principal.</p>
+    </div>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Modal & toast" subtitle="Confirmação + variantes de toast" viewport="700x260" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Modal & toast</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); display:flex; gap:14px; align-items:flex-start; }
+  .modal {
+    background:#fff; border-radius:12px; padding:24px;
+    width:340px;
+    box-shadow:0 8px 32px rgba(26,25,22,0.2);
+  }
+  .modal h3 { font-family:var(--font); font-size:17px; font-weight:600; letter-spacing:-0.02em; margin:0 0 8px; color:#1A1916; }
+  .modal p { font-family:var(--font); font-size:13px; color:#6B6860; font-weight:300; margin:0 0 18px; line-height:1.55; }
+  .actions { display:flex; gap:8px; justify-content:flex-end; }
+  .btn {
+    display:inline-flex; align-items:center; gap:6px; padding:8px 14px;
+    border-radius:8px; font-family:var(--font); font-size:12px; font-weight:500;
+    cursor:pointer; border:none;
+  }
+  .btn-sec { background:transparent; color:#6B6860; border:1px solid #E2E0DB; }
+  .btn-app { background:#2D6A4F; color:#fff; box-shadow:0 2px 6px rgba(26,107,58,.25); }
+
+  .right { flex:1; display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
+  .toast {
+    display:inline-flex; align-items:center; gap:10px;
+    padding:11px 16px; border-radius:12px;
+    font-family:var(--font); font-size:13px; font-weight:500; color:#fff;
+    box-shadow:0 4px 16px rgba(26,25,22,0.25);
+  }
+  .toast.success { background:#2D6A4F; }
+  .toast.error { background:#C0392B; }
+  .toast.dark { background:#1A1916; }
+  svg { width:14px; height:14px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="modal">
+    <h3>Confirmar aprovação</h3>
+    <p>Tem certeza que deseja aprovar esta demanda? Essa ação não pode ser desfeita.</p>
+    <div class="actions">
+      <button class="btn btn-sec">Cancelar</button>
+      <button class="btn btn-app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Confirmar</button>
+    </div>
+  </div>
+  <div class="right">
+    <div class="toast success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Demanda aprovada com sucesso!</div>
+    <div class="toast error"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Erro ao salvar — tente novamente.</div>
+    <div class="toast dark">Histórico atualizado.</div>
+  </div>
+</div>
+</body></html>

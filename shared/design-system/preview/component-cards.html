@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Cards (demand)" subtitle="Card de demanda com status left-border + hover" viewport="700x200" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Cards — anatomy</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); display:flex; flex-direction:column; gap:10px; }
+  .card {
+    background:#fff; border:1px solid #E2E0DB; border-radius:12px;
+    padding:14px 18px; display:flex; align-items:flex-start; gap:16px;
+  }
+  .card.hover { border-color:#C8C5BE; box-shadow:0 2px 8px rgba(26,25,22,0.07); transform:translateY(-1px); }
+  .id {
+    font-family:var(--mono); font-size:11px; font-weight:500;
+    color:#9B9890; background:#F7F6F3; padding:4px 8px; border-radius:6px; white-space:nowrap; flex-shrink:0;
+  }
+  .meta { flex:1; min-width:0; }
+  .name { font-family:var(--font); font-size:15px; font-weight:500; letter-spacing:-0.01em; margin-bottom:4px; color:#1A1916; }
+  .sub { display:flex; gap:12px; font-family:var(--font); font-size:12px; color:#9B9890; }
+  .badges { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .badge { display:inline-flex; padding:3px 10px; border-radius:100px; font-family:var(--font); font-size:11px; font-weight:500; }
+  .b-novo { background:#EBF3FB; color:#4A90D9; }
+  .b-aprovado { background:#D8F3DC; color:#2D6A4F; }
+  .c-int { background:#FFF8E1; color:#F57F17; font-family:var(--mono); font-size:11px; padding:3px 8px; border-radius:100px; }
+
+  .status-novo { border-left:4px solid #4A90D9; }
+  .status-aprovado { border-left:4px solid #2D6A4F; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="card status-novo">
+    <span class="id">GDT-042</span>
+    <div class="meta">
+      <div class="name">Automação de relatórios financeiros</div>
+      <div class="sub"><span>Financeiro</span><span>12/04/2026</span><span>maria.silva</span></div>
+    </div>
+    <div class="badges"><span class="badge b-novo">Novo</span><span class="c-int">Intermediário</span></div>
+  </div>
+  <div class="card status-aprovado hover">
+    <span class="id">GDT-039</span>
+    <div class="meta">
+      <div class="name">Integração SAP com plataforma de e-commerce</div>
+      <div class="sub"><span>Tecnologia</span><span>08/04/2026</span><span>joão.costa</span></div>
+    </div>
+    <div class="badges"><span class="badge b-aprovado">Aprovado</span><span class="c-int">Complexo</span></div>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Avaliação comment (quote block)" subtitle="Border-left + bg pastel colorido por decisão · meta mono no topo" viewport="700x380" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Avaliação comment + decision banners</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .frame { width:700px; padding:22px 28px; background:var(--surface); display:flex; flex-direction:column; gap:12px; }
+  .head { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+
+  /* Avaliação comment — quote block (orange) */
+  .aval {
+    border-left:3px solid var(--avaliacao);
+    padding:10px 16px;
+    background:var(--avaliacao-bg);
+    border-radius:0 8px 8px 0;
+    font-family:var(--font); font-size:13px;
+    color:var(--text-secondary);
+    font-style:italic; line-height:1.6;
+  }
+  .aval .meta {
+    display:block; font-style:normal; font-family:var(--mono);
+    font-size:10.5px; color:var(--avaliacao); font-weight:600;
+    text-transform:uppercase; letter-spacing:.06em;
+    margin-bottom:4px;
+  }
+
+  /* Variants */
+  .aval.aprovado    { border-color:var(--aprovado);  background:var(--aprovado-bg); }
+  .aval.aprovado .meta    { color:var(--aprovado); }
+  .aval.rejeitado   { border-color:var(--rejeitado); background:var(--rejeitado-bg); }
+  .aval.rejeitado .meta   { color:var(--rejeitado); }
+  .aval.aguardando  { border-color:var(--aguardando); background:var(--aguardando-bg); }
+  .aval.aguardando .meta  { color:var(--aguardando); }
+
+  .note { font-family:var(--font); font-size:11.5px; color:var(--text-secondary); line-height:1.55; }
+  .note code { font-family:var(--mono); font-size:11px; color:var(--text-primary); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="head">Avaliação comment · quote-block colorido por decisão</div>
+
+  <div class="aval">
+    <span class="meta">Em avaliação · Bruno Afonso · 14/04</span>
+    "Falta clareza no saving estimado. Solicito ao time financeiro que revise a base de cálculo antes de aprovarmos para sprint."
+  </div>
+
+  <div class="aval aprovado">
+    <span class="meta">Aprovada · Bruno Afonso · 15/04</span>
+    "Aprovado para sprint de maio. Priorizar acima de GDT-039 dado o saving anual projetado."
+  </div>
+
+  <div class="aval rejeitado">
+    <span class="meta">Rejeitada · Bruno Afonso · 01/04</span>
+    "Já existe iniciativa equivalente no programa Visão Única (Q3). Realocar esforço."
+  </div>
+
+  <div class="aval aguardando">
+    <span class="meta">Aguardando · Maria Silva · 13/04</span>
+    "Aguardando resposta do solicitante sobre cobertura de marcas. Voltar à fila quando confirmar."
+  </div>
+
+  <p class="note">
+    Bloco de citação para registrar parecer/comentário da curadoria ou avaliação. Border-left 3px na cor do status, bg pastel, texto italic em <code>--text-secondary</code>. O <b>meta</b> (autor + data) em DM Mono uppercase na cor sólida, não italic.
+  </p>
+</div>
+</body></html>

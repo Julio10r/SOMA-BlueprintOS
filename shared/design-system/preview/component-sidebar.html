@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Components · Sidebar nav" subtitle="Nav items, section titles, badges de contagem" viewport="700x320" -->
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Sidebar nav</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body { background:var(--bg); }
+  .frame { width:700px; padding:22px 28px; background:var(--bg); }
+  .layout { display:grid; grid-template-columns: 260px 1fr; gap:14px; }
+  aside {
+    background:#fff; border:1px solid #E2E0DB; border-radius:12px;
+    padding:14px 12px; display:flex; flex-direction:column; gap:2px;
+  }
+  .section {
+    font-family:var(--mono); font-size:10px; font-weight:500;
+    text-transform:uppercase; letter-spacing:.07em;
+    color:#9B9890; padding:10px 12px 4px;
+  }
+  .item {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 12px; border-radius:8px;
+    font-family:var(--font); font-size:13px; color:#6B6860;
+    cursor:pointer;
+  }
+  .item:hover { background:#F7F6F3; color:#1A1916; }
+  .item.active { background:#F7F6F3; color:#1A1916; font-weight:500; }
+  .left { display:flex; align-items:center; gap:8px; }
+  .nb {
+    font-family:var(--mono); font-size:11px; padding:2px 7px; border-radius:100px;
+    background:#F7F6F3; color:#9B9890; border:1px solid #E2E0DB;
+  }
+  .nb.new { background:#EBF3FB; color:#4A90D9; border-color:transparent; }
+  .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+  svg { width:14px; height:14px; }
+  .right { background:#fff; border:1px solid #E2E0DB; border-radius:12px; padding:16px; font-family:var(--font); font-size:12px; color:#9B9890; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="layout">
+    <aside>
+      <div class="section">Navegação</div>
+      <div class="item active">
+        <span class="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</span>
+        <span class="nb">12</span>
+      </div>
+      <div class="item">
+        <span class="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Demandas</span>
+        <span class="nb new">3</span>
+      </div>
+      <div class="item">
+        <span class="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="10"/></svg>Configurações</span>
+      </div>
+      <div class="section">Status</div>
+      <div class="item"><span class="left"><span class="dot" style="background:#4A90D9"></span>Novos</span><span class="nb">5</span></div>
+      <div class="item"><span class="left"><span class="dot" style="background:#2D6A4F"></span>Aprovados</span><span class="nb">8</span></div>
+      <div class="item"><span class="left"><span class="dot" style="background:#C0392B"></span>Rejeitados</span><span class="nb">2</span></div>
+    </aside>
+    <div class="right">Main content area</div>
+  </div>
+</div>
+</body></html>
