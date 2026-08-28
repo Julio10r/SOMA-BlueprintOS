@@ -272,7 +272,7 @@ class AgentFactoryV2 {
     const html = `<!doctype html>\n<html lang="pt-BR"><head><meta charset="utf-8"><title>SOMA BlueprintOS Agents</title></head><body><h1>SOMA BlueprintOS Agents</h1><p>Generated from canonical manifests. Human editorial context remains in docs/agents/AgentsCatalog.html.</p><table><thead><tr><th>ID</th><th>Name</th><th>Version</th><th>Type</th><th>Status</th><th>Capabilities</th><th>Enforcement</th></tr></thead><tbody>${rows}</tbody></table></body></html>\n`;
     if (options.apply) {
       assertApproval(options.authorization, "CATALOG write");
-      const output = assertSafeOutput(options.output || "docs/agents/AgentsCatalog.generated.html", "catalog");
+      const output = assertSafeOutput(options.output || "agents/docs/AgentsCatalog.generated.html", "catalog");
       fs.writeFileSync(path.join(this.repoRoot, output), html);
       return { operation: "CATALOG", status: "PASS", output, generated: true };
     }
