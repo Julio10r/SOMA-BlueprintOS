@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOMA BlueprintOS — Catálogo de Agentes e Conhecimento</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#ffffff; --border:#e2e5ea; --text:#1c2333; --text-dim:#5b6472;
+    --accent:#2f5aa8; --accent-soft:#eaf0fb; --ok:#1e8e5a; --warn:#b8860b; --draft:#8a8f98;
+    --pill-bg:#eef1f6; --code-bg:#f1f3f7; --shadow:0 1px 2px rgba(20,25,40,.06),0 4px 16px rgba(20,25,40,.04);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.5;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:32px 24px 80px;}
+  header.hero{
+    background:linear-gradient(135deg,#1c2b52,#2f5aa8); color:#fff; border-radius:16px;
+    padding:36px 40px; box-shadow:var(--shadow); margin-bottom:28px;
+  }
+  header.hero .eyebrow{font-size:13px; letter-spacing:.08em; text-transform:uppercase; opacity:.75; margin-bottom:6px;}
+  header.hero h1{margin:0 0 6px; font-size:30px; font-weight:700;}
+  header.hero .sub{font-size:15px; opacity:.85; margin-bottom:18px;}
+  header.hero .meta{display:flex; flex-wrap:wrap; gap:10px 24px; font-size:13px; opacity:.85;}
+  header.hero .meta strong{opacity:1; font-weight:600;}
+
+  .disclaimer{
+    background:#fff8e6; border:1px solid #f0dca0; color:#6b5417; border-radius:10px;
+    padding:14px 18px; font-size:13.5px; margin-bottom:28px;
+  }
+  .disclaimer b{color:#4a3a0d;}
+
+  .summary{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:32px;}
+  .stat{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:18px 20px; box-shadow:var(--shadow);}
+  .stat .num{font-size:28px; font-weight:700; color:var(--accent);}
+  .stat .label{font-size:13px; color:var(--text-dim); margin-top:2px;}
+
+  .search-box{margin-bottom:28px;}
+  .search-box input{
+    width:100%; padding:14px 18px; border-radius:12px; border:1px solid var(--border);
+    background:var(--panel); font-size:15px; box-shadow:var(--shadow); outline:none;
+  }
+  .search-box input:focus{border-color:var(--accent);}
+  .search-hint{font-size:12.5px; color:var(--text-dim); margin-top:6px;}
+  #searchCount{font-weight:600; color:var(--accent);}
+
+  section.section{margin-bottom:40px;}
+  section.section > h2{font-size:20px; margin:0 0 4px;}
+  section.section > .section-sub{font-size:13.5px; color:var(--text-dim); margin-bottom:18px;}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:18px;}
+
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:14px;
+    box-shadow:var(--shadow); padding:20px 22px; display:flex; flex-direction:column; gap:10px;
+  }
+  .card[hidden]{display:none;}
+  .card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+  .card-top h3{margin:0; font-size:17px;}
+  .badges{display:flex; gap:6px; flex-wrap:wrap;}
+  .pill{
+    display:inline-block; font-size:11px; font-weight:600; letter-spacing:.02em;
+    padding:3px 9px; border-radius:999px; background:var(--pill-bg); color:var(--text-dim);
+    white-space:nowrap;
+  }
+  .pill.status-ativo{background:#e4f6ec; color:var(--ok);}
+  .pill.status-evolucao{background:#eaf0fb; color:var(--accent);}
+  .pill.status-planejado{background:#f1f1f3; color:var(--draft);}
+  .pill.tipo{background:#f1f3f7; color:#3a4150;}
+
+  .card .objetivo{font-size:13.5px; color:var(--text-dim);}
+
+  .kv{font-size:13px;}
+  .kv-title{font-weight:600; font-size:12.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--text-dim); margin:10px 0 4px;}
+  .kv ul{margin:0; padding-left:18px;}
+  .kv ul li{margin-bottom:2px;}
+
+  .relates{font-size:13px;}
+  .relates .arrow{color:var(--accent); font-weight:600;}
+
+  details.more{border-top:1px dashed var(--border); margin-top:6px; padding-top:10px;}
+  details.more summary{
+    cursor:pointer; font-size:13px; font-weight:600; color:var(--accent); list-style:none;
+    display:flex; align-items:center; gap:6px;
+  }
+  details.more summary::-webkit-details-marker{display:none;}
+  details.more summary::before{content:"▸"; transition:transform .15s;}
+  details.more[open] summary::before{transform:rotate(90deg);}
+  details.more .more-body{margin-top:12px; display:flex; flex-direction:column; gap:12px;}
+
+  .filebox{background:var(--code-bg); border-radius:8px; padding:8px 12px; font-size:12px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  .filebox div{padding:1px 0; word-break:break-all;}
+
+  .pend-count{
+    display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600;
+    color:var(--warn); background:#fdf3df; padding:3px 9px; border-radius:999px;
+  }
+  .pend-count.zero{color:var(--ok); background:#e4f6ec;}
+
+  .example{background:var(--accent-soft); border-left:3px solid var(--accent); border-radius:6px; padding:8px 12px; font-size:12.5px; font-style:italic; color:#1c2b52;}
+
+  /* Mapa de colaboração */
+  .map-wrap{background:var(--panel); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:28px; overflow-x:auto;}
+  svg{display:block; margin:0 auto;}
+  .node-box{fill:var(--panel); stroke:var(--border); stroke-width:1.5;}
+  .node-box.core{fill:#1c2b52; stroke:#1c2b52;}
+  .node-box.infra{fill:#eef1f6; stroke:#5b6472; stroke-width:1.5;}
+  .node-box.active{fill:#eaf0fb; stroke:var(--accent);}
+  .node-box.evolucao{fill:#eef3fc; stroke:var(--accent); stroke-dasharray:7 3;}
+  .node-box.crosscut{fill:#f5eefc; stroke:#8a5cc9; stroke-dasharray:2 2;}
+  .node-box.lifecycle{fill:#eafaf2; stroke:#1e8e5a; stroke-dasharray:2 2;}
+  .node-box.workflow{fill:#fff8e6; stroke:#b8860b; stroke-dasharray:5 3;}
+  .node-box.stack{fill:#eef1f6; stroke:#2f5aa8; stroke-width:1.3;}
+  .node-box.stack.blocked{fill:#fdeceb; stroke:#c0392b;}
+  .node-box.planned{fill:#f5f5f6; stroke:#c7cad0; stroke-dasharray:4 3;}
+  .node-text{font-size:13px; font-weight:600; fill:var(--text); font-family:inherit;}
+  .node-text.core-text{fill:#fff;}
+  .node-text.small{font-size:11.5px;}
+  .node-sub{font-size:10.5px; fill:var(--text-dim); font-family:inherit;}
+  .node-sub.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:9.5px;}
+  .group-label{font-size:10px; font-weight:700; letter-spacing:.04em; fill:#7b8494; font-family:inherit; text-transform:uppercase;}
+  .edge{stroke:#a9b3c4; stroke-width:1.5; fill:none;}
+  .edge.dashed{stroke-dasharray:4 3; stroke:#c7cad0;}
+  .edge.collab{stroke:var(--accent); stroke-width:1.4; fill:none;}
+  .edge.cross{stroke:#8a5cc9; stroke-width:1.3; stroke-dasharray:3 3; fill:none;}
+  .edge.life{stroke:#1e8e5a; stroke-width:1.3; stroke-dasharray:3 3; fill:none;}
+  .edge.stackflow{stroke:#2f5aa8; stroke-width:1.4; fill:none;}
+  .legend{display:flex; gap:16px 20px; flex-wrap:wrap; margin-top:16px; font-size:12px; color:var(--text-dim);}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .swatch{width:12px; height:12px; border-radius:3px; display:inline-block; flex-shrink:0;}
+  .cert-strip{display:flex; flex-wrap:wrap; gap:8px 10px; margin:10px 0 18px;}
+  .cert-strip .pend-count{font-weight:700;}
+  .map-subtitle{font-size:15px; margin:22px 0 4px;}
+  .map-caption{font-size:13px; color:var(--text-dim); margin-bottom:12px;}
+  .step-badge{fill:var(--accent); stroke:var(--panel); stroke-width:2;}
+  .step-num{font-size:12px; font-weight:700; fill:#fff; font-family:inherit;}
+
+  footer.foot{margin-top:48px; font-size:12.5px; color:var(--text-dim); text-align:center; border-top:1px solid var(--border); padding-top:20px;}
+
+  #noResults{display:none; text-align:center; padding:40px 0; color:var(--text-dim); font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">SOMA BlueprintOS</div>
+    <h1>Catálogo de Agentes e Conhecimento</h1>
+    <div class="sub">Catálogo visual do "time de IA" do projeto — quem existe, o que cada um sabe, o que pode fazer e como se relacionam.</div>
+    <div class="meta">
+      <div>Última atualização: <strong>2026-08-27</strong></div>
+      <div>Gerado a partir do SOMA BlueprintOS — identidade e configuração dos Agents a partir de <code>agents/&lt;agent-id&gt;/agent.yaml</code> (Agent Contract, schema e Execution Policy); código, <code>.ai/</code>, prompts e runbooks são fontes complementares/especializadas declaradas pelos próprios manifests.</div>
+    </div>
+  </header>
+
+  <div class="disclaimer">
+    <b>Este HTML é uma visão consolidada para humanos, não a fonte canônica.</b>
+    A identidade, o status e a governança de cada Agent vêm do manifest canônico (<code>agents/&lt;agent-id&gt;/agent.yaml</code>), do Agent Contract/schema e da Execution Policy. Conhecimento operacional complementar vive em <code>.ai/context/</code>, <code>.ai/prompts/</code>, <code>applications/mais-compras/docs/operations/</code> e nos documentos específicos de cada agente/módulo.
+    Em caso de divergência, a fonte canônica sempre prevalece sobre este arquivo.
+  </div>
+
+  <div class="cert-strip">
+    <span class="pend-count zero">Arquitetura Agents v1: CERTIFICADA</span>
+    <span class="pend-count zero">8 Agents · AUDIT PASS</span>
+    <span class="pend-count zero">0 ERROR · 0 WARN</span>
+    <span class="pend-count zero">0 ACTION_REQUIRED</span>
+    <span class="pend-count">4 BY_DESIGN</span>
+    <span class="pend-count">8 NOT_IMPLEMENTED</span>
+    <span class="pend-count">12 INFO</span>
+  </div>
+
+  <div class="summary" id="summary">
+    <div class="stat"><div class="num" id="statAtivos">–</div><div class="label">Agents ativos (código)</div></div>
+    <div class="stat"><div class="num" id="statOperacionais">–</div><div class="label">Agents operacionais (conhecimento .ai/ em evolução)</div></div>
+    <div class="stat"><div class="num" id="statPlanejados">–</div><div class="label">Agents planejados (backlog editorial)</div></div>
+    <div class="stat"><div class="num">3</div><div class="label">Prompts-gatilho de agente</div></div>
+    <div class="stat"><div class="num">11</div><div class="label">Conhecimentos ainda não mapeados (AINDA_NAO_MAPEADO)</div></div>
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Pesquisar por nome, conhecimento, capacidade ou domínio (ex.: &quot;estoque&quot;, &quot;fornecedor&quot;, &quot;fotos&quot;)...">
+    <div class="search-hint"><span id="searchCount"></span></div>
+  </div>
+
+  <section class="section">
+    <h2>Agents e Especialistas</h2>
+    <div class="section-sub">Cards resumidos primeiro — clique em "Ver detalhes" para expandir cada um.</div>
+    <div class="grid" id="cardsGrid"></div>
+    <div id="noResults">Nenhum agent encontrado para essa busca.</div>
+  </section>
+
+  <section class="section">
+    <h2>Arquitetura e Execução Governada dos Agents</h2>
+    <div class="section-sub">Fonte da verdade: manifests canônicos (<code>agents/*/agent.yaml</code>), Agent Contract/schema e <code>docs/audits/AgentsV1-FinalCertification.md</code>. Nada aqui foi inventado. Relações de colaboração entre Agents (Linx ↔ WISE, Showcase ↔ WISE) continuam detalhadas nos cards, em "Integra com".</div>
+
+    <h3 class="map-subtitle">1. Arquitetura dos Agentes</h3>
+    <div class="map-caption">Como o ecossistema de Agents do SOMA BlueprintOS está organizado.</div>
+    <div class="map-wrap">
+      <svg viewBox="0 0 1040 440" width="100%" height="440" role="img" aria-label="Arquitetura dos Agents do SOMA BlueprintOS">
+        <!-- ============ CADEIA DE ORQUESTRAÇÃO GOVERNADA (hierarquia) ============ -->
+        <rect class="node-box core" x="190" y="20" width="300" height="46" rx="10"></rect>
+        <text class="node-text core-text" x="340" y="49" text-anchor="middle">SOMA BlueprintOS</text>
+
+        <path class="edge" d="M340,66 L340,86"></path>
+        <rect class="node-box infra" x="190" y="86" width="300" height="44" rx="8"></rect>
+        <text class="node-text" x="340" y="105" text-anchor="middle">Orquestrador Governado</text>
+        <text class="node-sub mono" x="340" y="121" text-anchor="middle">GovernedOrchestrator</text>
+
+        <path class="edge" d="M340,130 L340,150"></path>
+        <rect class="node-box infra" x="190" y="150" width="300" height="44" rx="8"></rect>
+        <text class="node-text" x="340" y="169" text-anchor="middle">Registro de Execução</text>
+        <text class="node-sub mono" x="340" y="185" text-anchor="middle">RuntimeRegistry</text>
+
+        <path class="edge" d="M340,194 L340,214"></path>
+        <rect class="node-box infra" x="140" y="214" width="400" height="44" rx="8"></rect>
+        <text class="node-text" x="340" y="233" text-anchor="middle">Responsabilidades e Roteamento</text>
+        <text class="node-sub mono" x="340" y="249" text-anchor="middle">Capability Ownership / Routing</text>
+
+        <!-- ============ TRÊS FAMÍLIAS DE AGENTS ============ -->
+        <path class="edge" d="M340,258 L340,272 L90,272 L90,286"></path>
+        <path class="edge" d="M340,258 L340,286"></path>
+        <path class="edge" d="M340,258 L340,272 L590,272 L590,286"></path>
+
+        <text class="group-label" x="90" y="304" text-anchor="middle">Agentes de Execução</text>
+        <text class="group-label" x="340" y="304" text-anchor="middle">Agentes Especialistas</text>
+        <text class="group-label" x="590" y="304" text-anchor="middle">Agentes Operacionais</text>
+
+        <rect class="node-box active" x="0" y="314" width="180" height="50" rx="9"></rect>
+        <text class="node-text small" x="90" y="335" text-anchor="middle">EchoAgent</text>
+        <text class="node-sub" x="90" y="350" text-anchor="middle">runtime de entrada</text>
+
+        <rect class="node-box active" x="0" y="374" width="180" height="50" rx="9"></rect>
+        <text class="node-text small" x="90" y="395" text-anchor="middle">KnowledgeAgent</text>
+        <text class="node-sub" x="90" y="410" text-anchor="middle">módulo de conhecimento</text>
+
+        <rect class="node-box active" x="250" y="314" width="180" height="50" rx="9"></rect>
+        <text class="node-text small" x="340" y="335" text-anchor="middle">Agent Linx ERP</text>
+        <text class="node-sub" x="340" y="350" text-anchor="middle">regras · schema Visual</text>
+
+        <rect class="node-box active" x="250" y="374" width="180" height="50" rx="9"></rect>
+        <text class="node-text small" x="340" y="395" text-anchor="middle">Agent Linx Banco</text>
+        <text class="node-sub" x="340" y="410" text-anchor="middle">schema Banco Linx</text>
+
+        <rect class="node-box active" x="500" y="314" width="180" height="50" rx="9"></rect>
+        <text class="node-text small" x="590" y="335" text-anchor="middle">WISE Agent</text>
+        <text class="node-sub" x="590" y="350" text-anchor="middle">campanhas · saldo · em evolução</text>
+
+        <rect class="node-box active" x="500" y="374" width="180" height="50" rx="9"></rect>
+        <text class="node-text small" x="590" y="395" text-anchor="middle">Showcase Agent</text>
+        <text class="node-sub" x="590" y="410" text-anchor="middle">catálogo · grade · fotos · em evolução</text>
+
+        <!-- ============ GOVERNANÇA E SUPORTE TRANSVERSAL (sem linha para a cadeia) ============ -->
+        <text class="group-label" x="870" y="34" text-anchor="middle">GOVERNANÇA E SUPORTE TRANSVERSAL</text>
+
+        <rect class="node-box lifecycle" x="740" y="50" width="260" height="90" rx="10"></rect>
+        <text class="node-text small" x="870" y="73" text-anchor="middle">Agent Factory v2</text>
+        <text class="node-sub" x="870" y="89" text-anchor="middle">Ciclo de Vida e Conformidade</text>
+        <text class="node-sub mono" x="870" y="104" text-anchor="middle">CREATE·VALIDATE·AUDIT·UPDATE</text>
+        <text class="node-sub mono" x="870" y="118" text-anchor="middle">REGISTER·CATALOG·TEST·SECURITY_CHECK</text>
+
+        <rect class="node-box crosscut" x="740" y="156" width="260" height="90" rx="10"></rect>
+        <text class="node-text small" x="870" y="179" text-anchor="middle">Security / LGPD</text>
+        <text class="node-sub" x="870" y="195" text-anchor="middle">Segurança e Privacidade — Transversal</text>
+        <text class="node-sub" x="870" y="210" text-anchor="middle">Participa sob critérios de segurança,</text>
+        <text class="node-sub" x="870" y="223" text-anchor="middle">privacidade, LGPD e governança</text>
+      </svg>
+    </div>
+
+    <h3 class="map-subtitle">2. Execução Governada</h3>
+    <div class="map-caption">Como uma ação proposta por um Agent chega até uma ferramenta/sistema de forma governada. Resultado real da certificação: LIVE_EXECUTION permanece desabilitado — toda ação termina em Simulação (DRY_RUN) ou Bloqueada (BLOCKED).</div>
+    <div class="map-wrap">
+      <svg viewBox="0 0 1260 340" width="100%" height="340" role="img" aria-label="Fluxo de execução governada dos Agents do SOMA BlueprintOS">
+        <rect class="node-box active" x="10" y="30" width="180" height="250" rx="10"></rect>
+        <text class="node-text small" x="100" y="53" text-anchor="middle">AGENTS</text>
+        <text class="node-sub" x="100" y="68" text-anchor="middle">Origem da ação</text>
+        <text class="node-sub" x="100" y="96" text-anchor="middle">EchoAgent</text>
+        <text class="node-sub" x="100" y="116" text-anchor="middle">KnowledgeAgent</text>
+        <text class="node-sub" x="100" y="136" text-anchor="middle">Agent Linx ERP</text>
+        <text class="node-sub" x="100" y="156" text-anchor="middle">Agent Linx Banco</text>
+        <text class="node-sub" x="100" y="176" text-anchor="middle">WISE Agent</text>
+        <text class="node-sub" x="100" y="196" text-anchor="middle">Showcase Agent</text>
+        <text class="node-sub" x="100" y="224" text-anchor="middle" font-style="italic">origem da intenção —</text>
+        <text class="node-sub" x="100" y="238" text-anchor="middle" font-style="italic">a governança decide</text>
+        <text class="node-sub" x="100" y="252" text-anchor="middle" font-style="italic">o que prossegue</text>
+
+        <path class="edge stackflow" d="M190,155 L218,155"></path>
+        <circle class="step-badge" cx="220" cy="88" r="14"></circle>
+        <text class="step-num" x="220" y="93" text-anchor="middle">1</text>
+        <rect class="node-box stack" x="220" y="88" width="160" height="150" rx="10"></rect>
+        <text class="node-text small" x="300" y="120" text-anchor="middle">Proposta de Ação</text>
+        <text class="node-sub mono" x="300" y="136" text-anchor="middle">ActionProposal</text>
+        <text class="node-sub" x="300" y="164" text-anchor="middle">O Agent propõe</text>
+        <text class="node-sub" x="300" y="178" text-anchor="middle">uma operação</text>
+        <text class="node-sub" x="300" y="192" text-anchor="middle">ou mudança.</text>
+
+        <path class="edge stackflow" d="M380,163 L408,163"></path>
+        <circle class="step-badge" cx="410" cy="88" r="14"></circle>
+        <text class="step-num" x="410" y="93" text-anchor="middle">2</text>
+        <rect class="node-box stack" x="410" y="88" width="160" height="150" rx="10"></rect>
+        <text class="node-text small" x="490" y="120" text-anchor="middle">Motor de Políticas</text>
+        <text class="node-sub mono" x="490" y="136" text-anchor="middle">AIGovernancePolicyEngine</text>
+        <text class="node-sub" x="490" y="164" text-anchor="middle">Avalia regras,</text>
+        <text class="node-sub" x="490" y="178" text-anchor="middle">segurança, LGPD</text>
+        <text class="node-sub" x="490" y="192" text-anchor="middle">e contexto.</text>
+
+        <path class="edge stackflow" d="M570,163 L598,163"></path>
+        <circle class="step-badge" cx="600" cy="88" r="14"></circle>
+        <text class="step-num" x="600" y="93" text-anchor="middle">3</text>
+        <rect class="node-box stack" x="600" y="88" width="160" height="150" rx="10"></rect>
+        <text class="node-text small" x="680" y="120" text-anchor="middle">Aprovação</text>
+        <text class="node-sub mono" x="680" y="136" text-anchor="middle">ApprovalPolicy</text>
+        <text class="node-sub" x="680" y="164" text-anchor="middle">Verifica alçada e</text>
+        <text class="node-sub" x="680" y="178" text-anchor="middle">aprovação humana</text>
+        <text class="node-sub" x="680" y="192" text-anchor="middle">quando exigida.</text>
+
+        <path class="edge stackflow" d="M760,163 L788,163"></path>
+        <circle class="step-badge" cx="790" cy="88" r="14"></circle>
+        <text class="step-num" x="790" y="93" text-anchor="middle">4</text>
+        <rect class="node-box stack" x="790" y="88" width="160" height="150" rx="10"></rect>
+        <text class="node-text small" x="870" y="120" text-anchor="middle">Gateway de Ferramentas</text>
+        <text class="node-sub mono" x="870" y="136" text-anchor="middle">ToolGateway</text>
+        <text class="node-sub" x="870" y="164" text-anchor="middle">Roteia ao adaptador</text>
+        <text class="node-sub" x="870" y="178" text-anchor="middle">certo, com escopo</text>
+        <text class="node-sub" x="870" y="192" text-anchor="middle">e limites.</text>
+
+        <path class="edge stackflow" d="M950,163 L978,163"></path>
+        <circle class="step-badge" cx="980" cy="88" r="14"></circle>
+        <text class="step-num" x="980" y="93" text-anchor="middle">5</text>
+        <rect class="node-box stack" x="980" y="88" width="160" height="150" rx="10"></rect>
+        <text class="node-text small" x="1060" y="120" text-anchor="middle">Adaptador</text>
+        <text class="node-sub mono" x="1060" y="136" text-anchor="middle">IGovernedToolAdapter</text>
+        <text class="node-sub" x="1060" y="164" text-anchor="middle">Conecta ao sistema</text>
+        <text class="node-sub" x="1060" y="178" text-anchor="middle">alvo: ERP, Banco,</text>
+        <text class="node-sub" x="1060" y="192" text-anchor="middle">WISE, arquivos.</text>
+
+        <path class="edge stackflow" d="M1140,163 L1168,163"></path>
+        <circle class="step-badge" cx="1170" cy="88" r="14"></circle>
+        <text class="step-num" x="1170" y="93" text-anchor="middle">6</text>
+        <text class="group-label" x="1215" y="102" text-anchor="middle">Resultado</text>
+        <rect class="node-box stack" x="1170" y="108" width="90" height="58" rx="9"></rect>
+        <text class="node-text small" x="1215" y="130" text-anchor="middle">Simulação</text>
+        <text class="node-sub mono" x="1215" y="144" text-anchor="middle">DRY_RUN</text>
+        <text class="node-sub" x="1215" y="157" text-anchor="middle">padrão seguro</text>
+
+        <rect class="node-box stack blocked" x="1170" y="172" width="90" height="46" rx="9"></rect>
+        <text class="node-text small" x="1215" y="192" text-anchor="middle">Bloqueado</text>
+        <text class="node-sub mono" x="1215" y="205" text-anchor="middle">BLOCKED</text>
+
+        <rect class="node-box crosscut" x="220" y="270" width="1010" height="40" rx="8"></rect>
+        <text class="node-text small" x="725" y="286" text-anchor="middle">LIVE_EXECUTION desabilitado</text>
+        <text class="node-sub" x="725" y="301" text-anchor="middle">Execução real permanece fora da certificação arquitetural atual — não é um terceiro resultado disponível.</text>
+      </svg>
+    </div>
+    <div class="map-caption" style="font-style:italic; margin-top:-4px;">O conceito inicial de "Maestro" evoluiu para os componentes concretos de orquestração, registro e execução governada acima.</div>
+  </section>
+
+  <footer class="foot">
+    SOMA BlueprintOS — Catálogo de Agentes e Conhecimento · documento de apoio, não canônico · atualizar sempre que um agent for criado, removido, renomeado ou tiver conhecimento relevante alterado.
+  </footer>
+</div>
+
+<script>
+// ============================================================================
+// Dados dos Agents — projeção visual consolidada para humanos, não a fonte
+// canônica. Identidade, status e governança de cada Agent certificado vêm de:
+//   agents/<agent-id>/agent.yaml (manifest canônico), agents/AGENT_CONTRACT.md,
+//   agents/agent.schema.json, agents/EXECUTION_POLICY.md e
+//   docs/audits/AgentsV1-FinalCertification.md (estado certificado, AUDIT).
+// Código, .ai/context/, .ai/prompts/, applications/mais-compras/docs/operations/ e work-orders de backlog
+// são fontes complementares/especializadas declaradas pelos próprios manifests
+// (ver campos implementation.* de cada agent.yaml). Toda divergência encontrada
+// entre este array e as fontes canônicas acima foi reconciliada a favor delas.
+// ============================================================================
+const AGENTS = [
+  {
+    id: "echo-agent",
+    nome: "EchoAgent",
+    tipo: "Agente de Execução (runtime)",
+    status: "ativo",
+    statusLabel: "Ativo",
+    objetivo: "Fundação técnica de execução: encaminha a entrada diretamente ao IAIRuntime, sem conhecimento de domínio próprio. Usado como agente de referência/diagnóstico.",
+    conhece: [
+      "Nenhum conhecimento de domínio próprio — agente genérico de fundação.",
+    ],
+    podeFazer: [
+      "Encaminhar entrada ao runtime de IA (IAIRuntime)",
+    ],
+    naoDeve: [
+      "Executar tarefas de domínio específico (não é especialista)",
+      "Executar escrita — can_execute_write permanece false por design (GOV-001 BY_DESIGN)",
+    ],
+    quando: [
+      "Uso interno pela Agent Factory ao instanciar um agente de referência/diagnóstico.",
+    ],
+    gatilhos: [],
+    fontes: [
+      "agents/echo-agent/agent.yaml",
+      "applications/mais-compras/backend/src/BlueprintOS.Core/Agents/EchoAgent.cs",
+      "applications/mais-compras/backend/src/BlueprintOS.Core/Agents/BaseAgent.cs",
+    ],
+    relacionamentos: [
+      { alvo: "Agent Factory v2", nota: "Registrado, validado e catalogado pela Factory como Agent de fundação (sem write path)." },
+    ],
+    pendencias: [],
+    exemplo: null,
+  },
+  {
+    id: "knowledge-agent",
+    nome: "KnowledgeAgent",
+    tipo: "Agente de Execução (knowledge)",
+    status: "ativo",
+    statusLabel: "Ativo",
+    objetivo: "Fundação técnica de execução: enriquece a entrada com trechos recuperados do módulo Knowledge (IKnowledgeService, por similaridade textual) antes de chamar o runtime.",
+    conhece: [
+      "Nenhum conhecimento de domínio próprio — agente genérico de fundação.",
+      "Consulta o IKnowledgeService (módulo Knowledge) por similaridade textual.",
+    ],
+    podeFazer: [
+      "Buscar e injetar contexto do módulo Knowledge antes de chamar o runtime",
+    ],
+    naoDeve: [
+      "Executar tarefas de domínio específico (não é especialista)",
+      "Executar escrita — can_execute_write permanece false por design (GOV-001 BY_DESIGN)",
+    ],
+    quando: [
+      "Uso interno pela Agent Factory para consulta genérica ao Knowledge.",
+    ],
+    gatilhos: [],
+    fontes: [
+      "agents/knowledge-agent/agent.yaml",
+      "applications/mais-compras/backend/src/BlueprintOS.Core/Agents/KnowledgeAgent.cs",
+      "applications/mais-compras/backend/src/BlueprintOS.Core/Agents/BaseAgent.cs",
+    ],
+    relacionamentos: [
+      { alvo: "Agent Factory v2", nota: "Registrado, validado e catalogado pela Factory como Agent de fundação (sem write path)." },
+    ],
+    pendencias: [],
+    exemplo: null,
+  },
+  {
+    id: "agent-factory",
+    nome: "Agent Factory v2",
+    tipo: "Ciclo de Vida e Conformidade dos Agentes",
+    status: "ativo",
+    statusLabel: "Ativo",
+    objetivo: "Gerencia o lifecycle e a conformidade dos 8 Agents segundo o Agent Contract v1.1, sem executar capabilities operacionais pertencentes a eles — não é orquestrador de execução.",
+    conhece: [
+      "Agent Contract v1.1 e agent.schema.json",
+      "Os 8 manifests canônicos (agents/*/agent.yaml) e suas classificações governance.by_design_findings",
+      "Regras compartilhadas de validação (validate-agent-manifests.js)",
+    ],
+    podeFazer: [
+      "CREATE / UPDATE de manifest canônico (mediante autorização humana explícita)",
+      "VALIDATE e AUDIT de todos os Agents",
+      "REGISTER e verificação de registro/testes declarados",
+      "CATALOG — gerar catálogo estrutural a partir dos manifests (modo preview)",
+      "SECURITY_CHECK de conformidade de segurança declarada",
+    ],
+    naoDeve: [
+      "Executar SQL, shell operacional, MCP, browser automation ou APIs de domínio em nome de outro Agent",
+      "Atuar como Runtime Registry ou Tool Gateway",
+      "Aprovar mudança material ou novo Agent (autoaprovação)",
+      "Corrigir findings de auditoria automaticamente",
+    ],
+    quando: [
+      "Criação/alteração de manifest de Agent, auditoria de conformidade, geração do catálogo estrutural.",
+    ],
+    gatilhos: [],
+    fontes: [
+      "agents/agent-factory/agent.yaml",
+      "tools/agents/agent-factory-v2.js",
+      "tools/agents/agent-factory-cli.js",
+      "tools/agents/validate-agent-manifests.js",
+      "agents/AGENT_CONTRACT.md",
+      "docs/audits/AgentsV1-FinalCertification.md",
+    ],
+    relacionamentos: [
+      { alvo: "Todos os 8 Agents", nota: "Ciclo de vida/conformidade — não é hierarquicamente superior aos Agents nem participa do roteamento de execução (isso é do Orquestrador Governado/Registro de Execução)." },
+    ],
+    pendencias: [
+      "AUDIT atual: 0 ERROR, 0 WARN, 12 INFO (classification_summary: ACTION_REQUIRED 0, BY_DESIGN 4, NOT_IMPLEMENTED 8) — status geral PASS.",
+    ],
+    exemplo: "node tools/agents/agent-factory-cli.js AUDIT",
+  },
+  {
+    id: "security-lgpd-agent",
+    nome: "Security/LGPD Agent",
+    tipo: "Transversal (cross-cutting) — código + Motor de Políticas",
+    status: "ativo",
+    statusLabel: "Ativo",
+    objetivo: "Agent consultivo transversal em segurança, privacidade e LGPD. Interpreta contexto e explica riscos; a decisão determinística e bloqueante é sempre do Motor de Políticas (AIGovernancePolicyEngine), nunca deste Agent. Não é dono dos domínios Linx, WISE ou Showcase — participa apenas quando os critérios de segurança/privacidade/governança exigirem.",
+    conhece: [
+      "Classificação GREEN/YELLOW/RED",
+      "ActionProposal e ProposalHash",
+      "ApprovalRequest e ApprovalGrant",
+      "LGPD: minimização, finalidade, dados pessoais, dados pessoais sensíveis e segredos",
+      "Exposição em logs, prompts, relatórios, planilhas e Git",
+    ],
+    podeFazer: [
+      "Revisar contexto de uma proposta e explicar riscos para o humano",
+      "Apoiar decisões de autorização específica",
+      "Complementar o Motor de Políticas em casos ambíguos",
+      "Registrar base de conhecimento consultiva usada pelo Tool Gateway/adapters reais já implementados",
+    ],
+    naoDeve: [
+      "Autoaprovar operação de agent de domínio",
+      "Substituir o AIGovernancePolicyEngine",
+      "Executar SQL, API externa ou escrita operacional",
+      "Tratar guardrail documental como enforcement técnico",
+    ],
+    quando: [
+      "Quando uma ação proposta envolver escrita, dados pessoais, segredos, exportação ou risco operacional material.",
+    ],
+    gatilhos: [],
+    fontes: [
+      "applications/mais-compras/backend/src/BlueprintOS.Core/Agents/SecurityLgpdAgent.cs",
+      "applications/mais-compras/backend/src/BlueprintOS.Core/AI/Governance/",
+      "agents/docs/AIGovernance.md",
+      ".ai/context/security.md",
+    ],
+    relacionamentos: [
+      { alvo: "Agent Linx ERP / Agent Linx Banco", nota: "Transversal: Linx propõe ação (ActionProposal); o Motor de Políticas classifica e exige aprovação quando aplicável — Security/LGPD não é dono do domínio Linx." },
+      { alvo: "WISE Agent", nota: "Transversal: WISE consulta o Motor de Políticas real via bridge antes de qualquer escrita; Security/LGPD não é dono do domínio WISE." },
+      { alvo: "Showcase Agent", nota: "Transversal: exportações locais sensíveis devem ser avaliadas quando existir código de acesso real a governar." },
+    ],
+    pendencias: [
+      "Tool Gateway multi-adapter implementado e testado (SomaLinxDryRunAdapter, SomaLinxReadOnlyAdapter, WiseGovernedAdapter, LinxKnowledgeStoreReadOnlyAdapter); Showcase segue sem adapter por não existir ainda código de acesso real a governar (NOT_IMPLEMENTED, by design).",
+      "Persistência de approvals/auditoria real via EF Core implementada (GovernedWriteStack + EfApprovalStore/EfGovernanceAuditStore); ver docs/audits/AgentsV1-FinalCertification.md.",
+      "WISE consulta o Motor de Políticas real via bridge antes de qualquer escrita (scripts/linx_wise_daily_integration.py); um veredito Blocked/Red não pode ser sobreposto pelo mirror local.",
+      "Approval store persistido e compartilhado entre o processo CLI (governed-plan) e um host de longa duração ainda depende de conexão real de banco — homologação de produção/LIVE permanece PENDING (não bloqueia a certificação arquitetural).",
+    ],
+    exemplo: "AÇÃO REQUER AUTORIZAÇÃO: Ambiente, Sistema, Recurso, Operação, Campos, Filtro, Registros, Finalidade, Dados pessoais, Reversibilidade e Risco.",
+  },
+  {
+    id: "linx-erp-specialist-agent",
+    nome: "Agent Linx ERP",
+    tipo: "Agente Especialista (código + conhecimento)",
+    status: "ativo",
+    statusLabel: "Ativo",
+    objetivo: "Especialista no ERP Visual Linx: regras funcionais/técnicas, fluxos e entidades. Complementar ao Agent Linx Banco, que cobre o schema estrutural do Banco Linx.",
+    conhece: [
+      "Regras funcionais/técnicas do ERP Visual Linx (LinxErpSpecialist)",
+      "Base de conhecimento versionada (LinxKnowledgeEntry) com proveniência Descoberto/Validado/Aprovado",
+      "Acesso real de leitura ao MaisComprasConnection via LinxKnowledgeStoreReadOnlyAdapter (profile linx-knowledge-store)",
+      "Rotina diária Linx/WISE: MB_PROD_EXTRA_WEB, PRODUTOS, PRODUTO_CORES, PRODUTOS_PRECOS/DL",
+    ],
+    podeFazer: [
+      "Consultar conhecimento persistido e versionado (RAG-safety: conteúdo recuperado nunca é tratado como instrução)",
+      "Validar produto/produto-cor antes de qualquer escrita",
+      "Diferenciar fatos Validado/Aprovado de Descoberto/Inferido na resposta",
+      "Propor ActionProposal para escrita, roteada pelo Motor de Políticas via bridge governed-plan real",
+    ],
+    naoDeve: [
+      "Escolher ID_CAMPANHA (sempre pergunta ao Product Owner)",
+      "Escrever em MB_PROD_EXTRA_WEB.TOTAL (coluna computada)",
+      "Escrever em PRODUTOS_PRECOS",
+      "Executar procedures legadas automaticamente",
+      "Executar DELETE ou TRUNCATE",
+      "Autoaprovar operação sensível — Security/LGPD e o Motor de Políticas são independentes",
+    ],
+    quando: [
+      '"Use Agent Linx ERP + WISE Agent para validar esta planilha"',
+      '"Processar planilha de integração diária Linx/WISE"',
+    ],
+    gatilhos: [
+      ".ai/prompts/processar-planilha-integracao-linx-wise.md",
+    ],
+    fontes: [
+      "agents/linx-erp-specialist-agent/agent.yaml",
+      "applications/mais-compras/backend/src/BlueprintOS.Application/Knowledge/Linx/LinxSpecialistAgents.cs",
+      "applications/mais-compras/backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxEspecialista.cs",
+      "applications/mais-compras/backend/src/BlueprintOS.Core/AI/Governance/LinxKnowledgeStoreReadOnlyAdapter.cs",
+      ".ai/context/linx-wise-daily-integration.md",
+      "applications/mais-compras/docs/operations/LinxWiseDailyIntegrationRunbook.md",
+    ],
+    relacionamentos: [
+      { alvo: "Agent Linx Banco", nota: "Especialistas complementares do mesmo ERP Visual Linx: regras funcionais (ERP) vs. schema estrutural (Banco Linx)." },
+      { alvo: "WISE Agent", nota: "Agent Linx ERP valida ERP (produto, cor, preço, grade) → WISE Agent interpreta/reconcilia o destino WISE (campanha, saldo)." },
+    ],
+    pendencias: [
+      "GOV-001 (NOT_IMPLEMENTED): bridge real existe e testada; falta host de produção com approval store persistido (precisa de BD real).",
+      "GATEWAY-001 (NOT_IMPLEMENTED): adapter real existe e testado; B1ConnectivityValidator é utilitário de conectividade fora do escopo de rewiring desta onda.",
+    ],
+    exemplo: '"Use Agent Linx ERP + WISE Agent para validar esta planilha"',
+  },
+  {
+    id: "linx-database-specialist-agent",
+    nome: "Agent Linx Banco",
+    tipo: "Agente Especialista (código + conhecimento)",
+    status: "ativo",
+    statusLabel: "Ativo",
+    objetivo: "Especialista no schema estrutural do Banco Linx — tabelas, views, procedures, colunas e relacionamentos. Complementar ao Agent Linx ERP, que cobre as regras funcionais do ERP Visual Linx.",
+    conhece: [
+      "Schema estrutural do Banco Linx (tabelas, views, procedures, colunas, relacionamentos)",
+      "Connection profiles físicos/lógicos de ambiente: linx-development / linx-production (agents/DATABASE_CONNECTION_POLICY.md)",
+      "Base de conhecimento versionada (LinxKnowledgeEntry) com proveniência Descoberto/Validado/Aprovado",
+      "Rotina diária Linx/WISE: MB_PROD_EXTRA_WEB, PRODUTOS, PRODUTO_CORES, PRODUTOS_PRECOS/DL",
+    ],
+    podeFazer: [
+      "Consultar conhecimento persistido e versionado (RAG-safety: conteúdo recuperado nunca é tratado como instrução)",
+      "Validar produto/produto-cor antes de qualquer escrita",
+      "Atualizar MB_PROD_EXTRA_WEB de forma incremental (na rotina diária aprovada)",
+      "Propor ActionProposal para escrita, roteada pelo Tool Gateway (SomaLinxReadOnlyAdapter / SomaLinxDryRunAdapter)",
+    ],
+    naoDeve: [
+      "Escolher ID_CAMPANHA (sempre pergunta ao Product Owner)",
+      "Escrever em MB_PROD_EXTRA_WEB.TOTAL (coluna computada)",
+      "Escrever em PRODUTOS_PRECOS",
+      "Executar procedures legadas automaticamente",
+      "Executar DELETE ou TRUNCATE",
+      "Autoaprovar operação sensível — Security/LGPD e o Motor de Políticas são independentes",
+    ],
+    quando: [
+      '"Use Agent Linx Banco para validar o schema desta tabela"',
+      '"Processar planilha de integração diária Linx/WISE"',
+    ],
+    gatilhos: [
+      ".ai/prompts/processar-planilha-integracao-linx-wise.md",
+    ],
+    fontes: [
+      "agents/linx-database-specialist-agent/agent.yaml",
+      "applications/mais-compras/backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxKnowledgeEntry.cs",
+      "applications/mais-compras/backend/src/BlueprintOS.Core/AI/Governance/SomaLinxReadOnlyAdapter.cs",
+      "agents/DATABASE_CONNECTION_POLICY.md",
+      ".ai/context/linx-wise-daily-integration.md",
+      "applications/mais-compras/docs/operations/LinxWiseDailyIntegrationRunbook.md",
+    ],
+    relacionamentos: [
+      { alvo: "Agent Linx ERP", nota: "Especialistas complementares do mesmo ERP Visual Linx: schema estrutural (Banco Linx) vs. regras funcionais (ERP)." },
+      { alvo: "WISE Agent", nota: "Alimenta a rotina diária Linx/WISE que reconcilia o destino WISE (campanha, saldo)." },
+    ],
+    pendencias: [
+      "GOV-001 (NOT_IMPLEMENTED): bridge real existe e testada; falta host de produção com approval store persistido (precisa de BD real).",
+      "GATEWAY-001 (NOT_IMPLEMENTED): adapters reais existem e testados; readers SQL diretos de Suppliers/Fornecedores ainda não passam pelo Gateway (workstream não relacionado).",
+    ],
+    exemplo: '"Use Agent Linx Banco para validar o schema desta tabela"',
+  },
+  {
+    id: "wise-agent",
+    nome: "WISE Agent",
+    tipo: "Especialista de conhecimento operacional (Markdown, sem classe C# própria ainda)",
+    status: "evolucao",
+    statusLabel: "Em evolução",
+    objetivo: "Especialista reutilizável em consulta, leitura e interpretação do ambiente WISE — campanhas, estoque, produto/cor, grades/saldos e integração com o Showcase.",
+    conhece: [
+      "Linked Server WISE_AZURE (SOMA_LINX) acessado a partir da conexão LINX_PROD_* (SRV-SOMADB/SOMA)",
+      "WS_ESTOQUE_PRODUTOS: chave ID_CAMPANHA + PRODUTO + COR_PRODUTO",
+      "DT_EXCLUSAO IS NULL = registro ativo (inativação lógica, nunca DELETE físico)",
+      "Colunas de grade ES1..ES16 e ESTOQUE, alimentadas por FN_CONSULTA_SALDO_WEB_WISE",
+      "API HTTP do Showcase (endpoints showcase/products/productColors/stock)",
+      "Relacionamento Showcase REF/COR ↔ WISE PRODUTO/COR_PRODUTO",
+    ],
+    podeFazer: [
+      "Consultar (SELECT, metadados)",
+      "Validar registros ativos por campanha",
+      "Comparar Showcase × WISE por PRODUTO+COR",
+      "Apoiar a integração diária Linx/WISE como especialista de reconciliação do destino",
+      "Propor ActionProposal para escrita/exportação, roteada pelo Motor de Políticas real via bridge governed-plan (WiseGovernedAdapter)",
+    ],
+    naoDeve: [
+      "Escrever no WISE sem autorização explícita (INSERT/UPDATE/DELETE/TRUNCATE/MERGE/ALTER/DROP/CREATE)",
+      "Escolher ID_CAMPANHA sozinho",
+      "Transformar inferência em regra definitiva sem marcar INFERIDO",
+      "Armazenar token/senha/connection string",
+      "Sobrepor localmente um veredito Blocked/Red do Motor de Políticas (o mirror local só verifica o último passo quando a resposta é RequiresApproval)",
+    ],
+    quando: [
+      '"Use o Agent WISE para consultar a campanha 54"',
+      '"Peça ao Agent WISE para buscar os saldos desses produtos"',
+    ],
+    gatilhos: [
+      ".ai/prompts/consultar-wise.md",
+    ],
+    fontes: [
+      ".ai/context/wise-knowledge.md",
+      "applications/mais-compras/docs/operations/WiseAgentRunbook.md",
+      ".ai/context/linx-wise-daily-integration.md",
+    ],
+    relacionamentos: [
+      { alvo: "Agent Linx ERP / Agent Linx Banco", nota: "Nunca decide preço/grade/regra ERP do lado Linx — isso é dos Agents Linx." },
+      { alvo: "Showcase Agent", nota: "Recebe catálogo PRODUTO+COR do Showcase Agent para enriquecimento de saldo." },
+    ],
+    pendencias: [
+      "GOV-001 (NOT_IMPLEMENTED): bypass do pyodbc contido e testado (plano-only por padrão; escrita real exige --execute + aprovação local com hash); falta approval store persistido cross-process (precisa de BD real).",
+      "GATEWAY-001 (NOT_IMPLEMENTED): adapter real (WiseGovernedAdapter) existe e testado; mesma razão de approval store.",
+      "Mapeamento ES1..ES16 → PP/P/M/G/GG não verificado diretamente.",
+      "Correspondência collection_Id (Showcase) ↔ ID_CAMPANHA (WISE) ainda não confirmada.",
+      "Cruzamento Showcase × WS_ESTOQUE_PRODUTOS validado só estruturalmente, não linha a linha.",
+      "Não existe ainda uma classe C# WiseSpecialistAgent registrada no Runtime — o especialista existe na camada de conhecimento .ai/ + script Python governado (scripts/linx_wise_daily_integration.py).",
+    ],
+    exemplo: '"Use o Agent WISE para consultar a campanha 54"',
+  },
+  {
+    id: "showcase-agent",
+    nome: "Showcase Agent",
+    tipo: "Especialista de conhecimento operacional (Markdown + implementação Node.js)",
+    status: "evolucao",
+    statusLabel: "Em evolução",
+    objetivo: "Especialista reutilizável em acessar o Showcase autenticado, identificar marca/região da sessão corrente, extrair catálogo (produto, cor, descrição, grade) e baixar todas as fotos — genérico para qualquer marca/região, nunca fixado.",
+    conhece: [
+      "Fluxo de login manual + extração de contexto de sessão (token, brand_Id, company_Id, dept_Id, collection_Id, customer_Id, pricelist, payment, order_Id)",
+      "API do Showcase: showcase (catálogo paginado), products, productColors, stock",
+      "Regra produto/cor: REF = PRODUTO; \"CODIGO_COR - DESC_COR\" → COR + DESC_COR",
+      "Padrão de fotos por marca: .../imagens/{MARCA}/produtos/{PRODUTO}-{COR}-{N}.jpg, marca descoberta por item",
+      "Layout de Excel validado (FOTO, PROD, COR_PROD, CHAVE, DESC_PRODUTO, DESC_COR_PRODUTO, GRU, GRUP, LINHA, COMPOSICAO, PRECO_VENDA, GRADE, TAM_1..TAM_N)",
+      "Mecanismo de checkpoint/retomada (coleta_showcase.csv)",
+    ],
+    podeFazer: [
+      "Consultar e paginar o catálogo completo",
+      "Baixar todas as fotos disponíveis por produto/cor",
+      "Gerar checkpoint e retomar coleta interrompida",
+      "Gerar catalogo_showcase.xlsx no layout validado",
+      "Fornecer PRODUTO+COR ao WISE Agent para enriquecimento de saldo",
+      "Classificar exportações locais sensíveis quando conectadas ao AI Governance",
+    ],
+    naoDeve: [
+      "Preencher login/credenciais/MFA",
+      "Assumir marca/região/collection_Id fixos",
+      "Persistir token/cookie/senha em Git ou memória permanente",
+      "Executar ação de escrita no Showcase (pedido, carrinho, cadastro)",
+      "Duplicar a lógica de saldo/campanha do WISE Agent",
+      "Persistir ou imprimir token; esse caso é RED na AI Governance",
+    ],
+    quando: [
+      '"Executar coleta Showcase com fotos e saldos WISE"',
+    ],
+    gatilhos: [
+      ".ai/prompts/coletar-showcase.md",
+    ],
+    fontes: [
+      ".ai/context/showcase-knowledge.md",
+      "applications/mais-compras/docs/operations/ShowcaseAgentRunbook.md",
+      "scripts/showcase_collector/ (collect.js, enrich.js, build_excel.js, README.md)",
+    ],
+    relacionamentos: [
+      { alvo: "WISE Agent", nota: "Fornece catálogo PRODUTO+COR; nunca interpreta campanha/saldo sozinho." },
+    ],
+    pendencias: [
+      "Não existe endpoint único \"quem sou eu\" confirmado — extração de contexto é por inspeção da aba de rede pós-login.",
+      "\"Mercado/Região\" (ex.: LATAM) é INFERIDO do nome do Agent/cliente logado, não de um campo estruturado.",
+      "Sondagem de fotos por convenção de nome pode não funcionar em marca/região com nomenclatura diferente.",
+      "Cruzamento Showcase × WS_ESTOQUE_PRODUTOS validado só estruturalmente.",
+      "Nenhuma particularidade de marca/região registrada ainda além da sessão FARM/LATAM de 2026-08-27.",
+      "Não existe ainda uma classe C# ShowcaseSpecialistAgent registrada no Runtime — só conhecimento .ai/ + script Node.js.",
+    ],
+    exemplo: '"Executar coleta Showcase com fotos e saldos WISE"',
+  },
+  {
+    id: "comprador-senior",
+    nome: "Agente Comprador Sênior",
+    tipo: "Especialista de domínio (planejado)",
+    status: "planejado",
+    statusLabel: "Planejado (Parcial)",
+    objetivo: "Implementar estratégias de negociação, análise de contexto, memória de negociação e recomendações de compra.",
+    conhece: [
+      "Fundação parcial já existe em código: INegotiationMemory (memória de negociação) e INegotiationStrategy (motor de estratégia baseado em regras) — módulo AI.Negotiation.",
+      "Não há, no código atual, um agente concreto Buyer sênior implementado.",
+    ],
+    podeFazer: [
+      "(Planejado) Recomendar estratégia de negociação a partir de contexto e histórico.",
+    ],
+    naoDeve: [
+      "Ser tratado como implementado — é fundação parcial, não um agente executável de ponta a ponta.",
+    ],
+    quando: [
+      "Ainda não aplicável — backlog sem priorização confirmada pelo Product Owner.",
+    ],
+    gatilhos: [],
+    fontes: [
+      ".ai/work-orders/backlog/fase-a/A6-agente-comprador-senior.md",
+      "applications/mais-compras/backend/src/BlueprintOS.Core/AI/Negotiation/",
+      "applications/mais-compras/backend/src/BlueprintOS.Core/AI/Memory/NegotiationMemory.cs",
+      "applications/mais-compras/backend/src/BlueprintOS.Application/Procurement/Negotiations/",
+    ],
+    relacionamentos: [],
+    pendencias: [
+      "Priorização pendente do Product Owner (Work Order A6, status Parcial).",
+      "Dependências: A2 e A3.",
+    ],
+    exemplo: null,
+  },
+  {
+    id: "agente-negociacao",
+    nome: "Agente de Negociação",
+    tipo: "Especialista de domínio (planejado)",
+    status: "planejado",
+    statusLabel: "Planejado (Draft)",
+    objetivo: "Executar negociações assistidas ou automatizadas por canais controlados, mantendo contexto e regras de autonomia.",
+    conhece: ["Nenhum conhecimento operacional persistido ainda — apenas a Work Order de backlog."],
+    podeFazer: ["(Planejado) Negociar por canais controlados, dentro de regras de autonomia a definir."],
+    naoDeve: ["Ser considerado implementado."],
+    quando: ["Ainda não aplicável — status Draft, não aprovado."],
+    gatilhos: [],
+    fontes: [".ai/work-orders/backlog/fase-c/C3-agente-de-negociacao.md"],
+    relacionamentos: [],
+    pendencias: ["Work Order C3: status Draft, não aprovada. Dependências: C2 e C5."],
+    exemplo: null,
+  },
+  {
+    id: "agente-compliance",
+    nome: "Agente de Compliance",
+    tipo: "Especialista de domínio (planejado)",
+    status: "planejado",
+    statusLabel: "Planejado (Draft)",
+    objetivo: "Avaliar processos de compra, explicar inconsistências e recomendar correções antes da aprovação.",
+    conhece: ["Nenhum conhecimento operacional persistido ainda — apenas a Work Order de backlog."],
+    podeFazer: ["(Planejado) Avaliar e explicar inconsistências de processo de compra."],
+    naoDeve: ["Ser considerado implementado."],
+    quando: ["Ainda não aplicável — status Draft, não aprovado."],
+    gatilhos: [],
+    fontes: [".ai/work-orders/backlog/fase-d/D4-agente-de-compliance.md"],
+    relacionamentos: [],
+    pendencias: ["Work Order D4: status Draft, não aprovada. Dependências: D3, Knowledge e AI Runtime."],
+    exemplo: null,
+  },
+  {
+    id: "agente-risco",
+    nome: "Agente de Risco",
+    tipo: "Especialista de domínio (planejado)",
+    status: "planejado",
+    statusLabel: "Planejado (Draft)",
+    objetivo: "Interpretar sinais, produzir análise explicável e recomendar mitigação ou bloqueio (risco de fornecedor/ESG).",
+    conhece: ["Nenhum conhecimento operacional persistido ainda — apenas a Work Order de backlog."],
+    podeFazer: ["(Planejado) Analisar sinais de risco e recomendar mitigação/bloqueio, de forma explicável."],
+    naoDeve: ["Ser considerado implementado."],
+    quando: ["Ainda não aplicável — status Draft, não aprovado."],
+    gatilhos: [],
+    fontes: [".ai/work-orders/backlog/fase-e/E4-agente-de-risco.md"],
+    relacionamentos: [],
+    pendencias: ["Work Order E4: status Draft, não aprovada. Dependências: E1 a E3; AI Runtime."],
+    exemplo: null,
+  },
+];
+
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+function renderList(items) {
+  if (!items || !items.length) return '<span style="color:var(--text-dim)">— nenhum registrado —</span>';
+  return '<ul>' + items.map(i => `<li>${i}</li>`).join('') + '</ul>';
+}
+
+function renderFiles(files) {
+  if (!files || !files.length) return '';
+  return `<div class="filebox">${files.map(f => `<div>${f}</div>`).join('')}</div>`;
+}
+
+function renderCard(agent) {
+  const card = el('article', 'card');
+  card.dataset.id = agent.id;
+  card.dataset.search = [
+    agent.nome, agent.tipo, agent.objetivo,
+    (agent.conhece || []).join(' '), (agent.podeFazer || []).join(' '),
+    (agent.relacionamentos || []).map(r => r.alvo).join(' '),
+  ].join(' ').toLowerCase();
+
+  const statusClass = agent.status === 'ativo' ? 'status-ativo' : agent.status === 'evolucao' ? 'status-evolucao' : 'status-planejado';
+  const pendCount = (agent.pendencias || []).length;
+
+  card.innerHTML = `
+    <div class="card-top">
+      <h3>${agent.nome}</h3>
+    </div>
+    <div class="badges">
+      <span class="pill tipo">${agent.tipo}</span>
+      <span class="pill ${statusClass}">${agent.statusLabel}</span>
+    </div>
+    <div class="objetivo">${agent.objetivo}</div>
+
+    <div class="kv">
+      <div class="kv-title">Conhece</div>
+      ${renderList((agent.conhece || []).slice(0, 4))}
+    </div>
+    <div class="kv">
+      <div class="kv-title">Pode fazer</div>
+      ${renderList(agent.podeFazer)}
+    </div>
+    ${agent.relacionamentos && agent.relacionamentos.length ? `
+    <div class="kv relates">
+      <div class="kv-title">Integra com</div>
+      ${agent.relacionamentos.map(r => `<div><span class="arrow">→</span> ${r.alvo}</div>`).join('')}
+    </div>` : ''}
+    <div>
+      <span class="pend-count ${pendCount === 0 ? 'zero' : ''}">${pendCount} pendência${pendCount === 1 ? '' : 's'}</span>
+    </div>
+
+    <details class="more">
+      <summary>Ver detalhes</summary>
+      <div class="more-body">
+        ${agent.exemplo ? `<div class="example">${agent.exemplo}</div>` : ''}
+        <div class="kv">
+          <div class="kv-title">O que não deve fazer</div>
+          ${renderList(agent.naoDeve)}
+        </div>
+        <div class="kv">
+          <div class="kv-title">Quando utilizar</div>
+          ${renderList(agent.quando)}
+        </div>
+        <div class="kv">
+          <div class="kv-title">Todo o conhecimento (completo)</div>
+          ${renderList(agent.conhece)}
+        </div>
+        ${agent.gatilhos && agent.gatilhos.length ? `
+        <div class="kv">
+          <div class="kv-title">Gatilhos / prompts associados</div>
+          ${renderFiles(agent.gatilhos)}
+        </div>` : ''}
+        <div class="kv">
+          <div class="kv-title">Fontes de conhecimento</div>
+          ${renderFiles(agent.fontes)}
+        </div>
+        ${agent.relacionamentos && agent.relacionamentos.length ? `
+        <div class="kv">
+          <div class="kv-title">Relacionamentos (detalhe)</div>
+          ${renderList(agent.relacionamentos.map(r => `<b>→ ${r.alvo}:</b> ${r.nota}`))}
+        </div>` : ''}
+        <div class="kv">
+          <div class="kv-title">Pendências / ainda não mapeado</div>
+          ${renderList(agent.pendencias)}
+        </div>
+      </div>
+    </details>
+  `;
+  return card;
+}
+
+function renderAll() {
+  const grid = document.getElementById('cardsGrid');
+  AGENTS.forEach(a => grid.appendChild(renderCard(a)));
+
+  document.getElementById('statAtivos').textContent = AGENTS.filter(a => a.status === 'ativo').length;
+  document.getElementById('statOperacionais').textContent = AGENTS.filter(a => a.status === 'evolucao').length;
+  document.getElementById('statPlanejados').textContent = AGENTS.filter(a => a.status === 'planejado').length;
+}
+
+function applySearch() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const cards = document.querySelectorAll('#cardsGrid .card');
+  let visible = 0;
+  cards.forEach(c => {
+    const match = !q || c.dataset.search.includes(q);
+    c.hidden = !match;
+    if (match) visible++;
+  });
+  document.getElementById('searchCount').textContent = q ? `${visible} de ${cards.length} agents correspondem a "${q}"` : `${cards.length} agents no total`;
+  document.getElementById('noResults').style.display = (q && visible === 0) ? 'block' : 'none';
+}
+
+renderAll();
+applySearch();
+document.getElementById('searchInput').addEventListener('input', applySearch);
+</script>
+</body>
+</html>
