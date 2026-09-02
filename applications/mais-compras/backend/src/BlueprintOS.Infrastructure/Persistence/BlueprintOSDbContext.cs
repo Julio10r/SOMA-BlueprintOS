@@ -16,6 +16,10 @@ public sealed class BlueprintOSDbContext(DbContextOptions<BlueprintOSDbContext> 
     public DbSet<UsuarioCentroCusto> UsuariosCentrosCusto => Set<UsuarioCentroCusto>();
     public DbSet<FilialMetadado> FiliaisMetadados => Set<FilialMetadado>();
     public DbSet<CentroCustoMetadado> CentrosCustoMetadados => Set<CentroCustoMetadado>();
+    public DbSet<ContaContabilMetadado> ContasContabeisMetadados => Set<ContaContabilMetadado>();
+    public DbSet<UnidadeMedidaMetadado> UnidadesMedidaMetadados => Set<UnidadeMedidaMetadado>();
+    public DbSet<ItemFiscal> ItensFiscais => Set<ItemFiscal>();
+    public DbSet<ItemFiscalReferenciaFornecedor> ItensFiscaisReferenciasFornecedor => Set<ItemFiscalReferenciaFornecedor>();
     public DbSet<UnidadeAlocacao> UnidadesAlocacao => Set<UnidadeAlocacao>();
     public DbSet<CentroCustoUnidadeAlocacao> CentrosCustoUnidadesAlocacao => Set<CentroCustoUnidadeAlocacao>();
     public DbSet<CodigoVerificacaoOtp> CodigosVerificacaoOtp => Set<CodigoVerificacaoOtp>();

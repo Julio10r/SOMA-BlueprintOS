@@ -53,6 +53,13 @@ const navGroups: NavGroup[] = [
     itens: [{ to: "/fornecedores", label: "Fornecedores", icon: "building" }]
   },
   {
+    // B3 — Bloco 3 (Discovery homologado): Item Fiscal é cadastro primário do +Compras (cria/edita/inativa
+    // localmente), por isso tem seção própria — diferente de Conta Contábil/Unidade de Medida
+    // (Blocos 1/2), que são cadastros de apoio somente-leitura do ERP e permanecem em "Administração".
+    titulo: "Cadastros",
+    itens: [{ to: "/cadastros/itens-fiscais", label: "Itens Fiscais", icon: "briefcase", permissao: PERMISSOES.itemFiscalVisualizar }]
+  },
+  {
     titulo: "Compras",
     itens: [
       { to: "/pedidos", label: "Pedidos", icon: "cart" },
@@ -94,6 +101,18 @@ const navGroups: NavGroup[] = [
         label: "Centros de Custo",
         icon: "tag",
         permissao: PERMISSOES.centroCustoGerenciar
+      },
+      {
+        to: "/administracao/contas-contabeis",
+        label: "Contas Contábeis",
+        icon: "wallet",
+        permissao: PERMISSOES.contaContabilGerenciar
+      },
+      {
+        to: "/administracao/unidades-medida",
+        label: "Unidades de Medida",
+        icon: "sliders",
+        permissao: PERMISSOES.unidadeMedidaGerenciar
       },
       {
         to: "/administracao/unidades-alocacao",

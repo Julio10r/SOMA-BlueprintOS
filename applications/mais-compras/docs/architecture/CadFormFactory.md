@@ -54,6 +54,8 @@ Antes de implementar, defina explicitamente para cada campo/estado relevante do 
 
 **Nunca assuma sincronização simétrica por padrão.** Fornecedores é o exemplo didático de que a regra pode ser assimétrica (ex.: inativação tem autoridade apenas do ERP para o +Compras) — isso não significa que todo cadastro terá essa mesma assimetria; cada cadastro tem sua própria matriz, levantada no discovery.
 
+**Resolução de conflito/ambiguidade (fallback, não substitui a matriz específica):** quando o discovery do cadastro não produzir uma decisão determinística para um caso concreto de conflito, alteração divergente ou ambiguidade de autoridade entre Linx e +Compras, aplica-se `ADR-0024` (`.ai/DECISIONS.md`) — **Linx prevalece**. Isso nunca substitui o levantamento da matriz de autoridade específica do cadastro acima; é apenas o desempate de último recurso quando essa matriz não resolve o caso.
+
 ## 3. Contrato funcional
 
 Antes de codar, escreva (ou atualize uma Work Order/ADR com) o contrato funcional resultante do discovery: campos, obrigatoriedades reais confirmadas em código Linx, regras de duplicidade/identidade, e a matriz de autoridade acima. Esse contrato é o que a implementação segue — não o discovery bruto.

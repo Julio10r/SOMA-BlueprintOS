@@ -339,6 +339,44 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                     b.ToTable("ConfiguracoesNotificacao", (string)null);
                 });
 
+            modelBuilder.Entity("BlueprintOS.Domain.Identity.ContaContabilMetadado", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("AtivoNoMaisCompras")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTimeOffset>("AtualizadoEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CodigoErp")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTimeOffset>("CriadoEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DescricaoMaisCompras")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<Guid>("UnidadeNegocioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodigoErp")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ContasContabeisMetadados_CodigoErp");
+
+                    b.ToTable("ContasContabeisMetadados", (string)null);
+                });
+
             modelBuilder.Entity("BlueprintOS.Domain.Identity.FeatureFlag", b =>
                 {
                     b.Property<Guid>("Id")
@@ -469,6 +507,94 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                     b.HasIndex("UnidadeNegocioId");
 
                     b.ToTable("IdentityProviders", (string)null);
+                });
+
+            modelBuilder.Entity("BlueprintOS.Domain.Identity.ItemFiscal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Ativo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTimeOffset>("AtualizadoEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ContaContabilCodigoErp")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTimeOffset>("CriadoEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("UnidadeMedidaCodigoErp")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("UnidadeNegocioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ItensFiscais_Codigo");
+
+                    b.HasIndex("UnidadeNegocioId")
+                        .HasDatabaseName("IX_ItensFiscais_UnidadeNegocioId");
+
+                    b.ToTable("ItensFiscais", (string)null);
+                });
+
+            modelBuilder.Entity("BlueprintOS.Domain.Identity.ItemFiscalReferenciaFornecedor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("AtualizadoEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CodigoItemFornecedor")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<DateTimeOffset>("CriadoEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("FornecedorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ItemFiscalId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FornecedorId", "CodigoItemFornecedor")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ItensFiscaisReferenciasFornecedor_FornecedorId_CodigoItemFornecedor");
+
+                    b.HasIndex("ItemFiscalId", "FornecedorId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ItensFiscaisReferenciasFornecedor_ItemFiscalId_FornecedorId");
+
+                    b.ToTable("ItensFiscaisReferenciasFornecedor", (string)null);
                 });
 
             modelBuilder.Entity("BlueprintOS.Domain.Identity.OtpRequestThrottle", b =>
@@ -738,6 +864,42 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                             Id = new Guid("b1a5c4e0-0001-4a10-9f01-000000000013"),
                             Codigo = "ConhecimentoLinx.Aprovar",
                             Descricao = "Promover conhecimento dos Agents Especialistas Linx a 'Aprovado'"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1a5c4e0-0001-4a10-9f01-000000000014"),
+                            Codigo = "ContaContabil.Gerenciar",
+                            Descricao = "Ativar/inativar Contas Contábeis no +Compras e manter a Descrição +Compras"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1a5c4e0-0001-4a10-9f01-000000000015"),
+                            Codigo = "UnidadeMedida.Gerenciar",
+                            Descricao = "Ativar/inativar Unidades de Medida no +Compras e manter a Descrição +Compras"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1a5c4e0-0001-4a10-9f01-000000000016"),
+                            Codigo = "ItemFiscal.Visualizar",
+                            Descricao = "Consultar o cadastro de Item Fiscal"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1a5c4e0-0001-4a10-9f01-000000000017"),
+                            Codigo = "ItemFiscal.Criar",
+                            Descricao = "Cadastrar novo Item Fiscal"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1a5c4e0-0001-4a10-9f01-000000000018"),
+                            Codigo = "ItemFiscal.Editar",
+                            Descricao = "Editar Item Fiscal existente"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1a5c4e0-0001-4a10-9f01-000000000019"),
+                            Codigo = "ItemFiscal.Inativar",
+                            Descricao = "Ativar/inativar Item Fiscal no +Compras"
                         });
                 });
 
@@ -889,6 +1051,44 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("UnidadesAlocacao", (string)null);
+                });
+
+            modelBuilder.Entity("BlueprintOS.Domain.Identity.UnidadeMedidaMetadado", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("AtivoNoMaisCompras")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTimeOffset>("AtualizadoEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CodigoErp")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTimeOffset>("CriadoEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DescricaoMaisCompras")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<Guid>("UnidadeNegocioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodigoErp")
+                        .IsUnique()
+                        .HasDatabaseName("IX_UnidadesMedidaMetadados_CodigoErp");
+
+                    b.ToTable("UnidadesMedidaMetadados", (string)null);
                 });
 
             modelBuilder.Entity("BlueprintOS.Domain.Identity.UnidadeNegocio", b =>
@@ -1825,6 +2025,21 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                     b.HasOne("BlueprintOS.Domain.Identity.UnidadeAlocacao", null)
                         .WithMany()
                         .HasForeignKey("UnidadeAlocacaoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("BlueprintOS.Domain.Identity.ItemFiscalReferenciaFornecedor", b =>
+                {
+                    b.HasOne("BlueprintOS.Domain.Procurement.Suppliers.Fornecedor", null)
+                        .WithMany()
+                        .HasForeignKey("FornecedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BlueprintOS.Domain.Identity.ItemFiscal", null)
+                        .WithMany()
+                        .HasForeignKey("ItemFiscalId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

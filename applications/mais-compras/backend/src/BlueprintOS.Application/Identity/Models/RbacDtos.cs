@@ -133,6 +133,41 @@ public enum RbacFalha
     /// versão mais recente já Validada/Aprovada — a Work Order (seção 12) proíbe substituição automática:
     /// o conflito é registrado e exige tratamento/validação explícita, nunca aceito silenciosamente.</summary>
     ConflitoDeConhecimentoDetectado,
+
+    // ---- B3 — Bloco 3: Item Fiscal (Discovery homologado) ----
+    CodigoObrigatorio,
+    CodigoDuplicado,
+    DescricaoObrigatoria,
+    ItemFiscalNaoEncontrado,
+
+    /// <summary>Conta Contábil obrigatória no Item Fiscal (decisão do Product Owner, mesmo o Linx
+    /// permitindo `CADASTRO_ITEM_FISCAL.CONTA_CONTABIL` nula) — código ausente, inexistente, ou
+    /// existente porém inativo (`AtivoEfetivo`, respeitando `ADR-0024`).</summary>
+    ContaContabilObrigatoria,
+    ContaContabilInvalidaOuInativa,
+
+    /// <summary>Unidade de Medida obrigatória no Item Fiscal (Discovery homologado) — código ausente,
+    /// inexistente, ou existente porém inativo no +Compras.</summary>
+    UnidadeMedidaObrigatoria,
+    UnidadeMedidaInvalidaOuInativa,
+
+    // ---- B3 — Bloco 4: Referências de Item Fiscal por Fornecedor (Discovery homologado) ----
+    ItemFiscalReferenciaFornecedorNaoEncontrada,
+    FornecedorObrigatorio,
+    FornecedorNaoEncontrado,
+
+    /// <summary>Fornecedor existe, porém está inativo no +Compras — mesma regra já aplicada a Conta
+    /// Contábil/Unidade de Medida: só entidades ativas podem ser selecionadas em novas referências.</summary>
+    FornecedorInvalidoOuInativo,
+    CodigoItemFornecedorObrigatorio,
+
+    /// <summary>Estrutura comprovada em Linx (`ITEM_FISCAL_REF_FORNECEDOR.KeyFieldList = FORNECEDOR,
+    /// CODIGO_ITEM`) — um Fornecedor já possui uma referência para este Item Fiscal.</summary>
+    ReferenciaJaExistenteParaFornecedor,
+
+    /// <summary>Decisão do Product Owner (homologação do Bloco 4): (FornecedorId, CodigoItemFornecedor) é
+    /// único GLOBALMENTE — garante que o DE/PARA reverso sempre resolva para um único Item Fiscal.</summary>
+    CodigoItemFornecedorDuplicadoParaFornecedor,
 }
 
 /// <summary>Projeção de leitura de uma Unidade de Alocação (O1.8 — Persistência Real). Sem vínculo com

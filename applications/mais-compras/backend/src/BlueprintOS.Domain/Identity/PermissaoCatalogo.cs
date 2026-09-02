@@ -54,6 +54,26 @@ public static class PermissaoCatalogo
     public const string ConhecimentoLinxGerenciar = "ConhecimentoLinx.Gerenciar";
     public const string ConhecimentoLinxAprovar = "ConhecimentoLinx.Aprovar";
 
+    /// <summary>B3 — Bloco 1 (Discovery homologado, `ContratoFuncionalPreliminar-B3-ItemFiscal.md` §2/§8):
+    /// Conta Contábil é cadastro de apoio originado do Linx (`CTB_CONTA_PLANO`) — mesma semântica de
+    /// <see cref="FilialGerenciar"/>/<see cref="CentroCustoGerenciar"/> (ativar/inativar localmente e manter
+    /// a Descrição +Compras, nunca criar/editar o dado mestre).</summary>
+    public const string ContaContabilGerenciar = "ContaContabil.Gerenciar";
+
+    /// <summary>B3 — Bloco 2 (Discovery homologado): Unidade de Medida é cadastro de apoio originado do
+    /// Linx (`UNIDADES`) — mesma semântica de <see cref="ContaContabilGerenciar"/>.</summary>
+    public const string UnidadeMedidaGerenciar = "UnidadeMedida.Gerenciar";
+
+    /// <summary>B3 — Bloco 3 (Discovery homologado, `ContratoFuncionalPreliminar-B3-ItemFiscal.md` §7):
+    /// cadastrar/editar/inativar Item Fiscal dependem de permissões separadas — não presumir que todo
+    /// usuário com acesso ao cadastro pode executar as três operações (mesmo padrão de granularidade de
+    /// <see cref="FornecedorCriar"/>/<see cref="FornecedorEditar"/>, em vez do "Gerenciar" único usado nos
+    /// cadastros de apoio somente-leitura do ERP).</summary>
+    public const string ItemFiscalVisualizar = "ItemFiscal.Visualizar";
+    public const string ItemFiscalCriar = "ItemFiscal.Criar";
+    public const string ItemFiscalEditar = "ItemFiscal.Editar";
+    public const string ItemFiscalInativar = "ItemFiscal.Inativar";
+
     private static readonly PermissaoDefinicao[] Definicoes =
     [
         Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000001"), UnidadeNegocioGerenciar, "Criar, editar e inativar Unidades de Negócio"),
@@ -75,6 +95,12 @@ public static class PermissaoCatalogo
         Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000011"), OrcamentoGerenciar, "Criar, editar e ativar/inativar Regras Orçamentárias por Unidade de Negócio"),
         Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000012"), ConhecimentoLinxGerenciar, "Registrar descobertas/inferências e validar conhecimento dos Agents Especialistas Linx"),
         Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000013"), ConhecimentoLinxAprovar, "Promover conhecimento dos Agents Especialistas Linx a 'Aprovado'"),
+        Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000014"), ContaContabilGerenciar, "Ativar/inativar Contas Contábeis no +Compras e manter a Descrição +Compras"),
+        Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000015"), UnidadeMedidaGerenciar, "Ativar/inativar Unidades de Medida no +Compras e manter a Descrição +Compras"),
+        Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000016"), ItemFiscalVisualizar, "Consultar o cadastro de Item Fiscal"),
+        Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000017"), ItemFiscalCriar, "Cadastrar novo Item Fiscal"),
+        Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000018"), ItemFiscalEditar, "Editar Item Fiscal existente"),
+        Definir(new Guid("b1a5c4e0-0001-4a10-9f01-000000000019"), ItemFiscalInativar, "Ativar/inativar Item Fiscal no +Compras"),
     ];
 
     /// <summary>Catálogo completo, na ordem canônica de apresentação.</summary>

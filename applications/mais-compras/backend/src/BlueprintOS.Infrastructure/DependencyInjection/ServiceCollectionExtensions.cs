@@ -1,4 +1,6 @@
 using System.Net.Http.Headers;
+using BlueprintOS.Application.Identity;
+using BlueprintOS.Application.Identity.Contracts;
 using BlueprintOS.Application.Knowledge.Linx;
 using BlueprintOS.Application.Knowledge.Linx.Contracts;
 using BlueprintOS.Application.Procurement.Negotiations;
@@ -85,6 +87,17 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IInativarFornecedorUseCase, InativarFornecedorUseCase>();
         services.AddScoped<IAlterarStatusFornecedorUseCase, AlterarStatusFornecedorUseCase>();
         services.AddScoped<IObterFornecedorUseCase, ObterFornecedorUseCase>();
+
+        // B3 — Bloco 4: Referências de Item Fiscal por Fornecedor (Discovery homologado) — casos de uso que
+        // dependem tanto de Identity (IItemFiscalRepository/IItemFiscalReferenciaFornecedorRepository,
+        // registrados por AddIdentityAuthCore) quanto de Suppliers (IObterFornecedorUseCase, acima).
+        // Registrados aqui, e não em IdentityServiceCollectionExtensions, porque Program.cs sempre chama
+        // AddInfrastructure junto de AddIdentityAuthCore, mas um teste de composição mínima do host
+        // (fail-closed do Bootstrap) chama apenas AddIdentityAuthCore.
+        services.AddScoped<IListarReferenciasFornecedorUseCase, ListarReferenciasFornecedorUseCase>();
+        services.AddScoped<IIncluirReferenciaFornecedorUseCase, IncluirReferenciaFornecedorUseCase>();
+        services.AddScoped<IAtualizarReferenciaFornecedorUseCase, AtualizarReferenciaFornecedorUseCase>();
+        services.AddScoped<IRemoverReferenciaFornecedorUseCase, RemoverReferenciaFornecedorUseCase>();
         services.AddScoped<IPesquisarFornecedorUseCase, PesquisarFornecedorUseCase>();
         services.AddScoped<IPesquisarFornecedorPaginadoUseCase, PesquisarFornecedorPaginadoUseCase>();
         services.AddScoped<IDescobrirFornecedoresUseCase, DescobrirFornecedoresUseCase>();

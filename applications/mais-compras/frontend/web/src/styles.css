@@ -732,6 +732,29 @@ tbody tr:last-child td { border-bottom: none; }
 .card-heading > div:first-child { display: grid; gap: var(--space-1); }
 .card-heading .btn { flex-shrink: 0; }
 
+/* Abas de formulario (B3 - Bloco 4: Item Fiscal, "Dados Gerais" x "Referencias por Fornecedor") -
+   usado apenas quando um cadastro tem grupos funcionais distintos o bastante para justificar; a
+   maioria dos formularios do +Compras permanece de tela unica. */
+.form-tabs {
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+.form-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: var(--t-body-sm);
+  font-weight: 500;
+  padding: var(--space-3) var(--space-2);
+}
+.form-tab:hover { color: var(--text-primary); }
+.form-tab-active { border-bottom-color: var(--accent); color: var(--text-primary); }
+.form-tab:disabled { color: var(--text-muted); cursor: not-allowed; }
+
 .kpi-grid {
   display: grid;
   gap: var(--space-4);

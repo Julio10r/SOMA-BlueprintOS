@@ -96,6 +96,37 @@ public static class IdentityServiceCollectionExtensions
         services.AddScoped<IListarVinculosUnidadeAlocacaoUseCase, ListarVinculosUnidadeAlocacaoUseCase>();
         services.AddScoped<ISubstituirVinculosUnidadeAlocacaoUseCase, SubstituirVinculosUnidadeAlocacaoUseCase>();
 
+        // B3 — Bloco 1: Conta Contábil (cadastro de apoio importado do Linx, Discovery homologado).
+        services.AddScoped<IContaContabilErpReader, SomaContaContabilReader>();
+        services.AddScoped<IContaContabilMetadadoRepository, ContaContabilMetadadoRepository>();
+        services.AddScoped<IListarContasContabeisUseCase, ListarContasContabeisUseCase>();
+        services.AddScoped<IAtualizarMetadadoContaContabilUseCase, AtualizarMetadadoContaContabilUseCase>();
+
+        // B3 — Bloco 2: Unidade de Medida (cadastro de apoio importado do Linx, Discovery homologado).
+        services.AddScoped<IUnidadeMedidaErpReader, SomaUnidadeMedidaReader>();
+        services.AddScoped<IUnidadeMedidaMetadadoRepository, UnidadeMedidaMetadadoRepository>();
+        services.AddScoped<IListarUnidadesMedidaUseCase, ListarUnidadesMedidaUseCase>();
+        services.AddScoped<IAtualizarMetadadoUnidadeMedidaUseCase, AtualizarMetadadoUnidadeMedidaUseCase>();
+
+        // B3 — Bloco 3: Item Fiscal (cadastro local, Discovery homologado). Sem integração Linx nesta
+        // etapa — depende apenas dos casos de uso de leitura dos Blocos 1/2 (já registrados acima) para
+        // validar Conta Contábil/Unidade de Medida.
+        services.AddScoped<IItemFiscalRepository, ItemFiscalRepository>();
+        services.AddScoped<IListarItensFiscaisUseCase, ListarItensFiscaisUseCase>();
+        services.AddScoped<IObterItemFiscalUseCase, ObterItemFiscalUseCase>();
+        services.AddScoped<ICriarItemFiscalUseCase, CriarItemFiscalUseCase>();
+        services.AddScoped<IAtualizarItemFiscalUseCase, AtualizarItemFiscalUseCase>();
+        services.AddScoped<IAlterarStatusItemFiscalUseCase, AlterarStatusItemFiscalUseCase>();
+
+        // B3 — Bloco 4: Referências de Item Fiscal por Fornecedor (cadastro local, Discovery homologado).
+        // Apenas o repositório (sem dependência de Suppliers) vive aqui; os casos de uso — que dependem do
+        // cadastro de Fornecedores já existente (IObterFornecedorUseCase) — são registrados em
+        // ServiceCollectionExtensions.AddInfrastructure, chamado sempre junto de AddIdentityAuthCore em
+        // Program.cs (nunca isoladamente aqui: um teste de composição mínima do host — fail-closed do
+        // Bootstrap — só chama AddIdentityAuthCore, e quebraria na validação de DI se a dependência cruzada
+        // estivesse aqui).
+        services.AddScoped<IItemFiscalReferenciaFornecedorRepository, ItemFiscalReferenciaFornecedorRepository>();
+
         // O1.11 — Seleção/Cadastro de Unidades de Negócio e Configuração Técnica por Unidade de Negócio.
         // IUnidadeNegocioRepository já é registrado por AddBootstrapCore — reaproveitado aqui.
         // DEB-16 (Gate Final pós-O1.14) — dois protetores distintos, cada um com seu próprio propósito de

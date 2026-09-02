@@ -8,6 +8,9 @@ import { PerfisRoutes } from "../administration/profiles/routes/PerfisRoutes";
 import { UsuariosRoutes } from "../administration/users/routes/UsuariosRoutes";
 import { FiliaisRoutes } from "../administration/branches/routes/FiliaisRoutes";
 import { CentrosCustoRoutes } from "../administration/cost-centers/routes/CentrosCustoRoutes";
+import { ContasContabeisRoutes } from "../administration/chart-of-accounts/routes/ContasContabeisRoutes";
+import { UnidadesMedidaRoutes } from "../administration/units-of-measure/routes/UnidadesMedidaRoutes";
+import { ItensFiscaisRoutes } from "../administration/tax-items/routes/ItensFiscaisRoutes";
 import { UnidadesAlocacaoRoutes } from "../administration/allocation-units/routes/UnidadesAlocacaoRoutes";
 import { UnidadesNegocioRoutes } from "../administration/business-units/routes/UnidadesNegocioRoutes";
 import { IdentityProvidersRoutes } from "../administration/identity-providers/routes/IdentityProvidersRoutes";
@@ -56,6 +59,9 @@ export function AppRoutes() {
                     <Route path="/administracao/usuarios/*" element={<UsuariosRoutes />} />
                     <Route path="/administracao/filiais/*" element={<FiliaisRoutes />} />
                     <Route path="/administracao/centros-custo/*" element={<CentrosCustoRoutes />} />
+                    <Route path="/administracao/contas-contabeis/*" element={<ContasContabeisRoutes />} />
+                    <Route path="/administracao/unidades-medida/*" element={<UnidadesMedidaRoutes />} />
+                    <Route path="/cadastros/itens-fiscais/*" element={<ItensFiscaisRoutes />} />
                     <Route path="/administracao/unidades-alocacao/*" element={<UnidadesAlocacaoRoutes />} />
                     <Route path="/administracao/unidades-negocio/*" element={<UnidadesNegocioRoutes />} />
                     <Route path="/administracao/identity-providers/*" element={<IdentityProvidersRoutes />} />

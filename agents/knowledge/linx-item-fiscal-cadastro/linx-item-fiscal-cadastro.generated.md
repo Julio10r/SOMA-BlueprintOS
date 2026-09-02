@@ -1,0 +1,345 @@
+# Conhecimento Linx Persistido — Cadastro de Item Fiscal / Pedido / Entrada Fiscal de Consumiveis
+
+> **ARQUIVO GERADO — NÃO EDITAR À MÃO.** Renderizado manualmente nesta rodada a partir de `agents/knowledge/linx-item-fiscal-cadastro/linx-item-fiscal-cadastro.source.json`, seguindo byte-a-byte o mesmo formato de `tools/agents/generate-linx-fornecedor-knowledge.js` — nenhum gerador dedicado a este domínio existe ainda. Para atualizar o conhecimento, edite o JSON de origem e regenere esta saída manualmente pelo mesmo processo (ou crie um gerador dedicado quando o domínio crescer).
+
+Domínio: `linx-item-fiscal-cadastro`. Descoberto em: 2026-09-01.
+
+Consumido por (`agent.yaml` `implementation.context_paths`): `linx-erp-specialist-agent`, `linx-database-specialist-agent`.
+
+## Proveniência das fontes originais
+
+Cada unidade abaixo referencia sua fonte original — este arquivo NUNCA é a fonte
+primária, é uma consolidação recuperável. As fontes primárias completas são:
+
+- `docs/audits/Discovery-ItemFiscal-Pedido-EntradaFiscal-Consumiveis.md` (`tela-100126cs2`)
+
+## Rótulos de Proveniência (mesma convenção de `.ai/context/linx-wise-daily-integration.md`)
+
+- `Descoberto`: fato lido diretamente do schema/procedure/banco (Linx Database Specialist).
+- `Inferido`: interpretação funcional ainda não confirmada por especialista humano Visual Linx (Linx ERP Specialist).
+- `Validado`/`Aprovado`: promoção formal, exclusiva do fluxo `LinxKnowledgeEntry.Promover` com RBAC dedicado — nenhuma unidade deste arquivo foi promovida além de Descoberto/Inferido.
+
+## Unidades de Conhecimento
+
+<!-- linx-knowledge-unit: linx-cadastro-item-fiscal-finalidade -->
+### Cadastro de Item Fiscal (tela 100126CS2) — finalidade e campos obrigatorios
+
+- **Chave**: `linx-cadastro-item-fiscal-finalidade`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Funcional
+- **Entidade Linx**: `CADASTRO_ITEM_FISCAL`
+- **Tabela**: `CADASTRO_ITEM_FISCAL`
+- **Campos**: `CODIGO_ITEM`, `ITEM_DESCRICAO`, `UNIDADE`, `TIPO_ITEM_SPED`, `CLASSIF_FISCAL`, `CONTA_CONTABIL`, `INDICADOR_CFOP`, `ID_CEST_NCM`, `CODIGO_SERVICO_REINF`, `INATIVO`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+A tela Visual Linx `100126CS2` (form set `Faturamento_047`, sem customizacao `obj_100126*` no patch) mantem `CADASTRO_ITEM_FISCAL` — um registro de classificacao fiscal/contabil (CFOP, conta contabil, classificacao fiscal, CEST/NCM, rateio de centro de custo/filial, classe/subclasse de imobilizado, tipo SPED, codigo de servico REINF), NAO o cadastro-mae de Material nem de Produto. Campos obrigatorios reais confirmados em `l_desenhista_antes_salva`: `CODIGO_ITEM`, `ITEM_DESCRICAO`, `TIPO_ITEM_SPED`, `CLASSIF_FISCAL` — nenhum outro campo tem checagem de obrigatoriedade nesta tela. Ao incluir um `CODIGO_ITEM` novo, a tela bloqueia se esse codigo ja existir em `MATERIAIS.MATERIAL` ou `PRODUTOS.PRODUTO` (mensagem 'associado a um Material/Produto'), confirmando que os tres cadastros compartilham o mesmo dominio de codigo mas sao entidades distintas.
+
+- **Fonte**: docs/audits/Discovery-ItemFiscal-Pedido-EntradaFiscal-Consumiveis.md (achado da rodada anterior, tela 100126CS2)
+- **Restrições/observações**: Leitura de codigo VFP (lx100126cs2.SCX/.SCT), nunca executado. Nao comprovado estruturalmente em banco (PK/FK/tipos reais) — ILinxSchemaDiscoveryReader existe mas nao esta exposto por nenhum comando CLI nesta sessao (capability gap registrado, pendente de decisao do Product Owner).
+- **Tags**: `cadastro_item_fiscal`, `item_fiscal`, `tela_100126cs2`
+
+<!-- linx-knowledge-unit: linx-pedido-consumiveis-validacao-item -->
+### Pedido de Consumiveis (tela 004005GS) valida o item contra Item Fiscal, Material ou Produto, de forma configuravel
+
+- **Chave**: `linx-pedido-consumiveis-validacao-item`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Funcional
+- **Entidade Linx**: `COMPRAS_CONSUMIVEL`
+- **Tabela**: `COMPRAS_CONSUMIVEL`
+- **Campos**: `CODIGO_ITEM`, `PEDIDO`, `CONSUMIVEL`, `ENTREGA`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+Cabecalho do pedido: `COMPRAS` (chave `PEDIDO`). Itens do pedido: `COMPRAS_CONSUMIVEL` (chave `CONSUMIVEL, ENTREGA, PEDIDO`), campo `CODIGO_ITEM`. Por padrao (`thisformset.px_valida_item <> 2`), o codigo do item digitado no pedido e validado contra `CADASTRO_ITEM_FISCAL.CODIGO_ITEM` (`.p_valida_coluna_tabela = 'cadastro_item_fiscal'`, trecho real de `lx004005GS.SCT`). Quando as flags de formset `px_valida_inclusive_materiais`/`px_valida_inclusive_produtos` estao ligadas, a mesma consulta de validacao e estendida via `UNION ALL` com candidatos vindos diretamente de `MATERIAIS`/`PRODUTOS` (filtrando `INATIVO = 0`) — ou seja, o Pedido de Consumiveis NAO exige rigidamente que todo item exista em `CADASTRO_ITEM_FISCAL`; o comportamento e configuravel por ambiente/cliente. Existe tambem a flag `pp_Item_Fiscal_Obrigatorio`, sugerindo que a propria obrigatoriedade de Item Fiscal e parametrizavel. Nenhuma tabela 'SERVICOS' aparece como quarta fonte nesta tela. `obj_004005GS.prg` (customizacao SOMA/AZZAS) nao contem nenhuma referencia a `CADASTRO_ITEM_FISCAL`/`MATERIAIS`/`PRODUTOS`/servico — toda a regra e da tela padrao Linx.
+
+- **Fonte**: docs/audits/Discovery-ItemFiscal-Pedido-EntradaFiscal-Consumiveis.md, secao 2
+- **Restrições/observações**: Leitura de codigo VFP (lx004005GS.SCX/.SCT + obj_004005GS.prg), nunca executado. Nao comprovado estruturalmente em banco.
+- **Tags**: `compras_consumivel`, `pedido`, `tela_004005gs`, `material`, `produto`
+
+<!-- linx-knowledge-unit: linx-pedido-entrada-fiscal-vinculo -->
+### Vinculo comprovado Pedido -> Entrada Fiscal via REFERENCIA_PEDIDO
+
+- **Chave**: `linx-pedido-entrada-fiscal-vinculo`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Funcional
+- **Entidade Linx**: `ENTRADAS_ITEM`
+- **Tabela**: `ENTRADAS_ITEM`
+- **Campos**: `REFERENCIA_PEDIDO`, `CODIGO_ITEM`, `NF_ENTRADA`, `SERIE_NF_ENTRADA`, `NOME_CLIFOR`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+`ENTRADAS_ITEM.REFERENCIA_PEDIDO = COMPRAS.PEDIDO` e o vinculo direto entre um item de Nota Fiscal de Entrada e o Pedido de origem — confirmado nos dois lados: dentro da propria tela de Pedido (`004005GS`, cursor `v_compras_01_consumo_entradas`, que ja exibe as Entradas recebidas contra aquele pedido) e dentro da tela de Entrada Fiscal (`005109GS3`, `LEFT JOIN COMPRAS ON ENTRADAS_ITEM.REFERENCIA_PEDIDO = COMPRAS.PEDIDO`). Nao ha tabela intermediaria — o join e direto por essa coluna.
+
+- **Fonte**: docs/audits/Discovery-ItemFiscal-Pedido-EntradaFiscal-Consumiveis.md, secoes 3 e 5
+- **Restrições/observações**: Leitura de codigo VFP, nunca executado. Nao comprovado estruturalmente em banco.
+- **Tags**: `entradas_item`, `compras`, `pedido`, `entrada_fiscal`, `referencia_pedido`
+
+<!-- linx-knowledge-unit: linx-entrada-fiscal-item-fiscal-join -->
+### Entrada Fiscal de Consumiveis (tela 005109GS3) consulta Item Fiscal, Produto e Material com prioridade explicita
+
+- **Chave**: `linx-entrada-fiscal-item-fiscal-join`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Funcional
+- **Entidade Linx**: `CADASTRO_ITEM_FISCAL`
+- **Tabela**: `CADASTRO_ITEM_FISCAL`
+- **Campos**: `CODIGO_ITEM`, `CLASSIF_FISCAL`, `ITEM_FISCAL_GRUPO`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+`005109GS3` faz `LEFT JOIN CADASTRO_ITEM_FISCAL ON CADASTRO_ITEM_FISCAL.CODIGO_ITEM = ENTRADAS_ITEM.CODIGO_ITEM` diretamente (trecho real de `lx005109gs3.SCT`), alem de `LEFT JOIN CADASTRO_ITEM_GRUPO ON ... = CADASTRO_ITEM_FISCAL.ITEM_FISCAL_GRUPO`. Num segundo cursor da mesma tela (que traz os itens do pedido de origem), a classificacao fiscal do item e resolvida com prioridade explicita: `ISNULL(CADASTRO_ITEM_FISCAL.CLASSIF_FISCAL, ISNULL(PRODUTOS.CLASSIF_FISCAL, MATERIAIS.CLASSIF_FISCAL))` — as tres tabelas (`CADASTRO_ITEM_FISCAL`, `PRODUTOS`, `MATERIAIS`) sao joinadas em paralelo pelo mesmo `CODIGO_ITEM`/`PRODUTO`/`MATERIAL`, nunca fundidas, com Item Fiscal vencendo primeiro quando presente.
+
+- **Fonte**: docs/audits/Discovery-ItemFiscal-Pedido-EntradaFiscal-Consumiveis.md, secao 4
+- **Restrições/observações**: Leitura de codigo VFP (lx005109gs3.SCX/.SCT + obj_005109gs3.prg), nunca executado. Nao comprovado estruturalmente em banco.
+- **Tags**: `entradas_item`, `cadastro_item_fiscal`, `materiais`, `produtos`, `entrada_fiscal`, `classif_fiscal`
+
+<!-- linx-knowledge-unit: linx-entrada-fiscal-complemento-servico-inferido -->
+### Achado incidental — complemento fiscal de Servico na Entrada, ausente no Pedido (Material x Servico NAO fechado)
+
+- **Chave**: `linx-entrada-fiscal-complemento-servico-inferido`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Funcional
+- **Entidade Linx**: `ENTRADAS_COMPLEMENTO_NF_SERVICO`
+- **Tabela**: `ENTRADAS_COMPLEMENTO_NF_SERVICO`
+- **Campos**: `ID_CONTROLE`, `CODIGO_ITEM`, `CODIGO_SERVICO_REINF`, `ID_IMPOSTO`, `IMPOSTO`, `VALOR_NAO_RETIDO`, `VALOR_ADICIONAL`, `SUBCONTRATADO_RETIDO`
+- **Proveniência**: Inferido
+- **Confiança**: MEDIA
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+`005109GS3` usa `ENTRADAS_COMPLEMENTO_NF_SERVICO`/`ENTRADAS_COMPLEMENTO_NF_SERVICO_PROCESSO` (chave `ID_CONTROLE`), com campos de retencao de imposto (REINF/subcontratado), vinculados a `NF_ENTRADA`/`NOME_CLIFOR`/`SERIE_NF_ENTRADA`/`ITEM_IMPRESSAO`. Essas tabelas NAO aparecem em `004005GS`. Isso e evidencia de que a Entrada Fiscal trata Servico com complementacao fiscal propria (retencao/REINF), ausente para Material/Produto — mas nao ha, nestas duas telas, nenhuma tabela 'SERVICOS' mestre equivalente a `MATERIAIS`/`PRODUTOS`. Inferencia explicita, NAO fechada: possivelmente Servico tambem se apoia em `CADASTRO_ITEM_FISCAL` (que ja tem `CODIGO_SERVICO_REINF`) e a diferenciacao real acontece so no momento da Entrada Fiscal, nao no cadastro do item nem no Pedido. Por instrucao explicita do Product Owner (2026-09-01), o contrato Material x Servico NAO deve ser fechado a partir deste achado isolado — aguardando discovery de mais telas.
+
+- **Fonte**: docs/audits/Discovery-ItemFiscal-Pedido-EntradaFiscal-Consumiveis.md, secao 7
+- **Restrições/observações**: Achado incidental, explicitamente marcado como nao-fechado por instrucao do Product Owner. Nao comprovado estruturalmente em banco. Nenhuma tela de cadastro mestre de Servico foi analisada ate esta rodada.
+- **Tags**: `entrada_fiscal`, `servico`, `reinf`, `material_x_servico`, `gap`
+
+<!-- linx-knowledge-unit: linx-item-fiscal-ref-fornecedor-gap-pedido-entrada -->
+### ITEM_FISCAL_REF_FORNECEDOR nao encontrado no fluxo Pedido/Entrada de Consumiveis
+
+- **Chave**: `linx-item-fiscal-ref-fornecedor-gap-pedido-entrada`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: GAP
+- **Entidade Linx**: `ITEM_FISCAL_REF_FORNECEDOR`
+- **Tabela**: `ITEM_FISCAL_REF_FORNECEDOR`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+- **Classificação de gap (gapType)**: NOT_FOUND_IN_ANALYZED_SCREENS
+
+A tabela `ITEM_FISCAL_REF_FORNECEDOR` (mapeamento codigo interno -> codigo do fornecedor, achado da tela `100126CS2`) NAO aparece em nenhum cursor de `004005GS` (Pedido de Consumiveis) nem de `005109GS3` (Entrada de Nota Fiscal de Consumiveis). A hipotese anterior de que ela participaria do fluxo de pedido/entrada NAO se confirmou nestas duas telas — permanece GAP explicito, possivelmente usada em cotacao (codigo de tela ainda nao investigado) ou em outro ponto do fluxo nao coberto por esta rodada.
+
+- **Fonte**: docs/audits/Discovery-ItemFiscal-Pedido-EntradaFiscal-Consumiveis.md, secao 6
+- **Restrições/observações**: Busca por grep no texto extraido de lx004005GS.SCT e lx005109gs3.SCT — ausencia de match, nao prova ausencia absoluta na tela (apenas nos trechos legiveis via strings), mas e evidencia negativa forte o suficiente para reclassificar a hipotese anterior como GAP em vez de fato assumido.
+- **Tags**: `item_fiscal_ref_fornecedor`, `gap`, `cotacao`
+
+<!-- linx-knowledge-unit: linx-cadastro-item-fiscal-schema-comprovado -->
+### CADASTRO_ITEM_FISCAL — estrutura real comprovada em SOMA_DESENV
+
+- **Chave**: `linx-cadastro-item-fiscal-schema-comprovado`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Schema
+- **Entidade Linx**: `CADASTRO_ITEM_FISCAL`
+- **Tabela**: `CADASTRO_ITEM_FISCAL`
+- **Campos**: `CODIGO_ITEM`, `ITEM_DESCRICAO`, `UNIDADE`, `TIPO_ITEM_SPED`, `CLASSIF_FISCAL`, `CONTA_CONTABIL`, `INATIVO`, `COD_SERVICO_REINF`, `CODIGO_SERVICO`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
+
+Comprovado via ILinxSchemaDiscoveryReader (INFORMATION_SCHEMA, SOMA_DESENV, profile linx-development): CADASTRO_ITEM_FISCAL tem 34 colunas. CODIGO_ITEM/ITEM_DESCRICAO/UNIDADE sao NOT NULL. TIPO_ITEM_SPED, CLASSIF_FISCAL e CONTA_CONTABIL sao todas NULLABLE no banco — a obrigatoriedade de TIPO_ITEM_SPED/CLASSIF_FISCAL vista na tela 100126CS2 e regra de aplicacao (VFP), nao constraint fisica de banco; CONTA_CONTABIL nao e obrigatoria nem na tela nem no banco. INATIVO e bit NOT NULL (status ativo/inativo sempre presente). COD_SERVICO_REINF e CODIGO_SERVICO existem como colunas (nullable) — o Item Fiscal ja carrega vocabulario de Servico mesmo sem tabela SERVICOS propria conhecida ate agora.
+
+- **Fonte**: docs/audits/Discovery-ItemFiscal-Pedido-EntradaFiscal-Consumiveis.md, secao Schema Discovery real
+- **Restrições/observações**: ILinxSchemaDiscoveryReader expoe apenas nome/tipo/nulidade/posicao de coluna via INFORMATION_SCHEMA — nao expoe PK, FK, indices, constraints, triggers nem procedures. Nenhuma chave nem relacionamento fisico foi comprovado, so existencia/tipo/nulidade de coluna.
+- **Tags**: `cadastro_item_fiscal`, `schema`, `database_specialist`, `soma_desenv`
+
+<!-- linx-knowledge-unit: linx-item-fiscal-ref-fornecedor-schema-comprovado -->
+### ITEM_FISCAL_REF_FORNECEDOR — estrutura real comprovada, base tecnica para o DE/PARA de XML NF-e/NFS-e (decisao do PO)
+
+- **Chave**: `linx-item-fiscal-ref-fornecedor-schema-comprovado`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Schema
+- **Entidade Linx**: `ITEM_FISCAL_REF_FORNECEDOR`
+- **Tabela**: `ITEM_FISCAL_REF_FORNECEDOR`
+- **Campos**: `FORNECEDOR`, `CODIGO_ITEM`, `CODIGO_ITEM_FORNECEDOR`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
+
+Comprovado via ILinxSchemaDiscoveryReader: ITEM_FISCAL_REF_FORNECEDOR tem exatamente 3 colunas, todas varchar NOT NULL — FORNECEDOR, CODIGO_ITEM, CODIGO_ITEM_FORNECEDOR. Consistente com a KeyFieldList = FORNECEDOR, CODIGO_ITEM ja vista na tela 100126CS2. Finalidade no +Compras (DECISAO DO PRODUCT OWNER, 2026-09-01): DE/PARA entre a referencia do item usada pelo fornecedor e o CADASTRO_ITEM_FISCAL interno — 1 Item Fiscal pode ter N referencias de fornecedor. Uso futuro decidido: processamento de XML de NF-e/NFS-e, resolvendo o codigo do fornecedor no XML para o Item Fiscal interno. O fato de 004005GS/005109GS3 nao usarem esta tabela diretamente (achado anterior) nao invalida essa finalidade — e decisao de produto, nao achado de tela.
+
+- **Fonte**: docs/audits/Discovery-ItemFiscal-Pedido-EntradaFiscal-Consumiveis.md, secao Schema Discovery real
+- **Restrições/observações**: PK real (constraint fisica) nao comprovada — apenas colunas/tipos/nulidade. Como FORNECEDOR se relaciona exatamente com o cadastro de Fornecedor (CADASTRO_CLI_FOR.NOME_CLIFOR ou outro identificador) permanece GAP.
+- **Tags**: `item_fiscal_ref_fornecedor`, `schema`, `database_specialist`, `xml_nfe`, `de_para`
+
+<!-- linx-knowledge-unit: linx-materiais-produtos-distincao-schema -->
+### MATERIAIS x PRODUTOS x CADASTRO_ITEM_FISCAL — tres cadastros estruturalmente distintos, comprovado por contagem/natureza de coluna
+
+- **Chave**: `linx-materiais-produtos-distincao-schema`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Schema
+- **Entidade Linx**: `MATERIAIS`
+- **Tabela**: `MATERIAIS`
+- **Campos**: `MATERIAL`, `CONTA_CONTABIL`, `CONTA_CONTABIL_COMPRA`, `CONTA_CONTABIL_VENDA`, `INATIVO`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
+
+Comprovado via ILinxSchemaDiscoveryReader: MATERIAIS tem 109 colunas (forte orientacao a manufatura textil: SETOR_PRODUCAO, TEC_SIMPLES_TUBULAR_ABERTO, COMPOSICAO, GRUPO/SUBGRUPO), com CONTA_CONTABIL propria mais 4 contas especificas (CONTA_CONTABIL_COMPRA/_VENDA/_DEV_COMPRA/_DEV_VENDA) — mais granular que CADASTRO_ITEM_FISCAL (uma unica CONTA_CONTABIL). PRODUTOS tem 188 colunas — catalogo comercial de varejo completo (GRIFFE, COLECAO, GRADE, MODELAGEM, campos B2C, MRP, RFID) — confirma que PRODUTOS e o SKU comercial detalhado do varejo AZZAS, distinto do proposito fiscal/compra de CADASTRO_ITEM_FISCAL (34 colunas). Os tres cadastros compartilham o dominio de codigo (confirmado na tela 100126CS2: nao pode existir o mesmo CODIGO_ITEM em mais de um), mas tem estruturas e finalidades completamente diferentes — nunca modelar como uma unica entidade.
+
+- **Fonte**: docs/audits/Discovery-ItemFiscal-Pedido-EntradaFiscal-Consumiveis.md, secao Schema Discovery real
+- **Restrições/observações**: Contagem de colunas e natureza dos nomes, nao inspecao de dados reais nem de volumetria. Nenhuma tabela SERVICOS foi localizada ou investigada ate esta rodada.
+- **Tags**: `materiais`, `produtos`, `cadastro_item_fiscal`, `schema`, `database_specialist`
+
+<!-- linx-knowledge-unit: linx-conta-contabil-schema-e-orcamento-incidental -->
+### CTB_CONTA_PLANO / PROP_CTB_CONTA_PLANO comprovados; achado incidental de controle orcamentario na propria Conta Contabil
+
+- **Chave**: `linx-conta-contabil-schema-e-orcamento-incidental`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Schema
+- **Entidade Linx**: `CTB_CONTA_PLANO`
+- **Tabela**: `CTB_CONTA_PLANO`
+- **Campos**: `CONTA_CONTABIL`, `DESC_CONTA`, `INATIVA`, `INDICA_CTRL_ORCAMENTO`, `ANM_IND_ORCAMENTO`, `PREVISAO_DESPESA`, `RATEIO_CENTRO_CUSTO`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
+
+Comprovado via ILinxSchemaDiscoveryReader: CTB_CONTA_PLANO tem 38 colunas, CONTA_CONTABIL/DESC_CONTA NOT NULL, INATIVA bit NOT NULL (status ativo/inativo real da Conta Contabil, cadastro de apoio Linx por decisao do Product Owner). PROP_CTB_CONTA_PLANO tem 5 colunas (PROPRIEDADE/CONTA_CONTABIL/ITEM_PROPRIEDADE NOT NULL), estrutura compativel com o uso ja visto na tela 100126CS2 para a propriedade 00924 (regra de imobilizado). Achado incidental relevante para a dependencia funcional futura de orcamento (binomio Centro de Custo x Conta Contabil, decisao do Product Owner, fora do escopo de implementacao da B3): CTB_CONTA_PLANO ja possui INDICA_CTRL_ORCAMENTO (bit NOT NULL), ANM_IND_ORCAMENTO (bit nullable), PREVISAO_DESPESA (numeric NOT NULL) e RATEIO_CENTRO_CUSTO (varchar nullable) — evidencia real de que o Linx ja carrega sinalizacao e valor de controle orcamentario na propria Conta Contabil. Nao investigado a fundo por estar fora do escopo da B3.
+
+- **Fonte**: docs/audits/Discovery-ItemFiscal-Pedido-EntradaFiscal-Consumiveis.md, secao Schema Discovery real
+- **Restrições/observações**: FK fisica entre CADASTRO_ITEM_FISCAL.CONTA_CONTABIL e CTB_CONTA_PLANO.CONTA_CONTABIL nao comprovada (mesma limitacao da ferramenta — so tipos compativeis, varchar/varchar). Mecanismo real de orcamento (onde e armazenado o saldo, periodo/exercicio, regras de bloqueio) explicitamente NAO investigado, por instrucao do Product Owner de manter fora do escopo da B3.
+- **Tags**: `ctb_conta_plano`, `prop_ctb_conta_plano`, `conta_contabil`, `orcamento`, `schema`, `database_specialist`
+
+<!-- linx-knowledge-unit: linx-item-fiscal-granularidade-decisao-po -->
+### Granularidade do Item Fiscal e decisao de negocio da area de Compras, nao imposicao do +Compras (correcao de regra anterior)
+
+- **Chave**: `linx-item-fiscal-granularidade-decisao-po`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Funcional
+- **Entidade Linx**: `CADASTRO_ITEM_FISCAL`
+- **Tabela**: `CADASTRO_ITEM_FISCAL`
+- **Campos**: `CODIGO_ITEM`, `ITEM_DESCRICAO`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: PRODUCT_OWNER_DECISION
+
+CORRECAO (2026-09-01) de decisao anterior do mesmo dia: a granularidade do Item Fiscal (generico como 'Notebook' vs especifico como 'MacBook Pro 14') e decisao de negocio da area de Compras, nao regra imposta pelo +Compras. O +Compras nao deve obrigar item generico nem especifico, nao deve exigir marca/modelo, nao deve criar conceito artificial de SKU, nao deve consolidar nem fragmentar automaticamente cadastros. Unica limitacao admitida e regra real do Linx comprovada em codigo/banco — nenhuma foi encontrada ate agora: CADASTRO_ITEM_FISCAL.ITEM_DESCRICAO e texto livre varchar(80) sem unicidade nem vinculo obrigatorio a SKU comercial (comprovado em banco nesta mesma rodada). Decisao independente de ITEM_FISCAL_REF_FORNECEDOR (DE/PARA continua valido em qualquer granularidade) e de Conta Contabil/orcamento (responsabilidades distintas).
+
+- **Fonte**: applications/mais-compras/docs/product/ContratoFuncionalPreliminar-B3-ItemFiscal.md, secao 1
+- **Restrições/observações**: Decisao de produto, nao regra tecnica do Linx. Nenhuma regra Linx encontrada ate agora que limite essa liberdade; se aparecer, sera registrada como unidade separada com sourceType DATABASE_PROCEDURE_DISCOVERY ou VFP_CODE_DISCOVERY.
+- **Tags**: `item_fiscal`, `granularidade`, `decisao_product_owner`, `material_x_servico`
+
+<!-- linx-knowledge-unit: linx-item-fiscal-conta-contabil-obrigatoria-decisao-po -->
+### Conta Contabil obrigatoria no +Compras, mesmo o Linx permitindo Item Fiscal sem ela (fecha pergunta anterior ao Product Owner)
+
+- **Chave**: `linx-item-fiscal-conta-contabil-obrigatoria-decisao-po`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Funcional
+- **Entidade Linx**: `CADASTRO_ITEM_FISCAL`
+- **Tabela**: `CADASTRO_ITEM_FISCAL`
+- **Campos**: `CONTA_CONTABIL`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: PRODUCT_OWNER_DECISION
+
+DECISAO DO PRODUCT OWNER (2026-09-01, fecha pergunta anteriormente registrada como aberta): todo Item Fiscal cadastrado/utilizavel no +Compras DEVE possuir CONTA_CONTABIL, mesmo CADASTRO_ITEM_FISCAL.CONTA_CONTABIL sendo NULLABLE no banco Linx e a tela 100126CS2 permitir salvar sem ela (evidencia tecnica comprovada em rodada anterior, nao revogada). LINX permite Item Fiscal sem Conta Contabil; +COMPRAS exige Conta Contabil — regra de negocio deliberadamente mais restritiva que o Linx, nao contradicao nem erro de discovery.
+
+- **Fonte**: applications/mais-compras/docs/product/ContratoFuncionalPreliminar-B3-ItemFiscal.md, secao 2
+- **Restrições/observações**: Decisao de negocio, nao regra tecnica do Linx. Nao promove nenhuma inferencia tecnica adicional a fato.
+- **Tags**: `conta_contabil`, `item_fiscal`, `decisao_product_owner`, `obrigatoriedade`
+
+<!-- linx-knowledge-unit: linx-conta-contabil-origem-importacao-decisao-po -->
+### Conta Contabil e cadastro de apoio importado/sincronizado do Linx, nunca criado pelo +Compras
+
+- **Chave**: `linx-conta-contabil-origem-importacao-decisao-po`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Funcional
+- **Entidade Linx**: `CTB_CONTA_PLANO`
+- **Tabela**: `CTB_CONTA_PLANO`
+- **Campos**: `CONTA_CONTABIL`, `DESC_CONTA`, `INATIVA`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: PRODUCT_OWNER_DECISION
+
+DECISAO DO PRODUCT OWNER: Conta Contabil nao sera cadastrada pelo +Compras — e cadastro de apoio originado do Linx (CTB_CONTA_PLANO). Fluxo: LINX CTB_CONTA_PLANO -> importacao/sincronizacao -> +Compras (cadastro de apoio de Contas Contabeis) -> selecao no cadastro do Item Fiscal. O usuario do +Compras deve selecionar uma Conta Contabil valida proveniente do Linx — nunca digitar/criar livremente.
+
+- **Fonte**: applications/mais-compras/docs/product/ContratoFuncionalPreliminar-B3-ItemFiscal.md, secao 2
+- **Restrições/observações**: Mecanismo tecnico de importacao/sincronizacao ainda nao definido (fora do escopo desta rodada).
+- **Tags**: `conta_contabil`, `sincronizacao`, `decisao_product_owner`
+
+<!-- linx-knowledge-unit: linx-conta-contabil-heranca-compras-entradas-decisao-po -->
+### Compras e Entradas herdam a Conta Contabil do Item Fiscal (regra de negocio); mecanismo tecnico exato e ponto de discovery futuro
+
+- **Chave**: `linx-conta-contabil-heranca-compras-entradas-decisao-po`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Funcional
+- **Entidade Linx**: `COMPRAS_CONSUMIVEL`
+- **Tabela**: `COMPRAS_CONSUMIVEL`
+- **Campos**: `CONTA_CONTABIL`
+- **Proveniência**: Inferido
+- **Confiança**: MEDIA
+- **Tipo de origem (sourceType)**: PRODUCT_OWNER_DECISION
+
+DECISAO DO PRODUCT OWNER: Compras e Entradas herdam a Conta Contabil cadastrada no Item Fiscal — ao usar o Item Fiscal numa compra, ITEM_FISCAL.CONTA_CONTABIL -> item da compra; ao registrar a entrada, ITEM_FISCAL.CONTA_CONTABIL -> item da entrada. Essa regra de negocio explica funcionalmente (nao ainda tecnicamente) as colunas fisicas proprias de CONTA_CONTABIL ja comprovadas em COMPRAS_CONSUMIVEL e ENTRADAS_ITEM (unidade linx-cadastro-item-fiscal-schema-comprovado e Schema Discovery real). O mecanismo tecnico exato (incluindo o papel de FX_CTB_BUSCA_CONTA_ITEM, ja identificado em 005109GS3) NAO foi comprovado nesta rodada — fica registrado como ponto de discovery futuro, a investigar junto ao fluxo de Requisicao/Pedido/Orcamento. Tambem fica como GAP/regra a definir: efeito de uma alteracao da Conta Contabil de um Item Fiscal ja usado sobre compras/entradas existentes vs. novas — nao presumir atualizacao retroativa.
+
+- **Fonte**: applications/mais-compras/docs/product/ContratoFuncionalPreliminar-B3-ItemFiscal.md, secao 2
+- **Restrições/observações**: Regra de negocio (herança) e decisao do Product Owner; o mecanismo tecnico que a implementa no Linx nao foi investigado e nao deve ser tratado como comprovado. Nao investigar orcamento/FX_CTB_BUSCA_CONTA_ITEM nesta rodada, por instrucao explicita do Product Owner.
+- **Tags**: `conta_contabil`, `heranca`, `compras_consumivel`, `entradas_item`, `decisao_product_owner`, `gap_futuro`
+
+<!-- linx-knowledge-unit: linx-cadastro-item-fiscal-data-para-transferencia-mecanismo-comprovado -->
+### DATA_PARA_TRANSFERENCIA comprovado como timestamp incondicional de ultima alteracao via DEFAULT + trigger LXUDT_CADASTRO_ITEM_FISCAL
+
+- **Chave**: `linx-cadastro-item-fiscal-data-para-transferencia-mecanismo-comprovado`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Trigger
+- **Entidade Linx**: `CADASTRO_ITEM_FISCAL`
+- **Tabela**: `CADASTRO_ITEM_FISCAL`
+- **Procedure**: `LXUDT_CADASTRO_ITEM_FISCAL`
+- **Campos**: `DATA_PARA_TRANSFERENCIA`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
+
+Comprovado via sys.triggers + OBJECT_DEFINITION (leitura read-only, mesmo padrao ja usado e commitado em Program.cs para Fornecedor/PROG-OP-PED): CADASTRO_ITEM_FISCAL.DATA_PARA_TRANSFERENCIA tem DEFAULT GETDATE() (preenche na inclusao) e a trigger LXUDT_CADASTRO_ITEM_FISCAL (UPDATE, ativa) executa incondicionalmente 'IF NOT UPDATE(DATA_PARA_TRANSFERENCIA) SET DATA_PARA_TRANSFERENCIA = GETDATE()' em qualquer UPDATE da tabela, independente de quem escreve (tela VFP manual ou futuro Adapter +Compras) — so nao dispara se o proprio UPDATE ja incluir a coluna no SET. ITEM_FISCAL_REF_FORNECEDOR nao tem essa coluna nem nenhuma trigger — editar referencia de fornecedor nao toca a data do Item Fiscal pai. Nenhum outro campo datetime de auditoria existe nas 34 colunas do Item Fiscal. Mecanismo mais forte que o documentado para CADASTRO_CLI_FOR.DATA_PARA_TRANSFERENCIA (Fornecedor), que foi aceito por observacao empirica na B2.1 sem trigger especifica identificada.
+
+- **Fonte**: docs/audits/Discovery-ItemFiscal-Pedido-EntradaFiscal-Consumiveis.md, secao DATA_PARA_TRANSFERENCIA — investigacao dedicada
+- **Restrições/observações**: Caveat: se um futuro Adapter +Compras (ou qualquer outro caller) incluir DATA_PARA_TRANSFERENCIA explicitamente no proprio UPDATE, a trigger nao sobrescreve — nao setar esse campo manualmente em escritas futuras. Demais triggers da tabela (GSD_/GSU_/LXI_ETL_/LXU_ETL_/LXI_GS_SEQ_CADASTRO_ITEM_FISCAL) nao foram lidas em profundidade — observacao incidental, nao investigada a fundo nesta rodada.
+- **Tags**: `data_para_transferencia`, `trigger`, `cadastro_item_fiscal`, `sincronizacao`, `last_write_wins`
+
+<!-- linx-knowledge-unit: linx-item-fiscal-ref-fornecedor-fluxo-vfp-nao-afeta-pai -->
+### Fluxo VFP de inclusao/edicao/exclusao de ITEM_FISCAL_REF_FORNECEDOR nao provoca alteracao no Item Fiscal pai (cenario C)
+
+- **Chave**: `linx-item-fiscal-ref-fornecedor-fluxo-vfp-nao-afeta-pai`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Funcional
+- **Entidade Linx**: `ITEM_FISCAL_REF_FORNECEDOR`
+- **Tabela**: `ITEM_FISCAL_REF_FORNECEDOR`
+- **Procedure**: `l_desenhista_filhas_inclui_apos`
+- **Campos**: `FORNECEDOR`, `CODIGO_ITEM`, `CODIGO_ITEM_FORNECEDOR`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+Investigacao dedicada em lx100126cs2.SCX/.SCT (12 ocorrencias de ITEM_FISCAL_REF_FORNECEDOR/REF_FORNECEDOR mapeadas). O grid da aba 'Referencia Fornecedor' e alimentado por um CursorAdapter proprio e independente (Cursorv_cadastro_item_fiscal_00_ref_fornecedor, Tables=ITEM_FISCAL_REF_FORNECEDOR, isupdatecursor=.T.), distinto do cursor do Item Fiscal (v_cadastro_item_fiscal_00, Tables=CADASTRO_ITEM_FISCAL). Ambos persistem via AcceptChanges() proprio e isolado dentro da mesma transacao de banco (mecanismo generico PROCEDURE l_salva de lx_class.vcx, ja comprovado no discovery de Fornecedor — Faturamento_047 confirma a mesma classe-base) — nao ha propagacao automatica de 'sujo' entre cursores. Unico hook customizado encontrado e l_desenhista_filhas_inclui_apos (inclusao): copia CODIGO_ITEM do pai para a nova linha filha e desabilita edicao dessa coluna, sem nenhum REPLACE no cursor pai. Nenhum hook de edicao/exclusao customizado foi encontrado (comportamento generico do framework, fora do patch). Como ITEM_FISCAL_REF_FORNECEDOR tem apenas 3 colunas (sem status/inativo, comprovado em banco), remocao so pode ser DELETE fisico, nunca inativacao logica. CLASSIFICACAO: (C) alterar ITEM_FISCAL_REF_FORNECEDOR (incluir/editar/excluir) NAO provoca qualquer alteracao no Item Fiscal pai — convergencia de evidencia de banco (sem trigger, sem coluna DATA_PARA_TRANSFERENCIA nesta tabela) + evidencia VFP (hook de inclusao so grava no cursor filho) + mecanica do framework (AcceptChanges por cursor).
+
+- **Fonte**: docs/audits/Discovery-ItemFiscal-Pedido-EntradaFiscal-Consumiveis.md, secao ITEM_FISCAL_REF_FORNECEDOR — fluxo VFP
+- **Restrições/observações**: Implementacao interna generica de l_salva/lx_class.vcx esta fora deste patch (mesma limitacao ja registrada no discovery de Fornecedor). Ausencia de hook de edicao/exclusao customizado e inferencia por leitura de codigo, nao testada em ambiente real.
+- **Tags**: `item_fiscal_ref_fornecedor`, `vfp`, `sincronizacao`, `data_para_transferencia`, `cenario_c`
+
+<!-- linx-knowledge-unit: linx-adr-0024-autoridade-transversal-linx-prevalece -->
+### ADR-0024 — regra transversal: Linx prevalece em conflito/ambiguidade de autoridade Linx x +Compras
+
+- **Chave**: `linx-adr-0024-autoridade-transversal-linx-prevalece`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Funcional
+- **Entidade Linx**: `CADASTRO_ITEM_FISCAL`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: PRODUCT_OWNER_DECISION
+
+DECISAO DO PRODUCT OWNER (2026-09-01), registrada canonicamente em .ai/DECISIONS.md como ADR-0024 (nao duplicar o texto completo aqui — este e apenas o ponteiro de conhecimento): sempre que houver conflito de dados, conflito de alteracoes, ambiguidade de autoridade, ou ausencia de regra especifica ja aprovada definindo quem prevalece entre Linx e +Compras, o LINX e o sistema mandatorio e prevalece. E um fallback de ultimo recurso, nao substitui a exigencia de matriz de autoridade por cadastro do CadFormFactory.md paragrafo 2. Aplicacao concreta na B3: (1) CADASTRO_ITEM_FISCAL tem autoridade compartilhada Linx+Compras, com Last Write Wins via DATA_PARA_TRANSFERENCIA quando ha timestamps comparaveis, e Linx prevalece quando o LWW nao resolve com seguranca — isso FECHA o GAP bloqueante anterior de 'quem cria/edita o Item Fiscal'; (2) ITEM_FISCAL_REF_FORNECEDOR, sem timestamp confiavel comprovado, resolve divergencia sempre por Linx prevalece, sem mecanismo artificial de LWW; (3) inativacao (ja decidida) permanece coerente: Linx inativa -> +Compras inativa; +Compras inativa localmente -> nao propaga.
+
+- **Fonte**: .ai/DECISIONS.md, ADR-0024
+- **Restrições/observações**: Regra transversal a qualquer integracao Linx <-> +Compras futura, nao exclusiva da B3, salvo decisao funcional explicita do Product Owner determinando comportamento diferente para um caso especifico. Fonte canonica completa e .ai/DECISIONS.md — esta unidade e apenas um ponteiro/resumo para os Agents Linx, evitar duplicacao.
+- **Tags**: `adr_0024`, `autoridade`, `governanca`, `linx_prevalece`, `item_fiscal_ref_fornecedor`, `decisao_product_owner`
