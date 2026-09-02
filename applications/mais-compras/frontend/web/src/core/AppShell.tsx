@@ -1,9 +1,20 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/hooks/useAuth";
 import { PERMISSOES } from "../auth/types/authTypes";
 import { UserMenu } from "./components/UserMenu";
 import { NavIcon, type NavIconKey } from "./components/NavIcons";
+
+const SIDEBAR_COLAPSADA_STORAGE_KEY = "maisCompras.sidebarColapsada";
+
+function lerPreferenciaSidebarColapsada(): boolean {
+  try {
+    return window.localStorage.getItem(SIDEBAR_COLAPSADA_STORAGE_KEY) === "true";
+  } catch {
+    // localStorage pode nao estar disponivel (ex: navegacao privada) — degrada para expandida.
+    return false;
+  }
+}
 
 type NavItem = {
   to: string;
@@ -147,10 +158,23 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
   const permissoesEfetivas = (usuario?.permissoes ?? []).map((codigo) => codigo.toLowerCase());
+  const [colapsada, setColapsada] = useState(lerPreferenciaSidebarColapsada);
 
   async function handleLogout() {
     await logout();
     navigate("/login", { replace: true });
+  }
+
+  function alternarColapso() {
+    setColapsada((atual) => {
+      const proximo = !atual;
+      try {
+        window.localStorage.setItem(SIDEBAR_COLAPSADA_STORAGE_KEY, String(proximo));
+      } catch {
+        // localStorage indisponivel: a preferencia simplesmente nao persiste entre sessoes.
+      }
+      return proximo;
+    });
   }
 
   return (
@@ -161,7 +185,22 @@ export function AppShell({ children }: { children: ReactNode }) {
         {usuario && <UserMenu usuario={usuario} onLogout={handleLogout} />}
       </header>
       <div className="app-body">
-        <nav className="app-sidebar" aria-label="Navegação do portal +Compras">
+        <nav
+          className={`app-sidebar${colapsada ? " app-sidebar-collapsed" : ""}`}
+          aria-label="Navegação do portal +Compras"
+        >
+          <button
+            type="button"
+            className="app-sidebar-toggle"
+            onClick={alternarColapso}
+            aria-expanded={!colapsada}
+            aria-label={colapsada ? "Expandir menu" : "Recolher menu"}
+            title={colapsada ? "Expandir menu" : "Recolher menu"}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ width: 14, height: 14 }}>
+              {colapsada ? <polyline points="9 18 15 12 9 6" /> : <polyline points="15 18 9 12 15 6" />}
+            </svg>
+          </button>
           <div className="app-nav-scroll">
             {navGroups.map((grupo) => {
               const itensVisiveis = grupo.itens.filter(
@@ -178,10 +217,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                           to={item.to}
                           end={item.end}
                           className={({ isActive }) => `app-nav-link${isActive ? " app-nav-link-active" : ""}`}
+                          title={colapsada ? item.label : undefined}
                         >
                           <span className="app-nav-left">
                             <NavIcon name={item.icon} />
-                            {item.label}
+                            <span className="app-nav-label">{item.label}</span>
                           </span>
                         </NavLink>
                       </li>
@@ -195,10 +235,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             <NavLink
               to={itemConfiguracoes.to}
               className={({ isActive }) => `app-nav-link${isActive ? " app-nav-link-active" : ""}`}
+              title={colapsada ? itemConfiguracoes.label : undefined}
             >
               <span className="app-nav-left">
                 <NavIcon name={itemConfiguracoes.icon} />
-                {itemConfiguracoes.label}
+                <span className="app-nav-label">{itemConfiguracoes.label}</span>
               </span>
             </NavLink>
           </div>

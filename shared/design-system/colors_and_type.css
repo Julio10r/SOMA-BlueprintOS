@@ -118,6 +118,7 @@
   --sidebar-w:      240px;
   --sidebar-w-narrow: 200px; /* curadoria/avaliacao */
   --sidebar-w-compact: 220px;/* admin */
+  --sidebar-w-collapsed: 56px; /* sidebar recolhida: apenas icones, rotulo via tooltip nativo */
 
   /* ──────────────────────────────────────────────────────────────
      4. TIPOGRAFIA
