@@ -28,6 +28,29 @@ public sealed class SincronizarFornecedorUseCaseTests
         Assert.Equal(2, await context.FornecedoresSincronizacoes.CountAsync());
     }
 
+    /// <summary>Regra de inativação de Fornecedor (2026-09-02, decisão do PO — assimétrica): o Linx tem
+    /// autoridade sobre inativação, o +Compras não. Quando um fornecedor já existe localmente e o ERP o
+    /// reporta como não-ativo (<c>externo.Ativo == false</c>), a importação (direção
+    /// <see cref="DirecaoSincronizacao.ErpParaMaisCompras"/> — mesma engine usada por "Atualizar do ERP")
+    /// deve refletir essa inativação localmente, independentemente de timestamp/hash — ver
+    /// <c>SincronizarFornecedorUseCase.ImportarAsync</c>, checagem de <c>!externo.Ativo</c> antes de
+    /// qualquer comparação de "mais recente".</summary>
+    [Fact]
+    public async Task Import_Should_Reflect_Erp_Inactivation_Onto_Local_Fornecedor()
+    {
+        await using var context = NewContext(); var user = new FakeIdentity();
+        var local = new Fornecedor(Guid.NewGuid(), "Fornecedor Ativo Localmente", Cnpj.Create("12345678000195"), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null,
+            user.UserId, DateTimeOffset.UtcNow, "BU-A", "SOMA_DESENV", "ERP-1");
+        await new FornecedorRepository(context).AdicionarAsync(local);
+        var adapter = new FakeAdapter { Current = new("ERP-1", "Fornecedor Ativo Localmente", "12345678000195", "São Paulo", "SP", "BR", Ativo: false) };
+        var useCase = Create(context, user, adapter);
+
+        var result = await useCase.ExecuteAsync(new("BU-A", "SOMA_DESENV", "ERP-1", local.Id, DirecaoSincronizacao.ErpParaMaisCompras, "corr-inativacao"));
+
+        Assert.Equal("Sincronizado", result.Status);
+        Assert.Equal("Inativo", (await context.Fornecedores.SingleAsync()).Status);
+    }
+
     [Fact]
     public async Task Export_Should_Create_Then_Update_Using_External_Key()
     {

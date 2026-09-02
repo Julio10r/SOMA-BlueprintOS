@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using BlueprintOS.Application.Identity.Contracts;
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Application.Procurement.Suppliers.Models;
@@ -36,17 +37,41 @@ public sealed class CadastrarFornecedorUseCase(
     IFornecedorRepository repository,
     ICurrentIdentity identity,
     IGarantirFornecedorNoErpUseCase garantirNoErp,
+    IVerificarFornecedorNoErpUseCase verificarNoErp,
+    ISincronizarFornecedorUseCase sincronizar,
     ResolvedorBusinessUnit resolvedorBu,
     ILogger<CadastrarFornecedorUseCase> logger) : ICadastrarFornecedorUseCase
 {
+    /// <summary>ErpSistema fixo — único ERP configurado hoje (mesmo valor usado por
+    /// <see cref="SincronizarFornecedorUseCase"/>/<see cref="GarantirFornecedorNoErpUseCase"/>).</summary>
+    private const string ErpSistema = "SOMA_DESENV";
+
     public async Task<FornecedorDto> ExecuteAsync(CadastrarFornecedorDto dto, CancellationToken cancellationToken = default)
     {
         var requestIdentity = identity.GetRequired();
         var user = requestIdentity.UserId;
         if (string.IsNullOrWhiteSpace(dto.Nome)) throw new ArgumentException("Nome is required.", nameof(dto.Nome));
         if (string.IsNullOrWhiteSpace(dto.NomeFantasia)) throw new ArgumentException("NomeFantasia is required.", nameof(dto.NomeFantasia));
+        ValidarCamposObrigatoriosDeEndereco(dto.Categoria, dto.Cep, dto.Logradouro, dto.Numero, dto.Bairro, dto.Cidade, dto.Estado, dto.Pais);
+        ValidarEmailETelefone(dto.Email, dto.Telefone);
         var documento = DocumentoFiscal.Create(dto.Cnpj_Cpf ?? Cnpj.Create(dto.Cnpj).Value);
-        if (await repository.ExisteAsync(documento.Value, cancellationToken)) throw new InvalidOperationException("Documento fiscal already exists.");
+        if (await repository.ExisteAsync(documento.Value, cancellationToken)) throw new InvalidOperationException("Já existe um fornecedor cadastrado com este CNPJ/CPF.");
+
+        var businessUnit = await resolvedorBu.ResolverAsync(requestIdentity.UnidadeNegocioId, cancellationToken);
+
+        // Gate de homologação de Fornecedores (2026-09-01): antes de criar, verificar se este
+        // CNPJ/CPF já existe como Fornecedor no Linx (papel Fornecedor confirmado — não apenas
+        // CADASTRO_CLI_FOR) — nunca duplicar. Decisão validada do PO (ver
+        // linx-idempotencia-convergencia-create-update-fornecedor): "existe sem papel Fornecedor"
+        // NÃO bloqueia aqui — segue o fluxo normal, que reaproveita o cadastro-base e apenas
+        // adiciona o papel (GarantirNoErpSemFalharCadastroAsync/PapelAdicionado).
+        var verificacao = await verificarNoErp.ExecuteAsync(businessUnit, documento.Value, cancellationToken);
+        if (verificacao.Estado == EstadoFornecedorErp.ExisteComPapelFornecedor)
+        {
+            var fornecedorId = await ImportarExistenteDoErpAsync(businessUnit, verificacao.CodigoClifor, cancellationToken);
+            throw new FornecedorJaExisteNoErpException(fornecedorId);
+        }
+
         var fornecedor = new Fornecedor(Guid.NewGuid(), dto.RazaoSocial ?? dto.Nome, documento, dto.TipoPessoa, dto.Categoria, dto.Email, dto.Telefone,
             dto.Website, dto.Cidade, dto.Estado, dto.Pais, dto.Status ?? "Ativo", dto.ScoreIA, user, DateTimeOffset.UtcNow,
             nomeFantasia: dto.NomeFantasia, cep: dto.Cep, logradouro: dto.Logradouro, numero: dto.Numero, complemento: dto.Complemento, bairro: dto.Bairro);
@@ -55,11 +80,42 @@ public sealed class CadastrarFornecedorUseCase(
         // partir de uma consulta isolada. Ambos os campos são opcionais/complementares.
         if (dto.CnaePrincipalCodigo is not null || dto.CnaePrincipalDescricao is not null)
             fornecedor.DefinirCnaePrincipal(dto.CnaePrincipalCodigo, dto.CnaePrincipalDescricao, DateTimeOffset.UtcNow);
-        await repository.AdicionarAsync(fornecedor, cancellationToken);
+        try
+        {
+            await repository.AdicionarAsync(fornecedor, cancellationToken);
+        }
+        catch (DuplicateRecordException)
+        {
+            // Concorrência real: outra requisição criou este CNPJ/CPF entre a checagem ExisteAsync e
+            // este INSERT (índice único de Cnpj_Cpf). Decisão do PO: convergir para o registro já
+            // criado em vez de falhar — nunca mascarar outra classe de erro SQL (a tradução para
+            // DuplicateRecordException, em FornecedorRepository, só ocorre para violação de índice
+            // único identificada com segurança).
+            var jaCriado = await repository.ObterPorCnpjAsync(documento.Value, user, cancellationToken)
+                ?? throw new InvalidOperationException("Já existe um fornecedor cadastrado com este CNPJ/CPF.");
+            return FornecedorMapper.ToDto(jaCriado);
+        }
 
         await GarantirNoErpSemFalharCadastroAsync(fornecedor, requestIdentity.UnidadeNegocioId, cancellationToken);
 
         return FornecedorMapper.ToDto(fornecedor);
+    }
+
+    /// <summary>CNPJ/CPF já existe como Fornecedor no Linx: nunca cria um novo registro local
+    /// duplicado — importa o estado real do ERP (mesma engine de sincronização já usada pelo botão
+    /// "Atualizar do ERP", <see cref="ISincronizarFornecedorUseCase"/>, direção ErpParaMaisCompras)
+    /// para garantir que o fornecedor exista localmente antes de apontar o chamador para ele.</summary>
+    private async Task<Guid> ImportarExistenteDoErpAsync(string businessUnit, string? codigoClifor, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(codigoClifor))
+            throw new InvalidOperationException("Fornecedor já existe no ERP, mas o identificador não pôde ser determinado.");
+
+        var resultado = await sincronizar.ExecuteAsync(
+            new SincronizarFornecedorDto(businessUnit, ErpSistema, codigoClifor, FornecedorId: null, DirecaoSincronizacao.ErpParaMaisCompras, CorrelationId: null),
+            cancellationToken);
+        if (resultado.FornecedorId is not { } fornecedorId)
+            throw new InvalidOperationException(resultado.Mensagem ?? "Não foi possível representar localmente o fornecedor já existente no ERP.");
+        return fornecedorId;
     }
 
     internal async Task GarantirNoErpSemFalharCadastroAsync(Fornecedor fornecedor, Guid? unidadeNegocioId, CancellationToken cancellationToken)
@@ -76,6 +132,51 @@ public sealed class CadastrarFornecedorUseCase(
             await repository.AtualizarAsync(fornecedor, cancellationToken);
         }
     }
+
+    /// <summary>Retest do Gate de Fornecedores (2026-09-01), item 6 — fecha o bypass de API confirmado na
+    /// validação técnica: endereço completo era exigido só no frontend (<c>validateManualFornecedor</c> em
+    /// <c>linxSupplierContract.ts</c>), então uma chamada direta a <c>POST /fornecedores</c> criava (e
+    /// integrava ao Linx) um fornecedor sem CEP/Logradouro/Número/Bairro/Cidade/UF/País.</summary>
+    private static void ValidarCamposObrigatoriosDeEndereco(string? categoria, string? cep, string? logradouro,
+        string? numero, string? bairro, string? cidade, string? estado, string? pais)
+    {
+        if (string.IsNullOrWhiteSpace(categoria)) throw new ArgumentException("Categoria é obrigatória.", nameof(categoria));
+        if (string.IsNullOrWhiteSpace(cep)) throw new ArgumentException("CEP é obrigatório.", nameof(cep));
+        if (string.IsNullOrWhiteSpace(logradouro)) throw new ArgumentException("Logradouro é obrigatório.", nameof(logradouro));
+        if (string.IsNullOrWhiteSpace(numero)) throw new ArgumentException("Número é obrigatório.", nameof(numero));
+        if (string.IsNullOrWhiteSpace(bairro)) throw new ArgumentException("Bairro é obrigatório.", nameof(bairro));
+        if (string.IsNullOrWhiteSpace(cidade)) throw new ArgumentException("Cidade é obrigatória.", nameof(cidade));
+        if (string.IsNullOrWhiteSpace(estado)) throw new ArgumentException("UF é obrigatória.", nameof(estado));
+        if (string.IsNullOrWhiteSpace(pais)) throw new ArgumentException("País é obrigatório.", nameof(pais));
+    }
+
+    /// <summary>Correção do Gate de Fornecedores (2026-09-01) — o comentário anterior deste use case
+    /// documentava E-mail/Telefone como deliberadamente não exigidos aqui, para não quebrar cadastro real
+    /// de fornecedores sem contato público. O Product Owner reverteu essa decisão explicitamente:
+    /// E-mail e Telefone agora são obrigatórios no CADASTRO MANUAL (este use case), mesmo endpoint
+    /// compartilhado com "Consultar por CNPJ" (mesmo formulário, mesmo <c>POST /fornecedores</c> — ver
+    /// <c>FornecedoresPage.tsx</c>/<c>ManualFornecedorForm.tsx</c>). Isto não se aplica a
+    /// <see cref="ISincronizarFornecedorUseCase"/> (import/hidratação a partir do Linx), que é um use
+    /// case distinto e nunca passa por aqui.</summary>
+    private static void ValidarEmailETelefone(string? email, string? telefone)
+    {
+        if (string.IsNullOrWhiteSpace(email)) throw new ArgumentException("E-mail é obrigatório.", nameof(email));
+        if (!EmailFornecedorValidator.EhValido(email.Trim())) throw new ArgumentException("E-mail inválido.", nameof(email));
+        if (string.IsNullOrWhiteSpace(telefone)) throw new ArgumentException("Telefone é obrigatório.", nameof(telefone));
+        var digitos = new string(telefone.Where(char.IsDigit).ToArray());
+        var minimoDigitos = telefone.TrimStart().StartsWith("+55", StringComparison.Ordinal) ? 8 : 4;
+        if (digitos.Length < minimoDigitos) throw new ArgumentException("Telefone inválido.", nameof(telefone));
+    }
+}
+
+/// <summary>Validação de e-mail do cadastro manual de Fornecedor — formato mínimo, mesma exigência do
+/// frontend (<c>EMAIL_PATTERN</c> em <c>linxSupplierContract.ts</c>).</summary>
+internal static partial class EmailFornecedorValidator
+{
+    [GeneratedRegex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$")]
+    private static partial Regex Formato();
+
+    public static bool EhValido(string email) => Formato().IsMatch(email);
 }
 
 public sealed class AtualizarFornecedorUseCase(

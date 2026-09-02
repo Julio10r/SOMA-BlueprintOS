@@ -1,3 +1,4 @@
+using BlueprintOS.Application.Identity.Contracts;
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Domain.Procurement.Suppliers;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +8,26 @@ namespace BlueprintOS.Infrastructure.Persistence.Repositories;
 public sealed class FornecedorRepository(BlueprintOSDbContext context) : IFornecedorRepository
 {
     public async Task AdicionarAsync(Fornecedor fornecedor, CancellationToken cancellationToken = default)
-    { await context.Fornecedores.AddAsync(fornecedor, cancellationToken); await context.SaveChangesAsync(cancellationToken); }
+    {
+        await context.Fornecedores.AddAsync(fornecedor, cancellationToken);
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            // Gate de homologação de Fornecedores (2026-09-01): corrida real entre duas requisições
+            // simultâneas criando o mesmo CNPJ/CPF (índice único de Cnpj_Cpf) — traduzida para o tipo
+            // agnóstico de EF Core/SQL Server já usado pelos demais repositórios (UsuarioRepository,
+            // CentroCustoMetadadoRepository, etc.). O chamador (CadastrarFornecedorUseCase) decide
+            // convergir para o registro já criado pela requisição concorrente, em vez de falhar.
+            throw new DuplicateRecordException("Documento fiscal já foi cadastrado por outra requisição concorrente.");
+        }
+    }
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException ex) =>
+        ex.InnerException?.Message.Contains("duplicate", StringComparison.OrdinalIgnoreCase) == true
+        || ex.InnerException?.Message.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase) == true;
     public async Task AtualizarAsync(Fornecedor fornecedor, CancellationToken cancellationToken = default)
     {
         // Se outra instância com a mesma PK já estiver rastreada neste DbContext (ex.: leituras via

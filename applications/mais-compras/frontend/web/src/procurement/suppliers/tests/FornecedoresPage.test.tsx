@@ -12,7 +12,9 @@ const usuarioTeste = {
   email: "ana@somagrupo.com.br",
   nome: "Ana Souza",
   unidadeNegocioId: "un1",
-  permissoes: [],
+  // Fornecedor.Criar/Editar: gate de permissão (2026-09-01) para "+ Novo fornecedor"/"Editar
+  // fornecedor"/"Ativar-Inativar" — usuário de teste padrão tem ambas para exercitar os fluxos.
+  permissoes: ["Fornecedor.Criar", "Fornecedor.Editar"],
   escopoAdministrativo: "Produto" as const
 };
 
@@ -26,8 +28,13 @@ function fornecedor(over: Partial<Fornecedor> = {}): Fornecedor {
     status: "Ativo",
     email: "contato@abc.example",
     telefone: "11999999999",
+    cep: "01001000",
+    logradouro: "Praca da Se",
+    numero: "100",
+    bairro: "Se",
     cidade: "São Paulo",
     estado: "SP",
+    pais: "Brasil",
     ...over
   };
 }
@@ -45,6 +52,15 @@ function responder(url: string, method: string): Rota {
 beforeEach(() => {
   rotas = new Map<string, Rota>();
   chamadas = [];
+  // Categoria (Gate de homologação, 2026-09-01) é combobox do catálogo pré-cadastrado — registrado
+  // por padrão em todo teste (ManualFornecedorForm busca essa rota ao montar).
+  rotas.set("GET /fornecedores/categorias", {
+    status: 200,
+    body: [
+      { codigo: "EMBALAGEM", descricao: "Embalagem" },
+      { codigo: "OUTROS", descricao: "Outros" }
+    ]
+  });
   vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     const method = init?.method ?? "GET";
@@ -122,6 +138,19 @@ describe("FornecedoresPage — listagem", () => {
     });
   });
 
+  it("abre a listagem filtrando por Ativo por padrao, sem parametro status na URL (Gate homologacao Fornecedores)", async () => {
+    rotas.set("GET /fornecedores", { status: 200, body: paginado([fornecedor()]) });
+
+    renderApp();
+    await screen.findByText("ABC Comercio LTDA");
+
+    await waitFor(() => {
+      expect(chamadas.some((c) => c.method === "GET" && c.url.includes("status=Ativo"))).toBe(true);
+    });
+    expect(chamadas.some((c) => c.method === "GET" && c.url.includes("status=Todos"))).toBe(false);
+    expect(await screen.findByLabelText("Status")).toHaveValue("Ativo");
+  });
+
   it("aplica o filtro de status", async () => {
     rotas.set("GET /fornecedores", { status: 200, body: paginado([fornecedor()]) });
 
@@ -135,25 +164,14 @@ describe("FornecedoresPage — listagem", () => {
     });
   });
 
-  it("inativa um fornecedor via PATCH, nunca DELETE", async () => {
+  it("nao mostra 'Inativar' na listagem (só dentro da edição, item de feedback do homologador)", async () => {
     const alvo = fornecedor();
     rotas.set("GET /fornecedores", { status: 200, body: paginado([alvo]) });
-    rotas.set(`PATCH /fornecedores/${alvo.id}/status`, { status: 200, body: { ...alvo, status: "Inativo" } });
 
     renderApp();
     const row = (await screen.findByText("ABC Comercio LTDA")).closest("tr")!;
-    await userEvent.click(within(row).getByRole("button", { name: "Inativar" }));
-
-    const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByText("Inativar fornecedor?")).toBeInTheDocument();
-    await userEvent.click(within(dialog).getByRole("button", { name: "Inativar fornecedor" }));
-
-    await waitFor(() => {
-      const patch = chamadas.find((c) => c.method === "PATCH");
-      expect(patch).toBeDefined();
-      expect(patch!.body).toEqual({ ativo: false });
-      expect(patch!.url).not.toContain("DELETE");
-    });
+    expect(within(row).queryByRole("button", { name: "Inativar" })).not.toBeInTheDocument();
+    expect(within(row).getByRole("button", { name: "Ver" })).toBeInTheDocument();
   });
 
   it("valida o formulario de cadastro manual (campos obrigatorios e CNPJ invalido)", async () => {
@@ -163,9 +181,8 @@ describe("FornecedoresPage — listagem", () => {
     await screen.findByText("Nenhum fornecedor encontrado.");
 
     await userEvent.click(screen.getAllByRole("button", { name: "+ Novo fornecedor" })[0]);
-    await userEvent.click(screen.getByRole("button", { name: "Preencher manualmente" }));
 
-    await userEvent.type(screen.getByLabelText("CNPJ *"), "11111111111111");
+    await userEvent.type(screen.getByLabelText(/^CNPJ\/CPF \*/), "11111111111111");
     await userEvent.click(screen.getByRole("button", { name: "Cadastrar fornecedor" }));
 
     expect(await screen.findByText("Informe a razão social.")).toBeInTheDocument();
@@ -176,16 +193,31 @@ describe("FornecedoresPage — listagem", () => {
   it("cadastra um fornecedor manualmente com dados validos", async () => {
     rotas.set("GET /fornecedores", { status: 200, body: paginado([]) });
     rotas.set("POST /fornecedores", { status: 201, body: fornecedor({ razaoSocial: "Nova Fornecedora" }) });
+    // Cidade é combo dependente da UF (municípios reais via IBGE) — mock do backend.
+    rotas.set("GET /fornecedores/municipios", { status: 200, body: ["São Paulo"] });
 
     renderApp();
     await screen.findByText("Nenhum fornecedor encontrado.");
 
     await userEvent.click(screen.getAllByRole("button", { name: "+ Novo fornecedor" })[0]);
-    await userEvent.click(screen.getByRole("button", { name: "Preencher manualmente" }));
 
     await userEvent.type(screen.getByLabelText("Razão Social *"), "Nova Fornecedora");
     await userEvent.type(screen.getByLabelText("Nome Fantasia *"), "Nova Fantasia");
-    await userEvent.type(screen.getByLabelText("CNPJ *"), "11.222.333/0001-81");
+    await userEvent.selectOptions(await screen.findByLabelText("Categoria *"), "Embalagem");
+    await userEvent.type(screen.getByLabelText(/^CNPJ\/CPF \*/), "11.222.333/0001-81");
+    await userEvent.tab();
+    // CNPJ válido dispara o modal "Deseja consultar online...?" — recusa para seguir o
+    // preenchimento manual determinístico deste teste (sem depender de rede/BrasilAPI).
+    await userEvent.click(await screen.findByRole("button", { name: "Não, cadastrar manualmente" }));
+    // Gate de homologação (2026-09-01), item 6: endereço completo e contato são obrigatórios.
+    await userEvent.type(screen.getByLabelText("CEP *"), "01001000");
+    await userEvent.type(screen.getByLabelText("Logradouro *"), "Praca da Se");
+    await userEvent.type(screen.getByLabelText("Número *"), "100");
+    await userEvent.type(screen.getByLabelText("Bairro *"), "Se");
+    await userEvent.selectOptions(screen.getByLabelText("UF *"), "SP");
+    await userEvent.selectOptions(await screen.findByLabelText(/^Cidade/), "São Paulo");
+    await userEvent.type(screen.getByLabelText("E-mail *"), "contato@nova.example");
+    await userEvent.type(screen.getByLabelText("Telefone *"), "11988887777");
     await userEvent.click(screen.getByRole("button", { name: "Cadastrar fornecedor" }));
 
     await waitFor(() => {
@@ -200,14 +232,62 @@ describe("FornecedoresPage — listagem", () => {
     await screen.findByText("Nenhum fornecedor encontrado.");
 
     await userEvent.click(screen.getAllByRole("button", { name: "+ Novo fornecedor" })[0]);
-    await userEvent.click(screen.getByRole("button", { name: "Preencher manualmente" }));
 
     await userEvent.type(screen.getByLabelText("Razão Social *"), "Nova Fornecedora");
-    await userEvent.type(screen.getByLabelText("CNPJ *"), "11.222.333/0001-81");
+    await userEvent.type(screen.getByLabelText(/^CNPJ\/CPF \*/), "11.222.333/0001-81");
     await userEvent.click(screen.getByRole("button", { name: "Cadastrar fornecedor" }));
 
     expect(await screen.findByText("Informe o nome fantasia.")).toBeInTheDocument();
     expect(chamadas.some((c) => c.method === "POST" && c.url === "/fornecedores")).toBe(false);
+  });
+
+  it("nunca duplica: quando o CNPJ/CPF ja existe como Fornecedor no Linx, mostra aviso e abre o detalhe existente ao clicar OK (Gate homologacao, validacao de existencia no Linx)", async () => {
+    const existente = fornecedor({ id: "existente-1", razaoSocial: "Fornecedora Ja Existente" });
+    rotas.set("GET /fornecedores", { status: 200, body: paginado([]) });
+    rotas.set("GET /fornecedores/municipios", { status: 200, body: ["São Paulo"] });
+    rotas.set("POST /fornecedores", {
+      status: 409,
+      body: {
+        code: "ja_existe_no_erp",
+        fornecedorId: existente.id,
+        message: "Este fornecedor já está cadastrado no Linx. Os dados existentes serão exibidos."
+      }
+    });
+    rotas.set(`GET /fornecedores/${existente.id}`, { status: 200, body: existente });
+
+    renderApp();
+    await screen.findByText("Nenhum fornecedor encontrado.");
+
+    await userEvent.click(screen.getAllByRole("button", { name: "+ Novo fornecedor" })[0]);
+
+    await userEvent.type(screen.getByLabelText("Razão Social *"), "Nova Fornecedora");
+    await userEvent.type(screen.getByLabelText("Nome Fantasia *"), "Nova Fantasia");
+    await userEvent.selectOptions(await screen.findByLabelText("Categoria *"), "Embalagem");
+    await userEvent.type(screen.getByLabelText(/^CNPJ\/CPF \*/), "11.222.333/0001-81");
+    await userEvent.tab();
+    await userEvent.click(await screen.findByRole("button", { name: "Não, cadastrar manualmente" }));
+    await userEvent.type(screen.getByLabelText("CEP *"), "01001000");
+    await userEvent.type(screen.getByLabelText("Logradouro *"), "Praca da Se");
+    await userEvent.type(screen.getByLabelText("Número *"), "100");
+    await userEvent.type(screen.getByLabelText("Bairro *"), "Se");
+    await userEvent.selectOptions(screen.getByLabelText("UF *"), "SP");
+    await userEvent.selectOptions(await screen.findByLabelText(/^Cidade/), "São Paulo");
+    await userEvent.type(screen.getByLabelText("E-mail *"), "contato@nova.example");
+    await userEvent.type(screen.getByLabelText("Telefone *"), "11988887777");
+    await userEvent.click(screen.getByRole("button", { name: "Cadastrar fornecedor" }));
+
+    // Nunca duplicar: o formulário de cadastro fecha e um aviso é exibido, sem criar um segundo
+    // fornecedor com o mesmo CNPJ/CPF já existente como Fornecedor no Linx.
+    expect(await screen.findByText("Fornecedor já cadastrado")).toBeInTheDocument();
+    expect(screen.getByText("Este fornecedor já está cadastrado no Linx. Os dados existentes serão exibidos.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cadastrar fornecedor" })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "OK" }));
+
+    // "OK" navega direto para o detalhe do fornecedor já existente (importado do ERP pelo backend).
+    // A razão social aparece tanto no título quanto no campo "Razão Social" do detalhe.
+    expect(await screen.findByRole("heading", { name: "Fornecedora Ja Existente", level: 2 })).toBeInTheDocument();
+    expect(screen.queryByText("Fornecedor já cadastrado")).not.toBeInTheDocument();
   });
 });
 
@@ -353,7 +433,7 @@ describe("FornecedorDetalhePage — leitura, edicao e status", () => {
   });
 
   it("alterna para o modo de edicao e salva via PUT", async () => {
-    const alvo = fornecedor();
+    const alvo = fornecedor({ categoria: "Embalagem" });
     rotas.set(`GET /fornecedores/${alvo.id}`, { status: 200, body: alvo });
     rotas.set(`PUT /fornecedores/${alvo.id}`, { status: 200, body: { ...alvo, razaoSocial: "ABC Atualizada" } });
 
@@ -365,6 +445,12 @@ describe("FornecedorDetalhePage — leitura, edicao e status", () => {
     await userEvent.clear(razaoSocialInput);
     await userEvent.type(razaoSocialInput, "ABC Atualizada");
     await userEvent.click(screen.getByRole("button", { name: "Salvar alterações" }));
+
+    // Gate de homologação (2026-09-01): salvar edição pede confirmação num modal da própria
+    // aplicação (nunca window.confirm) antes de persistir.
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Deseja realmente salvar as alterações deste fornecedor?")).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Salvar alterações" }));
 
     await waitFor(() => {
       const put = chamadas.find((c) => c.method === "PUT");
@@ -381,7 +467,9 @@ describe("FornecedorDetalhePage — leitura, edicao e status", () => {
     renderApp(`/fornecedores/${alvo.id}`);
     await screen.findByRole("heading", { name: "ABC Comercio LTDA" });
 
-    await userEvent.click(screen.getByRole("button", { name: "Ativar fornecedor" }));
+    // Ativar/Inativar só existe dentro da edição (item de feedback do homologador, 2026-09-01).
+    await userEvent.click(screen.getByRole("button", { name: "Editar fornecedor" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Ativar fornecedor" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText("Ativar fornecedor?")).toBeInTheDocument();
     await userEvent.click(within(dialog).getByRole("button", { name: "Ativar fornecedor" }));
@@ -390,5 +478,62 @@ describe("FornecedorDetalhePage — leitura, edicao e status", () => {
       const patch = chamadas.find((c) => c.method === "PATCH");
       expect(patch!.body).toEqual({ ativo: true });
     });
+  });
+
+  it("'Enviar ao ERP' chama garantir-erp (+Compras -> ERP), nunca /sincronizar (Gate homologacao, item 2)", async () => {
+    const alvo = fornecedor();
+    rotas.set(`GET /fornecedores/${alvo.id}`, { status: 200, body: alvo });
+    rotas.set(`POST /api/fornecedores/${alvo.id}/garantir-erp`, { status: 200, body: { status: "Sincronizado" } });
+
+    renderApp(`/fornecedores/${alvo.id}`);
+    await screen.findByRole("heading", { name: "ABC Comercio LTDA" });
+
+    await userEvent.click(screen.getByRole("button", { name: "Enviar ao ERP" }));
+
+    await waitFor(() => {
+      expect(chamadas.some((c) => c.method === "POST" && c.url === `/api/fornecedores/${alvo.id}/garantir-erp`)).toBe(true);
+    });
+    expect(chamadas.some((c) => c.method === "POST" && c.url === "/api/fornecedores/sincronizar")).toBe(false);
+    expect(await screen.findByText("Envio ao ERP concluído.")).toBeInTheDocument();
+  });
+
+  it("'Atualizar do ERP' chama /sincronizar com direcao ErpParaMaisCompras (Gate homologacao, item 2)", async () => {
+    const alvo = fornecedor({ erpSistema: "SOMA_DESENV", erpFornecedorId: "ERP-42" });
+    rotas.set(`GET /fornecedores/${alvo.id}`, { status: 200, body: alvo });
+    rotas.set("POST /api/fornecedores/sincronizar", { status: 200, body: { status: "Sincronizado" } });
+
+    renderApp(`/fornecedores/${alvo.id}`);
+    await screen.findByRole("heading", { name: "ABC Comercio LTDA" });
+
+    await userEvent.click(screen.getByRole("button", { name: "Atualizar do ERP" }));
+
+    await waitFor(() => {
+      const chamada = chamadas.find((c) => c.method === "POST" && c.url === "/api/fornecedores/sincronizar");
+      expect(chamada).toBeDefined();
+      expect(chamada!.body).toMatchObject({
+        erpSistema: "SOMA_DESENV",
+        erpFornecedorId: "ERP-42",
+        fornecedorId: alvo.id,
+        direcao: "ErpParaMaisCompras"
+      });
+    });
+    expect(chamadas.some((c) => c.method === "POST" && c.url === `/api/fornecedores/${alvo.id}/garantir-erp`)).toBe(false);
+    expect(await screen.findByText("Dados atualizados a partir do ERP.")).toBeInTheDocument();
+  });
+
+  it("mostra a mensagem de erro devolvida pelo backend quando 'Atualizar do ERP' encontra conflito nao resolvido", async () => {
+    const alvo = fornecedor();
+    rotas.set(`GET /fornecedores/${alvo.id}`, { status: 200, body: alvo });
+    rotas.set("POST /api/fornecedores/sincronizar", {
+      status: 400,
+      body: { code: "adapter_error", message: "Conflito não resolvido automaticamente entre ERP e +Compras." }
+    });
+
+    renderApp(`/fornecedores/${alvo.id}`);
+    await screen.findByRole("heading", { name: "ABC Comercio LTDA" });
+
+    await userEvent.click(screen.getByRole("button", { name: "Atualizar do ERP" }));
+
+    expect(await screen.findByText("Conflito não resolvido automaticamente entre ERP e +Compras.")).toBeInTheDocument();
   });
 });

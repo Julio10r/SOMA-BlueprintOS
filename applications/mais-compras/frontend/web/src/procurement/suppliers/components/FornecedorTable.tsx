@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { StatusBadge } from "../../../shared/components/StatusBadge";
-import { labelStatusSincronizacao, type Fornecedor } from "../types/linxSupplierContract";
+import { formatarDocumento, labelStatusSincronizacao, type Fornecedor } from "../types/linxSupplierContract";
 
 function statusDoFornecedor(fornecedor: Fornecedor): "Ativo" | "Inativo" {
   return fornecedor.status === "Inativo" ? "Inativo" : "Ativo";
@@ -13,11 +13,9 @@ function statusDoFornecedor(fornecedor: Fornecedor): "Ativo" | "Inativo" {
  */
 export function FornecedorTable({
   fornecedores,
-  onToggleAtivo,
   toQueryString
 }: {
   fornecedores: Fornecedor[];
-  onToggleAtivo: (fornecedor: Fornecedor) => void;
   toQueryString: string;
 }) {
   const navigate = useNavigate();
@@ -28,10 +26,10 @@ export function FornecedorTable({
         <thead>
           <tr>
             <th>Fornecedor</th>
-            <th>CNPJ</th>
+            <th>CNPJ/CPF</th>
             <th>Status +Compras</th>
             <th>Status sincronização ERP</th>
-            <th>Ações</th>
+            <th className="th-align-button">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -47,20 +45,19 @@ export function FornecedorTable({
                   <strong>{fornecedor.razaoSocial}</strong>
                   {fornecedor.nomeFantasia ? <div className="table-subtext">{fornecedor.nomeFantasia}</div> : null}
                 </td>
-                <td>{fornecedor.cnpj_Cpf}</td>
+                <td>{formatarDocumento(fornecedor.cnpj_Cpf)}</td>
                 <td><StatusBadge value={status} tone="situacao" /></td>
                 <td><StatusBadge value={labelStatusSincronizacao(fornecedor.statusSincronizacao)} tone="situacao" /></td>
                 <td>
-                  <div className="actions" onClick={(event) => event.stopPropagation()}>
+                  {/* Inativar/Ativar não fica na listagem (item de feedback do homologador,
+                      2026-09-01) — só é acessível dentro da edição do fornecedor. */}
+                  <div className="table-row-actions" onClick={(event) => event.stopPropagation()}>
                     <button
                       type="button"
                       className="btn btn-secondary"
                       onClick={() => navigate(`/fornecedores/${fornecedor.id}${toQueryString}`)}
                     >
                       Ver
-                    </button>
-                    <button type="button" className="btn btn-secondary" onClick={() => onToggleAtivo(fornecedor)}>
-                      {status === "Ativo" ? "Inativar" : "Ativar"}
                     </button>
                   </div>
                 </td>

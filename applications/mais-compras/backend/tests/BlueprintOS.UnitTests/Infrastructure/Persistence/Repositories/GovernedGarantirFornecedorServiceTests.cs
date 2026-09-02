@@ -78,7 +78,11 @@ public sealed class GovernedGarantirFornecedorServiceTests : IDisposable
     [InlineData("CGC_CPF=00000000000191", "00000000000191")]
     [InlineData("00.000.000/0001-91", "00000000000191")]
     [InlineData("", "")]
-    public void Business_Key_Parsing_Keeps_Only_The_Document_Digits(string businessKey, string expected) =>
+    // CNPJ alfanumérico (Instrução Normativa RFB nº 2.229/2024, vigente a partir de julho/2026):
+    // CGC_CPF no Linx é varchar(19), sem constraint numérica — letras nas 12 primeiras posições
+    // precisam ser preservadas, nunca descartadas como se fossem ruído de máscara.
+    [InlineData("CGC_CPF=12.ABC.345/01DE-35", "12ABC34501DE35")]
+    public void Business_Key_Parsing_Keeps_Digits_And_Letters(string businessKey, string expected) =>
         Assert.Equal(expected, SomaGarantirFornecedorErpAdapter.ExtrairCnpjDaChaveDeNegocio(businessKey));
 
     private static GovernedGarantirFornecedorRequest Request() => new(

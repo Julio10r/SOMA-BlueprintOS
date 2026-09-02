@@ -60,10 +60,29 @@ public sealed class DocumentoFiscalTests
     }
 
     [Fact]
-    public void Create_Should_Strip_Non_Digit_Characters_Before_Validating()
+    public void Create_Should_Strip_Punctuation_But_Keep_Letters()
     {
-        var documento = DocumentoFiscal.Create("AB.15.436.940/0001-03");
-        Assert.Equal("15436940000103", documento.Value);
+        // Gate de homologação (2026-09-01): CNPJ alfanumérico (Instrução Normativa RFB nº
+        // 2.229/2024, vigente a partir de julho/2026) — letras nas 12 primeiras posições fazem
+        // parte do documento, não são mais descartadas como ruído. Só pontuação/máscara é
+        // removida. Exemplo oficial da Receita Federal (base SERPRO).
+        var documento = DocumentoFiscal.Create("12.ABC.345/01DE-35");
+        Assert.Equal("12ABC34501DE35", documento.Value);
+    }
+
+    [Fact]
+    public void Create_Should_Reject_Cpf_With_Letters()
+    {
+        // CPF nunca muda com a IN RFB 2.229/2024 — continua sempre só numérico.
+        Assert.Throws<ArgumentException>(() => DocumentoFiscal.Create("1234567A901"));
+    }
+
+    [Fact]
+    public void Create_Should_Reject_Cnpj_With_Letter_In_Check_Digits()
+    {
+        // Os 2 dígitos verificadores do CNPJ continuam sempre numéricos, mesmo no formato
+        // alfanumérico — só as 12 primeiras posições podem ter letras.
+        Assert.Throws<ArgumentException>(() => DocumentoFiscal.Create("12ABC34501DE3A"));
     }
 
     [Theory]

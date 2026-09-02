@@ -92,3 +92,7 @@ Memória de negociação e motor de estratégia baseado em regras; ainda sem age
 Ver os documentos por domínio em `docs/backend/`: [Procurement](../backend/procurement/Procurement.md), [Integration](../backend/integration/Integration.md), [Shared](../backend/shared/Shared.md). Autenticação/identidade corporativa (Microsoft Entra ID) permanece planejada — nenhum documento técnico foi criado para ela ainda, pois não há implementação real a descrever.
 
 Para a versão vigente destas informações no código, ver `.ai/ARCHITECTURE.md`; para o estado operacional comprovado (o que já foi entregue e validado), ver `.ai/PROJECT_STATE.md` — este documento não reproduz esse estado, apenas a arquitetura permanente.
+
+## Padrão de cadastros integrados ao ERP
+
+Para criação ou evolução de qualquer tela de cadastro integrada ao ERP (Fornecedores, Materiais, Serviços, Categorias, Compradores, Centros de Custo), seguir [CadFormFactory.md](./CadFormFactory.md).

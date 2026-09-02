@@ -39,6 +39,11 @@ public sealed class GarantirFornecedorNoErpUseCase(
             Cidade: fornecedor.Cidade,
             Estado: fornecedor.Estado,
             Pais: fornecedor.Pais,
+            Cep: fornecedor.Cep,
+            Logradouro: fornecedor.Logradouro,
+            Numero: fornecedor.Numero,
+            Complemento: fornecedor.Complemento,
+            Bairro: fornecedor.Bairro,
             Ativo: string.Equals(fornecedor.Status, "Ativo", StringComparison.OrdinalIgnoreCase),
             CorrelationId: correlationId);
 

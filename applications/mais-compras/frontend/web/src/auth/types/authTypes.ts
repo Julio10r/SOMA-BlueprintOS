@@ -39,5 +39,7 @@ export const PERMISSOES = {
   sistemaGerenciar: "Sistema.Gerenciar",
   workflowGerenciar: "Workflow.Gerenciar",
   alcadaGerenciar: "Alcada.Gerenciar",
-  orcamentoGerenciar: "Orcamento.Gerenciar"
+  orcamentoGerenciar: "Orcamento.Gerenciar",
+  fornecedorCriar: "Fornecedor.Criar",
+  fornecedorEditar: "Fornecedor.Editar"
 } as const;

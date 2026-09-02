@@ -45,6 +45,9 @@ public sealed class BlueprintOSDbContext(DbContextOptions<BlueprintOSDbContext> 
     public DbSet<FornecedorSincronizacao> FornecedoresSincronizacoes => Set<FornecedorSincronizacao>();
     public DbSet<SincronizacaoFornecedor> SincronizacoesFornecedores => Set<SincronizacaoFornecedor>();
     public DbSet<ErroSincronizacaoFornecedor> ErrosSincronizacoesFornecedores => Set<ErroSincronizacaoFornecedor>();
+    // Gate de homologação de Fornecedores (2026-09-01): catálogo pré-cadastrado de Categoria
+    // (antes campo texto livre) — tabela própria do +Compras, não sincronizada do ERP.
+    public DbSet<CategoriaFornecedor> CategoriasFornecedor => Set<CategoriaFornecedor>();
 
     // O1.13.5 — Fundação dos Agents Especialistas Linx (base de conhecimento persistente e versionada).
     public DbSet<LinxKnowledgeEntry> LinxConhecimentoEntradas => Set<LinxKnowledgeEntry>();

@@ -11,6 +11,8 @@ public sealed record FornecedorConsultaCnpjRequest(
     public ConsultarCnpjFornecedorDto ToDto() => new(Cnpj_Cpf, BusinessUnit, ErpSistema, CorrelationId);
 }
 
+public sealed record FornecedorConsultaCepRequest(string Cep);
+
 public sealed record FornecedorEnriquecimentoRequest(
     ConsultaCnpjResultado Consulta,
     Guid? ConsultaId,

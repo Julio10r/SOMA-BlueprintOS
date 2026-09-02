@@ -79,6 +79,57 @@ public sealed class GarantirFornecedorNoErpIntegrationTests(ITestOutputHelper ou
         }
     }
 
+    /// <summary>Retest do Gate de Fornecedores (2026-09-01), item 8 — prova real contra SOMA_DESENV de que o
+    /// "falso sucesso" relatado (badge "Sincronizado" sem ENDERECO/NUMERO/BAIRRO/COMPLEMENTO gravados) foi
+    /// eliminado: cria um fornecedor sintético, depois chama GarantirAsync de novo com um endereço diferente
+    /// (simulando a edição feita em "Enviar ao ERP") e confirma, lendo diretamente CADASTRO_CLI_FOR, que os
+    /// valores realmente mudaram no Linx — nunca aceitando o retorno do Adapter como prova.</summary>
+    [Fact]
+    public async Task GarantirAsync_Should_Persist_Address_Fields_On_Create_And_On_Update()
+    {
+        var (configuration, connectionString) = LoadConfiguration();
+        if (connectionString is null) return;
+
+        var cnpj = SyntheticCnpj(6);
+        await EnsureNotPresentAsync(connectionString, cnpj);
+        var adapter = new SomaGarantirFornecedorErpAdapter(configuration, NullLogger<SomaGarantirFornecedorErpAdapter>.Instance);
+
+        try
+        {
+            var criado = await ExecutarComDiagnosticoAsync(() => adapter.GarantirAsync(new GarantirFornecedorErpRequest(
+                "DEFAULT", cnpj, "Teste B29 Endereco6", "Teste B29 Endereco6 Razao", "São Paulo", "SP", "BRASIL", true, "b29-endereco-6-create",
+                Cep: "01310-100", Logradouro: "Avenida Paulista", Numero: "1000", Complemento: "Sala A", Bairro: "Bela Vista")));
+            Assert.Equal(OperacaoGarantirFornecedorErp.Criado, criado.Operacao);
+            await AssertEnderecoGravadoAsync(connectionString, criado.IdentificadorExterno, "São Paulo", "Avenida Paulista", "1000", "Sala A", "Bela Vista", "01310-100");
+
+            var atualizado = await ExecutarComDiagnosticoAsync(() => adapter.GarantirAsync(new GarantirFornecedorErpRequest(
+                "DEFAULT", cnpj, "Teste B29 Endereco6", "Teste B29 Endereco6 Razao", "Rio de Janeiro", "RJ", "BRASIL", true, "b29-endereco-6-update",
+                Cep: "22041-001", Logradouro: "Avenida Atlantica", Numero: "2000", Complemento: "Sala B", Bairro: "Copacabana")));
+            Assert.Equal(OperacaoGarantirFornecedorErp.Atualizado, atualizado.Operacao);
+            await AssertEnderecoGravadoAsync(connectionString, atualizado.IdentificadorExterno, "Rio de Janeiro", "Avenida Atlantica", "2000", "Sala B", "Copacabana", "22041-001");
+        }
+        finally
+        {
+            await CleanupSafeAsync(connectionString, cnpj);
+        }
+    }
+
+    private static async Task AssertEnderecoGravadoAsync(string connectionString, string codClifor, string cidade, string logradouro, string numero, string complemento, string bairro, string cep)
+    {
+        await using var connection = await OpenAsync(connectionString);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT [CIDADE], [ENDERECO], [NUMERO], [COMPLEMENTO], [BAIRRO], [CEP] FROM [dbo].[CADASTRO_CLI_FOR] WHERE [COD_CLIFOR] = @id";
+        command.Parameters.AddWithValue("@id", codClifor);
+        await using var reader = await command.ExecuteReaderAsync();
+        Assert.True(await reader.ReadAsync());
+        Assert.Equal(cidade, Convert.ToString(reader["CIDADE"])?.Trim());
+        Assert.Equal(logradouro, Convert.ToString(reader["ENDERECO"])?.Trim());
+        Assert.Equal(numero, Convert.ToString(reader["NUMERO"])?.Trim());
+        Assert.Equal(complemento, Convert.ToString(reader["COMPLEMENTO"])?.Trim());
+        Assert.Equal(bairro, Convert.ToString(reader["BAIRRO"])?.Trim());
+        Assert.Equal(cep, Convert.ToString(reader["CEP"])?.Trim());
+    }
+
     [Fact]
     public async Task GarantirAsync_Should_Rollback_Completely_When_Cadastro_Insert_Collides()
     {

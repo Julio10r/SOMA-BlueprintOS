@@ -3,7 +3,16 @@ namespace BlueprintOS.Application.Procurement.Suppliers.Contracts;
 /// <summary>Operação de negócio expressa pelo domínio +Compras ao pedir para o ERP da BU "garantir" um
 /// fornecedor a partir de um CNPJ — nunca "inserir" (ADR-0023, Gate Pré-B2.9, seção 7-A). O Adapter decide
 /// internamente se a operação física é criação, adição de papel a um cadastro existente, ou atualização.
-/// Nenhum vocabulário físico do ERP (CLIFOR, CADASTRO_CLI_FOR, LX_SEQUENCIAL) atravessa esta fronteira.</summary>
+/// Nenhum vocabulário físico do ERP (CLIFOR, CADASTRO_CLI_FOR, LX_SEQUENCIAL) atravessa esta fronteira.
+///
+/// Escopo de campos de endereço (Cep/Logradouro/Numero/Complemento/Bairro/Cidade) autorizado pela consulta
+/// formal ao conhecimento Linx (Retest do Gate de Fornecedores, 2026-09-01): estes são colunas físicas reais
+/// de <c>CADASTRO_CLI_FOR</c> (bloco "principal", nunca os blocos `COBRANCA_`/`ENTREGA_` — fora de escopo,
+/// GAP-LINX-ENDERECO-MULTIPLO permanece aberto), e a decisão já Validada do PO para o caso "cadastro já
+/// existe" é "atualizar/complementar com os dados confirmados pelo usuário, sem sobrescrever campos fora do
+/// escopo" (`Gate-PreB29-AdapterLinxFornecedor.md`, unidade `linx-idempotencia-convergencia-create-update`).
+/// Telefone/E-mail ficam de fora deste escopo por enquanto — a única fonte que os confirma como fisicamente
+/// compatíveis é um doc de aplicação (não o conhecimento Linx validado), então tratá-los é Capability Gap.</summary>
 public sealed record GarantirFornecedorErpRequest(
     string BusinessUnit,
     string DocumentoFiscal,
@@ -13,7 +22,12 @@ public sealed record GarantirFornecedorErpRequest(
     string? Estado,
     string? Pais,
     bool Ativo,
-    string CorrelationId);
+    string CorrelationId,
+    string? Cep = null,
+    string? Logradouro = null,
+    string? Numero = null,
+    string? Complemento = null,
+    string? Bairro = null);
 
 /// <summary>Caminho físico que o Adapter efetivamente executou para convergir ao estado desejado.</summary>
 public enum OperacaoGarantirFornecedorErp

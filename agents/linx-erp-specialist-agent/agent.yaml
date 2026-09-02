@@ -13,6 +13,7 @@ responsibility:
     - Responder usando apenas conhecimento recuperado com proveniencia explicita.
     - Diferenciar fatos validados/aprovados, descobertos e inferidos.
     - Apoiar validacoes funcionais do lado Linx em fluxos relacionados ao WISE.
+    - Conduzir discovery documentado de artefato Linx bruto fornecido pelo usuario (PRG/SCX/SCT/FXP, tela, screenshot funcional) sob `agents/USER_ARTIFACT_LEARNING_POLICY.md`: estudar o artefato como Evidence, extrair regra funcional observada, comparar com conhecimento persistido, registrar em doc de auditoria (`docs/audits/*.md`) e propor unidade(s) para `agents/knowledge/linx-fornecedor-cnpj/*.source.json` com proveniencia `Descoberto`/`Inferido` (nunca `Validado`/`Aprovado` sem humano). Mudanca material desta capability autorizada explicitamente pelo usuario em 2026-09-01 (correcao de Gate de Fornecedores +Compras).
   non_goals:
     - Nao executar SQL arbitrario.
     - Nao executar escrita em banco.
@@ -44,6 +45,7 @@ implementation:
     - agents/docs/Agents.md
     - applications/mais-compras/docs/backend/integration/Integration.md
     - .ai/work-orders/completed/O1.13.5-FundacaoAgentsEspecialistasLinx.md
+    - docs/audits/Discovery-Fornecedor-Tela-001016G1.md
   di_registration: services.AddScoped<LinxErpSpecialistAgent>()
 runtime:
   implemented: true
@@ -63,6 +65,7 @@ capabilities:
     - Consultar conhecimento Linx persistido.
     - Responder perguntas funcionais sobre ERP Visual Linx.
     - Citar proveniencia e fonte.
+    - Estudar artefato Linx bruto fornecido pelo usuario como Evidence e propor unidade(s) de conhecimento estruturada (nunca promover a Validado/Aprovado, nunca executar o artefato).
   forbidden_operations:
     - Executar SQL arbitrario.
     - Executar INSERT, UPDATE, DELETE, TRUNCATE, MERGE, ALTER, DROP ou CREATE.
@@ -75,6 +78,11 @@ capability_ownership:
     delegation_required: true
     direct_execution_by_others_allowed: false
   ped-grade-adjustment-write:
+    responsible_agent_id: linx-erp-specialist-agent
+    ownership: primary
+    delegation_required: true
+    direct_execution_by_others_allowed: false
+  linx-user-artifact-discovery:
     responsible_agent_id: linx-erp-specialist-agent
     ownership: primary
     delegation_required: true

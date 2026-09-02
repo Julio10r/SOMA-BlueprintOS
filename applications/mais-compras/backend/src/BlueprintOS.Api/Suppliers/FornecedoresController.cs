@@ -1,5 +1,6 @@
 using BlueprintOS.Api.Authorization;
 using BlueprintOS.Application.Identity.Models;
+using BlueprintOS.Application.Procurement.Suppliers;
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Domain.Identity;
 
@@ -17,6 +18,14 @@ public static class FornecedoresController
         group.MapPost("", Create).RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorCriar));
         group.MapGet("", Search);
         group.MapPost("/consulta-cnpj", ConsultCnpj).RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorCriar));
+        // Gate de homologação de Fornecedores (2026-09-01), item 6 — consulta de CEP pelo backend
+        // (nunca chamada externa direta do frontend), mesma exigência de RBAC do consulta-cnpj: quem
+        // pode consultar CNPJ (fluxo de criação) também pode consultar CEP no formulário de cadastro.
+        group.MapPost("/consulta-cep", ConsultCep).RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorCriar));
+        // Gate de homologação de Fornecedores (2026-09-01) — cidade como combo dependente da UF.
+        group.MapGet("/municipios", ListarMunicipios).RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorCriar));
+        // Gate de homologação de Fornecedores (2026-09-01) — catálogo pré-cadastrado de Categoria.
+        group.MapGet("/categorias", ListarCategorias).RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorCriar));
         group.MapGet("/{id:guid}", GetById);
         group.MapPut("/{id:guid}", Update).RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorEditar));
         group.MapDelete("/{id:guid}", Delete).RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorEditar));
@@ -41,6 +50,17 @@ public static class FornecedoresController
             return Results.Created($"/fornecedores/{supplier.Id}", supplier);
         }
         catch (ArgumentException ex) { return Results.BadRequest(new { code = "validation_error", message = ex.Message }); }
+        catch (FornecedorJaExisteNoErpException ex)
+        {
+            // Gate de homologação (2026-09-01): CNPJ/CPF já existe como Fornecedor no Linx — nunca
+            // duplicar. O frontend usa fornecedorId para abrir diretamente a tela de detalhe.
+            return Results.Conflict(new
+            {
+                code = "ja_existe_no_erp",
+                fornecedorId = ex.FornecedorId,
+                message = "Este fornecedor já está cadastrado no Linx. Os dados existentes serão exibidos."
+            });
+        }
         catch (InvalidOperationException ex) { return Results.Conflict(new { code = "duplicate_cnpj", message = ex.Message }); }
         catch (IdentityUnavailableException) { return Results.StatusCode(StatusCodes.Status503ServiceUnavailable); }
     }
@@ -59,6 +79,22 @@ public static class FornecedoresController
         try { return Results.Ok(await useCase.ExecuteAsync(request.ToDto(), ct)); }
         catch (ArgumentException ex) { return Results.BadRequest(new { code = "validation_error", message = ex.Message }); }
     }
+
+    private static async Task<IResult> ConsultCep(FornecedorConsultaCepRequest? request, IConsultarCepFornecedorUseCase useCase, CancellationToken ct)
+    {
+        if (request is null || string.IsNullOrWhiteSpace(request.Cep))
+            return Results.BadRequest(new { code = "validation_error", message = "Cep é obrigatório." });
+        return Results.Ok(await useCase.ExecuteAsync(new(request.Cep), ct));
+    }
+
+    private static async Task<IResult> ListarMunicipios(string? uf, IListarMunicipiosPorUfUseCase useCase, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(uf)) return Results.BadRequest(new { code = "validation_error", message = "Uf é obrigatória." });
+        return Results.Ok(await useCase.ExecuteAsync(uf, ct));
+    }
+
+    private static async Task<IResult> ListarCategorias(IListarCategoriasFornecedorUseCase useCase, CancellationToken ct) =>
+        Results.Ok(await useCase.ExecuteAsync(ct));
 
     private static async Task<IResult> GetById(Guid id, IObterFornecedorUseCase useCase, CancellationToken ct) =>
         await useCase.ExecuteAsync(id, ct) is { } supplier ? Results.Ok(supplier) : Results.NotFound();

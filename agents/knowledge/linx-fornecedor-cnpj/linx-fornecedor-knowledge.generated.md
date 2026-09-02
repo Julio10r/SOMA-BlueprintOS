@@ -14,6 +14,7 @@ primária, é uma consolidação recuperável. As fontes primárias completas s�
 - `docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md` (`discovery`)
 - `docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md` (`arquitetura`)
 - `.empty/legacy/agents/ai-factory/LinxKnowledge-Fornecedor-Discovery-Snapshot.md` (`snapshot`)
+- `docs/audits/Discovery-Fornecedor-Tela-001016G1.md` (`tela-001016g1`)
 
 ## Rótulos de Proveniência (mesma convenção de `.ai/context/linx-wise-daily-integration.md`)
 
@@ -545,3 +546,176 @@ Decisao aprovada pelo PO: operacoes de escrita de Fornecedor devem ser idempoten
 - **Referência de origem (source_ref)**: .empty/legacy/agents/ai-factory/LinxKnowledge-Fornecedor-Discovery-Snapshot.md#13-D
 - **Restrições/observações**: A protecao minima para a janela residual entre a reconsulta final e o INSERT (concorrencia real) e decisao de implementacao ainda nao resolvida -- orientacao explicita do PO de nao introduzir locks pesados/transacoes longas por padrao.
 - **Tags**: `decisao_po`, `idempotencia`, `create_update`, `concorrencia`
+
+<!-- linx-knowledge-unit: linx-consulta-cnpj-brasilapi-tela-001016g1 -->
+### Consulta de CNPJ na tela 001016G1 usa BrasilAPI, parsing de string sem parser JSON
+
+- **Chave**: `linx-consulta-cnpj-brasilapi-tela-001016g1`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Procedure**: `lx_consultacnpj`
+- **Campos**: `CGC_CPF`, `UF`, `CEP`, `RAZAO_SOCIAL`, `NUMERO`, `COMPLEMENTO`, `DDD1`, `TELEFONE1`, `DDD2`, `TELEFONE2`, `DDDFAX`, `FAX`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+Na tela `001016G1 - Fornecedores` (lx001016G1.SCT), o metodo `lx_consultacnpj` chama `GET https://brasilapi.com.br/api/cnpj/v1/{cnpj}` via `MSXML2.ServerXMLHTTP` de forma sincrona (bloqueante). O parsing da resposta e feito por `Strextract` (substring entre marcadores literais do JSON, ex: '"uf":"'..'","cep":"'), NAO por parser JSON real -- fragil a mudanca de ordem/formatacao dos campos na API. Deteccao de erro e por substring 'BadRequestError'/'NotFoundError' no corpo da resposta, alem de checar oHTTP.status=200. Campos extraidos e aplicados: UF, CEP, Razao Social, Numero, Complemento, DDD1/Telefone1, DDD2/Telefone2, DDD Fax/Fax, CNAE fiscal. Antes de sobrescrever, se `razao_social` ja estiver preenchida, pergunta ao usuario 'Deseja sobrepor os dados ja informados' -- nunca sobrescreve silenciosamente. Apos aplicar, sincroniza Cidade/UF de cobranca e entrega com o principal.
+
+- **Fonte**: docs/audits/Discovery-Fornecedor-Tela-001016G1.md#achado-1
+- **Restrições/observações**: Leitura de strings extraidas do arquivo .SCT (memo binario) fornecido pelo usuario como evidencia; nunca executado. Nao ha evidencia de retry ou timeout configurado na chamada HTTP.
+- **Tags**: `cnpj`, `brasilapi`, `consulta_externa`, `tela_001016g1`
+
+<!-- linx-knowledge-unit: linx-consulta-cep-viacep-tela-001016g1 -->
+### Consulta de CEP na tela 001016G1 usa ViaCEP (nao BrasilAPI) e alimenta cache local CADCEP
+
+- **Chave**: `linx-consulta-cep-viacep-tela-001016g1`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `CADCEP`
+- **Tabela**: `CADCEP`
+- **Procedure**: `lx_consultacep`
+- **Campos**: `CEP`, `LOGRADOURO`, `BAIRRO`, `COMPLEMENTO`, `UF`, `LOCALIDADE`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+Mecanismo de consulta de CEP e DISTINTO do de CNPJ: usa ViaCEP (`GET https://viacep.com.br/ws/{cep}/json/`), nao BrasilAPI. Deteccao de erro por substring '"erro": true' na resposta. Em sucesso, faz INSERT/UPDATE em `dbo.CADCEP` (tabela de cache local de CEPs ja consultados, chave CEP8_LOG) antes de preencher os campos da tela (Endereco/Logradouro, Bairro, Complemento, UF, Cidade/Localidade), e so entao dispara Valid()/refresh em cascata nos campos dependentes (Razao Social, Endereco, Numero, Complemento, Bairro, Cidade, UF, Pais, DDD1, Telefone1).
+
+- **Fonte**: docs/audits/Discovery-Fornecedor-Tela-001016G1.md#achado-2
+- **Restrições/observações**: Extraido de strings do .SCT; nunca executado. Existe tambem um caminho alternativo comentado/desativado (`Val(wSQLVersion) > 13 AND 1=0`) usando OPENJSON, nao ativo na versao lida.
+- **Tags**: `cep`, `viacep`, `consulta_externa`, `tela_001016g1`
+
+<!-- linx-knowledge-unit: linx-campos-obrigatorios-reais-tela-001016g1 -->
+### Lista real de campos obrigatorios para salvar Fornecedor (Incluir/Alterar) na tela generica 001016G1
+
+- **Chave**: `linx-campos-obrigatorios-reais-tela-001016g1`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Campos**: `RAZAO_SOCIAL`, `CGC_CPF`, `RG_IE`, `CIDADE`, `PAIS`, `ENDERECO`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA para os 6 campos confirmados como bloqueantes; NENHUMA confirmacao encontrada para CEP/Numero/Bairro/UF/E-mail/Telefone como obrigatorios nesta tela especifica
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+A validacao de obrigatoriedade no `USR_SAVE_BEFORE`/validacao de pagina da tela generica (lx001016G1.SCT) so bloqueia salvar (Incluir ou Alterar, `p_Tool_Status $ 'IA'`) quando estiverem vazios: Razao Social, CNPJ/CPF, RG/IE, Cidade, Pais, Endereco -- mensagem unica agregando todos os campos faltantes ('Nao permitido salvar com o(s) campo(s): ... Nulo ou Branco!'). CEP, Numero, Bairro, UF, E-mail e Telefone NAO aparecem nessa validacao no codigo lido -- ou seja, a hipotese original (assumindo esses 8+ campos como obrigatorios) nao e confirmada pelo codigo desta tela; pode ser regra apenas de UX/preenchimento recomendado, nao bloqueio real.
+
+- **Fonte**: docs/audits/Discovery-Fornecedor-Tela-001016G1.md#achado-4
+- **Restrições/observações**: GAP-LINX-OBRIGATORIEDADE-ENDERECO (aberto para o PO): nao decidir a lista definitiva de campos obrigatorios do +Compras so por esta evidencia -- confirmar se ha outra trigger/objeto/regra de negocio (fora dos 2 arquivos fornecidos) que exija CEP/Numero/Bairro/UF/E-mail/Telefone antes de reduzir a lista de obrigatorios do +Compras.
+- **Tags**: `obrigatoriedade`, `validacao`, `endereco`, `tela_001016g1`
+
+<!-- linx-knowledge-unit: linx-conta-contabil-obrigatoria-customizacao-cliente -->
+### Conta contabil obrigatoria e regra de customizacao especifica do objeto de entrada (nao da tela generica)
+
+- **Chave**: `linx-conta-contabil-obrigatoria-customizacao-cliente`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `FORNECEDORES`
+- **Tabela**: `FORNECEDORES`
+- **Campos**: `CTB_CONTA_CONTABIL`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA para o que o codigo faz; BAIXA para se e regra de negocio real do SOMA hoje ou legado de outro cliente/ambiente historico
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+`obj_001016G1.prg` (objeto de entrada, customizacao com comentarios referenciando cliente 'Animale', criado por Julio Cesar em 07/02/2011) bloqueia salvar em `USR_SAVE_BEFORE` quando `Tv_Ctb_Conta_Contabil` estiver vazio, com mensagem 'E Obrigatorio Cadastrar a Conta Contabil na aba Compl. 2!'. Esta regra NAO esta na tela generica (lx001016G1.SCT) -- e exclusiva do objeto de entrada customizado, ou seja, e potencialmente especifica do ambiente/cliente onde este objeto esta instalado, nao uma regra universal do Visual Linx.
+
+- **Fonte**: docs/audits/Discovery-Fornecedor-Tela-001016G1.md#achado-5
+- **Restrições/observações**: DUVIDA PARA O PRODUCT OWNER: confirmar se conta contabil obrigatoria e regra de negocio real do SOMA ou legado/copia de customizacao de outro cliente (comentarios do PRG mencionam 'Animale' como cliente original).
+- **Tags**: `conta_contabil`, `customizacao`, `duvida_po`, `tela_001016g1`
+
+<!-- linx-knowledge-unit: linx-duplicidade-cnpj-camadas-tela-001016g1 -->
+### Prevencao de duplicidade de CNPJ/CPF tem 3 camadas independentes e configuraveis por parametro
+
+- **Chave**: `linx-duplicidade-cnpj-camadas-tela-001016g1`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `FORNECEDORES`
+- **Campos**: `CGC_CPF`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+Tres camadas distintas de checagem de CNPJ/CPF duplicado coexistem: (1) tela generica -- parametros `pp_Verifica_Duplicidade_CNPJ`/`pp_Bloqueia_CNPJ_Duplicado` controlam se duplicidade e apenas avisada com confirmacao ('ja existe um terceiro com esse CNPJ/CPF, confirma?') ou bloqueada de forma dura; (2) botao 'Incluir' (`l_inclui`) -- verificacao adicional por GRUPO ECONOMICO via `CADASTRO_CLI_FOR_EMPRESA`/`EMPRESA`: o MESMO CNPJ pode coexistir legitimamente em empresas/grupos diferentes, e o Linx oferece a opcao de vincular o fornecedor ja existente ao grupo atual em vez de duplicar o cadastro; (3) `obj_001016G1.prg` (customizacao, `USR_SAVE_BEFORE`) -- trava adicional que ignora fornecedores com prefixo 'AZCB%' e considera apenas fornecedores ATIVOS (INATIVO=0), controlada por `pp_anm_bloqueia_cnpj_duplica`, com excecao para UF='EX' (fornecedor exterior, onde duplicidade de documento estrangeiro e esperada/permitida).
+
+- **Fonte**: docs/audits/Discovery-Fornecedor-Tela-001016G1.md#achado-6
+- **Restrições/observações**: Qualquer implementacao de verificacao de duplicidade no +Compras deve decidir explicitamente qual das 3 semanticas replicar (aviso configuravel vs bloqueio duro vs escopo por grupo economico vs excecao para UF=EX) -- nao assumir uma unica regra universal.
+- **Tags**: `cnpj`, `duplicidade`, `grupo_economico`, `tela_001016g1`
+
+<!-- linx-knowledge-unit: linx-sanitizacao-nome-fornecedor-tela-001016g1 -->
+### Sanitizacao de espaco inicial e caracteres especiais em codigo do fornecedor e Razao Social (3 campos sincronizados)
+
+- **Chave**: `linx-sanitizacao-nome-fornecedor-tela-001016g1`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Campos**: `NOME_CLIFOR`, `RAZAO_SOCIAL`, `COBRANCA_RAZAO_SOCIAL`, `ENTREGA_RAZAO_SOCIAL`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+No Valid() de `Tv_Fornecedor` (codigo/nome do CliFor) e de `TX_RAZAO_SOCIAL`/`TX_COBRANCA_RAZAO_SOCIAL`/`TX_ENTREGA_RAZAO_SOCIAL`, o Linx remove espaco inicial (LTRIM) e substitui caracteres especiais (`!@#$%&*'{}[]/~^+=;.,`+chr(96)+`?\|` e aspas duplas) por espaco simples via CHRTRAN, avisando o usuario quando algo foi removido ('CARACTER ESPECIAL ENCONTRADO ... CARACTER REMOVIDO!'). A validacao de Razao Social principal tambem propaga o mesmo valor sanitizado para Razao Social de cobranca e de entrega -- os 3 campos sao mantidos sincronizados nesse momento especifico (nao permanentemente, apenas nesta validacao).
+
+- **Fonte**: docs/audits/Discovery-Fornecedor-Tela-001016G1.md#achado-7
+- **Restrições/observações**: Consistente com a unidade ja persistida `linx-nome-clifor-nao-vem-de-sequencial` (algoritmo de sanitizacao variavel por implementacao) -- esta unidade confirma o algoritmo exato usado na tela de cadastro manual (nao apenas em procedures de integracao).
+- **Tags**: `sanitizacao`, `nome_clifor`, `razao_social`, `tela_001016g1`
+
+<!-- linx-knowledge-unit: linx-bloqueio-alteracao-fornecedor-sap-tela-001016g1 -->
+### Fornecedor integrado via SAP nao pode ser alterado manualmente pelo Linx
+
+- **Chave**: `linx-bloqueio-alteracao-fornecedor-sap-tela-001016g1`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `PROP_FORNECEDORES`
+- **Campos**: `NOME_CLIFOR`, `PROPRIEDADE`, `VALOR_PROPRIEDADE`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+`obj_001016G1.prg`, metodo `USR_ALTER_BEFORE`: antes de liberar campos para alteracao, verifica se `nome_clifor LIKE 'AZCB-%'` OU existe propriedade `AZ006='30'` em `prop_fornecedores` para o fornecedor. Se sim E o usuario nao tiver a permissao `pp_gs_perm_alt_clifor_sap`, bloqueia com 'Proibido fazer alteracao via Linx, somente via SAP!!!' e retorna .F. (cancela a alteracao). Confirma, a nivel de tela, o padrao ja registrado na unidade `linx-procedure-p-rsv-integracao-cadastro-fornecedor` (integracao SAP/marketplace usa prefixo AZCB) -- aqui mostrando o lado de PROTECAO contra edicao manual conflitante com a integracao.
+
+- **Fonte**: docs/audits/Discovery-Fornecedor-Tela-001016G1.md#achado-10
+- **Restrições/observações**: Relevante para o fluxo de sincronizacao +Compras<->Linx: se um fornecedor Linx for identificado como originado de integracao SAP (prefixo AZCB ou propriedade AZ006=30), uma escrita do +Compras -> Linx para esse fornecedor especifico pode ser rejeitada pelo proprio Linx: comportamento a confirmar antes de implementar escrita.
+- **Tags**: `sap`, `integracao`, `bloqueio_alteracao`, `tela_001016g1`
+
+<!-- linx-knowledge-unit: linx-inativacao-motivo-obrigatorio-tela-001016g1 -->
+### Inativar fornecedor exige motivo obrigatorio, com log proprio distinto da trigger generica
+
+- **Chave**: `linx-inativacao-motivo-obrigatorio-tela-001016g1`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `GS_LOG_MOTIVO_INATIVACAO_FORNECEDORES`
+- **Campos**: `FORNECEDOR`, `INATIVO`, `MOTIVO_INATIVACAO`, `DATA_ALTERACAO`, `USUARIO_LINX`, `USUARIO_WINDOWS`, `NOME_MAQUINA`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: VFP_CODE_DISCOVERY
+
+Ao marcar o checkbox INATIVO e salvar (`USR_SAVE_AFTER`), se o usuario clicou no checkbox nesta sessao (`xClickInativacao=1`) e o valor final e Inativo=.T., o Linx exige texto de motivo via InputBox ('Descreva o motivo da inativacao', campo obrigatorio) e insere em `GS_LOG_MOTIVO_INATIVACAO_FORNECEDORES` (fornecedor, motivo, data, usuario Linx, usuario Windows, nome da maquina). Esta e uma auditoria PROPRIA de inativacao, distinta e adicional a trigger generica `GSU_CADASTRO_CLI_FOR_LOG` (que grava snapshot de ~35 colunas em toda alteracao, ja registrada na unidade persistida `linx-triggers-cadastro-cli-for`).
+
+- **Fonte**: docs/audits/Discovery-Fornecedor-Tela-001016G1.md#achado-9
+- **Restrições/observações**: Relevante para o achado 1 do Gate (filtro inicial ATIVO/INATIVO): se o +Compras vier a permitir inativar fornecedor pela propria UI, precisa decidir se replica a exigencia de motivo (e onde armazenar) -- DUVIDA PARA O PO.
+- **Tags**: `inativacao`, `auditoria`, `motivo_obrigatorio`, `tela_001016g1`
+
+<!-- linx-knowledge-unit: linx-decisao-po-autoridade-inativacao-fornecedor -->
+### Regra de inativacao de Fornecedor e assimetrica -- Linx tem autoridade, +Compras nao
+
+- **Chave**: `linx-decisao-po-autoridade-inativacao-fornecedor`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: HistoricoDecisao
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Campos**: `INATIVO`
+- **Proveniência**: Validado
+- **Confiança**: ALTA -- decisao direta do Product Owner
+- **Tipo de origem (sourceType)**: PRODUCT_OWNER_DECISION
+
+Decisao aprovada pelo Product Owner (Gate de Fornecedores, correcao 2026-09-02): a inativacao de Fornecedor funciona de forma assimetrica entre +Compras e Linx. (1) +Compras -> Linx: quando um fornecedor e inativado no +Compras (InativarFornecedorUseCase, DELETE /fornecedores/{id}, semantica de AlterarStatus conforme DR-18), a inativacao NUNCA e propagada ao Linx -- nao altera INATIVO/status do cadastro no ERP. Isto e comportamento BY DESIGN, nao uma pendencia ou bug: InativarFornecedorUseCase e estruturalmente incapaz de escrever no ERP (nao recebe adapter/use case de ERP como dependencia). (2) Linx -> +Compras: quando o Linx reporta um fornecedor como inativo, a sincronizacao/atualizacao a partir do ERP (SincronizarFornecedorUseCase, direcao ErpParaMaisCompras -- mesma engine do botao 'Atualizar do ERP') deve refletir essa inativacao no +Compras, e essa checagem tem prioridade sobre qualquer comparacao de timestamp/hash mais recente. Resumo de autoridade: o ERP tem autoridade para inativar no +Compras; o +Compras nao tem autoridade para inativar no ERP.
+
+- **Fonte**: applications/mais-compras/backend/src/BlueprintOS.Application/Procurement/Suppliers/FornecedorUseCases.cs (InativarFornecedorUseCase); applications/mais-compras/backend/src/BlueprintOS.Application/Procurement/Suppliers/SincronizarFornecedorUseCase.cs (ImportarAsync, checagem !externo.Ativo)
+- **Referência de origem (source_ref)**: .ai/PROJECT_STATE.md#gate-fornecedores-aprovado-pelo-product-owner-01-09-2026
+- **Restrições/observações**: Nao confundir com a capability administrativa distinta e Sistema.Gerenciar-protegida exposta por POST /api/fornecedores/sincronizar com Operacao=Inativar e Direcao=MaisComprasParaErp (SincronizarFornecedorUseCase.ExportarAsync): essa rota explicita de reconciliacao administrativa PODE escrever inativacao no ERP quando acionada deliberadamente por um operador com Sistema.Gerenciar -- e uma ferramenta operacional distinta da acao padrao de inativar fornecedor na tela de Fornecedores (Fornecedor.Editar), e nao contradiz esta regra.
+- **Tags**: `decisao_po`, `inativacao`, `autoridade_erp`, `assimetria`, `by_design`

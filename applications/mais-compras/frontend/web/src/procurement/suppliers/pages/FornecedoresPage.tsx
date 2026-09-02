@@ -1,23 +1,28 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { CadastroFornecedor } from "../components/CadastroFornecedor";
-import { ConfirmToggleAtivoFornecedorModal } from "../components/ConfirmToggleAtivoFornecedorModal";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "../../../auth/hooks/useAuth";
+import { PERMISSOES } from "../../../auth/types/authTypes";
 import { FornecedorPagination } from "../components/FornecedorPagination";
 import { FornecedorTable } from "../components/FornecedorTable";
 import { manualFornecedorDraftInicial, ManualFornecedorForm } from "../components/ManualFornecedorForm";
-import { NovoFornecedorEntryModal } from "../components/NovoFornecedorEntryModal";
-import {
-  alterarStatusFornecedor,
-  createFornecedorManual,
-  searchFornecedoresPaginado
-} from "../services/supplierEnrichmentApi";
+import { createFornecedorManual, FornecedorJaExisteNoErpError, searchFornecedoresPaginado } from "../services/supplierEnrichmentApi";
 import type { Fornecedor, FornecedorStatusFiltro, ManualFornecedorDraft } from "../types/linxSupplierContract";
 
 const PAGE_SIZE = 20;
 /** Debounce da busca por nome/CNPJ: evita disparar uma requisição por tecla digitada. */
 const SEARCH_DEBOUNCE_MS = 320;
 
-type PainelNovoFornecedor = "escolha" | "cnpj" | "manual" | null;
+/**
+ * Gate de homologação (2026-09-01): "+ Novo fornecedor" leva direto ao formulário único de
+ * cadastro (sem etapa intermediária de escolha entre "Consultar por CNPJ"/"Preencher
+ * manualmente") — a consulta de CNPJ agora acontece dentro do próprio formulário
+ * (ManualFornecedorForm), com confirmação ao terminar de digitar o CNPJ, no mesmo padrão do
+ * Visual Linx (achado 1, docs/audits/Discovery-Fornecedor-Tela-001016G1.md: "Deseja consultar
+ * online os dados cadastrais deste CNPJ?"). O wizard anterior (CadastroFornecedor + Review de
+ * divergências) deixou de ser o ponto de entrada de novo fornecedor; o componente permanece no
+ * código (não deletado) caso a capacidade de revisão de divergências seja retomada depois.
+ */
+type PainelNovoFornecedor = "manual" | null;
 
 /**
  * Listagem/browse de Fornecedores (redesenho O1.x): busca por CNPJ/nome, filtro de status,
@@ -29,9 +34,19 @@ type PainelNovoFornecedor = "escolha" | "cnpj" | "manual" | null;
  * voltar restaure o contexto da listagem.
  */
 export function FornecedoresPage() {
+  const navigate = useNavigate();
+  const { usuario } = useAuth();
+  // Gate de homologação (2026-09-01): "+ Novo fornecedor" só aparece para quem tem a permissão
+  // Fornecedor.Criar — mesmo padrão de gate de permissão já usado na navegação (AppShell.tsx).
+  const permissoesEfetivas = (usuario?.permissoes ?? []).map((codigo) => codigo.toLowerCase());
+  const podeCriarFornecedor = permissoesEfetivas.includes(PERMISSOES.fornecedorCriar.toLowerCase());
+
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get("search") ?? "";
-  const status = (searchParams.get("status") as FornecedorStatusFiltro | null) ?? "Todos";
+  // Gate de homologação (2026-09-01): a tela deve abrir filtrando Ativos por padrão — sem
+  // parâmetro "status" na URL, assume-se "Ativo", nunca "Todos". O usuário continua podendo
+  // trocar para Todos/Inativo pelo próprio filtro.
+  const status = (searchParams.get("status") as FornecedorStatusFiltro | null) ?? "Ativo";
   const page = Number(searchParams.get("page") ?? "1") || 1;
 
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
@@ -62,10 +77,9 @@ export function FornecedoresPage() {
   const [manualDraft, setManualDraft] = useState<ManualFornecedorDraft>(manualFornecedorDraftInicial);
   const [salvandoManual, setSalvandoManual] = useState(false);
   const [erroManual, setErroManual] = useState<string | null>(null);
-
-  const [fornecedorParaAlternar, setFornecedorParaAlternar] = useState<Fornecedor | null>(null);
-  const [alternandoStatus, setAlternandoStatus] = useState(false);
-  const [erroToggle, setErroToggle] = useState<string | null>(null);
+  // Gate de homologação (2026-09-01): CNPJ/CPF já existe como Fornecedor no Linx — aviso com "OK"
+  // antes de abrir o detalhe do fornecedor existente (nunca duplicar).
+  const [fornecedorJaExistente, setFornecedorJaExistente] = useState<{ mensagem: string; fornecedorId: string } | null>(null);
 
   const carregar = useCallback(async () => {
     // Aborta qualquer requisição anterior ainda em voo: se "am" ainda não respondeu quando
@@ -106,21 +120,6 @@ export function FornecedoresPage() {
     setSearchParams(params);
   }
 
-  async function confirmarToggleAtivo() {
-    if (!fornecedorParaAlternar) return;
-    setAlternandoStatus(true);
-    setErroToggle(null);
-    try {
-      await alterarStatusFornecedor(fornecedorParaAlternar.id, fornecedorParaAlternar.status === "Inativo");
-      setFornecedorParaAlternar(null);
-      await carregar();
-    } catch (err) {
-      setErroToggle(err instanceof Error ? err.message : "Falha ao alterar o status do fornecedor.");
-    } finally {
-      setAlternandoStatus(false);
-    }
-  }
-
   async function handleCadastrarManual(draft: ManualFornecedorDraft) {
     setSalvandoManual(true);
     setErroManual(null);
@@ -130,6 +129,14 @@ export function FornecedoresPage() {
       setManualDraft(manualFornecedorDraftInicial);
       await carregar();
     } catch (err) {
+      if (err instanceof FornecedorJaExisteNoErpError) {
+        // Nunca duplicar: fecha o formulário de cadastro e mostra o aviso — "OK" abre o detalhe do
+        // fornecedor já existente (importado do ERP nesta mesma operação pelo backend).
+        setPainelNovo(null);
+        setManualDraft(manualFornecedorDraftInicial);
+        setFornecedorJaExistente({ mensagem: err.message, fornecedorId: err.fornecedorId });
+        return;
+      }
       setErroManual(err instanceof Error ? err.message : "Falha ao cadastrar fornecedor.");
     } finally {
       setSalvandoManual(false);
@@ -153,9 +160,11 @@ export function FornecedoresPage() {
               <div className="section-title">Fornecedores</div>
               <h2>Fornecedores cadastrados</h2>
             </div>
-            <button type="button" className="btn btn-primary" onClick={() => setPainelNovo("escolha")}>
-              + Novo fornecedor
-            </button>
+            {podeCriarFornecedor && (
+              <button type="button" className="btn btn-primary" onClick={() => setPainelNovo("manual")}>
+                + Novo fornecedor
+              </button>
+            )}
           </div>
 
           <div className="input-row">
@@ -198,21 +207,16 @@ export function FornecedoresPage() {
                     Limpar busca
                   </button>
                 )}
-                <button type="button" className="btn btn-primary" onClick={() => setPainelNovo("escolha")}>
-                  + Novo fornecedor
-                </button>
+                {podeCriarFornecedor && (
+                  <button type="button" className="btn btn-primary" onClick={() => setPainelNovo("manual")}>
+                    + Novo fornecedor
+                  </button>
+                )}
               </div>
             </div>
           ) : (
             <>
-              <FornecedorTable
-                fornecedores={fornecedores}
-                onToggleAtivo={(fornecedor) => {
-                  setErroToggle(null);
-                  setFornecedorParaAlternar(fornecedor);
-                }}
-                toQueryString={toQueryString}
-              />
+              <FornecedorTable fornecedores={fornecedores} toQueryString={toQueryString} />
               <FornecedorPagination
                 page={page}
                 pageSize={PAGE_SIZE}
@@ -223,35 +227,6 @@ export function FornecedoresPage() {
           )}
         </section>
       </div>
-
-      {painelNovo === "escolha" && (
-        <NovoFornecedorEntryModal
-          onSelectCnpj={() => setPainelNovo("cnpj")}
-          onSelectManual={() => setPainelNovo("manual")}
-          onCancel={() => setPainelNovo(null)}
-        />
-      )}
-
-      {painelNovo === "cnpj" && (
-        <div className="modal-overlay" role="dialog" aria-modal="true">
-          <div className="modal-card modal-card-wide card">
-            <div className="card-heading">
-              <h2>Consultar por CNPJ</h2>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => {
-                  setPainelNovo(null);
-                  carregar();
-                }}
-              >
-                Fechar
-              </button>
-            </div>
-            <CadastroFornecedor />
-          </div>
-        </div>
-      )}
 
       {painelNovo === "manual" && (
         <div className="modal-overlay" role="dialog" aria-modal="true">
@@ -267,20 +242,33 @@ export function FornecedoresPage() {
               }}
               loading={salvandoManual}
               error={erroManual}
+              title="Novo fornecedor"
+              subtitle="Preencha as informações para cadastrar um novo fornecedor."
             />
           </div>
         </div>
       )}
 
-      {fornecedorParaAlternar && (
-        <ConfirmToggleAtivoFornecedorModal
-          fornecedor={fornecedorParaAlternar}
-          ativando={fornecedorParaAlternar.status === "Inativo"}
-          error={erroToggle}
-          loading={alternandoStatus}
-          onConfirm={confirmarToggleAtivo}
-          onCancel={() => setFornecedorParaAlternar(null)}
-        />
+      {fornecedorJaExistente && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card card">
+            <h2>Fornecedor já cadastrado</h2>
+            <p>{fornecedorJaExistente.mensagem}</p>
+            <div className="actions">
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  const fornecedorId = fornecedorJaExistente.fornecedorId;
+                  setFornecedorJaExistente(null);
+                  navigate(`/fornecedores/${fornecedorId}${toQueryString}`);
+                }}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );

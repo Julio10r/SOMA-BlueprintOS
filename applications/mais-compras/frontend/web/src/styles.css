@@ -277,6 +277,179 @@ select:focus {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: var(--space-3);
 }
+/* Controle de largura por campo dentro de .data-grid (4 colunas) — usado para dar espaço
+   proporcional ao conteúdo real (ex: Razão Social/Logradouro precisam de mais espaço que
+   UF/Número). Em telas estreitas o .data-grid já reduz para 2/1 colunas (breakpoints abaixo);
+   um span maior que o número de colunas disponíveis simplesmente ocupa a linha inteira. */
+.field-span-2 { grid-column: span 2; }
+.field-span-4 { grid-column: span 4; }
+
+/* Grid de 3 colunas iguais — usado quando um bloco tem exatamente 3 campos de peso semelhante
+   (ex: Contato: E-mail/Telefone/Website), evitando a 4ª coluna vazia do .data-grid padrão. */
+.data-grid-3 {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: var(--space-3);
+}
+/* Grid de 2 colunas iguais — usado para pares de campos de mesmo peso dentro de uma seção que já
+   tem outras linhas com número de colunas diferente (ex: Endereço: Complemento/Bairro, entre a
+   linha de 3 colunas CEP/Logradouro/Número e a linha de 3 colunas UF/Cidade/País). */
+.data-grid-2 {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: var(--space-3);
+}
+/* Campo que deve ocupar a linha inteira, qualquer que seja o grid em que está (ex: Razão Social
+   abaixo da linha CNPJ/Nome Fantasia/Categoria, no Design Review pós-Onda 1 pedido pelo
+   homologador). */
+.field-span-all { grid-column: 1 / -1; }
+
+/* Cada campo editável (rótulo + input/select + espaço reservado para erro/dica) — sem isso, o
+   <label> não tinha layout próprio (ficava sujeito ao fluxo inline do navegador) e o aparecimento
+   condicional de field-error/field-hint fazia o campo (e às vezes os vizinhos na mesma linha do
+   grid) "pular" de posição. .field-feedback é sempre renderizado (mesmo vazio) para reservar a
+   altura e manter o campo ancorado independentemente do estado de validação. */
+.field-editable {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.field-editable > span:first-child,
+.field-editable > label:first-child {
+  font-size: var(--t-body-sm);
+  font-weight: 600;
+}
+/* Estilo explícito por seletor de classe, não por [type="..."]: a maioria dos <input> deste
+   formulário não tem o atributo "type" definido no JSX (só valor/onChange), então a regra global
+   `input[type="text"], input[type="email"], ...` não os alcançava — só o campo E-mail
+   (type="email") ficava com a aparência correta, enquanto os demais (Razão Social, CNPJ, CEP,
+   Logradouro, Número, Telefone, etc.) caíam no estilo padrão do navegador. Isso fazia os campos
+   parecerem inconsistentes entre si (o feedback do homologador: "layout dos campos textbox
+   precisam ser todos iguais, igual ao campo email e UF/Cidade"). Aplicando aqui por classe do
+   contêiner, cobre qualquer <input> do formulário independentemente do atributo type.
+   Select mantém sua própria regra global (seta/appearance customizados) — só a largura é herdada. */
+.field-editable input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: var(--t-body);
+  min-height: 42px;
+  padding: 0 var(--space-4);
+  width: 100%;
+}
+.field-editable input:disabled {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+.field-editable input:focus {
+  background: var(--surface);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(26, 25, 22, .06);
+  outline: none;
+}
+.field-editable select {
+  width: 100%;
+}
+/* País continua sendo um <input list="..."> (combo com busca/filtro, via <datalist> nativa) —
+   nao um <select> — mas precisa ter a MESMA aparência do combo de Categoria (mesma seta, mesmo
+   espaçamento à direita), pedido do homologador. Só o visual muda; o comportamento de busca do
+   datalist nativo é preservado. */
+.field-editable input.field-combo {
+  appearance: none;
+  background-color: var(--surface);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B9890' stroke-width='2' stroke-linecap='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  padding-right: 32px;
+}
+/* Amarelo/âmbar (--warn-bright) e negrito — mesmo tratamento pedido para .field-error (2026-09-01,
+   homologador): o formulário de Fornecedor usa .field-feedback como o span que efetivamente
+   recebe a mensagem de erro (obrigatório/CNPJ-CPF inválido/etc.), não .field-error diretamente —
+   a cor precisa estar aqui para valer nesse formulário. */
+.field-feedback {
+  color: var(--warn-bright);
+  display: block;
+  font-size: var(--t-caption);
+  font-weight: 700;
+}
+/* Vazio (sem erro) não reserva espaço — o espaçamento entre uma linha de campos e a próxima vem só
+   do gap do grid (mesmo valor do espaço entre um rótulo e seu próprio campo), nunca de uma "sobra"
+   de altura de um slot de erro que não está sendo exibido. Quando um erro aparece, o campo cresce
+   pelo tamanho real do texto — não há mais um slot fixo de 16px sempre reservado. */
+.field-feedback:empty { display: none; }
+.field-editable .field-error { margin-top: 0; }
+/* Grupo DDI + número dentro do campo Telefone — DDI tem largura fixa estreita, número ocupa o
+   restante (Gate de homologação, 2026-09-01: telefone precisa de DDI + máscara). */
+.field-phone-group { display: flex; gap: var(--space-2); }
+.field-phone-group .field-ddi { flex: 0 0 72px; }
+.field-phone-group .field-numero { flex: 1; min-width: 0; }
+/* Ícone de informação estático ao lado do rótulo (ex: CNPJ/CPF) — substitui uma caixa de dica
+   condicional abaixo do campo, que fazia o campo "pular" de altura ao aparecer/desaparecer. */
+.field-info-icon { color: var(--text-muted); cursor: help; font-weight: 400; }
+
+/* Modal de cadastro compacto (Gate de homologação, 2026-09-01): reduz o espaçamento vertical
+   entre blocos para caber em uma tela comum sem scroll, sem alterar o Design System em si
+   (mesmas cores/tipografia/bordas — só menos respiro vertical). */
+.form-compact .data-block + .data-block { margin-top: var(--space-3); padding-top: var(--space-3); }
+/* Mesma distância em todo lugar (pedido do homologador): o espaço entre linhas de campos (grid
+   row-gap e margem entre um data-grid-* e o seguinte) igual ao espaço entre um rótulo e seu
+   próprio campo dentro de .field-editable (var(--space-1) — ver regra de .field-editable acima). */
+.form-compact .data-grid,
+.form-compact .data-grid-3,
+.form-compact .data-grid-2 { margin-top: var(--space-1); gap: var(--space-1) var(--space-3); }
+.form-compact .section-title { margin-bottom: 2px; }
+
+.modal-form-header {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+}
+.modal-form-header-icon {
+  align-items: center;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  display: flex;
+  flex-shrink: 0;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+.modal-form-header-icon svg { height: 20px; width: 20px; }
+.modal-form-header h2 { margin: 0; }
+.modal-form-header p { color: var(--text-secondary); margin: 2px 0 0; }
+.modal-form-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 20px;
+  line-height: 1;
+  padding: 4px;
+}
+.modal-form-close:hover { color: var(--text-primary); }
+.field-hint {
+  align-items: flex-start;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  display: flex;
+  font-size: var(--t-caption);
+  gap: 6px;
+  padding: 6px 10px;
+}
+/* CEP + botão "Buscar CEP" lado a lado, não empilhados — o campo cabe no espaço de uma coluna do
+   data-grid-3 porque o botão não estica (largura pelo próprio conteúdo, texto sem quebra). */
+.field-inline-action { display: flex; flex-direction: row; gap: var(--space-2); }
+.field-inline-action input { min-width: 0; }
+.field-inline-action .btn { flex-shrink: 0; padding-left: var(--space-3); padding-right: var(--space-3); white-space: nowrap; }
 .field-readonly {
   background: var(--surface-2);
   border: 1px solid var(--border-soft);
@@ -574,12 +747,26 @@ tbody tr:last-child td { border-bottom: none; }
 .pagination-summary { color: var(--text-secondary); font-size: var(--t-body-sm); }
 .pagination-controls { align-items: center; display: flex; gap: var(--space-3); }
 .pagination-page { color: var(--text-muted); font-size: var(--t-body-sm); }
+/* Ações dentro de uma célula de tabela: sem o margin-top de .actions (pensado para o rodapé de
+   um card/form) — aqui deixaria o botão "puxado" para baixo, fora do centro vertical da linha. */
+.table-row-actions { display: flex; gap: var(--space-3); }
+/* Alinha o texto do cabeçalho "Ações" com o texto dentro do botão da célula (botão tem padding
+   interno próprio — sem isso o rótulo do cabeçalho fica mais à esquerda que o texto do botão). */
+.th-align-button { padding-left: calc(14px + 18px + 1px); }
 .table-row-clickable { cursor: pointer; }
 .table-row-clickable:hover { background: var(--surface-2); }
 .table-subtext { color: var(--text-muted); font-size: var(--t-caption); }
-.field-error { color: var(--rejeitado); display: block; font-size: var(--t-caption); margin-top: var(--space-1); }
+/* Amarelo/âmbar (--warn-bright) e negrito — feedback de campo (2026-09-01, homologador): a cor
+   vermelha discreta anterior passava despercebida; precisa chamar mais atenção. */
+.field-error { color: var(--warn-bright); display: block; font-size: var(--t-caption); font-weight: 700; margin-top: var(--space-1); }
 .badges-row { align-items: center; display: flex; flex-shrink: 0; gap: var(--space-2); }
 .actions-stacked { display: grid; gap: var(--space-3); margin-top: var(--space-3); }
+/* Par de ações de mesma importância lado a lado (ex: "Consultar por CNPJ" / "Preencher
+   manualmente" no modal "+ Novo fornecedor") — largura igual, empilha em telas estreitas. */
+.actions-choice { display: grid; gap: var(--space-3); grid-template-columns: 1fr 1fr; margin-top: var(--space-3); }
+@media (max-width: 480px) {
+  .actions-choice { grid-template-columns: 1fr; }
+}
 details > summary { cursor: pointer; font-weight: 600; margin: var(--space-4) 0 var(--space-2); }
 details .data-grid { margin-top: var(--space-3); }
 

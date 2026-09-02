@@ -111,7 +111,11 @@ public sealed record ConsultaCnpjResultado(
         // (seção K do relatório de arquitetura, ADR-0023) — exigir um documento válido para registrar
         // a própria falha de invalidez recriaria o BUG-3 (documento inválido nunca deve lançar exceção
         // antes de produzir uma resposta de erro classificada).
-        var documento = new string((cnpjCpf ?? string.Empty).Where(char.IsDigit).ToArray());
+        // CNPJ alfanumérico (Instrução Normativa RFB nº 2.229/2024): preserva letras A-Z das 12
+        // primeiras posições — Where(char.IsDigit) as descartava, mostrando ao usuário um
+        // documento truncado/errado na resposta de falha.
+        var documento = new string((cnpjCpf ?? string.Empty).ToUpperInvariant()
+            .Where(c => (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z')).ToArray());
         if (string.IsNullOrWhiteSpace(fonteConsulta)) throw new ArgumentException("FonteConsulta is required.", nameof(fonteConsulta));
         var mensagem = string.IsNullOrWhiteSpace(mensagemErro) ? MensagemPadrao(tipoErro) : mensagemErro.Trim();
         // SituacaoCadastral so e preenchida em consultas bem-sucedidas (nunca em falha) —
@@ -133,8 +137,12 @@ public sealed record ConsultaCnpjResultado(
         TipoErroConsultaCnpj.Timeout => "A consulta demorou demais. Tente novamente.",
         TipoErroConsultaCnpj.LimiteDeConsultas => "Limite de consultas excedido. Tente novamente em breve.",
         TipoErroConsultaCnpj.ErroDeAutenticacaoDoProvider => "Erro de configuração da integração. Contate o suporte.",
-        TipoErroConsultaCnpj.RespostaInvalida => "Resposta inesperada da fonte externa. Contate o suporte.",
-        TipoErroConsultaCnpj.ErroInterno => "Erro interno. Tente novamente ou contate o suporte.",
+        // Retest do Gate de Fornecedores (2026-09-01), item 7: mesmo raciocínio de ConsultaCepResultado —
+        // uma resposta em formato inesperado ou uma falha interna da consulta de CNPJ sempre tem
+        // fallback real (preencher manualmente); a mensagem nunca deve soar como beco sem saída. Detalhe
+        // técnico (TipoErro) continua preservado para logs/auditoria.
+        TipoErroConsultaCnpj.RespostaInvalida => "Não foi possível consultar o CNPJ automaticamente. Você pode preencher os dados manualmente.",
+        TipoErroConsultaCnpj.ErroInterno => "Não foi possível consultar o CNPJ agora. Você pode preencher os dados manualmente.",
         _ => "Erro interno. Tente novamente ou contate o suporte."
     };
 }

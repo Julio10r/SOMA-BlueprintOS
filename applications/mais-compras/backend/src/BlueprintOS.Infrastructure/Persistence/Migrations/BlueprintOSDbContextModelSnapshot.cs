@@ -1057,6 +1057,105 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                     b.ToTable("LinxConhecimentoEntradas", (string)null);
                 });
 
+            modelBuilder.Entity("BlueprintOS.Domain.Procurement.Suppliers.CategoriaFornecedor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.ToTable("CategoriasFornecedor", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("8a9f1b1a-0001-4a00-9a00-000000000001"),
+                            Ativo = true,
+                            Codigo = "MATERIA_PRIMA",
+                            Descricao = "Matéria-Prima"
+                        },
+                        new
+                        {
+                            Id = new Guid("8a9f1b1a-0001-4a00-9a00-000000000002"),
+                            Ativo = true,
+                            Codigo = "EMBALAGEM",
+                            Descricao = "Embalagem"
+                        },
+                        new
+                        {
+                            Id = new Guid("8a9f1b1a-0001-4a00-9a00-000000000003"),
+                            Ativo = true,
+                            Codigo = "SERVICOS_GERAIS",
+                            Descricao = "Serviços Gerais"
+                        },
+                        new
+                        {
+                            Id = new Guid("8a9f1b1a-0001-4a00-9a00-000000000004"),
+                            Ativo = true,
+                            Codigo = "TRANSPORTE_LOGISTICA",
+                            Descricao = "Transporte e Logística"
+                        },
+                        new
+                        {
+                            Id = new Guid("8a9f1b1a-0001-4a00-9a00-000000000005"),
+                            Ativo = true,
+                            Codigo = "MARKETING_PUBLICIDADE",
+                            Descricao = "Marketing e Publicidade"
+                        },
+                        new
+                        {
+                            Id = new Guid("8a9f1b1a-0001-4a00-9a00-000000000006"),
+                            Ativo = true,
+                            Codigo = "TECNOLOGIA_INFORMACAO",
+                            Descricao = "Tecnologia da Informação"
+                        },
+                        new
+                        {
+                            Id = new Guid("8a9f1b1a-0001-4a00-9a00-000000000007"),
+                            Ativo = true,
+                            Codigo = "MANUTENCAO_FACILITIES",
+                            Descricao = "Manutenção e Facilities"
+                        },
+                        new
+                        {
+                            Id = new Guid("8a9f1b1a-0001-4a00-9a00-000000000008"),
+                            Ativo = true,
+                            Codigo = "CONSULTORIA",
+                            Descricao = "Consultoria"
+                        },
+                        new
+                        {
+                            Id = new Guid("8a9f1b1a-0001-4a00-9a00-000000000009"),
+                            Ativo = true,
+                            Codigo = "EQUIPAMENTOS",
+                            Descricao = "Equipamentos"
+                        },
+                        new
+                        {
+                            Id = new Guid("8a9f1b1a-0001-4a00-9a00-00000000000a"),
+                            Ativo = true,
+                            Codigo = "OUTROS",
+                            Descricao = "Outros"
+                        });
+                });
+
             modelBuilder.Entity("BlueprintOS.Domain.Procurement.Suppliers.ErroSincronizacaoFornecedor", b =>
                 {
                     b.Property<Guid>("Id")

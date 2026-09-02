@@ -1,4 +1,6 @@
 import type {
+  CategoriaFornecedorOption,
+  ConsultaCepResultado,
   ConsultaCnpjResultado,
   Fornecedor,
   FornecedorEnriquecimentoAnalise,
@@ -6,6 +8,7 @@ import type {
   FornecedorPesquisaParametros,
   ManualFornecedorDraft
 } from "../types/linxSupplierContract";
+import { combinarTelefone } from "../types/linxSupplierContract";
 
 type RequestOptions = {
   businessUnit: string;
@@ -29,19 +32,43 @@ function apiUrl(path: string): string {
   return `${apiBaseUrl}${path}`;
 }
 
+/**
+ * Gate de homologação de Fornecedores (2026-09-01): sinaliza que o CNPJ/CPF informado já existe
+ * como Fornecedor no Linx — o backend não criou um registro duplicado; `fornecedorId` aponta para
+ * o registro local que já representa esse fornecedor (a UI deve abrir o detalhe dele, não tentar
+ * cadastrar de novo).
+ */
+export class FornecedorJaExisteNoErpError extends Error {
+  fornecedorId: string;
+  constructor(message: string, fornecedorId: string) {
+    super(message);
+    this.name = "FornecedorJaExisteNoErpError";
+    this.fornecedorId = fornecedorId;
+  }
+}
+
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
   if (!response.ok) {
     const body = await response.json().catch(() => null);
+    if (body?.code === "ja_existe_no_erp" && typeof body?.fornecedorId === "string") {
+      throw new FornecedorJaExisteNoErpError(body.message ?? "Fornecedor já existe no ERP.", body.fornecedorId);
+    }
     throw new Error(body?.message ?? `Falha HTTP ${response.status}`);
   }
   return response.json() as Promise<T>;
 }
 
+/**
+ * GET /fornecedores?q= responde com o contrato paginado (FornecedorPesquisaPaginada, { items,
+ * totalCount, ... }), não com um array simples — desde o redesenho O1.x da listagem. As duas
+ * funções abaixo consomem o mesmo endpoint e precisam ler `.items`, nunca tratar a resposta como
+ * array diretamente (causa raiz do bug "suppliers.find is not a function" no wizard de CNPJ).
+ */
 export async function searchSupplierByDocument(cnpjCpf: string): Promise<Fornecedor | null> {
-  const suppliers = await request<Fornecedor[]>(apiUrl(`/fornecedores?q=${encodeURIComponent(cnpjCpf)}`));
+  const resultado = await request<FornecedorPesquisaPaginada>(apiUrl(`/fornecedores?q=${encodeURIComponent(cnpjCpf)}`));
   const normalized = normalizeDocument(cnpjCpf);
-  return suppliers.find((supplier) => normalizeDocument(supplier.cnpj_Cpf) === normalized) ?? null;
+  return resultado.items.find((supplier) => normalizeDocument(supplier.cnpj_Cpf) === normalized) ?? null;
 }
 
 /**
@@ -50,7 +77,8 @@ export async function searchSupplierByDocument(cnpjCpf: string): Promise<Fornece
  * GET /fornecedores?q= ja consumido pelo fluxo de cadastro.
  */
 export async function listSuppliers(): Promise<Fornecedor[]> {
-  return request<Fornecedor[]>(apiUrl("/fornecedores?q="));
+  const resultado = await request<FornecedorPesquisaPaginada>(apiUrl("/fornecedores?q="));
+  return resultado.items;
 }
 
 /**
@@ -120,7 +148,7 @@ function manualDraftToRequestBody(draft: ManualFornecedorDraft) {
     tipoPessoa: draft.tipoPessoa || resolveTipoPessoa(cnpjDigits),
     categoria: draft.categoria || null,
     email: draft.email || null,
-    telefone: draft.telefone || null,
+    telefone: combinarTelefone(draft.telefoneDdi, draft.telefone) || null,
     website: draft.website || null,
     cidade: draft.cidade || null,
     estado: draft.estado || null,
@@ -138,15 +166,46 @@ function manualDraftToRequestBody(draft: ManualFornecedorDraft) {
 }
 
 /**
- * Dispara a operação explícita "garantir/atualizar fornecedor no ERP" (B2.9,
- * POST /api/fornecedores/{id}/garantir-erp) — reaproveitada aqui como ação "Sincronizar com ERP" da
- * tela de detalhe. Nunca disparada implicitamente por consulta/edição (B2.6).
+ * Dispara a operação explícita "enviar alterações locais ao ERP" (+Compras -> ERP, B2.9,
+ * POST /api/fornecedores/{id}/garantir-erp) — ação "Enviar ao ERP" da tela de detalhe. Nunca
+ * disparada implicitamente por consulta/edição (B2.6). Não lê nada de volta do ERP — é um upsert
+ * unidirecional; para trazer dados do ERP para o +Compras, ver `atualizarFornecedorDoErp`.
  */
 export async function garantirFornecedorNoErp(id: string, businessUnit: string, correlationId: string): Promise<unknown> {
   return request<unknown>(apiUrl(`/api/fornecedores/${encodeURIComponent(id)}/garantir-erp`), {
     method: "POST",
     headers,
     body: JSON.stringify({ businessUnit, correlationId })
+  });
+}
+
+/**
+ * Dispara a operação explícita "atualizar do ERP" (ERP -> +Compras, direção
+ * `ErpParaMaisCompras`), via a engine de sincronização já existente no backend
+ * (`ISincronizarFornecedorUseCase`, POST /api/fornecedores/sincronizar) — a mesma que já resolve
+ * conflito por timestamp/hash e grava proveniência em FornecedoresSincronizacoes. Gate de
+ * homologação (2026-09-01, item 2): antes desta correção, o único botão "Sincronizar com ERP"
+ * chamava apenas `garantirFornecedorNoErp` (+Compras -> ERP), nunca lia o ERP de volta — esta
+ * função fecha essa lacuna sem tocar na semântica do envio.
+ */
+export async function atualizarFornecedorDoErp(params: {
+  fornecedorId: string;
+  businessUnit: string;
+  erpSistema: string;
+  erpFornecedorId?: string | null;
+  correlationId: string;
+}): Promise<unknown> {
+  return request<unknown>(apiUrl("/api/fornecedores/sincronizar"), {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      businessUnit: params.businessUnit,
+      erpSistema: params.erpSistema,
+      erpFornecedorId: params.erpFornecedorId ?? null,
+      fornecedorId: params.fornecedorId,
+      direcao: "ErpParaMaisCompras",
+      correlationId: params.correlationId
+    })
   });
 }
 
@@ -187,6 +246,33 @@ export async function createSupplierDraft(cnpjCpf: string, consulta?: ConsultaCn
       cnaePrincipalDescricao: consulta?.cnaePrincipalDescricao ?? null
     })
   });
+}
+
+/**
+ * Consulta de CEP pelo backend (Gate de homologação, 2026-09-01, item 6) — nunca chamada externa
+ * direta do frontend, mesmo padrão arquitetural de `consultCnpj`. O backend usa ViaCEP (mesma fonte
+ * que o Linx, achado 2 de docs/audits/Discovery-Fornecedor-Tela-001016G1.md), não BrasilAPI.
+ */
+export async function consultCep(cep: string): Promise<ConsultaCepResultado> {
+  return request<ConsultaCepResultado>(apiUrl("/fornecedores/consulta-cep"), {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ cep })
+  });
+}
+
+/**
+ * Lista municípios reais de uma UF (Gate de homologação, 2026-09-01) — sempre pelo backend
+ * (proxy da API de localidades do IBGE), nunca chamada externa direta do frontend.
+ */
+export async function listarMunicipiosPorUf(uf: string): Promise<string[]> {
+  return request<string[]>(apiUrl(`/fornecedores/municipios?uf=${encodeURIComponent(uf)}`));
+}
+
+/** Catálogo pré-cadastrado de Categoria de Fornecedor (Gate de homologação, 2026-09-01) — GET
+ * /fornecedores/categorias, tabela própria do +Compras (não é texto livre nem lista hardcoded). */
+export async function listarCategoriasFornecedor(): Promise<CategoriaFornecedorOption[]> {
+  return request<CategoriaFornecedorOption[]>(apiUrl("/fornecedores/categorias"));
 }
 
 export async function consultCnpj(cnpjCpf: string, options: RequestOptions): Promise<ConsultaCnpjResultado> {

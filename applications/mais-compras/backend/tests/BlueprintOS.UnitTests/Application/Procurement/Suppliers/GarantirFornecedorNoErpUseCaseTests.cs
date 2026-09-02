@@ -33,6 +33,55 @@ public sealed class GarantirFornecedorNoErpUseCaseTests
         Assert.Equal(1, adapter.Chamadas);
     }
 
+    /// <summary>Retest do Gate de Fornecedores (2026-09-01): a causa raiz do falso sucesso relatado era o
+    /// use case nunca repassar os campos de endereço ao Adapter — o "Enviar ao ERP" convergia com sucesso
+    /// (rowcount &gt; 0) sem sequer tentar gravar Cep/Logradouro/Numero/Complemento/Bairro. Este teste prova
+    /// que o request enviado ao Adapter carrega exatamente os dados de endereço atuais do Fornecedor.</summary>
+    [Fact]
+    public async Task Should_Forward_Address_Fields_To_Erp_Adapter()
+    {
+        await using var context = NewContext();
+        var user = new FakeIdentity();
+        var fornecedor = new Fornecedor(Guid.NewGuid(), "Fornecedor Endereco", DocumentoFiscal.Create("12345678000195"), null, null, null, null, null,
+            "São Paulo", "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow,
+            cep: "01310-100", logradouro: "Avenida Paulista", numero: "1000", complemento: "Sala QA", bairro: "Bela Vista");
+        await new FornecedorRepository(context).AdicionarAsync(fornecedor);
+        var adapter = new FakeAdapter { Resultado = new(OperacaoGarantirFornecedorErp.Atualizado, "315525", "BU-A", "SOMA_DESENV", DateTimeOffset.UtcNow, "corr-1") };
+        var useCase = Create(context, user, adapter);
+
+        await useCase.ExecuteAsync(fornecedor.Id, "BU-A", new GarantirFornecedorNoErpDto("corr-1"));
+
+        var enviado = adapter.UltimaRequisicao!;
+        Assert.Equal("01310-100", enviado.Cep);
+        Assert.Equal("Avenida Paulista", enviado.Logradouro);
+        Assert.Equal("1000", enviado.Numero);
+        Assert.Equal("Sala QA", enviado.Complemento);
+        Assert.Equal("Bela Vista", enviado.Bairro);
+    }
+
+    /// <summary>REGRA FUNDAMENTAL do Retest do Gate: se o Adapter não conseguir confirmar a gravação real
+    /// (aqui simulado por uma falha de persistência do Adapter, o mesmo caminho que a verificação pós-escrita
+    /// do <c>SomaGarantirFornecedorErpAdapter</c> aciona quando o Linx não confirma um campo), o Fornecedor
+    /// NUNCA deve ficar marcado como "Sincronizado" — o estado de sincronização anterior (ou "Pendente") deve
+    /// ser preservado, nunca um sucesso mentiroso.</summary>
+    [Fact]
+    public async Task Should_Not_Mark_Sincronizado_When_Adapter_Fails_To_Confirm_Write()
+    {
+        await using var context = NewContext();
+        var user = new FakeIdentity();
+        var fornecedor = new Fornecedor(Guid.NewGuid(), "Fornecedor Falha ERP", Cnpj.Create("12345678000195"), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow);
+        await new FornecedorRepository(context).AdicionarAsync(fornecedor);
+        var statusAntes = fornecedor.StatusSincronizacao;
+        var adapter = new FakeAdapter { FalharCom = new ErpFornecedorEscritaException(ErpFornecedorErro.Persistencia, "O ERP não confirmou a gravação do campo 'Bairro' do fornecedor — a operação foi revertida.") };
+        var useCase = Create(context, user, adapter);
+
+        await Assert.ThrowsAsync<ErpFornecedorEscritaException>(() => useCase.ExecuteAsync(fornecedor.Id, "BU-A", new GarantirFornecedorNoErpDto("corr-1")));
+
+        var persistido = await context.Fornecedores.SingleAsync();
+        Assert.Equal(statusAntes, persistido.StatusSincronizacao);
+        Assert.NotEqual("Sincronizado", persistido.StatusSincronizacao);
+    }
+
     [Fact]
     public async Task Should_Return_Null_When_Fornecedor_Does_Not_Exist()
     {
@@ -105,6 +154,7 @@ public sealed class GarantirFornecedorNoErpUseCaseTests
     {
         public string ErpSistema => "SOMA_DESENV";
         public GarantirFornecedorErpResultado? Resultado { get; set; }
+        public ErpFornecedorEscritaException? FalharCom { get; set; }
         public GarantirFornecedorErpRequest? UltimaRequisicao { get; private set; }
         public int Chamadas { get; private set; }
 
@@ -112,6 +162,7 @@ public sealed class GarantirFornecedorNoErpUseCaseTests
         {
             Chamadas++;
             UltimaRequisicao = request;
+            if (FalharCom is not null) throw FalharCom;
             var resultado = Resultado ?? new GarantirFornecedorErpResultado(OperacaoGarantirFornecedorErp.Criado, "000001", request.BusinessUnit, ErpSistema, DateTimeOffset.UtcNow, request.CorrelationId);
             return Task.FromResult(resultado);
         }

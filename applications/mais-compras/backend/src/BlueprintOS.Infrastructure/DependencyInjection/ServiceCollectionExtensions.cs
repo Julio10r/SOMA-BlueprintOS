@@ -23,7 +23,10 @@ using BlueprintOS.Infrastructure.Documentation;
 using BlueprintOS.Infrastructure.Publication.Docs;
 using BlueprintOS.Infrastructure.Integrations.ERP.Contracts;
 using BlueprintOS.Infrastructure.Integrations.ERP.Soma;
+using BlueprintOS.Infrastructure.Integrations;
 using BlueprintOS.Infrastructure.Integrations.CnpjConsulta;
+using BlueprintOS.Infrastructure.Integrations.CepConsulta;
+using BlueprintOS.Infrastructure.Integrations.Ibge;
 using BlueprintOS.Infrastructure.Integrations.OpenAI;
 using BlueprintOS.Infrastructure.Knowledge;
 using BlueprintOS.Infrastructure.Knowledge.Linx;
@@ -72,6 +75,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IGarantirFornecedorErpAdapter, SomaGarantirFornecedorErpAdapter>();
         services.AddScoped<IGarantirFornecedorErpAdapterResolver, GarantirFornecedorErpAdapterResolver>();
         services.AddScoped<IGarantirFornecedorNoErpUseCase, GarantirFornecedorNoErpUseCase>();
+        services.AddScoped<IVerificarFornecedorNoErpUseCase, VerificarFornecedorNoErpUseCase>();
         services.AddScoped<ResolvedorBusinessUnit>();
         services.AddScoped<IFornecedorErpReader, SomaFornecedorReader>();
         services.AddScoped<ISincronizarFornecedorUseCase, SincronizarFornecedorUseCase>();
@@ -110,7 +114,39 @@ public static class ServiceCollectionExtensions
 
             client.BaseAddress = new Uri(options.BaseUrl);
             client.Timeout = TimeSpan.FromSeconds(Math.Max(1, options.TimeoutSeconds + 1));
-        });
+        }).ConfigurePrimaryHttpMessageHandler(Ipv4PreferringHttpHandler.Create);
+
+        // Gate de homologação de Fornecedores (2026-09-01), item 6 — consulta de CEP pelo backend,
+        // mesmo padrão do CNPJ acima, mas via ViaCEP (fonte real usada pelo Linx, achado 2).
+        services.Configure<CepConsultaOptions>(configuration.GetSection(CepConsultaOptions.SectionName));
+        services.AddScoped<IConsultarCepFornecedorUseCase, ConsultarCepFornecedorUseCase>();
+        services.AddHttpClient<ICepConsultaProvider, ViaCepProvider>((provider, client) =>
+        {
+            var options = provider.GetRequiredService<IOptions<CepConsultaOptions>>().Value;
+            if (!string.Equals(options.Provider, "ViaCep", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException($"CepConsulta provider '{options.Provider}' is not supported.");
+            }
+
+            client.BaseAddress = new Uri(options.BaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(Math.Max(1, options.TimeoutSeconds + 1));
+        }).ConfigurePrimaryHttpMessageHandler(Ipv4PreferringHttpHandler.Create);
+
+        // Gate de homologação de Fornecedores (2026-09-01): cidade como combo dependente da UF,
+        // populado com municípios reais via IBGE — pelo backend, mesmo padrão de CEP/CNPJ acima.
+        services.Configure<IbgeMunicipioOptions>(configuration.GetSection(IbgeMunicipioOptions.SectionName));
+        services.AddScoped<IListarMunicipiosPorUfUseCase, ListarMunicipiosPorUfUseCase>();
+        services.AddHttpClient<IMunicipioProvider, IbgeMunicipioProvider>((provider, client) =>
+        {
+            var options = provider.GetRequiredService<IOptions<IbgeMunicipioOptions>>().Value;
+            client.BaseAddress = new Uri(options.BaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(Math.Max(1, options.TimeoutSeconds + 1));
+        }).ConfigurePrimaryHttpMessageHandler(Ipv4PreferringHttpHandler.Create);
+
+        // Gate de homologação de Fornecedores (2026-09-01): catálogo pré-cadastrado de Categoria
+        // (tabela própria do +Compras, não sincronizada do ERP — substitui o campo texto livre).
+        services.AddScoped<ICategoriaFornecedorRepository, CategoriaFornecedorRepository>();
+        services.AddScoped<IListarCategoriasFornecedorUseCase, ListarCategoriasFornecedorUseCase>();
 
         services.Configure<OpenAIOptions>(configuration.GetSection(OpenAIOptions.SectionName));
 

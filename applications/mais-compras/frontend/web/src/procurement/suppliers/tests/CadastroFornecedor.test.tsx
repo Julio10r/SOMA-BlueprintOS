@@ -402,7 +402,13 @@ describe("CadastroFornecedor", () => {
 function mockFetch(consultaOverride: typeof consulta = consulta, suppliersOverride: typeof supplier[] = [supplier]) {
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
-    if (url.startsWith("/fornecedores?q=")) return json(suppliersOverride);
+    if (url.startsWith("/fornecedores?q=")) {
+      // GET /fornecedores?q= responde com o contrato paginado (FornecedorPesquisaPaginada),
+      // não com um array simples — reproduz o contrato real do backend pós-redesenho O1.x
+      // (bug do Gate: "suppliers.find is not a function" acontecia quando o mock/consumidor
+      // assumia array puro).
+      return json({ items: suppliersOverride, totalCount: suppliersOverride.length, page: 1, pageSize: 20 });
+    }
     if (url === "/fornecedores" && init?.method === "POST") {
       return json({ id: "novo-fornecedor-id", cnpj_Cpf: consultaOverride.cnpj_Cpf, razaoSocial: consultaOverride.razaoSocial ?? "" });
     }

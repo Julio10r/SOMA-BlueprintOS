@@ -127,7 +127,8 @@ public sealed class SomaGarantirFornecedorErpAdapter(IConfiguration configuratio
         ];
     }
 
-    /// <summary>Accepts <c>CGC_CPF=00000000000191</c> or a bare document, and keeps only digits.</summary>
+    /// <summary>Accepts <c>CGC_CPF=00000000000191</c> or a bare document. Keeps digits and letters
+    /// A-Z (CNPJ alfanumérico, IN RFB nº 2.229/2024) — strips only punctuation/mask.</summary>
     internal static string ExtrairCnpjDaChaveDeNegocio(string businessKey)
     {
         if (string.IsNullOrWhiteSpace(businessKey)) return string.Empty;
@@ -263,8 +264,8 @@ public sealed class SomaGarantirFornecedorErpAdapter(IConfiguration configuratio
         {
             cadastro.Transaction = transaction; cadastro.CommandTimeout = TimeoutSeconds;
             cadastro.CommandText =
-                "INSERT INTO [dbo].[CADASTRO_CLI_FOR] ([NOME_CLIFOR], [CLIFOR], [COD_CLIFOR], [CGC_CPF], [RAZAO_SOCIAL], [RG_IE], [UF], [COBRANCA_UF], [ENTREGA_UF], [COBRANCA_CGC], [CADASTRAMENTO], [COBRANCA_IE], [ENTREGA_CGC], [ENTREGA_IE], [PAIS], [COBRANCA_PAIS], [ENTREGA_PAIS], [INDICA_FORNECEDOR]) " +
-                "VALUES (@nomeClifor, @id, @id, @cnpj, @razaoSocial, '', @uf, @uf, @uf, @cnpj, GETDATE(), '', @cnpj, '', @pais, @pais, @pais, 1)";
+                "INSERT INTO [dbo].[CADASTRO_CLI_FOR] ([NOME_CLIFOR], [CLIFOR], [COD_CLIFOR], [CGC_CPF], [RAZAO_SOCIAL], [RG_IE], [CIDADE], [UF], [COBRANCA_UF], [ENTREGA_UF], [COBRANCA_CGC], [CADASTRAMENTO], [COBRANCA_IE], [ENTREGA_CGC], [ENTREGA_IE], [PAIS], [COBRANCA_PAIS], [ENTREGA_PAIS], [ENDERECO], [NUMERO], [COMPLEMENTO], [BAIRRO], [CEP], [INDICA_FORNECEDOR]) " +
+                "VALUES (@nomeClifor, @id, @id, @cnpj, @razaoSocial, '', @cidade, @uf, @uf, @uf, @cnpj, GETDATE(), '', @cnpj, '', @pais, @pais, @pais, @endereco, @numero, @complemento, @bairro, @cep, 1)";
             AdicionarParametrosComuns(cadastro, codigo, nomeClifor, request, cnpj);
             var linhas = await cadastro.ExecuteNonQueryAsync(ct);
             // Nota (validado em SOMA_DESENV): CADASTRO_CLI_FOR possui múltiplas triggers ativas (auditoria
@@ -272,6 +273,7 @@ public sealed class SomaGarantirFornecedorErpAdapter(IConfiguration configuratio
             // inflando o rowcount retornado por ExecuteNonQueryAsync além do INSERT em si — por isso o critério
             // de sucesso é "pelo menos 1 linha", nunca "exatamente 1".
             if (linhas < 1) throw new ErpFornecedorEscritaException(ErpFornecedorErro.Persistencia, "O ERP não confirmou a criação do cadastro-base do fornecedor.");
+            await VerificarEnderecoPersistidoAsync(connection, transaction, codigo, request, ct);
         }
 
         await using var fornecedor = connection.CreateCommand();
@@ -308,17 +310,87 @@ public sealed class SomaGarantirFornecedorErpAdapter(IConfiguration configuratio
         if (linhas < 1) throw new ErpFornecedorEscritaException(ErpFornecedorErro.Persistencia, "O ERP não confirmou a adição do papel de Fornecedor ao cadastro existente.");
     }
 
+    /// <summary>Operação "Atualizado" (GarantirFornecedorErpResultado.Operacao) — escopo autorizado pela
+    /// consulta formal ao conhecimento Linx (Retest do Gate de Fornecedores, 2026-09-01): CGC_CPF/INATIVO
+    /// (já cobertos antes desta rodada) + o bloco de endereço principal confirmado como colunas físicas
+    /// reais e não-triggeradas de CADASTRO_CLI_FOR (CIDADE/UF/PAIS/ENDERECO/NUMERO/COMPLEMENTO/BAIRRO/CEP).
+    /// Antes desta correção esta operação só reafirmava CGC_CPF/INATIVO — o "falso sucesso" reportado no
+    /// Gate (badge "Sincronizado" sem gravação real de endereço) tinha causa raiz exatamente aqui.
+    /// RAZAO_SOCIAL nunca é sobrescrito aqui de propósito: a decisão Validada do PO para o caso "ambos
+    /// existentes" é "atualizar/complementar... sem sobrescrever campos fora do escopo", e o nome físico
+    /// (NOME_CLIFOR/RAZAO_SOCIAL) já está coberto pela sanitização e pela FK de FORNECEDORES.FORNECEDOR —
+    /// reescrevê-lo aqui é decisão de produto fora do escopo desta correção, não uma omissão.</summary>
     private async Task AtualizarFornecedorAsync(SqlConnection connection, SqlTransaction transaction, string codigo, GarantirFornecedorErpRequest request, string cnpj, CancellationToken ct)
+    {
+        await using (var command = connection.CreateCommand())
+        {
+            command.Transaction = transaction; command.CommandTimeout = TimeoutSeconds;
+            command.CommandText =
+                "UPDATE [dbo].[FORNECEDORES] SET [CGC_CPF] = @cnpj, [INATIVO] = @inativo WHERE [COD_FORNECEDOR] = @id; " +
+                "UPDATE [dbo].[CADASTRO_CLI_FOR] SET [INDICA_FORNECEDOR] = 1, [CIDADE] = @cidade, [UF] = @uf, [PAIS] = @pais, " +
+                "[ENDERECO] = @endereco, [NUMERO] = @numero, [COMPLEMENTO] = @complemento, [BAIRRO] = @bairro, [CEP] = @cep " +
+                "WHERE [COD_CLIFOR] = @id";
+            command.Parameters.Add(new SqlParameter("@id", codigo));
+            command.Parameters.Add(new SqlParameter("@cnpj", cnpj));
+            command.Parameters.Add(new SqlParameter("@inativo", request.Ativo ? 0 : 1));
+            command.Parameters.Add(new SqlParameter("@cidade", (object?)request.Cidade?.Trim() ?? string.Empty));
+            command.Parameters.Add(new SqlParameter("@uf", string.IsNullOrWhiteSpace(request.Estado) ? "SP" : request.Estado.Trim()));
+            command.Parameters.Add(new SqlParameter("@pais", string.IsNullOrWhiteSpace(request.Pais) ? "BRASIL" : request.Pais.Trim()));
+            command.Parameters.Add(new SqlParameter("@endereco", (object?)request.Logradouro?.Trim() ?? string.Empty));
+            command.Parameters.Add(new SqlParameter("@numero", (object?)request.Numero?.Trim() ?? string.Empty));
+            command.Parameters.Add(new SqlParameter("@complemento", (object?)request.Complemento?.Trim() ?? string.Empty));
+            command.Parameters.Add(new SqlParameter("@bairro", (object?)request.Bairro?.Trim() ?? string.Empty));
+            command.Parameters.Add(new SqlParameter("@cep", (object?)request.Cep?.Trim() ?? string.Empty));
+            await command.ExecuteNonQueryAsync(ct);
+        }
+
+        await VerificarEnderecoPersistidoAsync(connection, transaction, codigo, request, ct);
+    }
+
+    /// <summary>Validação pós-escrita real (REGRA FUNDAMENTAL do Retest do Gate, 2026-09-01): reconsulta,
+    /// dentro da MESMA transação, os campos de endereço que esta operação acabou de tentar gravar e compara
+    /// byte a byte com o que foi pedido. O sucesso de um INSERT/UPDATE (rowcount &gt; 0) nunca é, por si só,
+    /// prova de que o Linx persistiu o valor esperado — pode haver truncamento silencioso, trigger que
+    /// reescreve o valor, ou coluna com regra própria não documentada. Qualquer divergência lança
+    /// <see cref="ErpFornecedorEscritaException"/> ANTES do commit, o que aciona o rollback já existente em
+    /// <see cref="GarantirAsync"/> — o chamador nunca marca "Sincronizado" nem exibe sucesso para uma
+    /// gravação que não convergiu de verdade. Comparação truncada em 200 caracteres por campo (limite
+    /// generoso acima de qualquer coluna física real observada) para nunca comparar além do que foi
+    /// efetivamente enviado.</summary>
+    private async Task VerificarEnderecoPersistidoAsync(SqlConnection connection, SqlTransaction transaction, string codigo, GarantirFornecedorErpRequest request, CancellationToken ct)
     {
         await using var command = connection.CreateCommand();
         command.Transaction = transaction; command.CommandTimeout = TimeoutSeconds;
         command.CommandText =
-            "UPDATE [dbo].[FORNECEDORES] SET [CGC_CPF] = @cnpj, [INATIVO] = @inativo WHERE [COD_FORNECEDOR] = @id; " +
-            "UPDATE [dbo].[CADASTRO_CLI_FOR] SET [INDICA_FORNECEDOR] = 1 WHERE [COD_CLIFOR] = @id AND [INDICA_FORNECEDOR] <> 1";
+            "SELECT [CIDADE], [UF], [PAIS], [ENDERECO], [NUMERO], [COMPLEMENTO], [BAIRRO], [CEP] " +
+            "FROM [dbo].[CADASTRO_CLI_FOR] WHERE [COD_CLIFOR] = @id";
         command.Parameters.Add(new SqlParameter("@id", codigo));
-        command.Parameters.Add(new SqlParameter("@cnpj", cnpj));
-        command.Parameters.Add(new SqlParameter("@inativo", request.Ativo ? 0 : 1));
-        await command.ExecuteNonQueryAsync(ct);
+        await using var reader = await command.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct))
+            throw new ErpFornecedorEscritaException(ErpFornecedorErro.Persistencia, "Não foi possível reconsultar o fornecedor no ERP para confirmar a gravação.");
+
+        ConferirCampo("Cidade", request.Cidade, reader["CIDADE"]);
+        ConferirCampo("Logradouro", request.Logradouro, reader["ENDERECO"]);
+        ConferirCampo("Número", request.Numero, reader["NUMERO"]);
+        ConferirCampo("Complemento", request.Complemento, reader["COMPLEMENTO"]);
+        ConferirCampo("Bairro", request.Bairro, reader["BAIRRO"]);
+        ConferirCampo("CEP", request.Cep, reader["CEP"]);
+    }
+
+    private static void ConferirCampo(string nomeCampo, string? enviado, object gravadoBruto)
+    {
+        var esperado = TruncarParaComparacao(enviado);
+        var gravado = TruncarParaComparacao(Convert.ToString(gravadoBruto));
+        if (!string.Equals(esperado, gravado, StringComparison.Ordinal))
+            throw new ErpFornecedorEscritaException(
+                ErpFornecedorErro.Persistencia,
+                $"O ERP não confirmou a gravação do campo '{nomeCampo}' do fornecedor — a operação foi revertida.");
+    }
+
+    private static string TruncarParaComparacao(string? valor)
+    {
+        var normalizado = (valor ?? string.Empty).Trim();
+        return normalizado.Length > 200 ? normalizado[..200] : normalizado;
     }
 
     private static void AdicionarParametrosComuns(SqlCommand command, string codigo, string nomeClifor, GarantirFornecedorErpRequest request, string cnpj)
@@ -327,8 +399,14 @@ public sealed class SomaGarantirFornecedorErpAdapter(IConfiguration configuratio
         command.Parameters.Add(new SqlParameter("@nomeClifor", nomeClifor));
         command.Parameters.Add(new SqlParameter("@razaoSocial", string.IsNullOrWhiteSpace(request.RazaoSocial) ? request.Nome.Trim() : request.RazaoSocial.Trim()));
         command.Parameters.Add(new SqlParameter("@cnpj", cnpj));
+        command.Parameters.Add(new SqlParameter("@cidade", (object?)request.Cidade?.Trim() ?? string.Empty));
         command.Parameters.Add(new SqlParameter("@uf", string.IsNullOrWhiteSpace(request.Estado) ? "SP" : request.Estado.Trim()));
         command.Parameters.Add(new SqlParameter("@pais", string.IsNullOrWhiteSpace(request.Pais) ? "BRASIL" : request.Pais.Trim()));
+        command.Parameters.Add(new SqlParameter("@endereco", (object?)request.Logradouro?.Trim() ?? string.Empty));
+        command.Parameters.Add(new SqlParameter("@numero", (object?)request.Numero?.Trim() ?? string.Empty));
+        command.Parameters.Add(new SqlParameter("@complemento", (object?)request.Complemento?.Trim() ?? string.Empty));
+        command.Parameters.Add(new SqlParameter("@bairro", (object?)request.Bairro?.Trim() ?? string.Empty));
+        command.Parameters.Add(new SqlParameter("@cep", (object?)request.Cep?.Trim() ?? string.Empty));
         command.Parameters.Add(new SqlParameter("@inativo", request.Ativo ? 0 : 1));
     }
 
@@ -350,7 +428,14 @@ public sealed class SomaGarantirFornecedorErpAdapter(IConfiguration configuratio
         return normalizado.Length > NomeCliforMaxLength ? normalizado[..NomeCliforMaxLength].TrimEnd() : normalizado;
     }
 
-    private static string SomenteDigitos(string valor) => new(valor.Where(char.IsDigit).ToArray());
+    /// <summary>Apesar do nome (mantido para não alterar as duas chamadas existentes), não filtra mais
+    /// só dígitos: CNPJ alfanumérico (Instrução Normativa RFB nº 2.229/2024, vigente a partir de
+    /// julho/2026) tem letras A-Z nas 12 primeiras posições. CGC_CPF no Linx é varchar(19), sem
+    /// constraint numérica (docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md:244) — descartar
+    /// letras aqui faria o adapter gravar/consultar um documento truncado e nunca casar com o CNPJ
+    /// real informado.</summary>
+    private static string SomenteDigitos(string valor) =>
+        new(valor.ToUpperInvariant().Where(c => (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z')).ToArray());
 
     private static ErpFornecedorEscritaException Classificar(Exception ex) => ex switch
     {

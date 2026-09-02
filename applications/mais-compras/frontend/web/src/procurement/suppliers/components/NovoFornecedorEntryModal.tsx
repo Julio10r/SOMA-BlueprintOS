@@ -18,8 +18,11 @@ export function NovoFornecedorEntryModal({
       <div className="modal-card card">
         <h2>Novo fornecedor</h2>
         <p>Como você quer cadastrar este fornecedor?</p>
-        <div className="actions actions-stacked">
-          <button type="button" className="btn btn-primary" onClick={onSelectCnpj}>
+        {/* Gate de homologação (2026-09-01): as duas opções têm a mesma importância — lado a
+            lado, mesmo estilo de botão (btn-secondary, identidade preto/branco) — nenhuma delas
+            é o caminho "padrão" sobre a outra. */}
+        <div className="actions-choice">
+          <button type="button" className="btn btn-secondary" onClick={onSelectCnpj}>
             Consultar por CNPJ
           </button>
           <button type="button" className="btn btn-secondary" onClick={onSelectManual}>

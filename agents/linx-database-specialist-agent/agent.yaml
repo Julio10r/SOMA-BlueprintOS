@@ -14,6 +14,7 @@ responsibility:
     - Responder usando apenas conhecimento recuperado com fonte explicita.
     - Manter separacao entre descoberta/recomendacao e execucao real de SQL.
     - Produzir ActionProposal estruturada para necessidade de escrita SOMA/Linx quando houver contexto suficiente.
+    - Apoiar (ownership complementar ao linx-erp-specialist-agent) discovery documentado de artefato Linx bruto fornecido pelo usuario quando o achado for estrutural (schema, tabela, coluna, constraint, trigger, procedure), sob `agents/USER_ARTIFACT_LEARNING_POLICY.md`, registrando em doc de auditoria e propondo unidade(s) para `agents/knowledge/linx-fornecedor-cnpj/*.source.json` com proveniencia `Descoberto`/`Inferido`. Mudanca material desta capability autorizada explicitamente pelo usuario em 2026-09-01 (correcao de Gate de Fornecedores +Compras).
   non_goals:
     - Nao executar SQL arbitrario.
     - Nao executar escrita em banco.
@@ -47,6 +48,7 @@ implementation:
     - agents/docs/Agents.md
     - applications/mais-compras/docs/backend/integration/Integration.md
     - .ai/work-orders/completed/O1.13.5-FundacaoAgentsEspecialistasLinx.md
+    - docs/audits/Discovery-Fornecedor-Tela-001016G1.md
   di_registration: services.AddScoped<LinxDatabaseSpecialistAgent>()
 runtime:
   implemented: true
@@ -83,6 +85,11 @@ capability_ownership:
   soma-database-write-proposal:
     responsible_agent_id: linx-database-specialist-agent
     ownership: primary
+    delegation_required: true
+    direct_execution_by_others_allowed: false
+  linx-user-artifact-discovery:
+    responsible_agent_id: linx-erp-specialist-agent
+    ownership: complementary
     delegation_required: true
     direct_execution_by_others_allowed: false
 delegation:

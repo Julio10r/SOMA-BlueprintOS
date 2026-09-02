@@ -1,26 +1,33 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useAuth } from "../../../auth/hooks/useAuth";
+import { PERMISSOES } from "../../../auth/types/authTypes";
 import { ConfirmToggleAtivoFornecedorModal } from "../components/ConfirmToggleAtivoFornecedorModal";
 import { ManualFornecedorForm } from "../components/ManualFornecedorForm";
 import {
   alterarStatusFornecedor,
+  atualizarFornecedorDoErp,
   garantirFornecedorNoErp,
   getFornecedor,
   updateFornecedor
 } from "../services/supplierEnrichmentApi";
+import { ConfirmDialog } from "../../../shared/components/ConfirmDialog";
 import { StatusBadge } from "../../../shared/components/StatusBadge";
-import { labelStatusSincronizacao, type Fornecedor, type ManualFornecedorDraft } from "../types/linxSupplierContract";
+import { labelStatusSincronizacao, splitTelefone, type Fornecedor, type ManualFornecedorDraft } from "../types/linxSupplierContract";
 
 const businessUnit = "SOMA";
+const erpSistemaPadrao = "SOMA_DESENV";
 
 function fornecedorParaDraft(fornecedor: Fornecedor): ManualFornecedorDraft {
+  const { ddi, numero } = splitTelefone(fornecedor.telefone);
   return {
     razaoSocial: fornecedor.razaoSocial ?? "",
     nomeFantasia: fornecedor.nomeFantasia ?? "",
     cnpj_Cpf: fornecedor.cnpj_Cpf ?? "",
     tipoPessoa: fornecedor.tipoPessoa ?? "PJ",
     email: fornecedor.email ?? "",
-    telefone: fornecedor.telefone ?? "",
+    telefoneDdi: ddi,
+    telefone: numero,
     website: fornecedor.website ?? "",
     cep: fornecedor.cep ?? "",
     logradouro: fornecedor.logradouro ?? "",
@@ -48,6 +55,11 @@ function statusDoFornecedor(fornecedor: Fornecedor): "Ativo" | "Inativo" {
 export function FornecedorDetalhePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { usuario } = useAuth();
+  // Gate de homologação (2026-09-01): "Editar fornecedor" (e, dentro da edição, "Ativar/Inativar")
+  // exige Fornecedor.Editar — mesmo padrão de gate de permissão do restante do +Compras.
+  const permissoesEfetivas = (usuario?.permissoes ?? []).map((codigo) => codigo.toLowerCase());
+  const podeEditarFornecedor = permissoesEfetivas.includes(PERMISSOES.fornecedorEditar.toLowerCase());
   const [searchParams] = useSearchParams();
   const voltarQueryString = searchParams.toString() ? `?${searchParams.toString()}` : "";
 
@@ -60,13 +72,23 @@ export function FornecedorDetalhePage() {
   const [draft, setDraft] = useState<ManualFornecedorDraft | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
+  // Gate de homologação (2026-09-01): salvar edição de fornecedor pede confirmação num modal da
+  // própria aplicação antes de persistir — nunca window.confirm nativo do navegador.
+  const [draftParaConfirmar, setDraftParaConfirmar] = useState<ManualFornecedorDraft | null>(null);
 
   const [confirmandoToggle, setConfirmandoToggle] = useState(false);
   const [alternandoStatus, setAlternandoStatus] = useState(false);
   const [erroToggle, setErroToggle] = useState<string | null>(null);
 
-  const [sincronizando, setSincronizando] = useState(false);
-  const [avisoSincronizacao, setAvisoSincronizacao] = useState<string | null>(null);
+  // Duas ações distintas e independentes (Gate de homologação, 2026-09-01, item 2): "Enviar ao
+  // ERP" (+Compras -> ERP, upsert existente) e "Atualizar do ERP" (ERP -> +Compras, engine de
+  // sincronização já existente no backend). Cada uma com seu próprio estado de loading/aviso —
+  // nunca a mesma ação por trás de um único rótulo ambíguo.
+  const [enviandoAoErp, setEnviandoAoErp] = useState(false);
+  const [atualizandoDoErp, setAtualizandoDoErp] = useState(false);
+  // Um único aviso de ERP (Gate de homologação, 2026-09-01): a mensagem de "Enviar ao ERP" e a de
+  // "Atualizar do ERP" nunca aparecem empilhadas — escrever uma nova sempre substitui a anterior.
+  const [avisoErp, setAvisoErp] = useState<string | null>(null);
 
   const correlationId = useMemo(() => `fornecedor-detalhe-${crypto.randomUUID()}`, []);
 
@@ -115,6 +137,13 @@ export function FornecedorDetalhePage() {
     }
   }
 
+  async function confirmarSalvarEdicao() {
+    if (!draftParaConfirmar) return;
+    const novoDraft = draftParaConfirmar;
+    setDraftParaConfirmar(null);
+    await salvarEdicao(novoDraft);
+  }
+
   async function confirmarToggleAtivo() {
     if (!fornecedor) return;
     setAlternandoStatus(true);
@@ -130,18 +159,46 @@ export function FornecedorDetalhePage() {
     }
   }
 
-  async function sincronizarComErp() {
+  /** +Compras -> ERP: envia os dados locais atuais, cria/atualiza o registro no ERP. */
+  async function enviarAoErp() {
     if (!fornecedor) return;
-    setSincronizando(true);
-    setAvisoSincronizacao(null);
+    setEnviandoAoErp(true);
+    setAvisoErp(null);
     try {
       await garantirFornecedorNoErp(fornecedor.id, businessUnit, correlationId);
-      setAvisoSincronizacao("Sincronização com o ERP concluída.");
+      setAvisoErp("Envio ao ERP concluído.");
       await carregar();
     } catch (err) {
-      setAvisoSincronizacao(err instanceof Error ? err.message : "Falha ao sincronizar com o ERP.");
+      setAvisoErp(err instanceof Error ? err.message : "Falha ao enviar ao ERP.");
     } finally {
-      setSincronizando(false);
+      setEnviandoAoErp(false);
+    }
+  }
+
+  /**
+   * ERP -> +Compras: relê o Linx e reflete no +Compras via ISincronizarFornecedorUseCase — a
+   * mesma engine que já resolve conflito por timestamp/hash. Se houver conflito não resolvido
+   * automaticamente, o backend responde de acordo com a state machine de Review já existente
+   * (nenhuma sobrescrita silenciosa é feita aqui além do que a engine já decide).
+   */
+  async function atualizarDoErp() {
+    if (!fornecedor) return;
+    setAtualizandoDoErp(true);
+    setAvisoErp(null);
+    try {
+      await atualizarFornecedorDoErp({
+        fornecedorId: fornecedor.id,
+        businessUnit,
+        erpSistema: fornecedor.erpSistema || erpSistemaPadrao,
+        erpFornecedorId: fornecedor.erpFornecedorId,
+        correlationId
+      });
+      setAvisoErp("Dados atualizados a partir do ERP.");
+      await carregar();
+    } catch (err) {
+      setAvisoErp(err instanceof Error ? err.message : "Falha ao atualizar a partir do ERP.");
+    } finally {
+      setAtualizandoDoErp(false);
     }
   }
 
@@ -172,15 +229,17 @@ export function FornecedorDetalhePage() {
             </div>
           </div>
 
-          {avisoSincronizacao && <div className="notice notice-warn">{avisoSincronizacao}</div>}
+          {avisoErp && <div className="notice notice-warn">{avisoErp}</div>}
 
           <details open>
             <summary>Identificação</summary>
             <div className="data-grid">
+              <div className="field-readonly"><span>Tipo de pessoa</span><strong>{fornecedor.tipoPessoa || "—"}</strong></div>
+            </div>
+            <div className="data-grid">
               <div className="field-readonly"><span>Razão Social</span><strong>{fornecedor.razaoSocial}</strong></div>
               <div className="field-readonly"><span>Nome Fantasia</span><strong>{fornecedor.nomeFantasia || "—"}</strong></div>
               <div className="field-readonly"><span>CNPJ</span><strong>{fornecedor.cnpj_Cpf}</strong></div>
-              <div className="field-readonly"><span>Tipo de pessoa</span><strong>{fornecedor.tipoPessoa || "—"}</strong></div>
               <div className="field-readonly"><span>Categoria</span><strong>{fornecedor.categoria || "—"}</strong></div>
             </div>
           </details>
@@ -225,9 +284,28 @@ export function FornecedorDetalhePage() {
           </details>
 
           <div className="actions">
-            <button type="button" className="btn btn-secondary" onClick={sincronizarComErp} disabled={sincronizando}>
-              {sincronizando ? "Sincronizando..." : "Sincronizar com ERP"}
+            <button type="button" className="btn btn-secondary" onClick={atualizarDoErp} disabled={atualizandoDoErp}>
+              {atualizandoDoErp ? "Atualizando..." : "Atualizar do ERP"}
             </button>
+            <button type="button" className="btn btn-secondary" onClick={enviarAoErp} disabled={enviandoAoErp}>
+              {enviandoAoErp ? "Enviando..." : "Enviar ao ERP"}
+            </button>
+            {/* Ativar/Inativar não fica na visão de leitura (item de feedback do homologador,
+                2026-09-01) — só é acessível dentro da edição do fornecedor. */}
+            {podeEditarFornecedor && (
+              <button type="button" className="btn btn-primary" onClick={iniciarEdicao}>
+                Editar fornecedor
+              </button>
+            )}
+          </div>
+        </section>
+      )}
+
+      {fornecedor && editando && draft && podeEditarFornecedor && (
+        <section className="card">
+          {/* Ativar/Inativar só existe dentro da edição (item de feedback do homologador,
+              2026-09-01), gated pela mesma permissão Fornecedor.Editar. */}
+          <div className="actions">
             <button
               type="button"
               className="btn btn-secondary"
@@ -238,24 +316,18 @@ export function FornecedorDetalhePage() {
             >
               {statusDoFornecedor(fornecedor) === "Ativo" ? "Inativar fornecedor" : "Ativar fornecedor"}
             </button>
-            <button type="button" className="btn btn-primary" onClick={iniciarEdicao}>
-              Editar fornecedor
-            </button>
           </div>
+          <ManualFornecedorForm
+            draft={draft}
+            onDraftChange={setDraft}
+            onSubmit={(novoDraft) => setDraftParaConfirmar(novoDraft)}
+            onCancel={() => setEditando(false)}
+            loading={salvando}
+            error={erroSalvar}
+            submitLabel="Salvar alterações"
+            cnpjEditavel={false}
+          />
         </section>
-      )}
-
-      {fornecedor && editando && draft && (
-        <ManualFornecedorForm
-          draft={draft}
-          onDraftChange={setDraft}
-          onSubmit={salvarEdicao}
-          onCancel={() => setEditando(false)}
-          loading={salvando}
-          error={erroSalvar}
-          submitLabel="Salvar alterações"
-          cnpjEditavel={false}
-        />
       )}
 
       {fornecedor && confirmandoToggle && (
@@ -266,6 +338,16 @@ export function FornecedorDetalhePage() {
           loading={alternandoStatus}
           onConfirm={confirmarToggleAtivo}
           onCancel={() => setConfirmandoToggle(false)}
+        />
+      )}
+
+      {draftParaConfirmar && (
+        <ConfirmDialog
+          title="Confirmar edição"
+          message="Deseja realmente salvar as alterações deste fornecedor?"
+          confirmLabel="Salvar alterações"
+          onConfirm={confirmarSalvarEdicao}
+          onCancel={() => setDraftParaConfirmar(null)}
         />
       )}
     </div>

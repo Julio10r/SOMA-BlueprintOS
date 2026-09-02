@@ -19,6 +19,8 @@ O manifesto e a declaracao canonica de identidade e configuracao do Agent. Ele n
 
 Conhecimento operacional continua nas fontes de dominio, como `.ai/context/*`. Runbooks continuam em `applications/mais-compras/docs/operations/*`. Codigo C# continua em `applications/mais-compras/backend/*`. Scripts continuam em `scripts/*`.
 
+Para criacao ou evolucao de telas de cadastro integradas ao ERP, seguir `applications/mais-compras/docs/architecture/CadFormFactory.md`.
+
 ## O Que E Um Agent
 
 Um Agent e uma unidade especializada com identidade estavel, responsabilidade clara, limites, capacidades, fontes de conhecimento, relacao com runtime ou operacao, e declaracao explicita de seguranca/governanca.

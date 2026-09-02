@@ -42,11 +42,172 @@ public sealed class FornecedorUseCasesTests
         Assert.Null(result.CnaePrincipalDescricao);
     }
 
+    /// <summary>Retest do Gate de Fornecedores (2026-09-01), item 4: a mensagem de duplicidade LOCAL (CNPJ
+    /// já existe no próprio +Compras) chega ao usuário como está — o controller devolve
+    /// <c>ex.Message</c> diretamente no corpo 409 (<c>duplicate_cnpj</c>), sem tradução em outra camada.
+    /// Antes desta correção a mensagem era o texto técnico em inglês "Documento fiscal already exists." —
+    /// nunca mais expor exception/message técnico do backend diretamente ao usuário.</summary>
+    /// <summary>Retest do Gate de Fornecedores (2026-09-01), item 6/12 — prova de que o bypass de frontend
+    /// relatado na validação técnica foi fechado: uma chamada direta ao use case (equivalente a chamar
+    /// <c>POST /fornecedores</c> sem passar pelo formulário) sem cada campo de endereço/categoria,
+    /// individualmente, é rejeitada — nenhuma persistência local, nenhuma tentativa de integração com o
+    /// Linx (a checagem acontece antes de qualquer I/O).</summary>
+    [Theory]
+    [InlineData(null, "01310-100", "Avenida Paulista", "1000", "Bela Vista", "São Paulo", "SP", "BRASIL")] // sem Categoria
+    [InlineData("Serviços Gerais", null, "Avenida Paulista", "1000", "Bela Vista", "São Paulo", "SP", "BRASIL")] // sem CEP
+    [InlineData("Serviços Gerais", "01310-100", null, "1000", "Bela Vista", "São Paulo", "SP", "BRASIL")] // sem Logradouro
+    [InlineData("Serviços Gerais", "01310-100", "Avenida Paulista", null, "Bela Vista", "São Paulo", "SP", "BRASIL")] // sem Número
+    [InlineData("Serviços Gerais", "01310-100", "Avenida Paulista", "1000", null, "São Paulo", "SP", "BRASIL")] // sem Bairro
+    [InlineData("Serviços Gerais", "01310-100", "Avenida Paulista", "1000", "Bela Vista", null, "SP", "BRASIL")] // sem Cidade
+    [InlineData("Serviços Gerais", "01310-100", "Avenida Paulista", "1000", "Bela Vista", "São Paulo", null, "BRASIL")] // sem UF
+    [InlineData("Serviços Gerais", "01310-100", "Avenida Paulista", "1000", "Bela Vista", "São Paulo", "SP", null)] // sem País
+    public async Task Cadastrar_Should_Reject_Direct_Api_Call_Missing_Required_Address_Field(
+        string? categoria, string? cep, string? logradouro, string? numero, string? bairro, string? cidade, string? estado, string? pais)
+    {
+        var repository = new FakeRepository();
+        var garantir = new FakeGarantirNoErpUseCase();
+        var dto = CreateDto() with { Categoria = categoria, Cep = cep, Logradouro = logradouro, Numero = numero, Bairro = bairro, Cidade = cidade, Estado = estado, Pais = pais };
+
+        await Assert.ThrowsAsync<ArgumentException>(() => CreateUseCase(repository, new FakeIdentity(), garantir).ExecuteAsync(dto));
+
+        Assert.Empty(repository.Items);
+        Assert.Empty(garantir.Chamadas);
+    }
+
+    /// <summary>Reteste do Gate de Fornecedores (2026-09-01) — decisão do PO revertida: E-mail e
+    /// Telefone agora são obrigatórios no cadastro manual, mesmo bypassando o formulário e chamando o
+    /// use case (equivalente a <c>POST /fornecedores</c>) diretamente.</summary>
+    [Theory]
+    [InlineData(null, "+55 11999998888")] // sem e-mail
+    [InlineData("nao-e-um-email", "+55 11999998888")] // e-mail inválido
+    [InlineData("contato@empresa.com.br", null)] // sem telefone
+    [InlineData("contato@empresa.com.br", "abc")] // telefone inválido
+    public async Task Cadastrar_Should_Reject_Direct_Api_Call_Missing_Or_Invalid_Email_Ou_Telefone(string? email, string? telefone)
+    {
+        var repository = new FakeRepository();
+        var garantir = new FakeGarantirNoErpUseCase();
+        var dto = CreateDto() with { Email = email, Telefone = telefone };
+
+        await Assert.ThrowsAsync<ArgumentException>(() => CreateUseCase(repository, new FakeIdentity(), garantir).ExecuteAsync(dto));
+
+        Assert.Empty(repository.Items);
+        Assert.Empty(garantir.Chamadas);
+    }
+
     [Fact]
-    public async Task Cadastrar_Should_Reject_Duplicate_Cnpj()
+    public async Task Cadastrar_Should_Accept_Valid_Email_E_Telefone()
+    {
+        var repository = new FakeRepository();
+        var garantir = new FakeGarantirNoErpUseCase();
+
+        var result = await CreateUseCase(repository, new FakeIdentity(), garantir).ExecuteAsync(CreateDto());
+
+        Assert.Single(repository.Items);
+        Assert.Equal("contato@empresa.com.br", result.Email);
+    }
+
+    [Fact]
+    public async Task Cadastrar_Should_Reject_Duplicate_Cnpj_With_A_Clear_PtBr_Message()
     {
         var repository = new FakeRepository { ExistingCnpj = "12345678000195" };
-        await Assert.ThrowsAsync<InvalidOperationException>(() => CreateUseCase(repository, new FakeIdentity()).ExecuteAsync(CreateDto()));
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => CreateUseCase(repository, new FakeIdentity()).ExecuteAsync(CreateDto()));
+        Assert.Equal("Já existe um fornecedor cadastrado com este CNPJ/CPF.", ex.Message);
+        Assert.DoesNotContain("already exists", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // Gate de homologação de Fornecedores (2026-09-01): verificação de existência no Linx antes do
+    // cadastro — 3 cenários reais documentados (decisão validada do PO,
+    // linx-idempotencia-convergencia-create-update-fornecedor).
+
+    [Fact]
+    public async Task Cadastrar_Should_Proceed_Normally_When_Cnpj_Nao_Existe_No_Linx()
+    {
+        var verificar = new FakeVerificarFornecedorNoErpUseCase { Resultado = new(EstadoFornecedorErp.NaoExiste, null) };
+        var sincronizar = new FakeSincronizarFornecedorUseCase();
+
+        var result = await CreateUseCase(new FakeRepository(), new FakeIdentity(), verificarNoErp: verificar, sincronizar: sincronizar).ExecuteAsync(CreateDto());
+
+        Assert.Equal("12345678000195", result.Cnpj_Cpf);
+        Assert.Single(verificar.Chamadas);
+        Assert.Empty(sincronizar.Chamadas); // nunca importa quando não existe no Linx
+    }
+
+    [Fact]
+    public async Task Cadastrar_Should_Proceed_Normally_When_Cnpj_Existe_Sem_Papel_Fornecedor()
+    {
+        // CADASTRO_CLI_FOR existe (ex.: já é Cliente/Filial) mas sem o papel Fornecedor — não
+        // bloqueia o cadastro local; GarantirNoErpSemFalharCadastroAsync (fluxo já existente) é
+        // quem adiciona o papel Fornecedor ao cadastro-base, preservando os papéis existentes.
+        var verificar = new FakeVerificarFornecedorNoErpUseCase { Resultado = new(EstadoFornecedorErp.ExisteSemPapelFornecedor, "001234") };
+        var sincronizar = new FakeSincronizarFornecedorUseCase();
+
+        var result = await CreateUseCase(new FakeRepository(), new FakeIdentity(), verificarNoErp: verificar, sincronizar: sincronizar).ExecuteAsync(CreateDto());
+
+        Assert.Equal("12345678000195", result.Cnpj_Cpf);
+        Assert.Empty(sincronizar.Chamadas); // não importa — o cadastro local prossegue normalmente
+    }
+
+    [Fact]
+    public async Task Cadastrar_Should_Not_Duplicate_When_Cnpj_Ja_Existe_Como_Fornecedor_No_Linx()
+    {
+        // Já existe com o papel Fornecedor confirmado: nunca cria um novo registro local — importa
+        // o existente do ERP (mesma engine de "Atualizar do ERP") e sinaliza ao chamador via exceção
+        // tipada, nunca lançando um Fornecedor duplicado.
+        var verificar = new FakeVerificarFornecedorNoErpUseCase { Resultado = new(EstadoFornecedorErp.ExisteComPapelFornecedor, "005678") };
+        var fornecedorIdImportado = Guid.NewGuid();
+        var sincronizar = new FakeSincronizarFornecedorUseCase
+        {
+            Resultado = dto => new SincronizacaoFornecedorResultado(fornecedorIdImportado, dto.BusinessUnit, dto.ErpSistema, dto.ErpFornecedorId, "Sincronizado", "corr", DateTimeOffset.UtcNow, null)
+        };
+        var repository = new FakeRepository();
+
+        var ex = await Assert.ThrowsAsync<FornecedorJaExisteNoErpException>(
+            () => CreateUseCase(repository, new FakeIdentity(), verificarNoErp: verificar, sincronizar: sincronizar).ExecuteAsync(CreateDto()));
+
+        Assert.Equal(fornecedorIdImportado, ex.FornecedorId);
+        Assert.Single(sincronizar.Chamadas);
+        Assert.Equal(DirecaoSincronizacao.ErpParaMaisCompras, sincronizar.Chamadas[0].Direcao);
+        Assert.Equal("005678", sincronizar.Chamadas[0].ErpFornecedorId);
+        Assert.Empty(repository.Items); // nunca cria um Fornecedor local duplicado neste caminho
+    }
+
+    [Fact]
+    public async Task Cadastrar_Should_Converge_When_Concurrent_Request_Created_Same_Cnpj()
+    {
+        // Concorrência real (índice único de Cnpj_Cpf): a segunda requisição, ao colidir no INSERT,
+        // converge para o registro já criado pela primeira em vez de falhar com 500 (decisão do PO).
+        var identity = new FakeIdentity();
+        var jaCriadoPelaOutraRequisicao = new Fornecedor(Guid.NewGuid(), "Empresa Ltda", Cnpj.Create("12345678000195"), null, null, null, null, null,
+            null, null, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow);
+        var repository = new ConcurrentDuplicateFakeRepository(jaCriadoPelaOutraRequisicao);
+
+        var result = await CreateUseCase(repository, identity).ExecuteAsync(CreateDto());
+
+        Assert.Equal("12345678000195", result.Cnpj_Cpf);
+        Assert.Equal(jaCriadoPelaOutraRequisicao.Id, result.Id);
+    }
+
+    /// <summary>Simula a corrida real: <see cref="IFornecedorRepository.AdicionarAsync"/> lança
+    /// <see cref="DuplicateRecordException"/> (mesma tradução que <c>FornecedorRepository</c> faz a
+    /// partir de uma violação de índice único do SQL Server), e a reconsulta subsequente encontra o
+    /// registro já criado pela requisição concorrente.</summary>
+    private sealed class ConcurrentDuplicateFakeRepository(Fornecedor concorrente) : IFornecedorRepository
+    {
+        public Task AdicionarAsync(Fornecedor fornecedor, CancellationToken ct = default) =>
+            throw new DuplicateRecordException("Documento fiscal já foi cadastrado por outra requisição concorrente.");
+        public Task AtualizarAsync(Fornecedor fornecedor, CancellationToken ct = default) => Task.CompletedTask;
+        public Task<Fornecedor?> ObterPorIdAsync(Guid id, Guid user, CancellationToken ct = default) => Task.FromResult<Fornecedor?>(null);
+        public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid user, CancellationToken ct = default) =>
+            Task.FromResult(cnpj == concorrente.Cnpj_Cpf && user == concorrente.TemporaryUserId ? concorrente : null);
+        public Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string termo, Guid user, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Fornecedor>>([]);
+        public Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid user, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Fornecedor>>([]);
+        public Task<bool> ExisteAsync(string cnpj, CancellationToken ct = default) => Task.FromResult(false);
+        public Task<Fornecedor?> ObterPorCnpjSemRastreamentoAsync(string cnpj, Guid user, CancellationToken ct = default) => ObterPorCnpjAsync(cnpj, user, ct);
+        public Task<int> ContarAtivosAsync(Guid user, CancellationToken ct = default) => Task.FromResult(0);
+        public Task<FornecedorPesquisaPaginadaResultado> PesquisarPaginadoAsync(Guid temporaryUserId, string? termo,
+            FornecedorStatusFiltro status, FornecedorOrdenacaoCampo ordenarPor, bool ordenarDescendente,
+            int page, int pageSize, CancellationToken ct = default) =>
+            Task.FromResult(new FornecedorPesquisaPaginadaResultado([], 0, page, pageSize));
     }
 
     [Theory]
@@ -186,6 +347,12 @@ public sealed class FornecedorUseCasesTests
         // DR-18 (Design Review Pos-Onda 1, P1, BLOQUEIA GATE): "excluir" Fornecedor via
         // DELETE /fornecedores/{id} e semantica de inativacao (AlterarStatus), nunca remocao fisica —
         // nem +Compras nem ERP executam DELETE fisico como operacao funcional.
+        //
+        // Regra de inativação (2026-09-02, decisão do PO — assimétrica, BY DESIGN): +Compras NÃO tem
+        // autoridade para inativar fornecedor no Linx. InativarFornecedorUseCase, por isso, nunca recebe
+        // um adapter/use case de ERP como dependência — é estruturalmente incapaz de propagar ao ERP, não
+        // apenas "não propaga por enquanto". O sentido inverso (Linx → +Compras) é coberto por
+        // Import_Should_Reflect_Erp_Inactivation_Onto_Local_Fornecedor em SincronizarFornecedorUseCaseTests.
         var identity = new FakeIdentity(); var repository = new FakeRepository();
         var supplier = new Fornecedor(Guid.NewGuid(), "Empresa", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null,
             identity.UserId, DateTimeOffset.UtcNow);
@@ -325,14 +492,20 @@ public sealed class FornecedorUseCasesTests
         Assert.Equal(0, resultado.TotalCount);
     }
 
-    internal static CadastrarFornecedorUseCase CreateUseCase(IFornecedorRepository repository, ICurrentIdentity identity, IGarantirFornecedorNoErpUseCase? garantirNoErp = null) =>
-        new(repository, identity, garantirNoErp ?? new FakeGarantirNoErpUseCase(), new ResolvedorBusinessUnit(new FakeUnidadeNegocioRepository()), NullLogger<CadastrarFornecedorUseCase>.Instance);
+    internal static CadastrarFornecedorUseCase CreateUseCase(IFornecedorRepository repository, ICurrentIdentity identity, IGarantirFornecedorNoErpUseCase? garantirNoErp = null,
+        IVerificarFornecedorNoErpUseCase? verificarNoErp = null, ISincronizarFornecedorUseCase? sincronizar = null) =>
+        new(repository, identity, garantirNoErp ?? new FakeGarantirNoErpUseCase(), verificarNoErp ?? new FakeVerificarFornecedorNoErpUseCase(),
+            sincronizar ?? new FakeSincronizarFornecedorUseCase(), new ResolvedorBusinessUnit(new FakeUnidadeNegocioRepository()), NullLogger<CadastrarFornecedorUseCase>.Instance);
 
     internal static AtualizarFornecedorUseCase CreateAtualizarUseCase(IFornecedorRepository repository, ICurrentIdentity identity, IGarantirFornecedorNoErpUseCase? garantirNoErp = null) =>
         new(repository, identity, garantirNoErp ?? new FakeGarantirNoErpUseCase(), new ResolvedorBusinessUnit(new FakeUnidadeNegocioRepository()), NullLogger<AtualizarFornecedorUseCase>.Instance);
 
-    private static CadastrarFornecedorDto CreateDto() => new("Empresa Ltda", "12.345.678/0001-95", null, null, null, null, null, null, null, "Ativo", null,
-        NomeFantasia: "Empresa Fantasia");
+    // Retest do Gate de Fornecedores (2026-09-01), item 6: Categoria/CEP/Logradouro/Número/Bairro/
+    // Cidade/UF/País agora são obrigatórios em CadastrarFornecedorUseCase — todo teste que não foca
+    // especificamente nesses campos precisa de um DTO já válido para não quebrar por um motivo
+    // não relacionado ao que está sendo testado.
+    private static CadastrarFornecedorDto CreateDto() => new("Empresa Ltda", "12.345.678/0001-95", "Serviços Gerais", "contato@empresa.com.br", "+55 11999998888", null, "São Paulo", "SP", "BRASIL", "Ativo", null,
+        NomeFantasia: "Empresa Fantasia", Cep: "01310-100", Logradouro: "Avenida Paulista", Numero: "1000", Bairro: "Bela Vista");
     internal sealed class FakeIdentity : ICurrentIdentity { public Guid UserId { get; } = Guid.NewGuid(); public RequestIdentity GetRequired() => new(UserId, "Buyer"); }
     internal sealed class FakeUnidadeNegocioRepository : IUnidadeNegocioRepository
     {
@@ -354,6 +527,31 @@ public sealed class FornecedorUseCasesTests
             if (Falha is not null) throw Falha;
             return Task.FromResult(Resultado?.Invoke());
         }
+    }
+    /// <summary>Por padrão simula "não existe no Linx" — o comportamento anterior à existência
+    /// desta verificação (nenhum teste que não a exercite explicitamente é afetado).</summary>
+    internal sealed class FakeVerificarFornecedorNoErpUseCase : IVerificarFornecedorNoErpUseCase
+    {
+        public List<(string BusinessUnit, string DocumentoFiscal)> Chamadas { get; } = [];
+        public VerificacaoFornecedorErpResultado Resultado { get; set; } = new(EstadoFornecedorErp.NaoExiste, null);
+        public Task<VerificacaoFornecedorErpResultado> ExecuteAsync(string businessUnit, string documentoFiscal, CancellationToken cancellationToken = default)
+        {
+            Chamadas.Add((businessUnit, documentoFiscal));
+            return Task.FromResult(Resultado);
+        }
+    }
+    internal sealed class FakeSincronizarFornecedorUseCase : ISincronizarFornecedorUseCase
+    {
+        public List<SincronizarFornecedorDto> Chamadas { get; } = [];
+        public Func<SincronizarFornecedorDto, SincronizacaoFornecedorResultado>? Resultado { get; set; }
+        public Task<SincronizacaoFornecedorResultado> ExecuteAsync(SincronizarFornecedorDto dto, CancellationToken cancellationToken = default)
+        {
+            Chamadas.Add(dto);
+            var resultado = Resultado?.Invoke(dto) ?? new SincronizacaoFornecedorResultado(Guid.NewGuid(), dto.BusinessUnit, dto.ErpSistema, dto.ErpFornecedorId, "Sincronizado", "corr", DateTimeOffset.UtcNow, null);
+            return Task.FromResult(resultado);
+        }
+        public Task<IReadOnlyList<SincronizacaoFornecedorResultado>> ExecutarLoteAsync(SincronizarFornecedoresLoteDto dto, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<SincronizacaoFornecedorResultado>>([]);
     }
     private sealed class FakeRepository : IFornecedorRepository
     {
