@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ConfirmDialog } from "../../../shared/components/ConfirmDialog";
 import { ParametroTable } from "../components/ParametroTable";
 import { useParametros } from "../hooks/useParametros";
 import type { Parametro } from "../types/parametroTypes";
@@ -6,10 +8,14 @@ import type { Parametro } from "../types/parametroTypes";
 export function ParametrosPage() {
   const navigate = useNavigate();
   const { parametros, loading, error, remover } = useParametros();
+  // Gate de homologação (2026-09-01): nunca window.confirm nativo do navegador — confirmação de
+  // exclusão é sempre um modal da própria aplicação, em todas as telas.
+  const [parametroParaExcluir, setParametroParaExcluir] = useState<Parametro | null>(null);
 
-  async function handleExcluir(parametro: Parametro) {
-    if (!window.confirm(`Excluir o parâmetro "${parametro.chave}"?`)) return;
-    await remover(parametro.id);
+  async function confirmarExclusao() {
+    if (!parametroParaExcluir) return;
+    await remover(parametroParaExcluir.id);
+    setParametroParaExcluir(null);
   }
 
   return (
@@ -39,10 +45,21 @@ export function ParametrosPage() {
           <ParametroTable
             parametros={parametros}
             onEditar={(parametro) => navigate(`${parametro.id}/editar`)}
-            onExcluir={handleExcluir}
+            onExcluir={(parametro) => setParametroParaExcluir(parametro)}
           />
         )}
       </section>
+
+      {parametroParaExcluir && (
+        <ConfirmDialog
+          title="Excluir parâmetro"
+          message={`Excluir o parâmetro "${parametroParaExcluir.chave}"?`}
+          confirmLabel="Excluir"
+          destructive
+          onConfirm={confirmarExclusao}
+          onCancel={() => setParametroParaExcluir(null)}
+        />
+      )}
     </div>
   );
 }

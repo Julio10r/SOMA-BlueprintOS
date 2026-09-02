@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -82,12 +82,14 @@ describe("ParametrosPage", () => {
     expect(await screen.findByText(/Parametro ja existe/i)).toBeInTheDocument();
   });
 
-  it("exclui um parametro apos confirmacao", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+  it("exclui um parametro apos confirmacao no modal da aplicacao (nunca window.confirm)", async () => {
     renderParametros();
     await screen.findByText("TIMEOUT_ERP");
 
     await userEvent.click(screen.getByRole("button", { name: "Excluir" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(/Excluir o parâmetro/)).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Excluir" }));
 
     await waitFor(() => expect(screen.queryByText("TIMEOUT_ERP")).not.toBeInTheDocument());
   });
