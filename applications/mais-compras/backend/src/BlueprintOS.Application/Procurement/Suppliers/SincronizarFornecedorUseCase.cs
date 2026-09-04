@@ -13,7 +13,7 @@ public sealed class SincronizarFornecedorUseCase(
     IFornecedorRepository fornecedorRepository,
     IFornecedorSincronizacaoRepository sincronizacaoRepository,
     IErpFornecedorAdapterResolver adapterResolver,
-    ICurrentIdentity identity) : ISincronizarFornecedorUseCase
+    IUnidadeNegocioRepository unidadesNegocio) : ISincronizarFornecedorUseCase
 {
     private static readonly TimeZoneInfo SaoPaulo = TimeZoneInfo.FindSystemTimeZoneById(
         OperatingSystem.IsWindows() ? "E. South America Standard Time" : "America/Sao_Paulo");
@@ -22,16 +22,20 @@ public sealed class SincronizarFornecedorUseCase(
     {
         Validar(dto);
         var started = Stopwatch.GetTimestamp();
-        var userId = identity.GetRequired().UserId;
         var correlationId = SanitizarCorrelationId(dto.CorrelationId);
         var adapter = adapterResolver.Resolver(dto.BusinessUnit, dto.ErpSistema);
-        var local = dto.FornecedorId is { } id ? await fornecedorRepository.ObterPorIdAsync(id, userId, cancellationToken) : null;
+        // Onda 2 (Multi-BU/Multi-ERP, 03/09/2026): dto.BusinessUnit é a chave ERP explícita já recebida
+        // (nunca inferida) — resolvida aqui contra o cadastro real de UnidadeNegocio (nunca GUID
+        // hardcoded) para obter a identidade Guid exigida por Fornecedor. Fail closed se não existir.
+        var unidadeNegocio = await unidadesNegocio.ObterPorSlugAsync(dto.BusinessUnit.Trim().ToLowerInvariant(), cancellationToken)
+            ?? throw new InvalidOperationException($"Business Unit '{dto.BusinessUnit}' não corresponde a nenhuma Unidade de Negócio cadastrada.");
+        var local = dto.FornecedorId is { } id ? await fornecedorRepository.ObterPorIdAsync(id, cancellationToken) : null;
         var snapshotAntes = local is null ? null : Snapshot(local);
         string? externalId = dto.ErpFornecedorId ?? local?.ErpFornecedorId;
         try
         {
             if (dto.Direcao == DirecaoSincronizacao.ErpParaMaisCompras)
-                return await ImportarAsync(dto, adapter, local, externalId!, correlationId, started, userId, snapshotAntes, cancellationToken);
+                return await ImportarAsync(dto, adapter, local, externalId!, correlationId, started, snapshotAntes, unidadeNegocio.Id, cancellationToken);
             return await ExportarAsync(dto, adapter, local, externalId, correlationId, started, snapshotAntes, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
@@ -45,15 +49,15 @@ public sealed class SincronizarFornecedorUseCase(
     }
 
     private async Task<SincronizacaoFornecedorResultado> ImportarAsync(SincronizarFornecedorDto dto, IErpFornecedorAdapter adapter,
-        Fornecedor? local, string externalId, string correlationId, long started, Guid userId, string? snapshotAntes, CancellationToken ct)
+        Fornecedor? local, string externalId, string correlationId, long started, string? snapshotAntes, Guid unidadeNegocioId, CancellationToken ct)
     {
         var externo = await adapter.ObterAsync(externalId, ct) ?? throw new InvalidOperationException("Fornecedor não encontrado no ERP.");
-        local ??= await sincronizacaoRepository.ObterPorChaveErpAsync(dto.BusinessUnit, dto.ErpSistema, externo.Id, userId, ct);
+        local ??= await sincronizacaoRepository.ObterPorChaveErpAsync(dto.BusinessUnit, dto.ErpSistema, externo.Id, ct);
         var erpDados = Canonical(externo);
         if (local is null)
         {
             local = new Fornecedor(Guid.NewGuid(), erpDados.RazaoSocial, DocumentoFiscal.Create(erpDados.DocumentoFiscal), erpDados.TipoPessoa, null, null, null, null,
-                externo.Cidade, externo.Estado, externo.Pais, externo.Ativo ? "Ativo" : "Inativo", null, userId, Now(),
+                externo.Cidade, externo.Estado, externo.Pais, externo.Ativo ? "Ativo" : "Inativo", null, Now(), unidadeNegocioId,
                 dto.BusinessUnit, dto.ErpSistema, externo.Id);
             local.AplicarContratoCanonico(erpDados, "ERP", Normalize(externo.UltimaAlteracaoEm ?? Now()));
             await fornecedorRepository.AdicionarAsync(local, ct);

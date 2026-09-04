@@ -1,39 +1,49 @@
 namespace BlueprintOS.Domain.Procurement.Suppliers;
 
-/// <summary>Aggregate root representing a supplier owned by a procurement user.</summary>
+/// <summary>Aggregate root representing a supplier. Fornecedor é um cadastro CORPORATIVO **da Unidade de
+/// Negócio** do +Compras — decisão do Product Owner (B3 Bloco 5A.9, correção do resíduo TemporaryUserId):
+/// não pertence a um usuário individual. Onda 2 (Multi-BU/Multi-ERP, 03/09/2026, decisão do Product Owner
+/// registrada em <c>applications/mais-compras/docs/cadernos/Onda-2.md</c>): a identidade funcional passa a
+/// ser <see cref="UnidadeNegocioId"/> + <see cref="Cnpj_Cpf"/> — 1 CNPJ/CPF = 1 Fornecedor DENTRO da
+/// Unidade de Negócio, não corporativamente entre BUs. O mesmo CNPJ pode existir como Fornecedores
+/// independentes em Unidades de Negócio diferentes (ex.: Grupo Soma/CNPJ X e Reserva/CNPJ X), cada um com
+/// seus próprios vínculos ERP, Principal, tipos/subtipos, condições, metadados, status e relacionamentos —
+/// sem compartilhamento automático de dado entre BUs. Visibilidade e operações continuam controladas por
+/// RBAC (<c>PermissaoCatalogo.Fornecedor*</c>), nunca por um usuário "dono".</summary>
 public sealed class Fornecedor
 {
     private Fornecedor() { }
 
     public Fornecedor(Guid id, string nome, Cnpj cnpj, string? categoria, string? email, string? telefone,
         string? website, string? cidade, string? estado, string? pais, string status, decimal? scoreIA,
-        Guid temporaryUserId, DateTimeOffset createdAt)
+        DateTimeOffset createdAt, Guid unidadeNegocioId)
         : this(id, nome, DocumentoFiscal.Create(cnpj.Value), "PJ", categoria, email, telefone, website, cidade, estado, pais, status, scoreIA,
-            temporaryUserId, createdAt, null, null, null)
+            createdAt, unidadeNegocioId, null, null, null)
     {
     }
 
     public Fornecedor(Guid id, string nome, Cnpj cnpj, string? categoria, string? email, string? telefone,
         string? website, string? cidade, string? estado, string? pais, string status, decimal? scoreIA,
-        Guid temporaryUserId, DateTimeOffset createdAt, string? businessUnit, string? erpSistema, string? erpFornecedorId)
+        DateTimeOffset createdAt, Guid unidadeNegocioId, string? businessUnit, string? erpSistema, string? erpFornecedorId)
         : this(id, nome, DocumentoFiscal.Create(cnpj.Value), "PJ", categoria, email, telefone, website, cidade, estado, pais, status, scoreIA,
-            temporaryUserId, createdAt, businessUnit, erpSistema, erpFornecedorId)
+            createdAt, unidadeNegocioId, businessUnit, erpSistema, erpFornecedorId)
     {
     }
 
     public Fornecedor(Guid id, string razaoSocial, DocumentoFiscal documentoFiscal, string? tipoPessoa, string? categoria, string? email, string? telefone,
         string? website, string? cidade, string? estado, string? pais, string status, decimal? scoreIA,
-        Guid temporaryUserId, DateTimeOffset createdAt, string? businessUnit = null, string? erpSistema = null, string? erpFornecedorId = null,
+        DateTimeOffset createdAt, Guid unidadeNegocioId, string? businessUnit = null, string? erpSistema = null, string? erpFornecedorId = null,
         string? nomeFantasia = null, string? cep = null, string? logradouro = null, string? numero = null, string? complemento = null, string? bairro = null)
     {
         if (string.IsNullOrWhiteSpace(razaoSocial)) throw new ArgumentException("RazaoSocial is required.", nameof(razaoSocial));
-        if (temporaryUserId == Guid.Empty) throw new ArgumentException("TemporaryUserId is required.", nameof(temporaryUserId));
+        if (unidadeNegocioId == Guid.Empty) throw new ArgumentException("UnidadeNegocioId é obrigatória — Fornecedor pertence a uma Unidade de Negócio (Onda 2, Multi-BU).", nameof(unidadeNegocioId));
         Id = id == Guid.Empty ? Guid.NewGuid() : id;
         RazaoSocial = razaoSocial.Trim(); Cnpj_Cpf = documentoFiscal.Value; TipoPessoa = tipoPessoa?.Trim();
+        UnidadeNegocioId = unidadeNegocioId;
         Categoria = categoria?.Trim(); Email = email?.Trim();
         Telefone = telefone?.Trim(); Website = website?.Trim(); Cidade = cidade?.Trim(); Estado = estado?.Trim();
         Pais = pais?.Trim(); Status = string.IsNullOrWhiteSpace(status) ? "Ativo" : status.Trim(); ScoreIA = scoreIA;
-        TemporaryUserId = temporaryUserId; CreatedAt = createdAt; UpdatedAt = createdAt;
+        CreatedAt = createdAt; UpdatedAt = createdAt;
         BusinessUnit = businessUnit?.Trim(); ErpSistema = erpSistema?.Trim(); ErpFornecedorId = erpFornecedorId?.Trim();
         NomeFantasia = nomeFantasia?.Trim(); Cep = cep?.Trim(); Logradouro = logradouro?.Trim(); Numero = numero?.Trim();
         Complemento = complemento?.Trim(); Bairro = bairro?.Trim();
@@ -41,6 +51,12 @@ public sealed class Fornecedor
     }
 
     public Guid Id { get; private set; }
+
+    /// <summary>Onda 2 (Multi-BU/Multi-ERP, 03/09/2026): fronteira de dados do Fornecedor — junto com
+    /// <see cref="Cnpj_Cpf"/>, forma a identidade funcional real (<c>UnidadeNegocioId + Cnpj_Cpf</c>).
+    /// Nunca alterada após a criação (imutável, mesma disciplina de <see cref="Cnpj_Cpf"/> em relação à sua
+    /// própria BU — mudar a BU de um Fornecedor existente seria recriá-lo em outro contexto, não editá-lo).</summary>
+    public Guid UnidadeNegocioId { get; private set; }
     public string RazaoSocial { get; private set; } = null!;
     public string Cnpj_Cpf { get; private set; } = null!;
     public string Nome => RazaoSocial;
@@ -54,7 +70,15 @@ public sealed class Fornecedor
     public string? Pais { get; private set; }
     public string Status { get; private set; } = null!;
     public decimal? ScoreIA { get; private set; }
-    public Guid TemporaryUserId { get; private set; }
+
+    /// <summary>[LEGADO/DEPRECADO — B3 Bloco 5A.9] Resíduo arquitetural de uma noção de "propriedade
+    /// pessoal" de Fornecedor que nunca foi uma regra de negócio real (evidência: 99,8% dos 27.757
+    /// Fornecedores reais pertenciam a um único usuário; nenhuma tela usa este campo para RBAC). Fornecedor
+    /// é corporativo — visibilidade e operações são sempre controladas por RBAC, nunca por este campo.
+    /// Não é mais populado por código novo (sempre <c>null</c> para Fornecedores criados a partir de agora);
+    /// mantido apenas para não perder o histórico dos registros existentes e evitar uma migração
+    /// destrutiva. Nunca usar em novas regras de consulta, filtro ou autorização.</summary>
+    public Guid? TemporaryUserId { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
     public string? BusinessUnit { get; private set; }
@@ -135,7 +159,10 @@ public sealed class Fornecedor
     public void AplicarContratoCanonico(FornecedorCanonico dados, string origem, DateTimeOffset alteradoEm)
     {
         RazaoSocial = dados.RazaoSocial.Trim(); Cnpj_Cpf = DocumentoFiscal.Create(dados.DocumentoFiscal).Value;
-        if (string.Equals(origem, "ERP", StringComparison.OrdinalIgnoreCase)) NomeFantasia = dados.NomeFantasia?.Trim();
+        // B3 — Bloco 5A.9 (decisão do Product Owner, validada Bloco 5A.5): NomeFantasia é persistido em
+        // UPPERCASE — regra de armazenamento/apresentação, nunca usada para resolução de identidade (essa
+        // continua exata + trim, em FornecedorLinxVinculo.NomeClifor, nunca aqui).
+        if (string.Equals(origem, "ERP", StringComparison.OrdinalIgnoreCase)) NomeFantasia = dados.NomeFantasia?.Trim().ToUpperInvariant();
         TipoPessoa = dados.TipoPessoa?.Trim(); Pais = dados.Pais; InscricaoEstadual = dados.InscricaoEstadual; InscricaoMunicipal = dados.InscricaoMunicipal;
         Cep = dados.Cep; Logradouro = dados.Logradouro; Numero = dados.Numero; Complemento = dados.Complemento; Bairro = dados.Bairro;
         Cidade = dados.Cidade; Estado = dados.Uf; CodigoMunicipio = dados.CodigoMunicipio; Ddd = dados.Ddd; Telefone = dados.Telefone;
@@ -146,6 +173,29 @@ public sealed class Fornecedor
         Beneficiador = dados.Beneficiador; Licenciado = dados.Licenciado;
         Status = dados.Ativo ? "Ativo" : "Inativo"; HashDadosSincronizaveis = dados.HashDadosSincronizaveis; UpdatedAt = alteradoEm;
         OrigemUltimaAlteracao = origem; OrigemInformacao = origem; Versao++;
+    }
+
+    /// <summary>B3 — Bloco 5A.9, Gate REFINED: aplica SOMENTE a identidade cadastral mínima que o RAW
+    /// (LiveRead governado) carrega hoje — RazaoSocial/NomeFantasia/TipoPessoa/Status/hash de divergência —
+    /// deliberadamente NUNCA os ~25 campos cadastrais ricos que <see cref="AplicarContratoCanonico"/> toca
+    /// (endereço, banco, regime fiscal, etc.), que o RAW ainda não captura. Usar
+    /// <see cref="AplicarContratoCanonico"/> aqui destruiria silenciosamente (setaria como null) qualquer
+    /// valor rico já sincronizado por um Fornecedor existente através do fluxo per-registro antigo — um
+    /// risco de perda de dados real, não hipotético. Ampliar o RAW para cobrir o conjunto completo, e então
+    /// usar novamente o método rico, é trabalho de um Gate futuro.</summary>
+    public void AplicarIdentidadeLinxRefined(string razaoSocial, string? nomeFantasia, string tipoPessoa, bool ativo,
+        string hashDadosSincronizaveis, DateTimeOffset alteradoEm)
+    {
+        if (string.IsNullOrWhiteSpace(razaoSocial)) throw new ArgumentException("RazaoSocial is required.", nameof(razaoSocial));
+        RazaoSocial = razaoSocial.Trim();
+        NomeFantasia = string.IsNullOrWhiteSpace(nomeFantasia) ? NomeFantasia : nomeFantasia.Trim().ToUpperInvariant();
+        TipoPessoa = tipoPessoa.Trim();
+        Status = ativo ? "Ativo" : "Inativo";
+        HashDadosSincronizaveis = hashDadosSincronizaveis;
+        UpdatedAt = alteradoEm;
+        OrigemUltimaAlteracao = "ERP";
+        OrigemInformacao = "ERP";
+        Versao++;
     }
 
     public void AlterarStatus(bool ativo, DateTimeOffset alteradoEm, string origem)

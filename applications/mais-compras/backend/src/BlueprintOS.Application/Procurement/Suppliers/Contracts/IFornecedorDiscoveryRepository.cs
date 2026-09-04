@@ -14,6 +14,6 @@ public interface IErpFornecedorDiscoveryRepository
 public interface IFornecedorDescobertoRepository
 {
     Task AdicionarAsync(FornecedorDescoberto descoberta, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<FornecedorDescoberto>> ListarAsync(Guid temporaryUserId, CancellationToken cancellationToken = default);
-    Task<FornecedorDescoberto?> ObterPorIdAsync(Guid id, Guid temporaryUserId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<FornecedorDescoberto>> ListarAsync(CancellationToken cancellationToken = default);
+    Task<FornecedorDescoberto?> ObterPorIdAsync(Guid id, CancellationToken cancellationToken = default);
 }

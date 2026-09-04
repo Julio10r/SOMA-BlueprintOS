@@ -7,17 +7,22 @@ namespace BlueprintOS.Infrastructure.Administration;
 
 /// <summary>Implementação real de <see cref="ICentroCustoVinculoValidator"/> (resolução da dívida O1.6-L2).
 ///
+/// Onda 2 (Multi-BU/Multi-ERP, 03/09/2026, decisão do Product Owner): o índice físico de
+/// <see cref="CentroCustoMetadado.CodigoErp"/> deixou de ser único globalmente — duas Unidades de Negócio
+/// podem ancorar o mesmo código ERP como metadados independentes (contextos independentes, nunca
+/// compartilhados). A validação em tempo de execução passa a ser inteiramente escopada pela Unidade de
+/// Negócio da sessão:
+///
 /// Para cada código ERP informado no vínculo Usuário×Centro de Custo:
-/// 1. Se já existe um <see cref="CentroCustoMetadado"/> com esse código (em QUALQUER Unidade de Negócio —
-///    <c>ObterPorCodigoErpGlobalAsync</c>), o vínculo só é aceito se o metadado pertencer à MESMA Unidade de
-///    Negócio da sessão. Pertencer a outra Unidade de Negócio é rejeitado — é exatamente o vetor de vínculo
-///    cross-BU que esta sprint fecha.
-/// 2. Se não existe metadado ainda, o código é validado contra o ERP real
+/// 1. Se já existe um <see cref="CentroCustoMetadado"/> para esse código NA MESMA Unidade de Negócio da
+///    sessão (<c>ObterPorCodigoErpAsync</c>, já escopado), o vínculo é aceito reaproveitando esse metadado —
+///    sem nova consulta ao ERP.
+/// 2. Se não existe metadado para esse código NESTA Unidade de Negócio (esteja ele ancorado em outra BU ou
+///    em nenhuma), o código é validado contra o ERP real
 ///    (<see cref="ICentroCustoErpReader.BuscarPorCodigoAsync"/>). Inexistente no ERP → rejeitado. Existente
-///    → um <see cref="CentroCustoMetadado"/> é criado "sob demanda", ancorado à Unidade de Negócio da
-///    sessão (Ativo por padrão) — é isso que faz o próximo vínculo ao mesmo código, mesmo que de outra
-///    sessão da mesma Unidade de Negócio, resolver em memória sem nova consulta ao ERP, e é isso que impede
-///    a mesma tentativa futura de outra Unidade de Negócio (regra 1).
+///    → um novo <see cref="CentroCustoMetadado"/> é criado "sob demanda", ancorado à Unidade de Negócio da
+///    sessão (Ativo por padrão) — mesmo código ERP já ancorado em outra BU não impede nem é afetado por
+///    esta criação (contextos independentes).
 ///
 /// Decisão explícita (ver relatório final da O1.7): validação em tempo de execução no caso de uso, em vez de
 /// FK física em `UsuariosCentrosCusto` — a FK física exigiria que o metadado já existisse ANTES do primeiro
@@ -28,12 +33,7 @@ namespace BlueprintOS.Infrastructure.Administration;
 /// DEB-15/M2 (Gate Final pós-O1.14): este método NUNCA chama <c>SalvarAlteracoesAsync</c> — apenas rastreia
 /// o novo <see cref="CentroCustoMetadado"/> via <c>AdicionarAsync</c> no mesmo <c>DbContext</c> compartilhado
 /// pelo repositório de Usuário injetado no caso de uso chamador (<c>CriarUsuarioUseCase</c>/
-/// <c>AtualizarUsuarioUseCase</c>). Antes desta correção, a ancoragem do metadado era persistida aqui, em uma
-/// chamada a <c>SaveChangesAsync</c> separada da que grava o Usuário e o vínculo Usuário×Centro de Custo: se
-/// a segunda chamada falhasse (ex.: corrida no índice único de e-mail, violação de concorrência nos Perfis),
-/// o metadado já estaria commitado no banco — ancorando permanentemente aquele código ERP a esta Unidade de
-/// Negócio (índice único global de <c>CodigoErp</c>) sem que o vínculo Usuário×Centro de Custo que motivou a
-/// ancoragem jamais tivesse sido criado. Persistir tudo em uma única chamada (mesmo padrão de
+/// <c>AtualizarUsuarioUseCase</c>). Persistir tudo em uma única chamada (mesmo padrão de
 /// <c>ConcluirBootstrapUseCase</c>) garante que, se qualquer etapa falhar, nenhuma escrita — incluindo a
 /// ancoragem do metadado — é persistida.</summary>
 public sealed class CentroCustoVinculoValidator(
@@ -59,16 +59,9 @@ public sealed class CentroCustoVinculoValidator(
 
         foreach (var codigo in normalizados)
         {
-            var ancoraExistente = await metadados.ObterPorCodigoErpGlobalAsync(codigo, ct);
+            var ancoraExistente = await metadados.ObterPorCodigoErpAsync(codigo, unidadeNegocioId, ct);
             if (ancoraExistente is not null)
             {
-                if (ancoraExistente.UnidadeNegocioId != unidadeNegocioId)
-                {
-                    return RbacResultado<IReadOnlyList<string>>.Erro(
-                        RbacFalha.CentroCustoInvalido,
-                        $"O Centro de Custo '{codigo}' pertence a outra Unidade de Negócio e não pode ser vinculado.");
-                }
-
                 continue;
             }
 

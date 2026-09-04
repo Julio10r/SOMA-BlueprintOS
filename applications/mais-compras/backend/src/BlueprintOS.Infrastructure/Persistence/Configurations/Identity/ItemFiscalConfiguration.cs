@@ -17,9 +17,20 @@ public sealed class ItemFiscalConfiguration : IEntityTypeConfiguration<ItemFisca
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Codigo).IsRequired().HasMaxLength(50);
         builder.Property(x => x.Descricao).IsRequired().HasMaxLength(400);
-        builder.Property(x => x.UnidadeMedidaCodigoErp).IsRequired().HasMaxLength(50);
-        builder.Property(x => x.ContaContabilCodigoErp).IsRequired().HasMaxLength(50);
+        // B3 — Bloco 5A: nuláveis para representar, sem falsificar, Item Fiscal real do Linx já existente
+        // sem Conta Contábil/Unidade (situação cadastral Ativo comprovada em Produção, 144+2+2 registros
+        // reais). Continuam obrigatórios no caso de uso de criação/edição LOCAL (+Compras) — a coluna do
+        // banco precisa aceitar nulo só para a origem Linx.
+        builder.Property(x => x.UnidadeMedidaCodigoErp).HasMaxLength(50);
+        builder.Property(x => x.ContaContabilCodigoErp).HasMaxLength(50);
         builder.Property(x => x.Ativo).IsRequired().HasDefaultValue(true);
+        builder.Property(x => x.OrigemInformacao)
+            .IsRequired()
+            .HasMaxLength(20)
+            .HasConversion<string>()
+            .HasDefaultValue(OrigemInformacaoItemFiscal.MaisCompras);
+        builder.Property(x => x.UltimaAlteracaoErp);
+        builder.Property(x => x.UltimaAlteracaoLocalEm);
         builder.Property(x => x.CriadoEm).IsRequired();
         builder.Property(x => x.AtualizadoEm).IsRequired();
 

@@ -7,7 +7,7 @@ namespace BlueprintOS.Domain.Identity;
 /// status/ativo/inativo no Linx (comprovado por schema discovery dedicado) — por isso
 /// <see cref="AtivoNoMaisCompras"/> aqui é a ÚNICA fonte de ativo/inativo para Unidade, sem nenhuma
 /// restrição vinda do lado ERP (ao contrário de Conta Contábil).</summary>
-public sealed class UnidadeMedidaMetadado
+public sealed class UnidadeMedidaMetadado : ICadastroApoioMetadado
 {
     public Guid Id { get; private set; }
     public string CodigoErp { get; private set; }

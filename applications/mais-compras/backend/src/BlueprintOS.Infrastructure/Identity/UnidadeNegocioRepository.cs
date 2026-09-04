@@ -10,6 +10,9 @@ public sealed class UnidadeNegocioRepository(BlueprintOSDbContext db) : IUnidade
     public Task<UnidadeNegocio?> ObterPorIdAsync(Guid id, CancellationToken ct) =>
         db.UnidadesNegocio.SingleOrDefaultAsync(x => x.Id == id, ct);
 
+    public Task<UnidadeNegocio?> ObterPorSlugAsync(string slug, CancellationToken ct) =>
+        db.UnidadesNegocio.SingleOrDefaultAsync(x => x.Slug == slug, ct);
+
     public Task<bool> PossuiAdministradorSeniorAtivoAsync(Guid unidadeNegocioId, CancellationToken ct) =>
         (from usuario in db.Usuarios
          join vinculo in db.UsuariosPerfis on usuario.Id equals vinculo.UsuarioId

@@ -21,6 +21,9 @@ public static class FornecedorSyncController
         group.MapPost("/sincronizar/lote", SyncBatch);
         group.MapGet("/sincronizar-erp", SyncErp);
         group.MapGet("/{fornecedorId:guid}/sincronizacoes", Audit);
+        // B3 — Bloco 5A.9 (GAP KALUNGA): recuperação administrativa GOVERNADA de uma execução
+        // comprovadamente abandonada — mesma permissão das demais rotas administrativas de sincronização.
+        group.MapPost("/sincronizacoes/{execucaoId:guid}/recuperar", RecuperarAbandonada);
 
         // B2.9 — operação explícita de negócio ("garantir/atualizar fornecedor no ERP"), distinta das
         // rotas administrativas acima: exige apenas a permissão de edição de Fornecedor, nunca disparada
@@ -84,7 +87,24 @@ public static class FornecedorSyncController
 
     private static async Task<IResult> Audit(Guid fornecedorId, IFornecedorSincronizacaoRepository repository, CancellationToken ct) =>
         Results.Ok(await repository.ListarPorFornecedorAsync(fornecedorId, ct));
+
+    private static async Task<IResult> RecuperarAbandonada(Guid execucaoId, RecuperarSincronizacaoFornecedorAbandonadaRequestBody? body,
+        IRecuperarSincronizacaoFornecedorAbandonadaUseCase useCase, CancellationToken ct)
+    {
+        if (body is null || string.IsNullOrWhiteSpace(body.Justificativa))
+            return Results.BadRequest(new { code = "validation_error", message = "Justificativa é obrigatória." });
+        try
+        {
+            return Results.Ok(await useCase.ExecuteAsync(new RecuperarSincronizacaoFornecedorAbandonadaDto(execucaoId, body.Justificativa), ct));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.Conflict(new { code = "recuperacao_invalida", message = ex.Message });
+        }
+    }
 }
+
+public sealed record RecuperarSincronizacaoFornecedorAbandonadaRequestBody(string Justificativa);
 
 public sealed record SincronizarFornecedorRequest(string BusinessUnit, string ErpSistema, string? ErpFornecedorId,
     Guid? FornecedorId, DirecaoSincronizacao Direcao, string? CorrelationId, OperacaoFornecedor Operacao = OperacaoFornecedor.Sincronizar)

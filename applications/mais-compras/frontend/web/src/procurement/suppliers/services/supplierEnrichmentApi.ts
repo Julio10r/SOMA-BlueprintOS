@@ -4,6 +4,7 @@ import type {
   ConsultaCnpjResultado,
   Fornecedor,
   FornecedorEnriquecimentoAnalise,
+  FornecedorLinxVinculo,
   FornecedorPesquisaPaginada,
   FornecedorPesquisaParametros,
   ManualFornecedorDraft
@@ -114,6 +115,25 @@ export async function alterarStatusFornecedor(id: string, ativo: boolean): Promi
     method: "PATCH",
     headers,
     body: JSON.stringify({ ativo })
+  });
+}
+
+/** B3 — Bloco 5A.9: vínculos Linx do Fornecedor (1 CNPJ = 1 Fornecedor, N vínculos). */
+export async function getFornecedorVinculosLinx(id: string): Promise<FornecedorLinxVinculo[] | null> {
+  const response = await fetch(apiUrl(`/fornecedores/${encodeURIComponent(id)}/vinculos-linx`));
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message ?? `Falha HTTP ${response.status}`);
+  }
+  return response.json() as Promise<FornecedorLinxVinculo[]>;
+}
+
+/** Troca explícita de Principal pelo comprador — nunca automática por recência (Bloco 5A.9, §5/§15). */
+export async function definirFornecedorVinculoPrincipal(id: string, vinculoId: string): Promise<void> {
+  await request<{ success: boolean }>(apiUrl(`/fornecedores/${encodeURIComponent(id)}/vinculos-linx/${encodeURIComponent(vinculoId)}/definir-principal`), {
+    method: "POST",
+    headers
   });
 }
 

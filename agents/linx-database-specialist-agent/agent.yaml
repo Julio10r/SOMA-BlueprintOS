@@ -7,7 +7,7 @@ type: hybrid
 status: active
 owner: engineering
 responsibility:
-  objective: Responder perguntas estruturais sobre schema e conhecimento de banco Linx e produzir propostas estruturadas de escrita governada, sem executar SQL.
+  objective: Responder perguntas estruturais sobre schema e conhecimento de banco Linx, produzir propostas estruturadas de escrita governada, e executar leitura real (LiveRead) de datasets pre-registrados sob o Tool Gateway (B3/Bloco 5A.9, Gate A) — nunca SQL arbitrario, nunca escrita.
   responsibilities:
     - Consumir conhecimento Linx filtrado para o papel LinxDatabaseSpecialist.
     - Apoiar entendimento de tabelas, colunas, chaves e proveniencia estrutural.
@@ -15,6 +15,7 @@ responsibility:
     - Manter separacao entre descoberta/recomendacao e execucao real de SQL.
     - Produzir ActionProposal estruturada para necessidade de escrita SOMA/Linx quando houver contexto suficiente.
     - Apoiar (ownership complementar ao linx-erp-specialist-agent) discovery documentado de artefato Linx bruto fornecido pelo usuario quando o achado for estrutural (schema, tabela, coluna, constraint, trigger, procedure), sob `agents/USER_ARTIFACT_LEARNING_POLICY.md`, registrando em doc de auditoria e propondo unidade(s) para `agents/knowledge/linx-fornecedor-cnpj/*.source.json` com proveniencia `Descoberto`/`Inferido`. Mudanca material desta capability autorizada explicitamente pelo usuario em 2026-09-01 (correcao de Gate de Fornecedores +Compras).
+    - "Possuir (ownership primary) a capability linx-dataset-snapshot-read: leitura real, nao-mutante, em massa, de um dataset pre-registrado (primeiro: linx.fornecedores.snapshot) atraves do Tool Gateway sob GovernedExecutionMode.LiveRead, streaming direto para tabela RAW no +Compras (SqlDataReader -> SqlBulkCopy), sem materializar o resultado em memoria e sem nenhuma chamada a IAIRuntime no caminho feliz. Mudanca material desta capability autorizada explicitamente pelo Product Owner em 2026-09-03 (B3/Bloco 5A.9, Gate A, decisao 'AUTORIZAR CAPABILITY GOVERNADA DE LEITURA REAL LINX')."
   non_goals:
     - Nao executar SQL arbitrario.
     - Nao executar escrita em banco.
@@ -33,6 +34,12 @@ implementation:
     - applications/mais-compras/backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxConhecimentoProveniencia.cs
     - applications/mais-compras/backend/src/BlueprintOS.Domain/Knowledge/Linx/LinxKnowledgeEntry.cs
     - applications/mais-compras/backend/src/BlueprintOS.Infrastructure/Integrations/ERP/Soma/LinxSchemaDiscoveryReader.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Core/AI/Governance/LinxDatasetSnapshotReadAdapter.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Core/AI/Governance/Contracts/IReadExecutionAdapter.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Core/AI/Governance/Contracts/IReadDatasetCatalog.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Core/AI/Governance/Contracts/ISomaLinxDatasetBulkReader.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Infrastructure/Integrations/ERP/Soma/LinxReadDatasetCatalog.cs
+    - applications/mais-compras/backend/src/BlueprintOS.Infrastructure/Integrations/ERP/Soma/SomaLinxDatasetBulkReader.cs
   prompt_paths: []
   context_paths:
     - .ai/context/agents.md
@@ -70,6 +77,7 @@ capabilities:
     - Responder perguntas sobre schema Linx com proveniencia.
     - Apoiar descoberta read-only quando acionado por componentes autorizados.
     - Produzir proposta estruturada de escrita para Policy Engine, approval e Tool Gateway em dry-run.
+    - Executar LiveRead real de dataset pre-registrado (linx.fornecedores.snapshot) via Tool Gateway, sem SQL arbitrario e sem escrita.
   forbidden_operations:
     - Executar SQL arbitrario.
     - Executar INSERT, UPDATE, DELETE, TRUNCATE, MERGE, ALTER, DROP ou CREATE.
@@ -90,6 +98,11 @@ capability_ownership:
   linx-user-artifact-discovery:
     responsible_agent_id: linx-erp-specialist-agent
     ownership: complementary
+    delegation_required: true
+    direct_execution_by_others_allowed: false
+  linx-dataset-snapshot-read:
+    responsible_agent_id: linx-database-specialist-agent
+    ownership: primary
     delegation_required: true
     direct_execution_by_others_allowed: false
 delegation:
@@ -150,13 +163,16 @@ governance:
   can_propose_write: true
   can_execute_write: false
   can_execute_destructive_operation: false
+  can_execute_live_read: true
   policy_engine_required: true
   requires_action_proposal_for:
     - Qualquer proposta de escrita SOMA/Linx.
     - Qualquer futura operacao de escrita, exportacao material, acesso a dado pessoal, segredo ou chamada externa com efeito material.
+    - Qualquer LiveRead de dataset (ActionProposal com Operation=Select, Resource=nome do dataset, nunca SQL).
   approval_required_for:
     - Promocao final de conhecimento para Aprovado exige aprovador humano pelo fluxo Linx Knowledge.
     - Qualquer escrita SOMA/Linx classificada como Yellow pelo Policy Engine.
+    - "Primeira aprovacao (ApprovalGrant) de cada LiveRead recorrente e humana e obrigatoria (ContainsPersonalData=true classifica Yellow/RequiresApproval); execucoes futuras com o MESMO conteudo de proposta (ProposalHash estavel, pois Id/CreatedAt sao excluidos do hash) reutilizam esse grant ate ExpiresAt — revogavel e auditado, nunca um bypass automatico de aprovacao."
   audit_required: true
   default_risk: Green
   enforcement_status: ENFORCED
@@ -167,6 +183,15 @@ governance:
     - code: AFV2-GATEWAY-001
       classification: NOT_IMPLEMENTED
       justification: SomaLinxReadOnlyAdapter and SomaLinxDryRunAdapter are real, registered, DI-resolved and tested Gateway adapters for this Agent's capabilities. The existing SQL readers (SomaFornecedorReader, SomaFilialReader, etc.) that call SqlConnection directly live in the Suppliers/Fornecedores feature area, explicitly out of scope for this wave (unrelated in-flight workstream). Rewiring those readers to route through the Gateway is a follow-up integration task, not an unaddressed gap in the Agents architecture itself.
+    - code: B3-BLOCO5A9-GATEA-LIVEREAD
+      classification: BY_DESIGN
+      justification: "APPROVED (2026-09-03): Product Owner decision ('AUTORIZAR CAPABILITY GOVERNADA DE LEITURA REAL LINX', B3/Bloco 5A.9 Gate A): explicitly chose to build a governed real (non-dry-run) bulk-read capability BEFORE starting the RAW/REFINED/DOMINIO ingestion, so that new architecture never inherits the legacy SomaFornecedorReader/SqlConnection bypass (AFV2-GATEWAY-001) it was built to replace for NEW integrations — that legacy gap remains accepted debt for EXISTING readers only, untouched by this decision. Implemented as GovernedExecutionMode.LiveRead (a new mode, never a variant of LiveExecution: no WriteVerificationProfile/RecoveryPackageReceipt/PostWriteValidationRule, since a read has nothing to roll back), a new IReadExecutionAdapter (BlueprintOS.Core.AI.Governance.Contracts), enforced in both directions by ToolGateway (a write-only adapter cannot execute via LiveRead and a read-only adapter cannot execute via LiveExecution), and LinxDatasetSnapshotReadAdapter (capability linx-dataset-snapshot-read, this Agent as OwnerAgent) resolving ActionProposal.Resource against a fixed, code-reviewed IReadDatasetCatalog (first entry: linx.fornecedores.snapshot) — never caller-supplied SQL. Streaming is delegated to ISomaLinxDatasetBulkReader/SomaLinxDatasetBulkReader (BlueprintOS.Infrastructure, SqlDataReader into SqlBulkCopy, READ UNCOMMITTED only on the source connection, never on Linx server configuration), authorized by the Gateway/Policy Engine exactly once per dataset execution, never once per row, mirroring the already-proven write-side guarantee (ToolGatewayLiveExecutionTests.Fully_Guaranteed_Live_Request_Executes_Through_The_Write_Adapter, ExecuteCallCount == 1). Zero LLM calls in the happy path (proven by a dedicated test with an exception-throwing IAIRuntime fake). Deliberately NOT registered in AddGovernedWriteStack (the general web/API DI composition) — like the live-write adapters, real execution is reachable only from a dedicated CLI entry point to be built when Gate B authorizes execution against SOMA_DESENV; only DryRunAsync is safe to expose broadly. RAW destination (RAW_LinxFornecedoresSnapshot / RAW_LinxFornecedoresSnapshotExecucoes, MAISCOMPRAS Development) carries execution identity and a completeness flag; an incomplete load is never eligible for REFINED/DOMINIO. Scope of this Gate is wiring and tests only — no real execution against SOMA_DESENV/Linx has been performed (see docs/audits/ pending Gate A report for full item-by-item evidence)."
+    - code: B3-BLOCO5A-CADASTROS-APOIO-PREPARACAO
+      classification: BY_DESIGN
+      justification: "AUTORIZADO (2026-09-03): PO instruiu completar todas as integracoes Linx->+Compras necessarias antes da bateria final de certificacao do Bloco 5A. Discovery real (read-only, SOMA_DESENV) identificou 6 datasets alem de Fornecedores ja consumidos por dominio +Compras existente via reader legado direto: Itens Fiscais (CADASTRO_ITEM_FISCAL), Item Fiscal Referencia por Fornecedor (ITEM_FISCAL_REF_FORNECEDOR), Contas Contabeis (CTB_CONTA_PLANO), Unidades de Medida (UNIDADES), Centros de Custo (CTB_CENTRO_CUSTO) e Filiais (FILIAIS+CADASTRO_CLI_FOR, hibrido). Corrigido nesta rodada, tambem por decisao do PO: watermark de dataset Incremental passou a usar o instante de INICIO da execucao (RawLinxFornecedorSnapshotExecucao.IniciadoEm), nunca o de conclusao — aplicado ao Fornecedor (recalculado via reexecucao idempotente do pipeline ja homologado, StartedAt real recuperado de evidencia persistida, nunca inventado) e a toda nova infraestrutura desde o primeiro commit. Implementados e executados de ponta a ponta (LiveRead FULL -> RAW -> REFINED -> dominio -> reconciliacao -> baseline) em MAISCOMPRAS Development: linx.contas-contabeis.snapshot (3.264/3.264, baseline PASS), linx.unidades-medida.snapshot (75/75, FULL-only, sem maquina de baseline por decisao do PO — estrategia normal e Full), linx.centros-custo.snapshot (2.138/2.138, baseline PASS). Novo padrao compartilhado (ICadastroApoioMetadado, CadastroApoioRefinedProjector, ProcessarCadastroApoioRawParaDominioUseCase<TRaw,TMetadado>): a unica decisao permitida e inativar um metadado local quando o Linx sinaliza inatividade (ADR-0024, nunca reativar, nunca criar — provisionar exigiria uma Unidade de Negocio sem origem no Linx). Achado real relevante (mesma classe do bug de padding char(6) de Fornecedor, ver historico do Gate 5A.9): CTB_CENTRO_CUSTO tem codigos com espacos em branco inconsistentes (um registro com espaco a esquerda, outro so a direita) que colidem apos normalizacao — tratado como ocorrencia propria (CADASTRO_APOIO_CODIGO_LINX_AMBIGUO), nunca escolhendo qual registro e o correto. FornecedorDominioErp (Tipo/Subtipo/CondicaoPagamento) teve sua origem Linx descoberta (FORNECEDOR_TIPOS, FORNECEDOR_SUBTIPO, COND_ENT_PGTOS via FK real) mas permanece SEM integrador (Fornecedor.VincularDominios nunca e chamado) — pendente para proxima rodada. Itens Fiscais, Item Fiscal Referencia por Fornecedor e Filiais permanecem projetados (Discovery completo, incluindo prova empirica de que Filiais exige watermark hibrido FILIAIS+CADASTRO_CLI_FOR) mas ainda NAO implementados nesta rodada."
+    - code: B3-BLOCO5A-PREPARACAO-CONCLUIDA
+      classification: BY_DESIGN
+      justification: "CONCLUIDO (2026-09-03): todos os datasets pendentes da preparacao do Bloco 5A foram implementados e executados de ponta a ponta (LiveRead FULL -> RAW -> REFINED -> dominio -> reconciliacao) em MAISCOMPRAS Development, com baseline PASS onde aplicavel: linx.filiais.snapshot (2.145/2.145, hibrido FILIAIS+CADASTRO_CLI_FOR, watermark comprovado empiricamente — 217/2.144 pares com CADASTRO_CLI_FOR mais recente), linx.itens-fiscais.snapshot (14.011/14.011, LWW casos A-F reproduzidos fielmente de SincronizarItensFiscaisErpUseCase via ItemFiscalRefinedProjector), linx.itens-fiscais-referencias-fornecedor.snapshot (9/9, FULL, resolucao NOME_CLIFOR->CLIFOR->COD_FORNECEDOR ja homologada preservada), linx.fornecedor-dominios.snapshot (1.398 registros de FORNECEDOR_TIPOS+FORNECEDOR_SUBTIPO+COND_ENT_PGTOS, FULL, VincularFornecedorDominiosErpUseCase conectou pela primeira vez a infraestrutura FornecedorDominioErp/Fornecedor.VincularDominios que nunca tinha chamador — 35.020/30.170/34.930 Fornecedores vinculados a Tipo/Subtipo/CondicaoPagamento respectivamente). AvancarWatermark (gap critico apontado pelo PO como nao podendo esperar a bateria final) foi implementado ponta-a-ponta via DecisaoPosReconciliacao (decisao pura Full-Aprovada->HomologarBaseline, Incremental-Aprovada->AvancarWatermark, qualquer outra combinacao->Nenhuma), com testes de dominio cobrindo os 6 cenarios exigidos (sucesso avanca, falha/execucao parcial nao avanca via Completa=false, reconciliacao reprovada nao avanca via DecisaoPosReconciliacao, overlap preservado via novo LinxDatasetLoadStateGateTests contra a implementacao REAL do gate, reexecucao idempotente). GAP arquitetural real descoberto (nao contornado): ItemFiscal.CriarDeErp exige UnidadeNegocioId, que no fluxo legado vem da sessao do usuario logado — o pipeline governado e um processo CLI headless sem essa nocao, e CADASTRO_ITEM_FISCAL nao tem dimensao de Unidade de Negocio no Linx; por isso este pipeline NUNCA cria Item Fiscal novo (so atualiza existentes via LWW), registrando ocorrencia Warning em vez de inventar Unidade de Negocio — decisao do PO pendente sobre como resolver criacao via pipeline governado. Quatro bugs reais de padding/espaco em branco encontrados e corrigidos durante execucao real (mesma classe do bug char(6) de Fornecedor do Gate anterior): FORNECEDOR_SUBTIPO com TIPO/SUBTIPO_FORNECEDOR nao aparados estourando o tamanho da chave composta; COND_ENT_PGTOS com 1 codigo vazio (rejeitado, nunca inventado); ITEM_FISCAL_REF_FORNECEDOR.CODIGO_ITEM chegando com espaco a direita nao aparado antes de comparar contra ItemFiscal.Codigo local. Bug de idempotencia real tambem corrigido: verificacao de ocorrencias ja persistidas cruzava Stage entre SincronizarFornecedorDominiosErpUseCase (Refined) e VincularFornecedorDominiosErpUseCase (Domain) por reaproveitarem o mesmo ExecutionId, causando falso-positivo de 'ja persistido' — corrigido filtrando por Stage em ambos. Recuperacao de sessao apos reboot inesperado do MacBook confirmou zero corrupcao/zero perda (RAW da ultima execucao ja estava Completa e persistida antes da queda) e zero escrita no SOMA_DESENV durante toda a preparacao. Pendente para a bateria final controlada: teste incremental real (nenhum incremental foi executado ainda, so FULL), teste controlado dos ~101 registros, validacao cruzada de relacionamentos entre todos os dominios."
 knowledge:
   memory_paths:
     - .ai/context/knowledge.md
@@ -197,6 +222,7 @@ tests:
   unit:
     - applications/mais-compras/backend/tests/BlueprintOS.UnitTests/Application/Knowledge/Linx/LinxSpecialistAgentsTests.cs
     - applications/mais-compras/backend/tests/BlueprintOS.UnitTests/Application/Knowledge/Linx/LinxSpecialistsFunctionalValidationTests.cs
+    - applications/mais-compras/backend/tests/BlueprintOS.UnitTests/Core/AI/Governance/ToolGatewayLiveReadTests.cs
   integration: []
   safety:
     - applications/mais-compras/backend/tests/BlueprintOS.UnitTests/Application/Knowledge/Linx/LinxSpecialistAgentsTests.cs

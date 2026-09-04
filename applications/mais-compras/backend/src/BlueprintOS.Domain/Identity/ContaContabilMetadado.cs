@@ -7,7 +7,7 @@ namespace BlueprintOS.Domain.Identity;
 /// +Compras tem autoridade sobre: <see cref="DescricaoMaisCompras"/> (opcional) e
 /// <see cref="AtivoNoMaisCompras"/> (uma restrição adicional só do lado +Compras — nunca pode reativar uma
 /// conta que o Linx marcou como inativa, conforme `ADR-0024`: em ambiguidade, Linx prevalece).</summary>
-public sealed class ContaContabilMetadado
+public sealed class ContaContabilMetadado : ICadastroApoioMetadado
 {
     public Guid Id { get; private set; }
     public string CodigoErp { get; private set; }

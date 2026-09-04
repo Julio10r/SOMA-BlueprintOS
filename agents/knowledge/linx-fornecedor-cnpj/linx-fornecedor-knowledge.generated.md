@@ -11,6 +11,10 @@ Consumido por (`agent.yaml` `implementation.context_paths`): `linx-erp-specialis
 Cada unidade abaixo referencia sua fonte original — este arquivo NUNCA é a fonte
 primária, é uma consolidação recuperável. As fontes primárias completas são:
 
+- `docs/audits/B3-Bloco5A-PadraoNomeClifor-Uppercase.md` (`b3-bloco5a-padrao-nomeclifor-uppercase`)
+- `docs/audits/B3-Bloco5A-MapeamentoNomeCliforNomeFantasia.md` (`b3-bloco5a-mapeamento-nomeclifor-nomefantasia`)
+- `docs/audits/B3-Bloco5A-ValidacaoIdentidadeFornecedor.md` (`b3-bloco5a-identidade-fornecedor`)
+- `docs/audits/B3-Bloco5A-PreValidacaoLinxProducao.md` (`b3-bloco5a-pre-validacao`)
 - `docs/audits/Discovery-Fornecedor-CNPJ-Linx-Compras.md` (`discovery`)
 - `docs/audits/Arquitetura-Fornecedor-CNPJ-Decisao.md` (`arquitetura`)
 - `.empty/legacy/agents/ai-factory/LinxKnowledge-Fornecedor-Discovery-Snapshot.md` (`snapshot`)
@@ -719,3 +723,427 @@ Decisao aprovada pelo Product Owner (Gate de Fornecedores, correcao 2026-09-02):
 - **Referência de origem (source_ref)**: .ai/PROJECT_STATE.md#gate-fornecedores-aprovado-pelo-product-owner-01-09-2026
 - **Restrições/observações**: Nao confundir com a capability administrativa distinta e Sistema.Gerenciar-protegida exposta por POST /api/fornecedores/sincronizar com Operacao=Inativar e Direcao=MaisComprasParaErp (SincronizarFornecedorUseCase.ExportarAsync): essa rota explicita de reconciliacao administrativa PODE escrever inativacao no ERP quando acionada deliberadamente por um operador com Sistema.Gerenciar -- e uma ferramenta operacional distinta da acao padrao de inativar fornecedor na tela de Fornecedores (Fornecedor.Editar), e nao contradiz esta regra.
 - **Tags**: `decisao_po`, `inativacao`, `autoridade_erp`, `assimetria`, `by_design`
+
+<!-- linx-knowledge-unit: linx-clifor-nome-clifor-duas-chaves-candidatas -->
+### CLIFOR e NOME_CLIFOR sao duas chaves candidatas individuais, nao uma chave composta
+
+- **Chave**: `linx-clifor-nome-clifor-duas-chaves-candidatas`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Campos**: `CLIFOR`, `NOME_CLIFOR`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA para CLIFOR (100% integro em 99.866 registros reais); ALTA para NOME_CLIFOR em comparacao exata; MEDIA/confirmada para a fragilidade sob normalizacao (5 colisoes reais, amostra pequena mas 100% real)
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
+
+Regra definida pelo Product Owner (B3/Bloco 5A, 02/09/2026), validada empiricamente contra dados reais de Producao (99.866 registros): CLIFOR (codigo do fornecedor) e NOME_CLIFOR (nome do fornecedor) sao DUAS chaves candidatas UNIQUE independentes em CADASTRO_CLI_FOR, nao uma chave composta -- CLIFOR/NOME_CLIFOR-A e valido, CLIFOR/NOME_CLIFOR-B e invalido por nome duplicado, CLIFOR-B/NOME_CLIFOR-A e invalido por codigo duplicado. Evidencia real: CLIFOR (char NOT NULL) tem 0 duplicidade, 0 nulo/vazio, 0 valor com espaco extra -- unicidade se confirma 100%. NOME_CLIFOR (varchar NOT NULL) tem 0 duplicidade em comparacao EXATA (byte a byte) e 0 nulo/vazio, mas 5 GRUPOS DUPLICADOS reais quando comparado por trim+maiusculas (SOLIDEZ URBANA, BILI ACESSORIOS, LE CHER, LITTLE FISH, FUNNY PEOPLE, cada um 2x) -- coincidem exatamente com os 5 registros que tem espaco extra antes/depois do nome. Ou seja: a unicidade de NOME_CLIFOR so se sustenta em comparacao EXATA; qualquer resolucao funcional por nome normalizado precisa lidar com colisao real.
+
+- **Fonte**: docs/audits/B3-Bloco5A-ValidacaoIdentidadeFornecedor.md#3-6 (CONFIRMED_IN_PRODUCTION, SOMA, 02/09/2026)
+- **Restrições/observações**: COD_CLIFOR (char, NULLABLE) e uma coluna DISTINTA de CLIFOR na mesma tabela, com proposito diferente (nao investigado nesta rodada) -- nunca confundir os dois campos apesar do nome parecido.
+- **Tags**: `clifor`, `nome_clifor`, `chave_candidata`, `unicidade`, `cadastro_cli_for`
+
+<!-- linx-knowledge-unit: linx-cod-fornecedor-identidade-canonica-compras-equivale-clifor -->
+### FORNECEDORES.COD_FORNECEDOR (identidade ja usada pelo +Compras) e sempre igual a CLIFOR
+
+- **Chave**: `linx-cod-fornecedor-identidade-canonica-compras-equivale-clifor`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Schema
+- **Entidade Linx**: `FORNECEDORES`
+- **Tabela**: `FORNECEDORES`
+- **Campos**: `CLIFOR`, `COD_FORNECEDOR`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA (0 divergencia e 0 duplicidade confirmadas em 80.955 registros reais de Producao)
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
+
+Regra definida pelo Product Owner: CLIFOR/COD_FORNECEDOR e a identidade ERP canonica escolhida pelo +Compras para relacionamentos internos (nao NOME_CLIFOR/FORNECEDOR). Evidencia real confirma que essa escolha ja e viavel sem custo adicional: em toda a tabela FORNECEDORES (80.955 registros reais, 75.309 ativos), COD_FORNECEDOR (ja mapeado para Fornecedor.ErpFornecedorId via SomaFornecedorReader, `f.[COD_FORNECEDOR] AS ErpFornecedorId`) e IDENTICO a CLIFOR em 100% dos casos (0 registros com COD_FORNECEDOR <> CLIFOR); COD_FORNECEDOR e globalmente unico (0 duplicados); FORNECEDORES.CLIFOR nao tem nenhum orfao contra CADASTRO_CLI_FOR.CLIFOR (0). Na pratica observada, resolver por CLIFOR (CADASTRO_CLI_FOR) ou por COD_FORNECEDOR (FORNECEDORES, ja usado no +Compras) da o mesmo resultado.
+
+- **Fonte**: docs/audits/B3-Bloco5A-ValidacaoIdentidadeFornecedor.md#7-8 (CONFIRMED_IN_PRODUCTION, SOMA, 02/09/2026)
+- **Restrições/observações**: Confirmado apenas para os registros reais existentes hoje; nao ha garantia formal (constraint/FK fisica comprovada) de que essa igualdade seja regra imposta pelo Linx -- e um fato observado, nao uma constraint lida via sys.foreign_keys.
+- **Tags**: `cod_fornecedor`, `clifor`, `identidade_canonica`, `erp_fornecedor_id`, `fornecedores`
+
+<!-- linx-knowledge-unit: linx-tabelas-legadas-podem-referenciar-fornecedor-por-nome-ou-codigo -->
+### Nao ha convencao universal no SOMA -- tabela legada pode referenciar Fornecedor por CLIFOR ou por NOME_CLIFOR, descobrir caso a caso
+
+- **Chave**: `linx-tabelas-legadas-podem-referenciar-fornecedor-por-nome-ou-codigo`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `ITEM_FISCAL_REF_FORNECEDOR`
+- **Tabela**: `ITEM_FISCAL_REF_FORNECEDOR`
+- **Campos**: `FORNECEDOR`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA para ITEM_FISCAL_REF_FORNECEDOR (9/9 casos reais confirmados); a regra de processo em si (nao generalizar) e principio metodologico, nao dado especifico de outra tabela
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
+
+O banco SOMA e legado: nao existe garantia de que toda tabela relaciona Fornecedor pelo mesmo campo -- dependendo da epoca/engenheiro que escreveu a tabela, a coluna pode conter CLIFOR (codigo) ou NOME_CLIFOR (nome). Confirmado empiricamente para ITEM_FISCAL_REF_FORNECEDOR.FORNECEDOR (3 colunas, varchar NOT NULL): contem NOME_CLIFOR (nome), NAO CLIFOR/COD_FORNECEDOR (codigo) -- nos 9 registros reais existentes em Producao, 0/9 batem por COD_FORNECEDOR e 9/9 batem exatamente (com trim) por CADASTRO_CLI_FOR.NOME_CLIFOR, cada um resolvendo deterministicamente para exatamente 1 CLIFOR. Regra de processo obrigatoria para o Agent: NUNCA assumir globalmente que uma coluna chamada FORNECEDOR (ou similar) contem CLIFOR ou NOME_CLIFOR sem evidencia -- descobrir/comprovar tabela a tabela, com consulta real, antes de desenhar qualquer Adapter de sincronizacao ou leitura.
+
+- **Fonte**: docs/audits/B3-Bloco5A-ValidacaoIdentidadeFornecedor.md#1,7-8 (CONFIRMED_IN_PRODUCTION, SOMA, 02/09/2026)
+- **Restrições/observações**: Determinismo comprovado apenas para os 9 registros existentes hoje em ITEM_FISCAL_REF_FORNECEDOR; NAO generalizar este achado especifico (nome, nao codigo) para nenhuma outra tabela Linx sem investigacao propria dessa tabela.
+- **Tags**: `item_fiscal_ref_fornecedor`, `clifor`, `nome_clifor`, `metodologia`, `b3`, `bloco_5a`
+
+<!-- linx-knowledge-unit: arquitetura-fronteira-normalizacao-clifor-boundary-compras -->
+### Fronteira do +Compras deve sempre normalizar identidade de Fornecedor para CLIFOR/COD_FORNECEDOR, mesmo quando a tabela Linx de origem relaciona por nome
+
+- **Chave**: `arquitetura-fronteira-normalizacao-clifor-boundary-compras`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Campos**: `CLIFOR`, `NOME_CLIFOR`
+- **Proveniência**: Inferido
+- **Confiança**: ALTA como diretriz de arquitetura (evidencia real de que a cadeia funciona hoje); pendente de aplicacao real -- nenhum Adapter foi implementado
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
+
+Decisao de arquitetura do Product Owner (B3/Bloco 5A, 02/09/2026): mesmo quando uma tabela Linx relacionar Fornecedor por NOME_CLIFOR (nome) em vez de CLIFOR (codigo), a fronteira do +Compras deve normalizar a identidade para CLIFOR/COD_FORNECEDOR antes de resolver o Fornecedor.Id local -- nome nunca deve virar FK logica de um relacionamento interno novo do +Compras. Cadeia de resolucao validada com dado real para ITEM_FISCAL_REF_FORNECEDOR (ver linx-tabelas-legadas-podem-referenciar-fornecedor-por-nome-ou-codigo): FORNECEDOR -> CADASTRO_CLI_FOR.NOME_CLIFOR (match EXATO, trim apenas para espaco acidental) -> CADASTRO_CLI_FOR.CLIFOR -> FORNECEDORES.COD_FORNECEDOR (= CLIFOR, ver linx-cod-fornecedor-identidade-canonica-compras-equivale-clifor) -> Fornecedor.ErpFornecedorId. A resolucao de nome deve usar igualdade EXATA (nunca normalizacao adicional de maiusculas/acentos alem do trim) -- CADASTRO_CLI_FOR ja tem 5 colisoes reais de nome sob normalizacao (ver linx-clifor-nome-clifor-duas-chaves-candidatas); qualquer FORNECEDOR sem match exato deve virar excecao para decisao manual, nunca fallback automatico por nome aproximado.
+
+- **Fonte**: docs/audits/B3-Bloco5A-ValidacaoIdentidadeFornecedor.md#12
+- **Restrições/observações**: GAP conhecido e independente desta diretriz: o +Compras nao tem hoje unique constraint vigente em Fornecedor.ErpFornecedorId (drift de um indice composto unico removido do modelo atual -- ver FornecedorConfiguration.cs e comentario DEB-13) -- normalizar a identidade do lado Linx nao substitui essa protecao tecnica ainda faltante do lado +Compras. Nenhuma escrita real do futuro Adapter deve ocorrer sem essa cadeia estar implementada E sem o GAP de unique constraint ser avaliado pelo Product Owner.
+- **Tags**: `adapter_linx`, `clifor`, `normalizacao`, `fronteira`, `arquitetura`, `b3`, `bloco_5a`
+
+<!-- linx-knowledge-unit: linx-nome-clifor-mapeia-exatamente-fornecedor-nomefantasia -->
+### CADASTRO_CLI_FOR.NOME_CLIFOR mapeia direta e exclusivamente para Fornecedor.NomeFantasia no +Compras
+
+- **Chave**: `linx-nome-clifor-mapeia-exatamente-fornecedor-nomefantasia`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Schema
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Campos**: `NOME_CLIFOR`, `RAZAO_SOCIAL`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA (evidencia de codigo + dado real convergentes, incluindo match exato caractere por caractere em 9 casos reais)
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
+
+Confirmado, com evidencia de codigo E dado real, que CADASTRO_CLI_FOR.NOME_CLIFOR e exatamente o conceito persistido em Fornecedor.NomeFantasia no +Compras -- mapeamento direto e exclusivo, sem transformacao alem de Trim() (SomaFornecedorReader.cs:167 `Select(C("NOME_CLIFOR"), "NomeFantasia")`; Fornecedor.cs `NomeFantasia = dados.NomeFantasia?.Trim()`). RazaoSocial vem de fonte DIFERENTE -- CADASTRO_CLI_FOR.RAZAO_SOCIAL, com fallback FORNECEDORES.FORNECEDOR (SomaFornecedorReader.cs:166) -- NUNCA de NOME_CLIFOR. Confirmacao decisiva por dado real: para os 9 registros de ITEM_FISCAL_REF_FORNECEDOR (ver linx-tabelas-legadas-podem-referenciar-fornecedor-por-nome-ou-codigo), o NOME_CLIFOR resolvido bate caractere por caractere com o valor ja usado em ITEM_FISCAL_REF_FORNECEDOR.FORNECEDOR. Padrao semantico real confirmado em MAISCOMPRAS (Fornecedor ja sincronizado): mesma RazaoSocial legal associada a NomeFantasia distinto por unidade/loja (ex.: 'GRUPO DE MODA SOMA S.A.' com NomeFantasia 'ABRAND BARIGUI'/'CATARINA FASHION OUTLET') -- reforca que NomeFantasia/NOME_CLIFOR cumpre papel de nome popular/comercial, nunca razao social legal.
+
+- **Fonte**: docs/audits/B3-Bloco5A-MapeamentoNomeCliforNomeFantasia.md#1-4 (CONFIRMED_BY_CODE_INSPECTION + CONFIRMED_IN_PRODUCTION, 02/09/2026)
+- **Restrições/observações**: Impacto direto sobre a decisao do Product Owner: a unicidade de NOME_CLIFOR nao e garantida sob normalizacao (5 colisoes reais, ver linx-clifor-nome-clifor-duas-chaves-candidatas) -- qualquer logica futura que tente resolver/casar um Fornecedor existente por NomeFantasia (em vez de ErpFornecedorId) herdaria o mesmo risco de colisao. Hoje isso nao causa problema porque Fornecedor.NomeFantasia nao tem unique constraint no +Compras (comportamento correto/esperado).
+- **Tags**: `nome_clifor`, `nomefantasia`, `razaosocial`, `mapeamento`, `fornecedor`, `b3`, `bloco_5a`
+
+<!-- linx-knowledge-unit: linx-cod-clifor-join-real-fornecedor-equivalente-clifor-em-producao -->
+### O JOIN real de todo o codigo de sincronizacao de Fornecedor usa CADASTRO_CLI_FOR.COD_CLIFOR, nao CLIFOR -- validado equivalente em dado real
+
+- **Chave**: `linx-cod-clifor-join-real-fornecedor-equivalente-clifor-em-producao`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Schema
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `FORNECEDORES`
+- **Campos**: `COD_CLIFOR`, `CLIFOR`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA (100% de match confirmado em populacao real completa de FORNECEDORES, 80.955 registros)
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
+
+O JOIN fisico real usado por TODO o codigo existente de sincronizacao/verificacao de Fornecedor (SomaFornecedorReader.cs:149, SomaDesenvolErpFornecedorAdapter.cs:212, SomaGarantirFornecedorErpAdapter.cs:96 e 237) e `CADASTRO_CLI_FOR.COD_CLIFOR = FORNECEDORES.CLIFOR` -- usa a coluna COD_CLIFOR (char, NULLABLE, proposito historicamente nao investigado -- ver linx-tabela-mestre-cadastro-cli-for), NAO CADASTRO_CLI_FOR.CLIFOR diretamente. Validado com dado real de Producao nesta rodada: nos 80.955 registros reais de FORNECEDORES, o JOIN via COD_CLIFOR bate 100% (0 orfaos) -- resultado IDENTICO ao JOIN alternativo via CLIFOR diretamente (tambem 100%, 0 orfaos). Ou seja: na pratica observada, as duas colunas sao equivalentes para todo fornecedor ja vinculado a FORNECEDORES; o codigo real usa COD_CLIFOR e isso funciona corretamente hoje.
+
+- **Fonte**: docs/audits/B3-Bloco5A-MapeamentoNomeCliforNomeFantasia.md#2-3 (CONFIRMED_IN_PRODUCTION, SOMA, 02/09/2026)
+- **Restrições/observações**: IMPORTANTE: o unico teste de integracao real de SomaFornecedorReader (SomaFornecedorSynchronizationIntegrationTests.cs) NAO valida se o JOIN casou nem o conteudo de RazaoSocial/NomeFantasia -- so verifica campos nao-vazios, e DocumentoFiscal tem fallback para FORNECEDORES.CGC_CPF que mascararia um JOIN quebrado. A equivalencia COD_CLIFOR=CLIFOR foi confirmada por dado real nesta rodada, NAO pela suite de testes -- nao presumir que a suite de testes protegeria contra uma regressao neste JOIN. Confirmado apenas para registros ja vinculados a FORNECEDORES; nao testado para a totalidade dos 99.866 registros de CADASTRO_CLI_FOR nem para outros papeis (CLIENTES_ATACADO, FILIAIS).
+- **Tags**: `cod_clifor`, `clifor`, `join`, `fornecedores`, `cadastro_cli_for`, `b3`, `bloco_5a`
+
+<!-- linx-knowledge-unit: linx-nome-clifor-nao-e-universalmente-maiusculo-excecao-real-confirmada -->
+### NOME_CLIFOR nao e universalmente maiusculo no Linx -- 4,1% de excecao real confirmada
+
+- **Chave**: `linx-nome-clifor-nao-e-universalmente-maiusculo-excecao-real-confirmada`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Schema
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Campos**: `NOME_CLIFOR`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA (contagem exaustiva sobre populacao real completa, comparacao binaria exata de caixa)
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
+
+A premissa de que o Linx grava NOME_CLIFOR sempre em letras maiusculas NAO se confirma universalmente nos dados reais. Comparacao binaria (COLLATE Latin1_General_BIN, para nao deixar a collation padrao mascarar diferenca de caixa) sobre os 99.868 registros reais de CADASTRO_CLI_FOR mostra 4.108 registros (4,1%) que NAO estao 100% em maiusculo -- e a convencao PREDOMINANTE, nao uma regra absoluta do Linx. Amostra real mostra padrao claro: os casos nao-maiusculos sao majoritariamente nomes de pessoa fisica em minusculas/mixed-case (ex.: 'Heliete Marinho Dautt da', 'celia regina abend', 'maria teresa menezes'), concentrados numa faixa de CLIFOR (017xxx) -- sugere contexto de cadastro distinto (possivelmente representantes/consignacao -- ver tabela ACERTO_CONSIGNACAO que tambem usa NOME_CLIFOR -- nao investigado a fundo, fora do escopo desta rodada).
+
+- **Fonte**: docs/audits/B3-Bloco5A-PadraoNomeClifor-Uppercase.md (CONFIRMED_IN_PRODUCTION, SOMA, 03/09/2026)
+- **Restrições/observações**: Nao investigada a origem/motivo exato da excecao (qual tela/integracao grava esses registros em minusculo) -- registrado apenas como fato quantificado, nao como causa raiz.
+- **Tags**: `nome_clifor`, `uppercase`, `case_sensitivity`, `excecao`, `b3`, `bloco_5a`
+
+<!-- linx-knowledge-unit: linx-colisoes-nome-clifor-sao-puramente-espaco-nunca-caixa -->
+### As 5 colisoes reais de NOME_CLIFOR sob normalizacao sao 100% explicadas por espaco, nunca por caixa
+
+- **Chave**: `linx-colisoes-nome-clifor-sao-puramente-espaco-nunca-caixa`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Campos**: `NOME_CLIFOR`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
+
+Reexaminados com comparacao binaria (COLLATE Latin1_General_BIN), os 10 registros envolvidos nos 5 pares de colisao de NOME_CLIFOR sob normalizacao trim+maiusculas (ver linx-clifor-nome-clifor-duas-chaves-candidatas: SOLIDEZ URBANA, BILI ACESSORIOS, LE CHER, LITTLE FISH, FUNNY PEOPLE) estao TODOS ja em maiusculo -- a diferenca entre cada par e exclusivamente espaco em branco antes/depois do valor (padding acidental de armazenamento), NUNCA caixa. Confirma com evidencia real que: permitir Trim (remover padding acidental) na resolucao por nome e seguro e nao e a causa das colisoes conhecidas; case-folding nunca seria necessario nem suficiente para resolver essas colisoes especificas (ja sao caixa-uniformes) -- reforca que normalizacao de caixa na resolucao de identidade seria desnecessaria e potencialmente perigosa para outros nomes fora desta amostra.
+
+- **Fonte**: docs/audits/B3-Bloco5A-PadraoNomeClifor-Uppercase.md (CONFIRMED_IN_PRODUCTION, SOMA, 03/09/2026)
+- **Restrições/observações**: Confirmado apenas para os 5 pares ja conhecidos -- nao e garantia de que nenhuma colisao futura envolva diferenca de caixa.
+- **Tags**: `nome_clifor`, `colisao`, `padding`, `uppercase`, `b3`, `bloco_5a`
+
+<!-- linx-knowledge-unit: arquitetura-nomefantasia-padronizado-uppercase-nunca-para-resolucao -->
+### Fornecedor.NomeFantasia deve ser persistido em UPPERCASE -- padronizacao de valor, nunca mecanismo de resolucao de identidade
+
+- **Chave**: `arquitetura-nomefantasia-padronizado-uppercase-nunca-para-resolucao`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Campos**: `NOME_CLIFOR`
+- **Proveniência**: Inferido
+- **Confiança**: ALTA como diretriz de arquitetura (decisao explicita do PO); nenhum Adapter implementado ainda
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
+
+Decisao do Product Owner (03/09/2026): Fornecedor.NomeFantasia deve ser persistido sempre em UPPERCASE no +Compras, tanto quando originado de sincronizacao Linx (CADASTRO_CLI_FOR.NOME_CLIFOR) quanto quando criado/editado localmente -- padronizacao visual/de armazenamento para manter consistencia com a convencao PREDOMINANTE do Linx (nao universal -- ver linx-nome-clifor-nao-e-universalmente-maiusculo-excecao-real-confirmada, que torna essa normalizacao uma transformacao real necessaria, nao um no-op). Explicitamente, UPPERCASE e regra de padronizacao do VALOR ARMAZENADO, NUNCA mecanismo de resolucao de identidade/desambiguacao -- a identidade canonica do Fornecedor continua sendo CLIFOR/ErpFornecedorId (ver linx-cod-fornecedor-identidade-canonica-compras-equivale-clifor), nunca o nome. Para relacionamentos legados que usem NOME_CLIFOR (ex.: ITEM_FISCAL_REF_FORNECEDOR): a resolucao deve comparar o valor ORIGINAL do Linx (nao transformado) contra CADASTRO_CLI_FOR.NOME_CLIFOR original, com Trim apenas para padding acidental -- nunca case-folding, LIKE, contains, aproximacao textual ou escolha arbitraria (mesma regra ja estabelecida em arquitetura-fronteira-normalizacao-clifor-boundary-compras). Se a resolucao nao encontrar exatamente 1 fornecedor (zero ou mais de um), NAO criar o relacionamento automaticamente -- registrar conflito de sincronizacao e reportar.
+
+- **Fonte**: docs/audits/B3-Bloco5A-PadraoNomeClifor-Uppercase.md
+- **Restrições/observações**: Nenhuma implementacao realizada nesta rodada -- aguardando autorizacao explicita para iniciar codificacao do Bloco 5A. A transformacao UPPER() se aplica somente ao valor armazenado em Fornecedor.NomeFantasia, nunca ao valor usado para comparar/resolver identidade contra o Linx.
+- **Tags**: `nomefantasia`, `uppercase`, `padronizacao`, `identidade_canonica`, `adapter_linx`, `b3`, `bloco_5a`
+
+<!-- linx-knowledge-unit: b3-bloco5a9-modelo-fornecedor-corporativo-n-vinculos-linx -->
+### Modelo homologado: 1 CNPJ/CPF = 1 Fornecedor +Compras, que pode ter N vinculos Linx (1 por COD_FORNECEDOR real)
+
+- **Chave**: `b3-bloco5a9-modelo-fornecedor-corporativo-n-vinculos-linx`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `FORNECEDORES`
+- **Tabela**: `FORNECEDORES`
+- **Campos**: `COD_FORNECEDOR`, `NOME_CLIFOR`, `CLIFOR`
+- **Proveniência**: Aprovado
+- **Confiança**: ALTA -- decisao explicita do Product Owner, ja implementada e validada em execucao real controlada contra MAISCOMPRAS Development
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
+
+Autorizacao do Product Owner (B3 Bloco 5A.9, 02-03/09/2026) que corrige os GAPs KALUNGA e PLATINUM descobertos no Bloco 5A: o modelo de dados do +Compras passa a ser 1 CNPJ/CPF = 1 Fornecedor +Compras (identidade global, unica por Cnpj_Cpf), que pode possuir N FornecedorLinxVinculo -- um por COD_FORNECEDOR/CLIFOR Linx real. Motivacao quantificada: 1.856 CNPJs no Linx com 2+ COD_FORNECEDOR distintos, dos quais 1.302 ja estavam sincronizados localmente antes deste modelo e sujeitos a sobrescrita nao-deterministica de Fornecedor.ErpFornecedorId (GAP PLATINUM) -- qual COD_FORNECEDOR 'vencia' dependia da ordem de processamento da sincronizacao, nao de uma regra de negocio. Cada FornecedorLinxVinculo preserva, por CLIFOR, seu proprio NOME_CLIFOR, status de atividade das duas tabelas Linx, DATA_PARA_TRANSFERENCIA e a flag Principal -- nunca competem por um unico campo escalar do Fornecedor.
+
+- **Fonte**: Sessao de governanca B3 — Bloco 5A.9 (02-03/09/2026), especificacao do PO 'FORNECEDOR / AUTORIZACAO DO PRODUCT OWNER / MODELO 1 CNPJ/CPF x N VINCULOS LINX + CORRECAO DOS GAPs DESCOBERTOS NO BLOCO 5A'
+- **Restrições/observações**: Fornecedor.ErpFornecedorId/ErpSistema (identidade legada pre-Bloco-5A.9) sao mantidos apenas por compatibilidade -- ver b3-bloco5a9-legado-erpfornecedorid-deprecado-compat. Nenhuma escrita real no Linx foi ou deve ser feita a partir deste modelo (Bloco 5B permanece bloqueado).
+- **Tags**: `fornecedor_linx_vinculo`, `modelo`, `kalunga`, `platinum`, `clifor`, `b3`, `bloco_5a9`
+
+<!-- linx-knowledge-unit: b3-bloco5a9-vinculo-ativo-regra-dupla-tabela -->
+### Um vinculo Linx so e Ativo quando NENHUMA das duas tabelas (CADASTRO_CLI_FOR e FORNECEDORES) o marca como inativo
+
+- **Chave**: `b3-bloco5a9-vinculo-ativo-regra-dupla-tabela`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `CADASTRO_CLI_FOR`
+- **Tabela**: `CADASTRO_CLI_FOR`
+- **Campos**: `INATIVO`
+- **Proveniência**: Aprovado
+- **Confiança**: ALTA -- decisao explicita do Product Owner, implementada (FornecedorLinxVinculo.cs, SomaFornecedorReader.cs) e validada em execucao real
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
+
+Decisao do Product Owner (B3 Bloco 5A.9): FornecedorLinxVinculo.Ativo = !InativoFornecedores && !InativoCadastroCliFor -- exige que AMBAS as tabelas (FORNECEDORES.INATIVO e CADASTRO_CLI_FOR.INATIVO) estejam com o registro ativo. CADASTRO_CLI_FOR e a tabela master de atividade nesta decisao. Esta regra corrige um GAP proprio, descoberto durante a investigacao do Bloco 5A/5A.8: a sincronizacao anterior usava apenas FORNECEDORES.INATIVO isoladamente, ignorando CADASTRO_CLI_FOR.INATIVO -- um Fornecedor podia ficar erroneamente marcado Ativo no +Compras mesmo com o cadastro-mae ja inativo no Linx.
+
+- **Fonte**: Sessao de governanca B3 — Bloco 5A.9 (02-03/09/2026)
+- **Restrições/observações**: A situacao (Ativo/Inativo) do Fornecedor agregado e decisao SEPARADA da fonte cadastral -- ver b3-bloco5a9-fonte-cadastral-por-recencia-nunca-principal: um vinculo que chega ja inativo nunca pode ser fonte cadastral, mas ainda assim participa do calculo de 'o Fornecedor tem algum vinculo ativo'.
+- **Tags**: `fornecedor_linx_vinculo`, `ativo`, `inativo`, `cadastro_cli_for`, `fornecedores`, `b3`, `bloco_5a9`
+
+<!-- linx-knowledge-unit: b3-bloco5a9-fonte-cadastral-por-recencia-nunca-principal -->
+### Regra canonica de sincronizacao bidirecional: a fonte cadastral (LWW) e sempre o vinculo ATIVO mais recente por DATA_PARA_TRANSFERENCIA -- Principal nunca e criterio de LWW
+
+- **Chave**: `b3-bloco5a9-fonte-cadastral-por-recencia-nunca-principal`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `FORNECEDORES`
+- **Tabela**: `FORNECEDORES`
+- **Campos**: `DATA_PARA_TRANSFERENCIA`
+- **Proveniência**: Aprovado
+- **Confiança**: ALTA -- decisao explicita do Product Owner, implementada (SincronizarFornecedoresErpUseCase.cs) e coberta por testes automatizados
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
+
+Decisao do Product Owner (B3 Bloco 5A.9 + clarificacao 'REGRA CANONICA DE SINCRONIZACAO BIDIRECIONAL'): os dados cadastrais do Fornecedor (RazaoSocial/NomeFantasia/endereco/etc.) sempre vem do vinculo ATIVO com o maior FORNECEDORES.DATA_PARA_TRANSFERENCIA entre os vinculos do mesmo CNPJ -- 'mais recente' e 'Principal' sao conceitos INDEPENDENTES; Principal nunca deve ser usado como criterio de Last-Write-Wins cadastral, mesmo quando o vinculo vencedor por recencia nao e o Principal. DATA_PARA_TRANSFERENCIA (validado como sinal confiavel contra ANM_FORNECEDORES_LOG no Bloco 5A.8/5A.9-investigacao) responde 'qual cadastro tem a alteracao mais recente'; Principal responde apenas 'qual CLIFOR usar operacionalmente'. Situacao cadastral (Ativo/Inativo) do Fornecedor agregado e uma TERCEIRA decisao independente: reflete se o Fornecedor ainda tem QUALQUER vinculo ativo, nunca gated pela mesma condicao de ser fonte cadastral -- senao um vinculo que chega ja inativo (que nunca pode ser fonte cadastral) jamais conseguiria inativar o Fornecedor.
+
+- **Fonte**: Sessao de governanca B3 — Bloco 5A.9 (02-03/09/2026), secao A da clarificacao 'REGRA CANONICA DE SINCRONIZACAO BIDIRECIONAL'
+- **Restrições/observações**: Vale apenas para o sentido Linx -> +Compras (ja implementado). O sentido inverso (+Compras -> Linx) e regra futura -- ver b3-bloco5a9-futuro-compras-para-linx-propagacao-e-timestamp -- e permanece bloqueado (Bloco 5B).
+- **Tags**: `last_write_wins`, `data_para_transferencia`, `principal`, `fonte_cadastral`, `b3`, `bloco_5a9`
+
+<!-- linx-knowledge-unit: b3-bloco5a9-principal-atribuicao-automatica-e-preservacao-historica -->
+### Principal e identidade operacional preservada -- atribuido automaticamente so quando nao ha nenhum, nunca substituido por recencia
+
+- **Chave**: `b3-bloco5a9-principal-atribuicao-automatica-e-preservacao-historica`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `FORNECEDORES`
+- **Tabela**: `FORNECEDORES`
+- **Campos**: `COD_FORNECEDOR`
+- **Proveniência**: Aprovado
+- **Confiança**: ALTA -- decisao explicita do Product Owner, implementada e validada (backfill real: 27.754 vinculos criados, 0 Principal perdido)
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
+
+Decisoes do Product Owner (B3 Bloco 5A.9) sobre a flag Principal de FornecedorLinxVinculo: (1) atribuicao automatica so ocorre quando o CNPJ entra pela primeira vez no +Compras (Caso A) OU quando o Fornecedor nao tem NENHUM vinculo com Principal=true, nem mesmo historico/inativo (Caso B) -- nunca substitui automaticamente um Principal ja existente por um vinculo mais recente; (2) um vinculo Principal que se torna inativo MANTEM Principal=true (preservacao historica) -- nenhuma promocao automatica de outro vinculo a Principal ativo acontece nesse momento; a escolha de um novo Principal ativo pertence exclusivamente ao comprador, via acao explicita na tela (DefinirFornecedorLinxVinculoPrincipalUseCase, exige permissao Fornecedor.Editar, rejeita vinculo inativo); (3) migracao dos 27.754 Fornecedores pre-existentes: o Principal seeded pelo backfill (BackfillFornecedorLinxVinculosUseCase, execucao puramente local, sem leitura do Linx) usa o ErpFornecedorId legado ja registrado -- executado ANTES de qualquer sincronizacao real, garantindo que a identidade legada de cada Fornecedor nunca seja substituida por um vinculo-irmao descoberto depois so por ordem de processamento (ORDER BY COD_FORNECEDOR).
+
+- **Fonte**: Sessao de governanca B3 — Bloco 5A.9 (02-03/09/2026)
+- **Restrições/observações**: Um vinculo historicamente Principal que estava inativo e volta a ficar Ativo NAO reassume Principal ativo se outro vinculo ja e o Principal ativo atual (caso-limite defensivo implementado para nunca violar a invariante de unicidade de Principal ativo) -- gera ocorrencia registrada, nunca falha silenciosa.
+- **Tags**: `principal`, `fornecedor_linx_vinculo`, `migracao`, `backfill`, `b3`, `bloco_5a9`
+
+<!-- linx-knowledge-unit: b3-bloco5a9-principal-empate-nunca-inventar-desempate -->
+### Empate no maior DATA_PARA_TRANSFERENCIA entre vinculos ativos elegiveis a Principal nunca e resolvido por invencao de criterio
+
+- **Chave**: `b3-bloco5a9-principal-empate-nunca-inventar-desempate`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `FORNECEDORES`
+- **Tabela**: `FORNECEDORES`
+- **Campos**: `DATA_PARA_TRANSFERENCIA`, `COD_FORNECEDOR`
+- **Proveniência**: Aprovado
+- **Confiança**: ALTA -- decisao explicita do Product Owner, implementada e coberta por teste dedicado (pre-seed de 2 vinculos ativos empatados sem Principal, re-sincronizacao nao inventa desempate)
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
+
+Decisao do Product Owner (B3 Bloco 5A.9): quando a atribuicao automatica de Principal (Caso B -- Fornecedor sem nenhum Principal, nem historico) encontra 2+ vinculos ativos empatados no maior DATA_PARA_TRANSFERENCIA, o sistema NUNCA deve inventar um desempate -- nada de ordenacao por CLIFOR, ordem de SELECT ou ordem de processamento da sincronizacao. O Fornecedor fica sem Principal operacional automatico; o evento e registrado como ocorrencia explicita (SincronizacaoFornecedoresErpResumo.OcorrenciasVinculos) para decisao humana posterior pelo comprador.
+
+- **Fonte**: Sessao de governanca B3 — Bloco 5A.9 (02-03/09/2026)
+- **Restrições/observações**: Um empate genuino so pode ocorrer quando 2+ vinculos ja existentes (nao processados na mesma execucao pela primeira vez) coexistem sem Principal -- processamento sequencial puro de vinculos novos nunca produz um empate real (o primeiro vira sempre candidato unico).
+- **Tags**: `principal`, `empate`, `desempate`, `ocorrencia`, `b3`, `bloco_5a9`
+
+<!-- linx-knowledge-unit: b3-bloco5a9-referencia-item-fiscal-resolve-por-qualquer-vinculo -->
+### Resolucao de Referencia de Item Fiscal por Fornecedor deve usar qualquer FornecedorLinxVinculo conhecido -- nunca fallback por CNPJ
+
+- **Chave**: `b3-bloco5a9-referencia-item-fiscal-resolve-por-qualquer-vinculo`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `ITEM_FISCAL_REF_FORNECEDOR`
+- **Tabela**: `ITEM_FISCAL_REF_FORNECEDOR`
+- **Campos**: `FORNECEDOR`
+- **Proveniência**: Aprovado
+- **Confiança**: ALTA -- implementado e validado com as 9 Referencias de Item Fiscal reais conhecidas
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
+
+Correcao do GAP PLATINUM aplicada a SincronizarItemFiscalReferenciasFornecedorErpUseCase: a resolucao do Fornecedor +Compras dono de uma Referencia de Item Fiscal passou a usar IFornecedorLinxVinculoRepository.ObterPorErpSistemaECodigoAsync(ErpSistema, ErpFornecedorId) -- resolve por QUALQUER vinculo conhecido do CNPJ, nao apenas pelo vinculo atualmente espelhado em Fornecedor.ErpFornecedorId (que so reflete o Principal ATIVO atual). Antes desta correcao, um COD_FORNECEDOR valido mas nao-Principal do mesmo CNPJ falhava a resolucao mesmo com o Fornecedor +Compras corretamente sincronizado. Resolucao por CNPJ como fallback e explicitamente PROIBIDA -- um vinculo com ErpSistema/ErpFornecedorId desconhecidos deve gerar conflito reportado (FornecedorAindaNaoSincronizadoLocalmente), nunca uma seleccao aproximada por CNPJ.
+
+- **Fonte**: Sessao de governanca B3 — Bloco 5A.9 (02-03/09/2026)
+- **Restrições/observações**: IFornecedorRepository.ObterPorErpFornecedorIdAsync permanece [LEGADO/COMPATIBILIDADE] -- documentado para nunca ser reintroduzido como caminho de resolucao de novos relacionamentos.
+- **Tags**: `item_fiscal_ref_fornecedor`, `platinum`, `fornecedor_linx_vinculo`, `resolucao`, `b3`, `bloco_5a9`
+
+<!-- linx-knowledge-unit: b3-bloco5a9-legado-erpfornecedorid-deprecado-compat -->
+### Fornecedor.ErpFornecedorId/ErpSistema sao legado de compatibilidade -- espelham o Principal ativo, nunca fonte de nova identidade
+
+- **Chave**: `b3-bloco5a9-legado-erpfornecedorid-deprecado-compat`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `FORNECEDORES`
+- **Tabela**: `FORNECEDORES`
+- **Campos**: `COD_FORNECEDOR`
+- **Proveniência**: Aprovado
+- **Confiança**: ALTA -- decisao explicita, implementada e documentada em doc comment no proprio codigo (IFornecedorRepository.ObterPorErpFornecedorIdAsync)
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
+
+Decisao do Product Owner (B3 Bloco 5A.9): os campos escalares Fornecedor.ErpFornecedorId/ErpSistema (identidade ERP pre-modelo-de-vinculos) permanecem no schema por compatibilidade -- nunca removidos, para nao quebrar consumidores existentes -- mas passam a ser exclusivamente um espelho do FornecedorLinxVinculo Principal ATIVO atual, atualizado sempre que o Principal muda (RegistrarVinculoErp). Nenhum codigo novo deve tratá-los como fonte canonica de identidade Linx para novos relacionamentos -- essa responsabilidade e sempre de FornecedorLinxVinculo.
+
+- **Fonte**: Sessao de governanca B3 — Bloco 5A.9 (02-03/09/2026)
+- **Restrições/observações**: Nao remover fisicamente sem antes confirmar ausencia total de uso -- ver doc comment [LEGADO/COMPATIBILIDADE] no codigo.
+- **Tags**: `erpfornecedorid`, `legado`, `compatibilidade`, `fornecedor_linx_vinculo`, `b3`, `bloco_5a9`
+
+<!-- linx-knowledge-unit: b3-bloco5a9-kalunga-execucao-nunca-presa-em-andamento -->
+### GAP KALUNGA: toda execucao de sincronizacao de Fornecedores deve finalizar com status terminal explicito -- nunca ficar presa em EmAndamento
+
+- **Chave**: `b3-bloco5a9-kalunga-execucao-nunca-presa-em-andamento`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Proveniência**: Aprovado
+- **Confiança**: ALTA -- implementado, e a execucao c0faea40-7ffb-417a-a38e-a26c83c99c72 foi recuperada com sucesso via este mecanismo governado (StatusFinal=AbortadoRecuperacaoAdministrativa)
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
+
+Correcao do GAP KALUNGA (execucao real Id=c0faea40-7ffb-417a-a38e-a26c83c99c72, presa em Status=EmAndamento desde 20/08/2026, ~38% processado, sem processo real em curso): SincronizarFornecedoresErpUseCase.ExecuteAsync agora envolve toda a execucao num try/catch externo (alem do try/catch ja existente por registro) que, em qualquer excecao fatal, finaliza a SincronizacaoFornecedor com status terminal explicito (AbortarPorFalhaFatal) usando CancellationToken.None deliberadamente -- a finalizacao precisa persistir mesmo que o token da chamada original nao seja mais confiavel. Decisao explicita do Product Owner: NAO implementar timeout automatico nesta etapa -- historico insuficiente para definir um limiar confiavel; a protecao e reativa (nunca mais presa por falha), nao preventiva (nao corta uma execucao real longa). Recuperacao administrativa de execucoes ja abandonadas antes desta correcao usa um mecanismo GOVERNADO -- IRecuperarSincronizacaoFornecedorAbandonadaUseCase, exige justificativa obrigatoria nao-vazia, valida Status=='EmAndamento', registra JustificativaEncerramento/UsuarioRecuperacaoId -- NUNCA um UPDATE SQL bruto.
+
+- **Fonte**: Sessao de governanca B3 — Bloco 5A.9 (02-03/09/2026)
+- **Restrições/observações**: GAP incidental descoberto durante a implementacao (nao relacionado ao KALUNGA em si): SincronizacaoFornecedor.Status era nvarchar(20), pequeno demais mesmo para um status pre-existente ('AbortadoInativacaoAnormal', 25 chars) -- nunca detectado pelos testes (EF InMemory nao impoe limite de coluna). Corrigido para nvarchar(50) na mesma migracao.
+- **Tags**: `kalunga`, `sincronizacao_fornecedor`, `recuperacao_administrativa`, `governanca`, `b3`, `bloco_5a9`
+
+<!-- linx-knowledge-unit: b3-bloco5a9-futuro-compras-para-linx-propagacao-e-timestamp -->
+### Regra futura (Bloco 5B, NAO implementada): +Compras -> Linx propaga a TODOS os vinculos ativos, e toda escrita real deve atualizar DATA_PARA_TRANSFERENCIA=GETDATE() por CLIFOR
+
+- **Chave**: `b3-bloco5a9-futuro-compras-para-linx-propagacao-e-timestamp`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `FORNECEDORES`
+- **Tabela**: `FORNECEDORES`
+- **Campos**: `DATA_PARA_TRANSFERENCIA`
+- **Proveniência**: Aprovado
+- **Confiança**: ALTA como decisao de arquitetura para implementacao futura; ZERO implementacao ou escrita real no Linx ocorreu
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
+
+Decisoes do Product Owner para o FUTURO Bloco 5B (registradas agora no conhecimento, NAO implementadas -- Bloco 5B permanece bloqueado ate autorizacao especifica): (1) quando +Compras for o lado mais recente (LWW), a propagacao para o Linx deve escrever em TODOS os vinculos ATIVOS do Fornecedor, independente de qual e o Principal -- Principal nunca e criterio para decidir quais CLIFOR recebem a atualizacao; (2) toda escrita real futura em FORNECEDORES deve setar DATA_PARA_TRANSFERENCIA = GETDATE() para o CLIFOR especifico sendo atualizado -- nunca reaproveitar um timestamp antigo, nunca copiar o timestamp do lado +Compras. Resumo da distincao formalizada pelo PO: Principal = qual CLIFOR usar operacionalmente; DATA_PARA_TRANSFERENCIA = qual cadastro tem a alteracao mais recente -- nunca confundir os dois conceitos, em nenhuma direcao de sincronizacao.
+
+- **Fonte**: Sessao de governanca B3 — Bloco 5A.9 (02-03/09/2026), secoes B/C/D da clarificacao 'REGRA CANONICA DE SINCRONIZACAO BIDIRECIONAL'
+- **Restrições/observações**: Bloco 5B (implementacao +Compras -> Linx) permanece bloqueado ate autorizacao explicita e especifica do Product Owner. Esta unidade documenta a decisao para que a futura implementacao nao precise ser re-decidida, nao autoriza inicio de codificacao.
+- **Tags**: `bloco_5b`, `data_para_transferencia`, `propagacao`, `principal`, `futuro`, `b3`, `bloco_5a9`
+
+<!-- linx-knowledge-unit: arquitetura-fornecedor-corporativo-nunca-escopado-por-usuario -->
+### Fornecedor (e FornecedorDescoberto) sao cadastros CORPORATIVOS do +Compras -- TemporaryUserId era um residuo arquitetural, nunca uma regra funcional real, e foi removido de toda logica de visibilidade/propriedade
+
+- **Chave**: `arquitetura-fornecedor-corporativo-nunca-escopado-por-usuario`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Tabela**: `Fornecedores`
+- **Campos**: `TemporaryUserId`
+- **Proveniência**: Aprovado
+- **Confiança**: ALTA -- decisao explicita do Product Owner, apoiada por evidencia quantitativa real do banco de producao/desenvolvimento; implementada (TemporaryUserId tornou-se Guid? nullable, nunca mais populado ou usado como filtro em nenhum repositorio/use case de Fornecedor ou FornecedorDescoberto) e validada por 1280 testes automatizados (unit + integration)
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
+
+Decisao do Product Owner (B3 Bloco 5A.9, 03/09/2026), motivada por uma anomalia real encontrada no dry-run de sincronizacao apos o redesenho de vinculos: CliCurrentIdentity (usado pelo CLI) gera um Guid.NewGuid() novo a cada execucao, e o repositorio de Fornecedores filtrava por TemporaryUserId == esse Guid -- resultado: a sincronizacao real via CLI nao reconhecia NENHUM dos 27.754 Fornecedores ja existentes (Incluidos=76.411 + Erros=1.963 = Consultados=78.374, zero Atualizados/SemAlteracao), o que teria duplicado massivamente a base se executado sem dry-run. Investigacao read-only no banco real confirmou a causa raiz: TemporaryUserId nunca foi uma particao multi-usuario real -- 99,8% dos 27.757 Fornecedores (27.698) pertenciam a um UNICO usuario real (o Product Owner), os demais 59 registros a 3 GUIDs sentinela/fixture de teste sem usuario correspondente em Usuarios; nenhum CNPJ jamais apareceu sob 2 TemporaryUserId distintos; e Fornecedores.Cnpj_Cpf ja e um indice UNICO GLOBAL (nao composto com TemporaryUserId) -- prova de que a identidade do Fornecedor sempre foi conceitualmente corporativa/global, nunca pessoal. Decisao final: Fornecedor NAO pertence a quem criou/editou/sincronizou/importou -- sua identidade e global, e visibilidade/autorizacao sao SEMPRE responsabilidade do RBAC (PermissaoCatalogo.Fornecedor*) aplicado nas rotas, nunca de um campo de propriedade no registro. O mesmo residuo e a mesma correcao se aplicam a FornecedorDescoberto (resultado de descoberta de fornecedor por CodigoItem -- tambem corporativo, nunca pessoal).
+
+- **Fonte**: Sessao de governanca B3 — Bloco 5A.9 (03/09/2026), decisao do Product Owner 'FORNECEDOR E CADASTRO CORPORATIVO'
+- **Restrições/observações**: A coluna fisica TemporaryUserId permanece no banco (agora nullable, sem indice de escopo) apenas por compatibilidade historica dos registros ja existentes -- nunca mais escrita por codigo novo, nunca usada em filtro/RBAC/regra de negocio. Auditoria de quem criou/alterou/sincronizou um Fornecedor, se necessaria no futuro, deve usar um campo proprio de auditoria -- nunca reaproveitar TemporaryUserId para esse fim (auditoria e propriedade sao conceitos distintos). Qualquer identidade (ICurrentIdentity/CliCurrentIdentity) que ainda seja injetada em um use case de Fornecedor so pode ser para autorizacao/auditoria/resolucao de Unidade de Negocio -- nunca para filtrar Fornecedores.
+- **Tags**: `temporaryuserid`, `residuo_arquitetural`, `rbac`, `visibilidade_corporativa`, `fornecedor_descoberto`, `b3`, `bloco_5a9`
+
+<!-- linx-knowledge-unit: b3-bloco5a9-arquitetura-raw-refined-dominio -->
+### Decisao do Product Owner: integracoes Linx -> +Compras de alto volume devem separar RAW/STAGING, REFINED e DOMINIO em etapas distintas -- candidata a padrao transversal
+
+- **Chave**: `b3-bloco5a9-arquitetura-raw-refined-dominio`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Proveniência**: Aprovado
+- **Confiança**: ALTA -- decisao explicita do Product Owner com evidencia de performance real que motivou a mudanca
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
+
+Motivado por uma investigacao real de performance (sincronizacao de ~78 mil Fornecedores interrompida apos 6h+, apenas 47,7% concluida -- causa raiz: padrao N+1 de round-trips individuais ao MAISCOMPRAS por registro, mais 2 SaveChanges separados por registro atualizado quebrando atomicidade), o Product Owner decidiu adotar estruturalmente, para o dominio Fornecedor e como candidata a regra transversal para futuras integracoes Linx (Item Fiscal, Conta Contabil, Unidade, Pedidos, Notas Fiscais): separar completamente (1) extracao do Linx, (2) regra/decisao de integracao, (3) escrita no dominio +Compras -- nunca as tres dentro do mesmo laco. Fluxo: LINX -> RAW/STAGING no MAISCOMPRAS (snapshot fiel, contrato minimo necessario -- nunca copia indiscriminada de tabelas inteiras do Linx -- identificado por IdExecucaoImportacao/DataImportacao) -> REFINED (validacao/normalizacao/agrupamento/regras/conflitos/diff contra o dominio atual -- preferencialmente processamento deterministico em memoria ou set-based sobre a RAW, nunca tabela fisica obrigatoria; persistir apenas RAW + resultado/ocorrencias da execucao) -> DOMINIO (aplica o resultado ao Fornecedor/FornecedorLinxVinculo preservando invariantes de dominio em C#, nunca bypassando regras por T-SQL direto so por performance). Uma falha de conectividade Linx durante a etapa RAW nunca deve deixar o dominio parcialmente processado -- RAW so e elegivel para REFINED/DOMINIO quando concluida integralmente com sucesso.
+
+- **Fonte**: Sessao de governanca B3 — Bloco 5A.9 (03/09/2026), decisao do Product Owner 'IMPLEMENTAR ARQUITETURA LINX -> RAW -> REFINED -> DOMINIO'
+- **Restrições/observações**: Aplicada nesta rodada apenas ao dominio Fornecedor -- NAO altera imediatamente a governanca ou as demais integracoes existentes do projeto. Promocao a regra canonica transversal para TODAS as integracoes fica para revisao de governanca ao final da Onda 2, apos validacao pratica deste padrao. A fronteira de leitura real com o Linx para a etapa RAW (se deve passar pelo Linx Agent/Tool Gateway com uma capability governada de leitura em massa, ou se continua via reader SQL direto como debt documentado) estava, em 03/09/2026, em fase de discovery/design -- ver GAP AFV2-GATEWAY-001 e a unidade b3-bloco5a9-agent-nao-exige-llm-no-happy-path.
+- **Tags**: `raw`, `staging`, `refined`, `dominio`, `arquitetura`, `n_plus_1`, `atomicidade`, `b3`, `bloco_5a9`
+
+<!-- linx-knowledge-unit: b3-bloco5a9-agent-nao-exige-llm-no-happy-path -->
+### Principio arquitetural: Agent representa responsabilidade/governanca/ownership de uma capability -- nao exige chamada de LLM na execucao da capability
+
+- **Chave**: `b3-bloco5a9-agent-nao-exige-llm-no-happy-path`
+- **Especialista**: LinxErpSpecialist
+- **Categoria**: Regra
+- **Proveniência**: Aprovado
+- **Confiança**: ALTA -- decisao explicita do Product Owner
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
+
+Decisao/clarificacao do Product Owner (03/09/2026), no contexto do discovery de uma capability governada de leitura em massa do Linx para a arquitetura RAW/REFINED/DOMINIO: no BlueprintOS, AGENT (ex.: linx-database-specialist-agent, linx-erp-specialist-agent) representa responsabilidade, autoridade, governanca e ownership de uma capability -- NAO significa que toda execucao dessa capability precisa realizar uma chamada a um modelo de IA/LLM. Para fluxos deterministicos e de alto volume (ex.: Linx -> RAW de ~78 mil Fornecedores), o caminho esperado e: Orchestrator -> Linx Agent (camada de responsabilidade) -> capability deterministica governada (Policy Engine/autorizacao no INICIO da operacao, uma unica vez -- nunca por registro) -> SQL Reader/streaming/bulk deterministico em codigo comum -> RAW MAISCOMPRAS. O happy path deve poder executar com ZERO chamadas de LLM -- IA e recurso OPCIONAL usado pelo Agent apenas quando adiciona capacidade que o fluxo deterministico nao tem (investigar anomalia nao prevista, interpretar conflito nao coberto pelas regras, descobrir schema/regra desconhecida, propor nova acao/capability, assistir o Product Owner). Formalizacao: AGENT = camada de responsabilidade/governanca; CAPABILITY = implementacao executavel (deterministica); LLM = recurso opcional acionado pelo Agent quando necessario -- nunca requisito do caminho feliz de um fluxo de alto volume.
+
+- **Fonte**: Sessao de governanca B3 — Bloco 5A.9 (03/09/2026), 'COMPLEMENTO ARQUITETURAL — AGENT != CHAMADA OBRIGATORIA DE IA/LLM'
+- **Restrições/observações**: Registrado como candidato a principio transversal da arquitetura de Agents do BlueprintOS, para formalizacao ao final da Onda 2 -- nao altera nesta rodada nenhum Agent, Gateway ou Policy Engine existente. A implementacao concreta de uma capability de leitura em massa do Linx sob este principio permanecia em fase de discovery/design em 03/09/2026 (ver b3-bloco5a9-arquitetura-raw-refined-dominio).
+- **Tags**: `agent`, `llm`, `governanca`, `capability`, `arquitetura`, `b3`, `bloco_5a9`
+
+<!-- linx-knowledge-unit: b3-bloco5a9-gate-a-liveread-implementado -->
+### Gate A implementado: capability governada LiveRead (linx-dataset-snapshot-read) para leitura real em massa do Linx antes do RAW/REFINED/DOMINIO
+
+- **Chave**: `b3-bloco5a9-gate-a-liveread-implementado`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Regra
+- **Proveniência**: Aprovado
+- **Confiança**: ALTA -- decisao explicita do Product Owner, implementacao concluida e testada nesta rodada
+- **Tipo de origem (sourceType)**: ARCHITECTURAL_DECISION
+
+Decisao do Product Owner (03/09/2026, 'AUTORIZAR CAPABILITY GOVERNADA DE LEITURA REAL LINX', B3/Bloco 5A.9 Gate A): construir a capability governada de leitura real em massa do Linx ANTES de iniciar a ingestao RAW/REFINED/DOMINIO, para que essa arquitetura nasca dentro da governanca em vez de herdar o bypass legado SomaFornecedorReader/SqlConnection direto (AFV2-GATEWAY-001, que permanece divida aceita apenas para os readers JA existentes). Implementado: novo modo GovernedExecutionMode.LiveRead (nunca uma variante de LiveExecution -- sem WriteVerificationProfile/RecoveryPackageReceipt/PostWriteValidationRule, pois leitura nao tem o que desfazer); nova interface IReadExecutionAdapter, sibling de IWriteExecutionAdapter; ToolGateway com branch e validacao proprios para LiveRead, com fronteira negativa explicita nos dois sentidos (adapter so-escrita nunca executa via LiveRead; adapter so-leitura nunca executa via LiveExecution); LinxDatasetSnapshotReadAdapter (capability linx-dataset-snapshot-read, owner linx-database-specialist-agent -- escolhido por ja possuir os connection profiles reais ao ERP e por ja nomear Fornecedores/SomaFornecedorReader no seu proprio by_design_findings) resolvendo ActionProposal.Resource contra um catalogo fixo e revisado (IReadDatasetCatalog, primeiro dataset linx.fornecedores.snapshot) -- nunca SQL vindo do chamador. Streaming real delegado a ISomaLinxDatasetBulkReader/SomaLinxDatasetBulkReader (fora de qualquer infraestrutura de Agent/LLM): SqlDataReader alimentando SqlBulkCopy, READ UNCOMMITTED apenas na conexao de leitura (nunca na configuracao do servidor Linx), autorizado pelo Gateway/Policy Engine uma unica vez por execucao do dataset inteiro, nunca por linha. RAW (RAW_LinxFornecedoresSnapshot + RAW_LinxFornecedoresSnapshotExecucoes, MAISCOMPRAS Development) carrega identidade de execucao e completude -- carga incompleta nunca elegivel para REFINED/DOMINIO. Aprovacao LGPD resolvida sem GAP novo: ActionProposal.ComputeHash exclui Id/CreatedAt do hash, entao uma proposta diaria de conteudo estavel (mesmo Resource/Purpose, sem contadores variaveis) produz o MESMO ProposalHash todos os dias -- um unico ApprovalGrant humano, revogavel e de longo prazo, autoriza toda execucao futura, sem enfraquecer LGPD (ContainsPersonalData=true continua exigindo essa aprovacao humana inicial). Deliberadamente NAO registrado em AddGovernedWriteStack (DI geral do app/web) -- como os adapters de escrita real, so sera alcancavel por um CLI dedicado quando o Gate B autorizar execucao real contra SOMA_DESENV.
+
+- **Fonte**: Sessao de governanca B3 — Bloco 5A.9 (03/09/2026), 'AUTORIZAR CAPABILITY GOVERNADA DE LEITURA REAL LINX' (Gate A)
+- **Restrições/observações**: Escopo desta rodada e wiring + testes unitarios (fakes/in-memory) apenas -- nenhuma execucao real contra SOMA_DESENV ou Linx foi realizada, nenhuma carga completa, zero escrita no Linx. Coluna de recencia cadastral (equivalente a DATA_PARA_TRANSFERENCIA) foi deliberadamente omitida da query fixa do dataset ate confirmacao do nome real da coluna no schema de SOMA_DESENV -- pendencia registrada para o Gate B, nao suposicao silenciosa. RAW/REFINED/DOMINIO (wiring de consumo do RAW) e o benchmark controlado permanecem no Gate B, ainda nao iniciados.
+- **Tags**: `agent`, `gateway`, `liveread`, `governanca`, `raw`, `arquitetura`, `b3`, `bloco_5a9`, `fornecedor`
+
+<!-- linx-knowledge-unit: b3-bloco5a9-full-incremental-fornecedores-discovery -->
+### Discovery real (SOMA_DESENV) da coluna de recencia de Fornecedores: DATA_PARA_TRANSFERENCIA e watermark hibrido confiavel para FULL/INCREMENTAL
+
+- **Chave**: `b3-bloco5a9-full-incremental-fornecedores-discovery`
+- **Especialista**: LinxDatabaseSpecialist
+- **Categoria**: Regra
+- **Entidade Linx**: `FORNECEDORES, CADASTRO_CLI_FOR`
+- **Tabela**: `FORNECEDORES, CADASTRO_CLI_FOR`
+- **Campos**: `DATA_PARA_TRANSFERENCIA`
+- **Proveniência**: Descoberto
+- **Confiança**: ALTA -- leitura real do schema e do texto das triggers via sys.sql_modules/INFORMATION_SCHEMA/sys.indexes contra SOMA_DESENV, nao suposicao
+- **Tipo de origem (sourceType)**: DATABASE_PROCEDURE_DISCOVERY
+
+Decisao do Product Owner (03/09/2026, revisao pre-Gate B): nao existe regra universal FULL vs INCREMENTAL -- cada dataset governado declara sua propria EstrategiaNormal, com bootstrap Full obrigatorio antes de liberar Incremental (CargaFullInicialValidada + IncrementalLiberado, nunca inferidos, so setados via baseline homologada apos reconciliacao Aprovada). Discovery real, governado, read-only (LiveRead/leitura direta autorizada), executado contra SOMA_DESENV em 03/09/2026, confirmou por leitura do SCHEMA e do TEXTO REAL DAS TRIGGERS (sys.sql_modules, nao suposicao): (1) FORNECEDORES.DATA_PARA_TRANSFERENCIA (datetime, precisao de milissegundo, 78.374 linhas, ZERO nulos, min 2023-02-21, max atual) e estampado com GETDATE() de forma incondicional pela trigger ativa LXU_FORNECEDORES (bloco 'IF NOT UPDATE(DATA_PARA_TRANSFERENCIA) BEGIN UPDATE ... SET DATA_PARA_TRANSFERENCIA = GETDATE() ...') em QUALQUER UPDATE que a propria instrucao nao tenha explicitamente definido essa coluna -- inclui uma inativacao isolada (mudanca so de INATIVO), porque o trigger dispara pela instrucao UPDATE inteira, nao por coluna. Nao ha nenhum 'return' anterior a esse bloco na trigger (confirmado contando ocorrencias de 'return' no texto real) -- toda UPDATE bem sucedida passa por ele. (2) CADASTRO_CLI_FOR.DATA_PARA_TRANSFERENCIA (mesma definicao, 96.699 linhas, ZERO nulos) tem comportamento equivalente na trigger LXU_CADASTRO_CLI_FOR: um bloco identico foi COMENTADO em 2017 (mudanca '#8#') numa posicao antiga da trigger, mas um bloco identico ATIVO existe hoje bem no final da trigger (unico ponto de saida normal antes do tratamento de erro) -- ou seja, a estampagem foi apenas RELOCADA, nunca removida; confirmado lendo o texto completo (14307 caracteres) e localizando as 13 ocorrencias de 'DATA_PARA_TRANSFERENCIA' no corpo da trigger. (3) RISCO REAL confirmado (nao hipotetico): as duas colunas sao independentes -- uma alteracao so em CADASTRO_CLI_FOR nao necessariamente toca FORNECEDORES e vice-versa -- por isso um watermark de uma unica tabela perderia mudancas; a solucao adotada e um watermark HIBRIDO (FORNECEDORES.DATA_PARA_TRANSFERENCIA OR CADASTRO_CLI_FOR.DATA_PARA_TRANSFERENCIA, comparacao >=, janela de sobreposicao de seguranca de 5 minutos por ser pipeline idempotente). (4) Nenhum indice existe sobre DATA_PARA_TRANSFERENCIA em nenhuma das duas tabelas (confirmado via sys.indexes) -- filtro incremental faz Clustered Index Scan completo; custo aceitavel dado o volume real (78k/97k linhas) e a criacao de indice no Linx e proibida por decisao do PO. (5) DELETE fisico e fisicamente possivel (ha trigger de delete LXD_ANM_FORNECEDORES e GSD_CADASTRO_CLI_FOR_LOG que audita deletes numa tabela de log) mas o caminho real do Adapter nunca deleta -- so inativa logicamente -- e recarga Full administrativa (sempre disponivel, independente da estrategia normal) cobre reconciliacao/recuperacao extraordinaria caso ocorra. (6) Change Tracking nativo do SQL Server esta ligado no banco SOMA_DESENV mas NAO habilitado nas tabelas FORNECEDORES/CADASTRO_CLI_FOR (sys.change_tracking_tables vazio para ambas) -- nao disponivel como mecanismo sem alteracao estrutural no Linx (proibida). RECOMENDACAO TECNICA (nao e decisao final -- PO decide): EstrategiaNormal = INCREMENTAL para linx.fornecedores.snapshot, com bootstrap Full obrigatorio, watermark hibrido de 2 colunas, janela de sobreposicao de 5 minutos, comparacao >= (idempotente, prefere reler a perder registro).
+
+- **Fonte**: Sessao de governanca B3 — Bloco 5A.9 (03/09/2026), 'GATE A HOMOLOGADO — revisao FULL/INCREMENTAL pre-Gate B', discovery read-only governado contra SOMA_DESENV via LiveRead/sqlcmd
+- **Restrições/observações**: Recomendacao tecnica, NAO decisao final -- estrategia definitiva do dataset linx.fornecedores.snapshot pertence ao Product Owner. Uma query de correlacao historica (ANM_FORNECEDORES_LOG, 265.920.620 linhas) foi iniciada para validacao estatistica adicional e abortada deliberadamente por ser pesada demais para o ambiente compartilhado -- a evidencia do texto das triggers ja e conclusiva por si so e nao depende dessa correlacao. Nenhuma execucao real de carga (Full ou Incremental) foi realizada; apenas o contrato/modelo (LinxDatasetLoadState, RawLinxFornecedorSnapshotExecucao com Modo/watermarks/reconciliacao) foi implementado e testado nesta rodada. QUOTED_IDENTIFIER permanece confirmado (ver unidade anterior desta sessao) como nao-issue para o driver .NET real; SHOWPLAN nao pode ser reconfirmado especificamente para a query incremental por falta de permissao SHOWPLAN da conta ti.n8n em SOMA_DESENV -- ausencia de indice sobre DATA_PARA_TRANSFERENCIA (confirmada) ja implica Clustered Index Scan independentemente de QUOTED_IDENTIFIER.
+- **Tags**: `fornecedor`, `full-incremental`, `watermark`, `data_para_transferencia`, `discovery`, `b3`, `bloco_5a9`, `raw`

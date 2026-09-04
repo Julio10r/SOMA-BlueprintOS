@@ -27,6 +27,12 @@ public static class FornecedoresController
         // Gate de homologação de Fornecedores (2026-09-01) — catálogo pré-cadastrado de Categoria.
         group.MapGet("/categorias", ListarCategorias).RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorCriar));
         group.MapGet("/{id:guid}", GetById);
+        // B3 — Bloco 5A.9: vínculos Linx do Fornecedor (1 CNPJ = 1 Fornecedor, N vínculos). Leitura
+        // segue o mesmo padrão de GetById (apenas autenticada); troca de Principal exige Fornecedor.Editar
+        // (mesma permissão de qualquer alteração de cadastro de Fornecedor).
+        group.MapGet("/{id:guid}/vinculos-linx", ListarVinculosLinx);
+        group.MapPost("/{id:guid}/vinculos-linx/{vinculoId:guid}/definir-principal", DefinirVinculoPrincipal)
+            .RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorEditar));
         group.MapPut("/{id:guid}", Update).RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorEditar));
         group.MapDelete("/{id:guid}", Delete).RequireAuthorization(RbacPolicies.For(PermissaoCatalogo.FornecedorEditar));
         // Rota semântica que substitui o uso de DELETE para expressar ativação/inativação — mantém o
@@ -98,6 +104,15 @@ public static class FornecedoresController
 
     private static async Task<IResult> GetById(Guid id, IObterFornecedorUseCase useCase, CancellationToken ct) =>
         await useCase.ExecuteAsync(id, ct) is { } supplier ? Results.Ok(supplier) : Results.NotFound();
+
+    private static async Task<IResult> ListarVinculosLinx(Guid id, IListarFornecedorLinxVinculosUseCase useCase, CancellationToken ct) =>
+        await useCase.ExecuteAsync(id, ct) is { } vinculos ? Results.Ok(vinculos) : Results.NotFound();
+
+    private static async Task<IResult> DefinirVinculoPrincipal(Guid id, Guid vinculoId, IDefinirFornecedorLinxVinculoPrincipalUseCase useCase, CancellationToken ct)
+    {
+        try { return await useCase.ExecuteAsync(id, vinculoId, ct) ? Results.Ok(new { success = true }) : Results.NotFound(); }
+        catch (InvalidOperationException ex) { return Results.BadRequest(new { code = "vinculo_inativo", message = ex.Message }); }
+    }
     private static async Task<IResult> Update(Guid id, AtualizarFornecedorRequest? request, IAtualizarFornecedorUseCase useCase, CancellationToken ct)
     {
         if (request is null) return Results.BadRequest(new { code = "invalid_request", message = "Request body is required." });

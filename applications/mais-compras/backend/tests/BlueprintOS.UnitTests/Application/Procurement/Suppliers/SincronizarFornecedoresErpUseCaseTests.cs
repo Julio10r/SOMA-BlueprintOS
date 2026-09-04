@@ -19,7 +19,7 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
     {
         await using var context = NewContext();
         var identity = new FakeIdentity();
-        var reader = new FakeReader(new FornecedorErpIntegracaoDto("ERP-10", "SOMA_DESENV", Canonical("Fornecedor ERP", "Fantasia ERP", "12345678000195", "hash-1"), DateTimeOffset.UtcNow));
+        var reader = new FakeReader(new FornecedorErpIntegracaoDto("ERP-10", "SOMA_DESENV", Canonical("Fornecedor ERP", "Fantasia ERP", "12345678000195", "hash-1"), DateTimeOffset.UtcNow, false));
 
         var result = await Create(context, identity, reader).ExecuteAsync(new("BU-A", 100, "corr-erp"));
 
@@ -30,7 +30,7 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         Assert.Equal(1, result.Consultados);
         Assert.Equal(1, result.Incluidos);
         Assert.Equal("Fornecedor ERP", stored.RazaoSocial);
-        Assert.Equal("Fantasia ERP", stored.NomeFantasia);
+        Assert.Equal("FANTASIA ERP", stored.NomeFantasia);
         Assert.Equal("ERP", stored.OrigemInformacao);
         Assert.Equal("SOMA_DESENV", stored.ErpSistema);
         Assert.Equal("ERP-10", stored.ErpFornecedorId);
@@ -42,20 +42,20 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         await using var context = NewContext();
         var identity = new FakeIdentity();
         var existing = new Fornecedor(Guid.NewGuid(), "Fornecedor Antigo", DocumentoFiscal.Create("12345678000195"), null, null, null, null,
-            null, "Rio de Janeiro", "RJ", "BR", "Ativo", null, identity.UserId, DateTimeOffset.UtcNow.AddDays(-1));
+            null, "Rio de Janeiro", "RJ", "BR", "Ativo", null, DateTimeOffset.UtcNow.AddDays(-1), identity.UnidadeNegocioId);
         existing.AplicarContratoCanonico(Canonical("Fornecedor Antigo", "Fantasia Original ERP", "12345678000195", "old"), "ERP", DateTimeOffset.UtcNow.AddDays(-1));
         await new FornecedorRepository(context).AdicionarAsync(existing);
 
-        var reader = new FakeReader(new FornecedorErpIntegracaoDto("ERP-10", "SOMA_DESENV", Canonical("Fornecedor Atualizado", "Fantasia Nova ERP", "12345678000195", "hash-2"), DateTimeOffset.UtcNow));
+        var reader = new FakeReader(new FornecedorErpIntegracaoDto("ERP-10", "SOMA_DESENV", Canonical("Fornecedor Atualizado", "Fantasia Nova ERP", "12345678000195", "hash-2"), DateTimeOffset.UtcNow, false));
         var result = await Create(context, identity, reader).ExecuteAsync(new("BU-A", 100, null));
 
         var stored = await context.Fornecedores.SingleAsync();
         Assert.Equal(1, result.Atualizados);
         Assert.Equal("Fornecedor Atualizado", stored.RazaoSocial);
-        Assert.Equal("Fantasia Nova ERP", stored.NomeFantasia);
+        Assert.Equal("FANTASIA NOVA ERP", stored.NomeFantasia);
 
         stored.AplicarContratoCanonico(Canonical("Alteracao MaisCompras", "Fantasia Manual", "12345678000195", "manual"), "MaisCompras", DateTimeOffset.UtcNow);
-        Assert.Equal("Fantasia Nova ERP", stored.NomeFantasia);
+        Assert.Equal("FANTASIA NOVA ERP", stored.NomeFantasia);
     }
 
     [Fact]
@@ -65,11 +65,18 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         var identity = new FakeIdentity();
         var dados = Canonical("Fornecedor ERP", "Fantasia ERP", "12345678000195", "hash-1");
         var existing = new Fornecedor(Guid.NewGuid(), dados.RazaoSocial, DocumentoFiscal.Create(dados.DocumentoFiscal), dados.TipoPessoa, null, null,
-            null, null, dados.Cidade, dados.Uf, dados.Pais, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow, "BU-A", "SOMA_DESENV", "ERP-10");
+            null, null, dados.Cidade, dados.Uf, dados.Pais, "Ativo", null, DateTimeOffset.UtcNow, identity.UnidadeNegocioId, "BU-A", "SOMA_DESENV", "ERP-10");
         existing.AplicarContratoCanonico(dados, "ERP", DateTimeOffset.UtcNow);
         await new FornecedorRepository(context).AdicionarAsync(existing);
+        // Vínculo já existente e Principal (mesma identidade ERP-10, mesmo DataParaTransferencia de
+        // `dados`) — sem isso, a própria vinculação inicial já contaria como Atualizado (ver
+        // Execute_Should_Update_Existing_Supplier_...). Este teste cobre especificamente o atalho de hash
+        // quando NADA mudou, nem o vínculo.
+        await new FornecedorLinxVinculoRepository(context).AdicionarAsync(
+            new FornecedorLinxVinculo(existing.Id, identity.UnidadeNegocioId, "SOMA_DESENV", "ERP-10", dados.NomeFantasia ?? string.Empty, false, false, dados.DataUltimaAlteracao, true, agora: DateTimeOffset.UtcNow));
+        await context.SaveChangesAsync();
 
-        var result = await Create(context, identity, new FakeReader(new FornecedorErpIntegracaoDto("ERP-10", "SOMA_DESENV", dados, DateTimeOffset.UtcNow)))
+        var result = await Create(context, identity, new FakeReader(new FornecedorErpIntegracaoDto("ERP-10", "SOMA_DESENV", dados, dados.DataUltimaAlteracao, false)))
             .ExecuteAsync(new("BU-A", 100, null));
 
         Assert.Equal(1, result.SemAlteracao);
@@ -100,7 +107,7 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
     {
         await using var context = NewContext();
         var identity = new FakeIdentity();
-        var reader = new FakeReader(new FornecedorErpIntegracaoDto("ERP-10", "SOMA_DESENV", Canonical("Fornecedor ERP", "Fantasia ERP", "12345678000195", "hash-1"), DateTimeOffset.UtcNow));
+        var reader = new FakeReader(new FornecedorErpIntegracaoDto("ERP-10", "SOMA_DESENV", Canonical("Fornecedor ERP", "Fantasia ERP", "12345678000195", "hash-1"), DateTimeOffset.UtcNow, false));
 
         var result = await Create(context, identity, reader).ExecuteAsync(new("BU-A", 100, "corr-erp", DryRun: true));
 
@@ -119,12 +126,12 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         var identity = new FakeIdentity();
         var ativoNoErp = Canonical("Fornecedor Ativo", "Fantasia", "12345678000195", "old");
         var existente = new Fornecedor(Guid.NewGuid(), ativoNoErp.RazaoSocial, DocumentoFiscal.Create(ativoNoErp.DocumentoFiscal), ativoNoErp.TipoPessoa,
-            null, null, null, null, ativoNoErp.Cidade, ativoNoErp.Uf, ativoNoErp.Pais, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow);
+            null, null, null, null, ativoNoErp.Cidade, ativoNoErp.Uf, ativoNoErp.Pais, "Ativo", null, DateTimeOffset.UtcNow, identity.UnidadeNegocioId);
         existente.AplicarContratoCanonico(ativoNoErp, "ERP", DateTimeOffset.UtcNow);
         await new FornecedorRepository(context).AdicionarAsync(existente);
 
         var agoraInativo = ativoNoErp with { Ativo = false, HashDadosSincronizaveis = "novo" };
-        var reader = new FakeReader(new FornecedorErpIntegracaoDto("ERP-10", "SOMA_DESENV", agoraInativo, DateTimeOffset.UtcNow));
+        var reader = new FakeReader(new FornecedorErpIntegracaoDto("ERP-10", "SOMA_DESENV", agoraInativo, DateTimeOffset.UtcNow, false));
 
         var result = await Create(context, identity, reader).ExecuteAsync(new("BU-A", 100, null, DryRun: true));
 
@@ -144,12 +151,12 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         // limiar de 30% (guarda 4b). A inativacao nao deve ser aplicada.
         var dadosAtivos = Canonical("Fornecedor Unico", "Fantasia", "12345678000195", "old");
         var existente = new Fornecedor(Guid.NewGuid(), dadosAtivos.RazaoSocial, DocumentoFiscal.Create(dadosAtivos.DocumentoFiscal), dadosAtivos.TipoPessoa,
-            null, null, null, null, dadosAtivos.Cidade, dadosAtivos.Uf, dadosAtivos.Pais, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow);
+            null, null, null, null, dadosAtivos.Cidade, dadosAtivos.Uf, dadosAtivos.Pais, "Ativo", null, DateTimeOffset.UtcNow, identity.UnidadeNegocioId);
         existente.AplicarContratoCanonico(dadosAtivos, "ERP", DateTimeOffset.UtcNow);
         await repository.AdicionarAsync(existente);
 
         var dadosInativos = dadosAtivos with { Ativo = false, HashDadosSincronizaveis = "novo" };
-        var reader = new FakeReader(new FornecedorErpIntegracaoDto("ERP-10", "SOMA_DESENV", dadosInativos, DateTimeOffset.UtcNow));
+        var reader = new FakeReader(new FornecedorErpIntegracaoDto("ERP-10", "SOMA_DESENV", dadosInativos, DateTimeOffset.UtcNow, false));
 
         var result = await Create(context, identity, reader, repository).ExecuteAsync(new("BU-A", 100, null));
 
@@ -168,7 +175,7 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         await context.SincronizacoesFornecedores.AddAsync(emAndamento);
         await context.SaveChangesAsync();
 
-        var reader = new FakeReader(new FornecedorErpIntegracaoDto("ERP-10", "SOMA_DESENV", Canonical("Fornecedor ERP", "Fantasia ERP", "12345678000195", "hash-1"), DateTimeOffset.UtcNow));
+        var reader = new FakeReader(new FornecedorErpIntegracaoDto("ERP-10", "SOMA_DESENV", Canonical("Fornecedor ERP", "Fantasia ERP", "12345678000195", "hash-1"), DateTimeOffset.UtcNow, false));
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             Create(context, identity, reader).ExecuteAsync(new("BU-A", 100, null)));
@@ -182,7 +189,7 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         var documentos = new[] { "12345678000195", "11222333000181", "99888777000100", "22333444000181",
             "33444555000181", "12345678000276", "98765432000198" };
         var fornecedores = documentos.Select((doc, i) => new FornecedorErpIntegracaoDto($"ERP-{i}", "SOMA_DESENV",
-                Canonical($"Fornecedor {i}", $"Fantasia {i}", doc, $"hash-{i}"), DateTimeOffset.UtcNow))
+                Canonical($"Fornecedor {i}", $"Fantasia {i}", doc, $"hash-{i}"), DateTimeOffset.UtcNow, false))
             .ToArray();
         var reader = new FakeReader(fornecedores);
 
@@ -200,9 +207,9 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         await using var context = NewContext();
         var identity = new FakeIdentity();
         var reader = new FakeReader(
-            new("ERP-1", "SOMA_DESENV", Canonical("Fornecedor 1", "Fantasia 1", "12345678000195", "hash-1"), DateTimeOffset.UtcNow),
-            new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor 2", "Fantasia 2", "11222333000181", "hash-2"), DateTimeOffset.UtcNow),
-            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor 3", "Fantasia 3", "99888777000100", "hash-3"), DateTimeOffset.UtcNow));
+            new("ERP-1", "SOMA_DESENV", Canonical("Fornecedor 1", "Fantasia 1", "12345678000195", "hash-1"), DateTimeOffset.UtcNow, false),
+            new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor 2", "Fantasia 2", "11222333000181", "hash-2"), DateTimeOffset.UtcNow, false),
+            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor 3", "Fantasia 3", "99888777000100", "hash-3"), DateTimeOffset.UtcNow, false));
 
         var result = await Create(context, identity, reader).ExecuteAsync(new("BU-A", 2, null));
 
@@ -217,27 +224,27 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         var identity = new FakeIdentity();
         var unchanged = Canonical("Fornecedor Igual", "Fantasia Igual", "12345678000195", "hash-1");
         var existing = new Fornecedor(Guid.NewGuid(), unchanged.RazaoSocial, DocumentoFiscal.Create(unchanged.DocumentoFiscal), unchanged.TipoPessoa,
-            null, null, null, null, unchanged.Cidade, unchanged.Uf, unchanged.Pais, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow);
+            null, null, null, null, unchanged.Cidade, unchanged.Uf, unchanged.Pais, "Ativo", null, DateTimeOffset.UtcNow, identity.UnidadeNegocioId);
         existing.AplicarContratoCanonico(unchanged, "ERP", DateTimeOffset.UtcNow);
         await new FornecedorRepository(context).AdicionarAsync(existing);
 
         var changed = Canonical("Fornecedor Alterado", "Fantasia Alterada", "11222333000181", "old");
         var existingChanged = new Fornecedor(Guid.NewGuid(), "Fornecedor Antes", DocumentoFiscal.Create(changed.DocumentoFiscal), changed.TipoPessoa,
-            null, null, null, null, changed.Cidade, changed.Uf, changed.Pais, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow);
+            null, null, null, null, changed.Cidade, changed.Uf, changed.Pais, "Ativo", null, DateTimeOffset.UtcNow, identity.UnidadeNegocioId);
         existingChanged.AplicarContratoCanonico(changed with { RazaoSocial = "Fornecedor Antes", HashDadosSincronizaveis = "old" }, "ERP", DateTimeOffset.UtcNow);
         await new FornecedorRepository(context).AdicionarAsync(existingChanged);
 
         var reader = new FakeReader(
-            new("ERP-1", "SOMA_DESENV", unchanged, DateTimeOffset.UtcNow),
-            new("ERP-2", "SOMA_DESENV", changed with { HashDadosSincronizaveis = "new" }, DateTimeOffset.UtcNow),
-            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor Novo", "Fantasia Nova", "99888777000100", "hash-3"), DateTimeOffset.UtcNow));
+            new("ERP-1", "SOMA_DESENV", unchanged, DateTimeOffset.UtcNow, false),
+            new("ERP-2", "SOMA_DESENV", changed with { HashDadosSincronizaveis = "new" }, DateTimeOffset.UtcNow, false),
+            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor Novo", "Fantasia Nova", "99888777000100", "hash-3"), DateTimeOffset.UtcNow, false));
 
         var result = await Create(context, identity, reader).ExecuteAsync(new("BU-A", 10, null));
 
         Assert.Equal(3, result.Consultados);
         Assert.Equal(1, result.Incluidos);
-        Assert.Equal(1, result.Atualizados);
-        Assert.Equal(1, result.SemAlteracao);
+        Assert.Equal(2, result.Atualizados);
+        Assert.Equal(0, result.SemAlteracao);
         Assert.Equal(0, result.Erros);
         Assert.Equal(new[] { (0, 10), (3, 7) }, reader.Calls);
     }
@@ -248,11 +255,11 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         await using var context = NewContext();
         var identity = new FakeIdentity();
         var reader = new FakeReader(
-            new("ERP-1", "SOMA_DESENV", Canonical("Fornecedor 1", "Fantasia 1", "12345678000195", "hash-1"), DateTimeOffset.UtcNow),
-            new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor 2", "Fantasia 2", "11222333000181", "hash-2"), DateTimeOffset.UtcNow),
-            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor 3", "Fantasia 3", "99888777000100", "hash-3"), DateTimeOffset.UtcNow),
-            new("ERP-4", "SOMA_DESENV", Canonical("Fornecedor 4", "Fantasia 4", "22333444000181", "hash-4"), DateTimeOffset.UtcNow),
-            new("ERP-5", "SOMA_DESENV", Canonical("Fornecedor 5", "Fantasia 5", "33444555000181", "hash-5"), DateTimeOffset.UtcNow));
+            new("ERP-1", "SOMA_DESENV", Canonical("Fornecedor 1", "Fantasia 1", "12345678000195", "hash-1"), DateTimeOffset.UtcNow, false),
+            new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor 2", "Fantasia 2", "11222333000181", "hash-2"), DateTimeOffset.UtcNow, false),
+            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor 3", "Fantasia 3", "99888777000100", "hash-3"), DateTimeOffset.UtcNow, false),
+            new("ERP-4", "SOMA_DESENV", Canonical("Fornecedor 4", "Fantasia 4", "22333444000181", "hash-4"), DateTimeOffset.UtcNow, false),
+            new("ERP-5", "SOMA_DESENV", Canonical("Fornecedor 5", "Fantasia 5", "33444555000181", "hash-5"), DateTimeOffset.UtcNow, false));
 
         var result = await Create(context, identity, reader).ExecuteAsync(new("BU-A", 3, null));
 
@@ -267,9 +274,9 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
     {
         await using var context = NewContext();
         var reader = new FakeReader(
-            new("ERP-1", "SOMA_DESENV", Canonical("Fornecedor OK", "Fantasia OK", "12345678000195", "hash-1"), DateTimeOffset.UtcNow),
-            new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor Erro", "Fantasia Erro", "documento-invalido", "hash-2"), DateTimeOffset.UtcNow),
-            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor OK 2", "Fantasia OK 2", "99888777000100", "hash-3"), DateTimeOffset.UtcNow));
+            new("ERP-1", "SOMA_DESENV", Canonical("Fornecedor OK", "Fantasia OK", "12345678000195", "hash-1"), DateTimeOffset.UtcNow, false),
+            new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor Erro", "Fantasia Erro", "documento-invalido", "hash-2"), DateTimeOffset.UtcNow, false),
+            new("ERP-3", "SOMA_DESENV", Canonical("Fornecedor OK 2", "Fantasia OK 2", "99888777000100", "hash-3"), DateTimeOffset.UtcNow, false));
 
         var result = await Create(context, new FakeIdentity(), reader).ExecuteAsync(new("BU-A", 10, null));
 
@@ -295,8 +302,8 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         var repository = new ThrowingOnceFornecedorRepository(context, innerRepository, cnpjQueFalha: "12345678000195");
 
         var reader = new FakeReader(
-            new("ERP-1", "SOMA_DESENV", Canonical("Fornecedor Falho", "Fantasia Falha", "12345678000195", "hash-falha"), DateTimeOffset.UtcNow),
-            new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor OK", "Fantasia OK", "99888777000100", "hash-ok"), DateTimeOffset.UtcNow));
+            new("ERP-1", "SOMA_DESENV", Canonical("Fornecedor Falho", "Fantasia Falha", "12345678000195", "hash-falha"), DateTimeOffset.UtcNow, false),
+            new("ERP-2", "SOMA_DESENV", Canonical("Fornecedor OK", "Fantasia OK", "99888777000100", "hash-ok"), DateTimeOffset.UtcNow, false));
 
         var result = await Create(context, identity, reader, repository).ExecuteAsync(new("BU-A", 10, null));
 
@@ -306,13 +313,13 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         Assert.Equal(1, result.Erros);
         Assert.Equal(1, await context.ErrosSincronizacoesFornecedores.CountAsync());
         Assert.Equal(1, await context.SincronizacoesFornecedores.CountAsync());
-        Assert.Equal("Fornecedor OK", (await context.Fornecedores.SingleAsync(x => x.TemporaryUserId == identity.UserId)).RazaoSocial);
+        Assert.Equal("Fornecedor OK", (await context.Fornecedores.SingleAsync(x => x.ErpFornecedorId == "ERP-2")).RazaoSocial);
     }
 
     private static SincronizarFornecedoresErpUseCase Create(BlueprintOSDbContext context, FakeIdentity identity, FakeReader reader,
         IFornecedorRepository? repository = null) =>
-        new(reader, repository ?? new FornecedorRepository(context), new SincronizacaoFornecedorMonitorRepository(context),
-            identity, context, NullLogger<SincronizarFornecedoresErpUseCase>.Instance);
+        new(reader, repository ?? new FornecedorRepository(context), new FornecedorLinxVinculoRepository(context),
+            new SincronizacaoFornecedorMonitorRepository(context), identity, context, NullLogger<SincronizarFornecedoresErpUseCase>.Instance);
 
     private static BlueprintOSDbContext NewContext() =>
         new(new DbContextOptionsBuilder<BlueprintOSDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
@@ -342,19 +349,20 @@ public sealed class SincronizarFornecedoresErpUseCaseTests
         }
 
         public Task AtualizarAsync(Fornecedor fornecedor, CancellationToken cancellationToken = default) => inner.AtualizarAsync(fornecedor, cancellationToken);
-        public Task<Fornecedor?> ObterPorIdAsync(Guid id, Guid temporaryUserId, CancellationToken cancellationToken = default) => inner.ObterPorIdAsync(id, temporaryUserId, cancellationToken);
-        public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid temporaryUserId, CancellationToken cancellationToken = default) => inner.ObterPorCnpjAsync(cnpj, temporaryUserId, cancellationToken);
-        public Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string termo, Guid temporaryUserId, CancellationToken cancellationToken = default) => inner.PesquisarAsync(termo, temporaryUserId, cancellationToken);
-        public Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid temporaryUserId, CancellationToken cancellationToken = default) => inner.ListarAsync(temporaryUserId, cancellationToken);
-        public Task<bool> ExisteAsync(string documentoFiscal, CancellationToken cancellationToken = default) => inner.ExisteAsync(documentoFiscal, cancellationToken);
-        public Task<Fornecedor?> ObterPorCnpjSemRastreamentoAsync(string cnpj, Guid temporaryUserId, CancellationToken cancellationToken = default) =>
-            inner.ObterPorCnpjSemRastreamentoAsync(cnpj, temporaryUserId, cancellationToken);
-        public Task<int> ContarAtivosAsync(Guid temporaryUserId, CancellationToken cancellationToken = default) =>
-            inner.ContarAtivosAsync(temporaryUserId, cancellationToken);
-        public Task<FornecedorPesquisaPaginadaResultado> PesquisarPaginadoAsync(Guid temporaryUserId, string? termo,
+        public Task<Fornecedor?> ObterPorIdAsync(Guid id, CancellationToken cancellationToken = default) => inner.ObterPorIdAsync(id, cancellationToken);
+        public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid unidadeNegocioId, CancellationToken cancellationToken = default) => inner.ObterPorCnpjAsync(cnpj, unidadeNegocioId, cancellationToken);
+        public Task<Fornecedor?> ObterPorErpFornecedorIdAsync(string erpFornecedorId, CancellationToken cancellationToken = default) => inner.ObterPorErpFornecedorIdAsync(erpFornecedorId, cancellationToken);
+        public Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string termo, Guid unidadeNegocioId, CancellationToken cancellationToken = default) => inner.PesquisarAsync(termo, unidadeNegocioId, cancellationToken);
+        public Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid unidadeNegocioId, CancellationToken cancellationToken = default) => inner.ListarAsync(unidadeNegocioId, cancellationToken);
+        public Task<bool> ExisteAsync(string documentoFiscal, Guid unidadeNegocioId, CancellationToken cancellationToken = default) => inner.ExisteAsync(documentoFiscal, unidadeNegocioId, cancellationToken);
+        public Task<Fornecedor?> ObterPorCnpjSemRastreamentoAsync(string cnpj, Guid unidadeNegocioId, CancellationToken cancellationToken = default) =>
+            inner.ObterPorCnpjSemRastreamentoAsync(cnpj, unidadeNegocioId, cancellationToken);
+        public Task<int> ContarAtivosAsync(Guid unidadeNegocioId, CancellationToken cancellationToken = default) =>
+            inner.ContarAtivosAsync(unidadeNegocioId, cancellationToken);
+        public Task<FornecedorPesquisaPaginadaResultado> PesquisarPaginadoAsync(string? termo,
             FornecedorStatusFiltro status, FornecedorOrdenacaoCampo ordenarPor, bool ordenarDescendente,
-            int page, int pageSize, CancellationToken cancellationToken = default) =>
-            inner.PesquisarPaginadoAsync(temporaryUserId, termo, status, ordenarPor, ordenarDescendente, page, pageSize, cancellationToken);
+            int page, int pageSize, Guid unidadeNegocioId, CancellationToken cancellationToken = default) =>
+            inner.PesquisarPaginadoAsync(termo, status, ordenarPor, ordenarDescendente, page, pageSize, unidadeNegocioId, cancellationToken);
     }
 
     private sealed class FakeIdentity : ICurrentIdentity

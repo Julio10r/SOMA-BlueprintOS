@@ -17,6 +17,8 @@ public sealed class UnidadeNegocioAdminUseCasesTests
 
         public Task<UnidadeNegocio?> ObterPorIdAsync(Guid id, CancellationToken ct) =>
             Task.FromResult(All.SingleOrDefault(x => x.Id == id));
+        public Task<UnidadeNegocio?> ObterPorSlugAsync(string slug, CancellationToken ct) =>
+            Task.FromResult(All.SingleOrDefault(x => x.Slug == slug));
 
         public Task<bool> PossuiAdministradorSeniorAtivoAsync(Guid unidadeNegocioId, CancellationToken ct) =>
             Task.FromResult(false);

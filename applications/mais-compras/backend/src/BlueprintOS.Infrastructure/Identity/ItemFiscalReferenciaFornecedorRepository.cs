@@ -16,6 +16,9 @@ public sealed class ItemFiscalReferenciaFornecedorRepository(BlueprintOSDbContex
     public Task<ItemFiscalReferenciaFornecedor?> ObterPorIdAsync(Guid id, Guid itemFiscalId, CancellationToken ct) =>
         db.ItensFiscaisReferenciasFornecedor.SingleOrDefaultAsync(x => x.Id == id && x.ItemFiscalId == itemFiscalId, ct);
 
+    public Task<ItemFiscalReferenciaFornecedor?> ObterPorItemEFornecedorAsync(Guid itemFiscalId, Guid fornecedorId, CancellationToken ct) =>
+        db.ItensFiscaisReferenciasFornecedor.SingleOrDefaultAsync(x => x.ItemFiscalId == itemFiscalId && x.FornecedorId == fornecedorId, ct);
+
     public Task<bool> ExisteParaFornecedorNoItemAsync(Guid itemFiscalId, Guid fornecedorId, Guid? excluirId, CancellationToken ct)
     {
         var query = db.ItensFiscaisReferenciasFornecedor

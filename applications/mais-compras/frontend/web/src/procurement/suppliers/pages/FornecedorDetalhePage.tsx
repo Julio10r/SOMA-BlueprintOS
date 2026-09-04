@@ -7,13 +7,21 @@ import { ManualFornecedorForm } from "../components/ManualFornecedorForm";
 import {
   alterarStatusFornecedor,
   atualizarFornecedorDoErp,
+  definirFornecedorVinculoPrincipal,
   garantirFornecedorNoErp,
   getFornecedor,
+  getFornecedorVinculosLinx,
   updateFornecedor
 } from "../services/supplierEnrichmentApi";
 import { ConfirmDialog } from "../../../shared/components/ConfirmDialog";
 import { StatusBadge } from "../../../shared/components/StatusBadge";
-import { labelStatusSincronizacao, splitTelefone, type Fornecedor, type ManualFornecedorDraft } from "../types/linxSupplierContract";
+import {
+  labelStatusSincronizacao,
+  splitTelefone,
+  type Fornecedor,
+  type FornecedorLinxVinculo,
+  type ManualFornecedorDraft
+} from "../types/linxSupplierContract";
 
 const businessUnit = "SOMA";
 const erpSistemaPadrao = "SOMA_DESENV";
@@ -68,6 +76,12 @@ export function FornecedorDetalhePage() {
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
 
+  // B3 — Bloco 5A.9: vínculos Linx (1 CNPJ = 1 Fornecedor, N vínculos). Falha ao carregar não bloqueia
+  // o restante do detalhe — a seção fica indisponível, o resto do cadastro continua utilizável.
+  const [vinculos, setVinculos] = useState<FornecedorLinxVinculo[] | null>(null);
+  const [definindoPrincipalId, setDefinindoPrincipalId] = useState<string | null>(null);
+  const [erroVinculos, setErroVinculos] = useState<string | null>(null);
+
   const [editando, setEditando] = useState(false);
   const [draft, setDraft] = useState<ManualFornecedorDraft | null>(null);
   const [salvando, setSalvando] = useState(false);
@@ -111,9 +125,34 @@ export function FornecedorDetalhePage() {
     }
   }, [id]);
 
+  const carregarVinculos = useCallback(async () => {
+    if (!id) return;
+    setErroVinculos(null);
+    try {
+      setVinculos(await getFornecedorVinculosLinx(id));
+    } catch (err) {
+      setErroVinculos(err instanceof Error ? err.message : "Falha ao carregar vínculos Linx.");
+    }
+  }, [id]);
+
   useEffect(() => {
     carregar();
-  }, [carregar]);
+    carregarVinculos();
+  }, [carregar, carregarVinculos]);
+
+  async function selecionarPrincipal(vinculoId: string) {
+    if (!id) return;
+    setDefinindoPrincipalId(vinculoId);
+    setErroVinculos(null);
+    try {
+      await definirFornecedorVinculoPrincipal(id, vinculoId);
+      await carregarVinculos();
+    } catch (err) {
+      setErroVinculos(err instanceof Error ? err.message : "Falha ao definir o vínculo como Principal.");
+    } finally {
+      setDefinindoPrincipalId(null);
+    }
+  }
 
   function iniciarEdicao() {
     if (!fornecedor) return;
@@ -279,8 +318,59 @@ export function FornecedorDetalhePage() {
             <summary>Integração ERP</summary>
             <div className="data-grid">
               <div className="field-readonly"><span>Sistema ERP</span><strong>{fornecedor.erpSistema || "—"}</strong></div>
-              <div className="field-readonly"><span>Id no ERP</span><strong>{fornecedor.erpFornecedorId || "—"}</strong></div>
+              <div className="field-readonly"><span>Id no ERP (Principal atual)</span><strong>{fornecedor.erpFornecedorId || "—"}</strong></div>
             </div>
+          </details>
+
+          {/* B3 — Bloco 5A.9: 1 CNPJ pode ter N vínculos Linx (CLIFOR distintos). "Mais recente" (fonte
+              dos dados cadastrais) e "Principal" (identidade usada em operações como Pedido) são
+              conceitos independentes — nunca exibidos como sinônimos. */}
+          <details open={Boolean(vinculos && vinculos.length > 1)}>
+            <summary>Vínculos Linx{vinculos ? ` (${vinculos.length})` : ""}</summary>
+            {erroVinculos && <div className="notice notice-crit">{erroVinculos}</div>}
+            {!vinculos && !erroVinculos && <p>Carregando vínculos...</p>}
+            {vinculos && vinculos.length === 0 && <p>Nenhum vínculo Linx associado a este Fornecedor.</p>}
+            {vinculos && vinculos.length > 0 && (
+              <div className="table-scroll">
+              <table className="divergence-table">
+                <thead>
+                  <tr>
+                    <th>CLIFOR</th>
+                    <th>Nome no Linx</th>
+                    <th>Situação</th>
+                    <th>Principal</th>
+                    <th>Mais recente (DATA_PARA_TRANSFERENCIA)</th>
+                    {podeEditarFornecedor && <th></th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {vinculos.map((vinculo) => (
+                    <tr key={vinculo.id}>
+                      <td>{vinculo.codigoErp}</td>
+                      <td>{vinculo.nomeClifor}</td>
+                      <td><StatusBadge value={vinculo.ativo ? "Ativo" : "Inativo"} tone="situacao" /></td>
+                      <td>{vinculo.principal ? "★ Principal" : "—"}</td>
+                      <td>{vinculo.dataParaTransferencia ? new Date(vinculo.dataParaTransferencia).toLocaleString("pt-BR") : "—"}</td>
+                      {podeEditarFornecedor && (
+                        <td>
+                          {!vinculo.principal && vinculo.ativo && (
+                            <button
+                              type="button"
+                              className="btn btn-secondary"
+                              onClick={() => selecionarPrincipal(vinculo.id)}
+                              disabled={definindoPrincipalId === vinculo.id}
+                            >
+                              {definindoPrincipalId === vinculo.id ? "Definindo..." : "Definir como Principal"}
+                            </button>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              </div>
+            )}
           </details>
 
           <div className="actions">

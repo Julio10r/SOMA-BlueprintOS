@@ -39,9 +39,6 @@ public sealed class CentroCustoUnidadeAlocacaoUseCasesTests
         public Task<CentroCustoMetadado?> ObterPorCodigoErpAsync(string codigoErp, Guid unidadeNegocioId, CancellationToken ct) =>
             Task.FromResult(Registros.SingleOrDefault(x => x.CodigoErp == codigoErp && x.UnidadeNegocioId == unidadeNegocioId));
 
-        public Task<CentroCustoMetadado?> ObterPorCodigoErpGlobalAsync(string codigoErp, CancellationToken ct) =>
-            Task.FromResult(Registros.FirstOrDefault(x => x.CodigoErp == codigoErp));
-
         public Task<CentroCustoMetadado?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct) =>
             Task.FromResult(Registros.SingleOrDefault(x => x.Id == id && x.UnidadeNegocioId == unidadeNegocioId));
 
@@ -252,8 +249,11 @@ public sealed class CentroCustoUnidadeAlocacaoUseCasesTests
         Assert.Empty(resultado.Valor!);
     }
 
+    /// <summary>Onda 2 (Multi-BU/Multi-ERP, 03/09/2026, decisão do Product Owner): um código já ancorado em
+    /// OUTRA Unidade de Negócio deixa de ser rejeitado — contextos independentes (substitui o teste anterior
+    /// desta classe que esperava rejeição).</summary>
     [Fact]
-    public async Task Substituir_Should_Reject_When_CentroCusto_Already_Anchored_By_Another_UnidadeNegocio()
+    public async Task Substituir_Should_Anchor_Independently_When_CentroCusto_Already_Anchored_By_Another_UnidadeNegocio()
     {
         var c = Arrange();
         c.Erp.CentrosCusto.Add(new CentroCustoErpDto("CC-001", "Compras Corporativo", null));
@@ -262,8 +262,9 @@ public sealed class CentroCustoUnidadeAlocacaoUseCasesTests
         var resultado = await Substituir(c).ExecuteAsync(
             "CC-001", new SubstituirVinculosUnidadeAlocacaoInput([], null), Bu, CancellationToken.None);
 
-        Assert.False(resultado.Sucesso);
-        Assert.Equal(ErpMetadadoFalha.AncoradoPorOutraUnidadeDeNegocio, resultado.Falha);
+        Assert.True(resultado.Sucesso);
+        Assert.Single(c.Metadados.Registros, x => x.CodigoErp == "CC-001" && x.UnidadeNegocioId == Bu);
+        Assert.Single(c.Metadados.Registros, x => x.CodigoErp == "CC-001" && x.UnidadeNegocioId == OutraBu);
     }
 
     [Fact]

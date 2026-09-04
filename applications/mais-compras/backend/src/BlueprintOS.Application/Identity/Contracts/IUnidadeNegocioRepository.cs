@@ -8,6 +8,12 @@ public interface IUnidadeNegocioRepository
 {
     Task<UnidadeNegocio?> ObterPorIdAsync(Guid id, CancellationToken ct);
 
+    /// <summary>Resolve uma Unidade de Negócio pelo slug (chave de negócio estável, imutável após a
+    /// criação) — usado por pipelines/CLIs headless que recebem a Business Unit como argumento explícito
+    /// (nunca um Guid hardcoded) e precisam resolvê-la contra o dado real existente. Retorna <c>null</c>
+    /// quando o slug não existe; o chamador decide o fail-closed apropriado.</summary>
+    Task<UnidadeNegocio?> ObterPorSlugAsync(string slug, CancellationToken ct);
+
     /// <summary>Reaproveitamento de Unidade de Negócio existente (security-design-auth-o1.4.md §20.3; Work
     /// Order O1.4.3, seção 13, passo 2) exige que ela ainda não tenha nenhum Administrador Sênior ativo —
     /// avaliado via junção com <c>UsuarioPerfil</c>/<c>Perfil</c>/<c>Usuario</c> (nenhuma tabela de auditoria

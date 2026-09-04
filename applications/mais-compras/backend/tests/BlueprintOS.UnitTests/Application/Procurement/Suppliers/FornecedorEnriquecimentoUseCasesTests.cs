@@ -21,7 +21,7 @@ public sealed class FornecedorEnriquecimentoUseCasesTests
         await context.Fornecedores.AddAsync(fornecedor);
         await context.SaveChangesAsync();
 
-        var result = await new AnalisarEnriquecimentoFornecedorUseCase(new FornecedorRepository(context), new FakeIdentity(_userId))
+        var result = await new AnalisarEnriquecimentoFornecedorUseCase(new FornecedorRepository(context))
             .ExecuteAsync(fornecedor.Id, new(Query(razaoSocial: "Fornecedor Atual"), null, "BU-A", "SOMA_DESENV", "corr-1"));
 
         Assert.NotNull(result);
@@ -36,7 +36,7 @@ public sealed class FornecedorEnriquecimentoUseCasesTests
         await context.Fornecedores.AddAsync(fornecedor);
         await context.SaveChangesAsync();
 
-        var result = await new AnalisarEnriquecimentoFornecedorUseCase(new FornecedorRepository(context), new FakeIdentity(_userId))
+        var result = await new AnalisarEnriquecimentoFornecedorUseCase(new FornecedorRepository(context))
             .ExecuteAsync(fornecedor.Id, new(Query(razaoSocial: "Fornecedor Novo"), null, "BU-A", null, "corr-2"));
 
         var divergence = Assert.Single(result!.Divergencias, x => x.Campo == nameof(Fornecedor.RazaoSocial));
@@ -54,7 +54,7 @@ public sealed class FornecedorEnriquecimentoUseCasesTests
         await context.Fornecedores.AddAsync(fornecedor);
         await context.SaveChangesAsync();
 
-        var result = await new AnalisarEnriquecimentoFornecedorUseCase(new FornecedorRepository(context), new FakeIdentity(_userId))
+        var result = await new AnalisarEnriquecimentoFornecedorUseCase(new FornecedorRepository(context))
             .ExecuteAsync(fornecedor.Id, new(Query(cnaePrincipalCodigo: "6201501", cnaePrincipalDescricao: "Desenvolvimento de programas de computador sob encomenda"), null, "BU-A", null, "corr-cnae"));
 
         Assert.Contains(result!.Divergencias, x => x.Campo == nameof(Fornecedor.CnaePrincipalCodigo) && x.ValorSugerido == "6201501");
@@ -124,7 +124,7 @@ public sealed class FornecedorEnriquecimentoUseCasesTests
     }
 
     private Fornecedor Supplier() => new(Guid.NewGuid(), "Fornecedor Atual", Cnpj.Create("12345678000195"), null,
-        null, null, null, "São Paulo", "SP", "BR", "Ativo", null, _userId, DateTimeOffset.UtcNow, "BU-A", "SOMA_DESENV", "F-1");
+        null, null, null, "São Paulo", "SP", "BR", "Ativo", null, DateTimeOffset.UtcNow, Guid.NewGuid(), "BU-A", "SOMA_DESENV", "F-1");
 
     private static ConsultaCnpjResultado Query(string? razaoSocial = null, string? email = null, string? nomeFantasia = null,
         string? cnaePrincipalCodigo = null, string? cnaePrincipalDescricao = null) =>

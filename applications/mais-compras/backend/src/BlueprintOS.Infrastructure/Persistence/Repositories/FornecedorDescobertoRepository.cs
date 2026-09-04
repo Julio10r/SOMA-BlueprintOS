@@ -12,10 +12,10 @@ public sealed class FornecedorDescobertoRepository(BlueprintOSDbContext context)
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<FornecedorDescoberto>> ListarAsync(Guid temporaryUserId, CancellationToken cancellationToken = default) =>
-        await context.FornecedoresDescobertos.AsNoTracking().Where(x => x.TemporaryUserId == temporaryUserId)
+    public async Task<IReadOnlyList<FornecedorDescoberto>> ListarAsync(CancellationToken cancellationToken = default) =>
+        await context.FornecedoresDescobertos.AsNoTracking()
             .OrderByDescending(x => x.DescobertoEm).ThenByDescending(x => x.Score).ToListAsync(cancellationToken);
 
-    public Task<FornecedorDescoberto?> ObterPorIdAsync(Guid id, Guid temporaryUserId, CancellationToken cancellationToken = default) =>
-        context.FornecedoresDescobertos.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && x.TemporaryUserId == temporaryUserId, cancellationToken);
+    public Task<FornecedorDescoberto?> ObterPorIdAsync(Guid id, CancellationToken cancellationToken = default) =>
+        context.FornecedoresDescobertos.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
 }

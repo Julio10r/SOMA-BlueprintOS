@@ -19,11 +19,13 @@ public sealed class ContaContabilMetadadoConfiguration : IEntityTypeConfiguratio
         builder.Property(x => x.CriadoEm).IsRequired();
         builder.Property(x => x.AtualizadoEm).IsRequired();
 
-        // Único GLOBALMENTE por CodigoErp (não por Unidade de Negócio): Conta Contábil é um cadastro de
-        // apoio do plano de contas do Linx, compartilhado entre Unidades de Negócio (mesma decisão de
-        // CentroCustoMetadadoConfiguration) — um mesmo código não deve ter dois metadados locais divergentes.
-        builder.HasIndex(x => x.CodigoErp)
+        // Onda 2 (Multi-BU/Multi-ERP, 03/09/2026, decisão do Product Owner registrada em
+        // applications/mais-compras/docs/cadernos/Onda-2.md): único por (UnidadeNegocioId, CodigoErp), não
+        // mais globalmente — o mesmo código ERP pode existir em BUs diferentes como contextos
+        // independentes (ex.: Grupo Soma/código 001 e Reserva/código 001 nunca compartilham metadado).
+        // Substitui a decisão anterior de unicidade global (preservada apenas historicamente nesta nota).
+        builder.HasIndex(x => new { x.UnidadeNegocioId, x.CodigoErp })
             .IsUnique()
-            .HasDatabaseName("IX_ContasContabeisMetadados_CodigoErp");
+            .HasDatabaseName("IX_ContasContabeisMetadados_UnidadeNegocioId_CodigoErp");
     }
 }

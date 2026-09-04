@@ -61,7 +61,7 @@ Este é o fluxo oficial de qualquer entrega no projeto, do nascimento da especif
 
 - **Duração planejada:** 15 dias.
 - **Objetivo:** cadastros completos com sincronização ERP.
-- **Inclui:** fornecedores, materiais, serviços, categorias, compradores, centros de custo — todos com sincronização ERP.
+- **Inclui:** fornecedores, item fiscal (B3 — cadastro único, comprovado pelo Discovery que não há catálogos mestres separados de material e serviço no Linx), categorias, compradores, centros de custo — todos com sincronização ERP.
 - **Dependências:** Onda 1 concluída (Administração e blueprint de banco).
 - **Critério de aceite:** todos os cadastros operáveis pelo frontend, sincronizados com o ERP conforme a Estratégia de Integração (ver abaixo).
 - **Entrega:** cadastros completos.

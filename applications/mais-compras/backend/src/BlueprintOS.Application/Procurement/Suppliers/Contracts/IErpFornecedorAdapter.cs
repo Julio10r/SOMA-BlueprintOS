@@ -39,7 +39,7 @@ public interface IErpFornecedorAdapterResolver
 
 public interface IFornecedorSincronizacaoRepository
 {
-    Task<Fornecedor?> ObterPorChaveErpAsync(string businessUnit, string erpSistema, string erpFornecedorId, Guid userId, CancellationToken cancellationToken = default);
+    Task<Fornecedor?> ObterPorChaveErpAsync(string businessUnit, string erpSistema, string erpFornecedorId, CancellationToken cancellationToken = default);
     Task AdicionarAsync(FornecedorSincronizacao sincronizacao, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<FornecedorSincronizacao>> ListarPorFornecedorAsync(Guid fornecedorId, CancellationToken cancellationToken = default);
 }

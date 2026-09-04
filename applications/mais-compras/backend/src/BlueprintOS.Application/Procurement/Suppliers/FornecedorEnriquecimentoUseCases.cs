@@ -5,12 +5,12 @@ using BlueprintOS.Domain.Procurement.Suppliers;
 
 namespace BlueprintOS.Application.Procurement.Suppliers;
 
-public sealed class AnalisarEnriquecimentoFornecedorUseCase(IFornecedorRepository fornecedores, ICurrentIdentity identity)
+public sealed class AnalisarEnriquecimentoFornecedorUseCase(IFornecedorRepository fornecedores)
     : IAnalisarEnriquecimentoFornecedorUseCase
 {
     public async Task<FornecedorEnriquecimentoAnaliseDto?> ExecuteAsync(Guid fornecedorId, AnalisarEnriquecimentoFornecedorDto dto, CancellationToken cancellationToken = default)
     {
-        var fornecedor = await fornecedores.ObterPorIdAsync(fornecedorId, identity.GetRequired().UserId, cancellationToken);
+        var fornecedor = await fornecedores.ObterPorIdAsync(fornecedorId, cancellationToken);
         return fornecedor is null ? null : FornecedorEnriquecimentoComparer.Comparar(fornecedor, dto.Consulta, dto.ConsultaId, ResolveCorrelationId(dto.CorrelationId));
     }
 
@@ -26,7 +26,7 @@ public sealed class AprovarEnriquecimentoFornecedorUseCase(
     public async Task<FornecedorEnriquecimentoAnaliseDto?> ExecuteAsync(Guid fornecedorId, DecidirEnriquecimentoFornecedorDto dto, CancellationToken cancellationToken = default)
     {
         var requestIdentity = identity.GetRequired();
-        var fornecedor = await fornecedores.ObterPorIdAsync(fornecedorId, requestIdentity.UserId, cancellationToken);
+        var fornecedor = await fornecedores.ObterPorIdAsync(fornecedorId, cancellationToken);
         if (fornecedor is null) return null;
         var correlationId = AnalisarEnriquecimentoFornecedorUseCase.ResolveCorrelationId(dto.CorrelationId);
         var divergencias = FornecedorEnriquecimentoComparer.Comparar(fornecedor, dto.Consulta, dto.ConsultaId, correlationId).Divergencias;
@@ -74,7 +74,7 @@ public sealed class RejeitarEnriquecimentoFornecedorUseCase(
     public async Task<FornecedorEnriquecimentoAnaliseDto?> ExecuteAsync(Guid fornecedorId, DecidirEnriquecimentoFornecedorDto dto, CancellationToken cancellationToken = default)
     {
         var requestIdentity = identity.GetRequired();
-        var fornecedor = await fornecedores.ObterPorIdAsync(fornecedorId, requestIdentity.UserId, cancellationToken);
+        var fornecedor = await fornecedores.ObterPorIdAsync(fornecedorId, cancellationToken);
         if (fornecedor is null) return null;
         var correlationId = AnalisarEnriquecimentoFornecedorUseCase.ResolveCorrelationId(dto.CorrelationId);
         var analise = FornecedorEnriquecimentoComparer.Comparar(fornecedor, dto.Consulta, dto.ConsultaId, correlationId);

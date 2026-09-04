@@ -38,6 +38,14 @@ public sealed class ItemFiscalUseCasesTests
         }
 
         public Task SalvarAlteracoesAsync(CancellationToken ct) => Task.CompletedTask;
+
+        public Task<ItemFiscal?> ObterPorCodigoSemRastreamentoAsync(string codigo, CancellationToken ct) =>
+            Task.FromResult(Itens.SingleOrDefault(x => x.Codigo == codigo));
+
+        public Task<ItemFiscal?> ObterPorCodigoAsync(string codigo, CancellationToken ct) =>
+            Task.FromResult(Itens.SingleOrDefault(x => x.Codigo == codigo));
+
+        public Task<int> ContarAsync(CancellationToken ct) => Task.FromResult(Itens.Count);
     }
 
     private sealed class FakeContasContabeisUseCase(IReadOnlyList<ContaContabilDto> contas) : IListarContasContabeisUseCase

@@ -1,6 +1,9 @@
 using BlueprintOS.Domain.Identity;
+using BlueprintOS.Domain.Identity.Raw;
+using BlueprintOS.Domain.Integrations.Occurrences;
 using BlueprintOS.Domain.Knowledge.Linx;
 using BlueprintOS.Domain.Procurement.Suppliers;
+using BlueprintOS.Domain.Procurement.Suppliers.Raw;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintOS.Infrastructure.Persistence;
@@ -18,6 +21,12 @@ public sealed class BlueprintOSDbContext(DbContextOptions<BlueprintOSDbContext> 
     public DbSet<CentroCustoMetadado> CentrosCustoMetadados => Set<CentroCustoMetadado>();
     public DbSet<ContaContabilMetadado> ContasContabeisMetadados => Set<ContaContabilMetadado>();
     public DbSet<UnidadeMedidaMetadado> UnidadesMedidaMetadados => Set<UnidadeMedidaMetadado>();
+    public DbSet<RawLinxContaContabilRegistro> RawLinxContasContabeisSnapshot => Set<RawLinxContaContabilRegistro>();
+    public DbSet<RawLinxUnidadeMedidaRegistro> RawLinxUnidadesMedidaSnapshot => Set<RawLinxUnidadeMedidaRegistro>();
+    public DbSet<RawLinxCentroCustoRegistro> RawLinxCentrosCustoSnapshot => Set<RawLinxCentroCustoRegistro>();
+    public DbSet<RawLinxFilialRegistro> RawLinxFiliaisSnapshot => Set<RawLinxFilialRegistro>();
+    public DbSet<RawLinxItemFiscalRegistro> RawLinxItensFiscaisSnapshot => Set<RawLinxItemFiscalRegistro>();
+    public DbSet<RawLinxItemFiscalReferenciaFornecedorRegistro> RawLinxItensFiscaisReferenciasFornecedorSnapshot => Set<RawLinxItemFiscalReferenciaFornecedorRegistro>();
     public DbSet<ItemFiscal> ItensFiscais => Set<ItemFiscal>();
     public DbSet<ItemFiscalReferenciaFornecedor> ItensFiscaisReferenciasFornecedor => Set<ItemFiscalReferenciaFornecedor>();
     public DbSet<UnidadeAlocacao> UnidadesAlocacao => Set<UnidadeAlocacao>();
@@ -49,9 +58,23 @@ public sealed class BlueprintOSDbContext(DbContextOptions<BlueprintOSDbContext> 
     public DbSet<FornecedorSincronizacao> FornecedoresSincronizacoes => Set<FornecedorSincronizacao>();
     public DbSet<SincronizacaoFornecedor> SincronizacoesFornecedores => Set<SincronizacaoFornecedor>();
     public DbSet<ErroSincronizacaoFornecedor> ErrosSincronizacoesFornecedores => Set<ErroSincronizacaoFornecedor>();
+    // B3 — Bloco 5A.9: vínculos Linx de um Fornecedor (1 CNPJ = 1 Fornecedor, N vínculos).
+    public DbSet<FornecedorLinxVinculo> FornecedorLinxVinculos => Set<FornecedorLinxVinculo>();
     // Gate de homologação de Fornecedores (2026-09-01): catálogo pré-cadastrado de Categoria
     // (antes campo texto livre) — tabela própria do +Compras, não sincronizada do ERP.
     public DbSet<CategoriaFornecedor> CategoriasFornecedor => Set<CategoriaFornecedor>();
+
+    // B3 — Bloco 5A.9, Gate A: staging RAW do LiveRead governado (dataset "linx.fornecedores.snapshot").
+    // Truncate-and-reload por execução — identidade/completude vivem em RawLinxFornecedorSnapshotExecucao,
+    // não linha a linha. Sem FK para o domínio: RAW nunca é lido diretamente por Fornecedor/FornecedorLinxVinculo.
+    public DbSet<RawLinxFornecedorSnapshotExecucao> RawLinxFornecedoresSnapshotExecucoes => Set<RawLinxFornecedorSnapshotExecucao>();
+    public DbSet<RawLinxFornecedorSnapshotRegistro> RawLinxFornecedoresSnapshot => Set<RawLinxFornecedorSnapshotRegistro>();
+    public DbSet<RawLinxFornecedorDominioErpRegistro> RawLinxFornecedorDominiosSnapshot => Set<RawLinxFornecedorDominioErpRegistro>();
+    public DbSet<LinxDatasetLoadState> LinxDatasetLoadStates => Set<LinxDatasetLoadState>();
+
+    // B3 — Bloco 5A.9, complemento "PERSISTÊNCIA DE OCORRÊNCIAS/ERROS DE INTEGRAÇÃO": genérico, não
+    // específico de Fornecedor — suporta qualquer dataset/pipeline futuro.
+    public DbSet<IntegrationOccurrence> IntegrationOccurrences => Set<IntegrationOccurrence>();
 
     // O1.13.5 — Fundação dos Agents Especialistas Linx (base de conhecimento persistente e versionada).
     public DbSet<LinxKnowledgeEntry> LinxConhecimentoEntradas => Set<LinxKnowledgeEntry>();

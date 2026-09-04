@@ -198,7 +198,7 @@ public sealed class ItensFiscaisRbacTests : IAsyncDisposable
     }
 
     private static readonly ItemFiscalDto FakeItem = new(
-        Guid.NewGuid(), "001", "Notebook", "UN", "Unidade", "1.1.01", "Conta", true, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow);
+        Guid.NewGuid(), "001", "Notebook", "UN", "Unidade", "1.1.01", "Conta", true, "MaisCompras", true, [], DateTimeOffset.UtcNow, DateTimeOffset.UtcNow);
 
     private sealed class FakeListarItensFiscaisUseCase : IListarItensFiscaisUseCase
     {

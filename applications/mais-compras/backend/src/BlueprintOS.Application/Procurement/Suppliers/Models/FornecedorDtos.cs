@@ -15,7 +15,7 @@ public sealed record AtualizarFornecedorDto(string Nome, string? Categoria, stri
     string? CnaePrincipalDescricao = null, string? NomeFantasia = null, string? Cep = null, string? Logradouro = null,
     string? Numero = null, string? Complemento = null, string? Bairro = null);
 public sealed record FornecedorDto(Guid Id, string Nome, string Cnpj, string? Categoria, string? Email, string? Telefone,
-    string? Website, string? Cidade, string? Estado, string? Pais, string Status, decimal? ScoreIA, Guid TemporaryUserId,
+    string? Website, string? Cidade, string? Estado, string? Pais, string Status, decimal? ScoreIA,
     DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, string? NomeFantasia = null, string? TipoPessoa = null,
     string? InscricaoEstadual = null, string? InscricaoMunicipal = null, string? Cep = null, string? Logradouro = null,
     string? Numero = null, string? Complemento = null, string? Bairro = null, string? CodigoMunicipio = null, string? Ddd = null,

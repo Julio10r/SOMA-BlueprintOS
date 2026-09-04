@@ -22,6 +22,7 @@ public sealed class AdministracaoComprasUseCasesTests
 
         public Task<UnidadeNegocio?> ObterPorIdAsync(Guid id, CancellationToken ct) =>
             Task.FromResult(_existentes.Contains(id) ? new UnidadeNegocio("BU", $"bu-{id:N}") : null);
+        public Task<UnidadeNegocio?> ObterPorSlugAsync(string slug, CancellationToken ct) => Task.FromResult<UnidadeNegocio?>(null);
 
         public Task<bool> PossuiAdministradorSeniorAtivoAsync(Guid unidadeNegocioId, CancellationToken ct) => Task.FromResult(false);
 
@@ -111,9 +112,6 @@ public sealed class AdministracaoComprasUseCasesTests
 
         public Task<CentroCustoMetadado?> ObterPorCodigoErpAsync(string codigoErp, Guid unidadeNegocioId, CancellationToken ct) =>
             Task.FromResult(Registros.SingleOrDefault(x => x.CodigoErp == codigoErp && x.UnidadeNegocioId == unidadeNegocioId));
-
-        public Task<CentroCustoMetadado?> ObterPorCodigoErpGlobalAsync(string codigoErp, CancellationToken ct) =>
-            Task.FromResult(Registros.FirstOrDefault(x => x.CodigoErp == codigoErp));
 
         public Task<CentroCustoMetadado?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct) =>
             Task.FromResult(Registros.SingleOrDefault(x => x.Id == id && x.UnidadeNegocioId == unidadeNegocioId));

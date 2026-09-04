@@ -16,7 +16,7 @@ public sealed class GarantirFornecedorNoErpUseCaseTests
     {
         await using var context = NewContext();
         var user = new FakeIdentity();
-        var fornecedor = new Fornecedor(Guid.NewGuid(), "Fornecedor Teste", Cnpj.Create("12345678000195"), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow);
+        var fornecedor = new Fornecedor(Guid.NewGuid(), "Fornecedor Teste", Cnpj.Create("12345678000195"), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null, DateTimeOffset.UtcNow, user.UnidadeNegocioId);
         await new FornecedorRepository(context).AdicionarAsync(fornecedor);
         var adapter = new FakeAdapter { Resultado = new(OperacaoGarantirFornecedorErp.Criado, "123456", "BU-A", "SOMA_DESENV", DateTimeOffset.UtcNow, "corr-1") };
         var useCase = Create(context, user, adapter);
@@ -43,7 +43,7 @@ public sealed class GarantirFornecedorNoErpUseCaseTests
         await using var context = NewContext();
         var user = new FakeIdentity();
         var fornecedor = new Fornecedor(Guid.NewGuid(), "Fornecedor Endereco", DocumentoFiscal.Create("12345678000195"), null, null, null, null, null,
-            "São Paulo", "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow,
+            "São Paulo", "SP", "BR", "Ativo", null, DateTimeOffset.UtcNow, user.UnidadeNegocioId,
             cep: "01310-100", logradouro: "Avenida Paulista", numero: "1000", complemento: "Sala QA", bairro: "Bela Vista");
         await new FornecedorRepository(context).AdicionarAsync(fornecedor);
         var adapter = new FakeAdapter { Resultado = new(OperacaoGarantirFornecedorErp.Atualizado, "315525", "BU-A", "SOMA_DESENV", DateTimeOffset.UtcNow, "corr-1") };
@@ -69,7 +69,7 @@ public sealed class GarantirFornecedorNoErpUseCaseTests
     {
         await using var context = NewContext();
         var user = new FakeIdentity();
-        var fornecedor = new Fornecedor(Guid.NewGuid(), "Fornecedor Falha ERP", Cnpj.Create("12345678000195"), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow);
+        var fornecedor = new Fornecedor(Guid.NewGuid(), "Fornecedor Falha ERP", Cnpj.Create("12345678000195"), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null, DateTimeOffset.UtcNow, user.UnidadeNegocioId);
         await new FornecedorRepository(context).AdicionarAsync(fornecedor);
         var statusAntes = fornecedor.StatusSincronizacao;
         var adapter = new FakeAdapter { FalharCom = new ErpFornecedorEscritaException(ErpFornecedorErro.Persistencia, "O ERP não confirmou a gravação do campo 'Bairro' do fornecedor — a operação foi revertida.") };
@@ -110,7 +110,7 @@ public sealed class GarantirFornecedorNoErpUseCaseTests
     {
         await using var context = NewContext();
         var user = new FakeIdentity();
-        var fornecedor = new Fornecedor(Guid.NewGuid(), "Fornecedor Sem Correlation", Cnpj.Create("12345678000195"), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow);
+        var fornecedor = new Fornecedor(Guid.NewGuid(), "Fornecedor Sem Correlation", Cnpj.Create("12345678000195"), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null, DateTimeOffset.UtcNow, user.UnidadeNegocioId);
         await new FornecedorRepository(context).AdicionarAsync(fornecedor);
         var adapter = new FakeAdapter();
         var useCase = Create(context, user, adapter);
@@ -125,7 +125,7 @@ public sealed class GarantirFornecedorNoErpUseCaseTests
     {
         await using var context = NewContext();
         var user = new FakeIdentity();
-        var fornecedor = new Fornecedor(Guid.NewGuid(), "Fornecedor Idempotente", Cnpj.Create("12345678000195"), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow);
+        var fornecedor = new Fornecedor(Guid.NewGuid(), "Fornecedor Idempotente", Cnpj.Create("12345678000195"), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null, DateTimeOffset.UtcNow, user.UnidadeNegocioId);
         await new FornecedorRepository(context).AdicionarAsync(fornecedor);
         var adapter = new FakeAdapter { Resultado = new(OperacaoGarantirFornecedorErp.Criado, "654321", "BU-A", "SOMA_DESENV", DateTimeOffset.UtcNow, "corr-1") };
         var useCase = Create(context, user, adapter);
@@ -140,12 +140,16 @@ public sealed class GarantirFornecedorNoErpUseCaseTests
     }
 
     private static GarantirFornecedorNoErpUseCase Create(BlueprintOSDbContext context, FakeIdentity identity, FakeAdapter adapter) =>
-        new(new FornecedorRepository(context), new FakeResolver(adapter), identity);
+        new(new FornecedorRepository(context), new FakeResolver(adapter));
 
     private static BlueprintOSDbContext NewContext() => new(new DbContextOptionsBuilder<BlueprintOSDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
     private sealed class FakeIdentity : ICurrentIdentity
-    { public Guid UserId { get; } = Guid.NewGuid(); public RequestIdentity GetRequired() => new(UserId, "Buyer"); }
+    {
+        public Guid UserId { get; } = Guid.NewGuid();
+        public Guid UnidadeNegocioId { get; } = Guid.NewGuid();
+        public RequestIdentity GetRequired() => new(UserId, "Buyer", UnidadeNegocioId);
+    }
 
     private sealed class FakeResolver(FakeAdapter adapter) : IGarantirFornecedorErpAdapterResolver
     { public IGarantirFornecedorErpAdapter Resolver(string businessUnit) => adapter; }

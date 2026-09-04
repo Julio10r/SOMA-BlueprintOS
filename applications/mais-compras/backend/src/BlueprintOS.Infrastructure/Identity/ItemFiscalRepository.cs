@@ -34,4 +34,12 @@ public sealed class ItemFiscalRepository(BlueprintOSDbContext db) : IItemFiscalR
     }
 
     public Task SalvarAlteracoesAsync(CancellationToken ct) => db.SaveChangesAsync(ct);
+
+    public Task<ItemFiscal?> ObterPorCodigoSemRastreamentoAsync(string codigo, CancellationToken ct) =>
+        db.ItensFiscais.AsNoTracking().SingleOrDefaultAsync(x => x.Codigo == codigo, ct);
+
+    public Task<ItemFiscal?> ObterPorCodigoAsync(string codigo, CancellationToken ct) =>
+        db.ItensFiscais.SingleOrDefaultAsync(x => x.Codigo == codigo, ct);
+
+    public Task<int> ContarAsync(CancellationToken ct) => db.ItensFiscais.CountAsync(ct);
 }

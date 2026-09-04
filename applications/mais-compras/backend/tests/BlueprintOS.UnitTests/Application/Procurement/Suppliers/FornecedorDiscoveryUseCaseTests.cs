@@ -1,5 +1,3 @@
-using BlueprintOS.Application.Identity.Contracts;
-using BlueprintOS.Application.Identity.Models;
 using BlueprintOS.Application.Procurement.Suppliers;
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Application.Procurement.Suppliers.Models;
@@ -23,25 +21,39 @@ public sealed class FornecedorDiscoveryUseCaseTests
     [Fact]
     public async Task Discover_Should_Read_ERP_Score_And_Persist_Each_Result()
     {
-        var identity = new FakeIdentity(); var erp = new FakeErpRepository(); var persistence = new FakeDiscoveryRepository();
-        var result = await new DescobrirFornecedoresUseCase(erp, persistence, identity)
+        var erp = new FakeErpRepository(); var persistence = new FakeDiscoveryRepository();
+        var result = await new DescobrirFornecedoresUseCase(erp, persistence)
             .ExecuteAsync(new DescobrirFornecedoresDto("SKU-1", "Camiseta básica", "Camisetas"));
 
         Assert.Equal(2, result.Count);
         Assert.Equal(100, result[0].Score);
         Assert.Equal(80, result[1].Score);
-        Assert.All(result, x => Assert.Equal(identity.UserId, x.TemporaryUserId));
         Assert.Equal(2, persistence.Items.Count);
+    }
+
+    /// <summary>B3 — Bloco 5A.9 (mesmo resíduo arquitetural TemporaryUserId corrigido em Fornecedor): a
+    /// descoberta é determinística a partir do item consultado no ERP — dois compradores que descobrem
+    /// fornecedores para o mesmo item corporativo devem ver a mesma listagem, nunca cópias privadas
+    /// separadas por usuário.</summary>
+    [Fact]
+    public async Task ListarDescobertas_Should_Return_Same_Results_Regardless_Of_Who_Discovered_Them()
+    {
+        var persistence = new FakeDiscoveryRepository();
+        await new DescobrirFornecedoresUseCase(new FakeErpRepository(), persistence)
+            .ExecuteAsync(new DescobrirFornecedoresDto("SKU-1", "Camiseta básica", "Camisetas"));
+
+        var listadas = await new ListarDescobertasUseCase(persistence).ExecuteAsync();
+
+        Assert.Equal(2, listadas.Count);
     }
 
     [Fact]
     public async Task Discover_Should_Reject_Missing_Item_And_Context()
     {
-        var useCase = new DescobrirFornecedoresUseCase(new FakeErpRepository(), new FakeDiscoveryRepository(), new FakeIdentity());
+        var useCase = new DescobrirFornecedoresUseCase(new FakeErpRepository(), new FakeDiscoveryRepository());
         await Assert.ThrowsAsync<ArgumentException>(() => useCase.ExecuteAsync(new("", null, null)));
     }
 
-    private sealed class FakeIdentity : ICurrentIdentity { public Guid UserId { get; } = Guid.NewGuid(); public RequestIdentity GetRequired() => new(UserId, "Buyer"); }
     private sealed class FakeErpRepository : IErpFornecedorDiscoveryRepository
     {
         public Task<IReadOnlyList<ErpFornecedorCandidate>> DescobrirAsync(FornecedorDiscoveryQuery query, CancellationToken cancellationToken = default) =>
@@ -53,7 +65,7 @@ public sealed class FornecedorDiscoveryUseCaseTests
     {
         public List<FornecedorDescoberto> Items { get; } = [];
         public Task AdicionarAsync(FornecedorDescoberto descoberta, CancellationToken cancellationToken = default) { Items.Add(descoberta); return Task.CompletedTask; }
-        public Task<IReadOnlyList<FornecedorDescoberto>> ListarAsync(Guid temporaryUserId, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<FornecedorDescoberto>>(Items.Where(x => x.TemporaryUserId == temporaryUserId).ToArray());
-        public Task<FornecedorDescoberto?> ObterPorIdAsync(Guid id, Guid temporaryUserId, CancellationToken cancellationToken = default) => Task.FromResult(Items.SingleOrDefault(x => x.Id == id && x.TemporaryUserId == temporaryUserId));
+        public Task<IReadOnlyList<FornecedorDescoberto>> ListarAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<FornecedorDescoberto>>(Items.ToArray());
+        public Task<FornecedorDescoberto?> ObterPorIdAsync(Guid id, CancellationToken cancellationToken = default) => Task.FromResult(Items.SingleOrDefault(x => x.Id == id));
     }
 }

@@ -28,4 +28,5 @@ public sealed record SincronizacaoFornecedoresErpResumo(
     string CorrelationId,
     DateTimeOffset ExecutadaEm,
     int TotalInativados = 0,
-    bool PossivelmenteTruncado = false);
+    bool PossivelmenteTruncado = false,
+    IReadOnlyList<string>? OcorrenciasVinculos = null);

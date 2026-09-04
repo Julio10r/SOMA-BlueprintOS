@@ -44,9 +44,6 @@ public sealed class CentroCustoVinculoValidatorTests
         public Task<CentroCustoMetadado?> ObterPorCodigoErpAsync(string codigoErp, Guid unidadeNegocioId, CancellationToken ct) =>
             Task.FromResult(Registros.SingleOrDefault(x => x.CodigoErp == codigoErp && x.UnidadeNegocioId == unidadeNegocioId));
 
-        public Task<CentroCustoMetadado?> ObterPorCodigoErpGlobalAsync(string codigoErp, CancellationToken ct) =>
-            Task.FromResult(Registros.FirstOrDefault(x => x.CodigoErp == codigoErp));
-
         public Task<CentroCustoMetadado?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct) =>
             Task.FromResult(Registros.SingleOrDefault(x => x.Id == id && x.UnidadeNegocioId == unidadeNegocioId));
 
@@ -100,16 +97,23 @@ public sealed class CentroCustoVinculoValidatorTests
         Assert.Equal(0, metadados.ChamadasSalvarAlteracoes);
     }
 
+    /// <summary>Onda 2 (Multi-BU/Multi-ERP, 03/09/2026, decisão do Product Owner): um código ERP já ancorado
+    /// em OUTRA Unidade de Negócio deixa de ser rejeitado — são contextos independentes. A Unidade de
+    /// Negócio da sessão passa a validar contra o ERP real e ancorar seu PRÓPRIO metadado, sem tocar nem
+    /// depender do metadado já existente em outra BU (substitui o teste anterior desta classe que esperava
+    /// rejeição por "pertence a outra Unidade de Negócio").</summary>
     [Fact]
-    public async Task ValidarEAncorarAsync_Should_Reject_Codigo_Anchored_By_Other_UnidadeNegocio_Without_Saving()
+    public async Task ValidarEAncorarAsync_Should_Anchor_Independently_When_Codigo_Already_Anchored_By_Other_UnidadeNegocio()
     {
         var (validator, erp, metadados) = Arrange();
         metadados.Registros.Add(new CentroCustoMetadado("CC-300", OutraBu, DateTimeOffset.UtcNow));
+        erp.CentrosCusto.Add(new CentroCustoErpDto("CC-300", "Centro de Custo 300", DateTimeOffset.UtcNow));
 
         var resultado = await validator.ValidarEAncorarAsync(["CC-300"], Bu, CancellationToken.None);
 
-        Assert.False(resultado.Sucesso);
-        Assert.Equal(BlueprintOS.Application.Identity.Models.RbacFalha.CentroCustoInvalido, resultado.Falha);
+        Assert.True(resultado.Sucesso);
+        Assert.Single(metadados.Registros, x => x.CodigoErp == "CC-300" && x.UnidadeNegocioId == Bu);
+        Assert.Single(metadados.Registros, x => x.CodigoErp == "CC-300" && x.UnidadeNegocioId == OutraBu);
         Assert.Equal(0, metadados.ChamadasSalvarAlteracoes);
     }
 

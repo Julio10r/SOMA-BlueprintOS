@@ -64,6 +64,7 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<BlueprintOSDbContext>(options => options.UseSqlServer(connectionString));
         services.AddSingleton<B1ConnectivityValidator>();
         services.AddScoped<IFornecedorRepository, FornecedorRepository>();
+        services.AddScoped<IFornecedorLinxVinculoRepository, FornecedorLinxVinculoRepository>();
         services.AddScoped<IFornecedorCnpjConsultaHistoricoRepository, FornecedorCnpjConsultaHistoricoRepository>();
         services.AddScoped<IFornecedorEnriquecimentoAnaliseRepository, FornecedorEnriquecimentoAnaliseRepository>();
         services.AddScoped<IErpFornecedorDiscoveryRepository, ErpFornecedorDiscoveryRepository>();
@@ -82,11 +83,24 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFornecedorErpReader, SomaFornecedorReader>();
         services.AddScoped<ISincronizarFornecedorUseCase, SincronizarFornecedorUseCase>();
         services.AddScoped<ISincronizarFornecedoresErpUseCase, SincronizarFornecedoresErpUseCase>();
+        services.AddScoped<IRecuperarSincronizacaoFornecedorAbandonadaUseCase, RecuperarSincronizacaoFornecedorAbandonadaUseCase>();
+        services.AddScoped<IBackfillFornecedorLinxVinculosUseCase, BackfillFornecedorLinxVinculosUseCase>();
+        services.AddScoped<IListarFornecedorLinxVinculosUseCase, ListarFornecedorLinxVinculosUseCase>();
+        services.AddScoped<IDefinirFornecedorLinxVinculoPrincipalUseCase, DefinirFornecedorLinxVinculoPrincipalUseCase>();
         services.AddScoped<ICadastrarFornecedorUseCase, CadastrarFornecedorUseCase>();
         services.AddScoped<IAtualizarFornecedorUseCase, AtualizarFornecedorUseCase>();
         services.AddScoped<IInativarFornecedorUseCase, InativarFornecedorUseCase>();
         services.AddScoped<IAlterarStatusFornecedorUseCase, AlterarStatusFornecedorUseCase>();
         services.AddScoped<IObterFornecedorUseCase, ObterFornecedorUseCase>();
+
+        // B3 — Bloco 5A: sincronização Linx -> +Compras de Item Fiscal e de Referências por Fornecedor
+        // (docs/audits/B3-Bloco5A-*.md). Registrados aqui (não em IdentityServiceCollectionExtensions)
+        // pelo mesmo motivo do bloco de Referências por Fornecedor logo abaixo: a resolução das
+        // Referências depende de IFornecedorRepository (Suppliers).
+        services.AddScoped<IItemFiscalErpReader, SomaItemFiscalReader>();
+        services.AddScoped<ISincronizarItensFiscaisErpUseCase, SincronizarItensFiscaisErpUseCase>();
+        services.AddScoped<IItemFiscalReferenciaFornecedorErpReader, SomaItemFiscalReferenciaFornecedorReader>();
+        services.AddScoped<ISincronizarItemFiscalReferenciasFornecedorErpUseCase, SincronizarItemFiscalReferenciasFornecedorErpUseCase>();
 
         // B3 — Bloco 4: Referências de Item Fiscal por Fornecedor (Discovery homologado) — casos de uso que
         // dependem tanto de Identity (IItemFiscalRepository/IItemFiscalReferenciaFornecedorRepository,

@@ -1,11 +1,23 @@
 using System.Text.RegularExpressions;
 using BlueprintOS.Application.Identity.Contracts;
+using BlueprintOS.Application.Identity.Models;
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Application.Procurement.Suppliers.Models;
 using BlueprintOS.Domain.Procurement.Suppliers;
 using Microsoft.Extensions.Logging;
 
 namespace BlueprintOS.Application.Procurement.Suppliers;
+
+/// <summary>Onda 2 (Multi-BU/Multi-ERP, 03/09/2026, decisão do Product Owner): Fornecedor pertence a uma
+/// Unidade de Negócio — identidade funcional (UnidadeNegocioId, Cnpj_Cpf). Resolve a BU da identidade
+/// autenticada com o mesmo fail-closed já usado pelos demais casos de uso administrativos (nunca assume
+/// um default, nunca lê do corpo da requisição): <see cref="RequestIdentity.UnidadeNegocioId"/> ausente é
+/// um erro, não uma Unidade de Negócio a inferir.</summary>
+internal static class ContextoBuFornecedor
+{
+    public static Guid Resolver(RequestIdentity identity) => identity.UnidadeNegocioId
+        ?? throw new UnauthorizedAccessException("Unidade de Negócio não resolvida para a identidade autenticada — operações de Fornecedor exigem contexto de BU (fail closed, Onda 2).");
+}
 
 /// <summary>Resolve a Unidade de Negócio (BU) real usada na integração ERP a partir do contexto de
 /// sessão autenticado — nunca do frontend (B2.9, decisão do PO, seção 4). Cai em "DEFAULT" apenas
@@ -49,13 +61,13 @@ public sealed class CadastrarFornecedorUseCase(
     public async Task<FornecedorDto> ExecuteAsync(CadastrarFornecedorDto dto, CancellationToken cancellationToken = default)
     {
         var requestIdentity = identity.GetRequired();
-        var user = requestIdentity.UserId;
+        var unidadeNegocioId = ContextoBuFornecedor.Resolver(requestIdentity);
         if (string.IsNullOrWhiteSpace(dto.Nome)) throw new ArgumentException("Nome is required.", nameof(dto.Nome));
         if (string.IsNullOrWhiteSpace(dto.NomeFantasia)) throw new ArgumentException("NomeFantasia is required.", nameof(dto.NomeFantasia));
         ValidarCamposObrigatoriosDeEndereco(dto.Categoria, dto.Cep, dto.Logradouro, dto.Numero, dto.Bairro, dto.Cidade, dto.Estado, dto.Pais);
         ValidarEmailETelefone(dto.Email, dto.Telefone);
         var documento = DocumentoFiscal.Create(dto.Cnpj_Cpf ?? Cnpj.Create(dto.Cnpj).Value);
-        if (await repository.ExisteAsync(documento.Value, cancellationToken)) throw new InvalidOperationException("Já existe um fornecedor cadastrado com este CNPJ/CPF.");
+        if (await repository.ExisteAsync(documento.Value, unidadeNegocioId, cancellationToken)) throw new InvalidOperationException("Já existe um fornecedor cadastrado com este CNPJ/CPF nesta Unidade de Negócio.");
 
         var businessUnit = await resolvedorBu.ResolverAsync(requestIdentity.UnidadeNegocioId, cancellationToken);
 
@@ -73,7 +85,7 @@ public sealed class CadastrarFornecedorUseCase(
         }
 
         var fornecedor = new Fornecedor(Guid.NewGuid(), dto.RazaoSocial ?? dto.Nome, documento, dto.TipoPessoa, dto.Categoria, dto.Email, dto.Telefone,
-            dto.Website, dto.Cidade, dto.Estado, dto.Pais, dto.Status ?? "Ativo", dto.ScoreIA, user, DateTimeOffset.UtcNow,
+            dto.Website, dto.Cidade, dto.Estado, dto.Pais, dto.Status ?? "Ativo", dto.ScoreIA, DateTimeOffset.UtcNow, unidadeNegocioId,
             nomeFantasia: dto.NomeFantasia, cep: dto.Cep, logradouro: dto.Logradouro, numero: dto.Numero, complemento: dto.Complemento, bairro: dto.Bairro);
         if (dto.DadosCanonicos is not null) fornecedor.AplicarContratoCanonico(dto.DadosCanonicos, "MaisCompras", DateTimeOffset.UtcNow);
         // CNAE principal só é persistido nesta operação explícita de cadastro (B2.8) — nunca a
@@ -91,8 +103,8 @@ public sealed class CadastrarFornecedorUseCase(
             // criado em vez de falhar — nunca mascarar outra classe de erro SQL (a tradução para
             // DuplicateRecordException, em FornecedorRepository, só ocorre para violação de índice
             // único identificada com segurança).
-            var jaCriado = await repository.ObterPorCnpjAsync(documento.Value, user, cancellationToken)
-                ?? throw new InvalidOperationException("Já existe um fornecedor cadastrado com este CNPJ/CPF.");
+            var jaCriado = await repository.ObterPorCnpjAsync(documento.Value, unidadeNegocioId, cancellationToken)
+                ?? throw new InvalidOperationException("Já existe um fornecedor cadastrado com este CNPJ/CPF nesta Unidade de Negócio.");
             return FornecedorMapper.ToDto(jaCriado);
         }
 
@@ -190,8 +202,11 @@ public sealed class AtualizarFornecedorUseCase(
     {
         if (string.IsNullOrWhiteSpace(dto.Nome)) throw new ArgumentException("Nome is required.", nameof(dto.Nome));
         var requestIdentity = identity.GetRequired();
-        var fornecedor = await repository.ObterPorIdAsync(id, requestIdentity.UserId, cancellationToken);
-        if (fornecedor is null) return null;
+        var unidadeNegocioId = ContextoBuFornecedor.Resolver(requestIdentity);
+        var fornecedor = await repository.ObterPorIdAsync(id, cancellationToken);
+        // Onda 2 (Multi-BU): um Fornecedor de outra Unidade de Negócio é tratado como inexistente —
+        // isolamento entre BUs nunca vaza sequer a existência do registro.
+        if (fornecedor is null || fornecedor.UnidadeNegocioId != unidadeNegocioId) return null;
         fornecedor.Atualizar(dto.RazaoSocial ?? dto.Nome, dto.Categoria, dto.Email, dto.Telefone, dto.Website, dto.Cidade, dto.Estado,
             dto.Pais, dto.Status ?? "Ativo", dto.ScoreIA, DateTimeOffset.UtcNow,
             nomeFantasia: dto.NomeFantasia, cep: dto.Cep, logradouro: dto.Logradouro, numero: dto.Numero, complemento: dto.Complemento, bairro: dto.Bairro);
@@ -226,8 +241,9 @@ public sealed class InativarFornecedorUseCase(IFornecedorRepository repository, 
 {
     public async Task<bool> ExecuteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var fornecedor = await repository.ObterPorIdAsync(id, identity.GetRequired().UserId, cancellationToken);
-        if (fornecedor is null) return false;
+        var unidadeNegocioId = ContextoBuFornecedor.Resolver(identity.GetRequired());
+        var fornecedor = await repository.ObterPorIdAsync(id, cancellationToken);
+        if (fornecedor is null || fornecedor.UnidadeNegocioId != unidadeNegocioId) return false;
         fornecedor.AlterarStatus(false, DateTimeOffset.UtcNow, "MaisCompras");
         await repository.AtualizarAsync(fornecedor, cancellationToken);
         return true;
@@ -242,8 +258,9 @@ public sealed class AlterarStatusFornecedorUseCase(IFornecedorRepository reposit
 {
     public async Task<FornecedorDto?> ExecuteAsync(Guid id, bool ativo, CancellationToken cancellationToken = default)
     {
-        var fornecedor = await repository.ObterPorIdAsync(id, identity.GetRequired().UserId, cancellationToken);
-        if (fornecedor is null) return null;
+        var unidadeNegocioId = ContextoBuFornecedor.Resolver(identity.GetRequired());
+        var fornecedor = await repository.ObterPorIdAsync(id, cancellationToken);
+        if (fornecedor is null || fornecedor.UnidadeNegocioId != unidadeNegocioId) return null;
         fornecedor.AlterarStatus(ativo, DateTimeOffset.UtcNow, "MaisCompras");
         await repository.AtualizarAsync(fornecedor, cancellationToken);
         return FornecedorMapper.ToDto(fornecedor);
@@ -252,36 +269,40 @@ public sealed class AlterarStatusFornecedorUseCase(IFornecedorRepository reposit
 
 public sealed class ObterFornecedorUseCase(IFornecedorRepository repository, ICurrentIdentity identity) : IObterFornecedorUseCase
 {
-    public async Task<FornecedorDto?> ExecuteAsync(Guid id, CancellationToken cancellationToken = default) =>
-        (await repository.ObterPorIdAsync(id, identity.GetRequired().UserId, cancellationToken)) is { } fornecedor ? FornecedorMapper.ToDto(fornecedor) : null;
+    public async Task<FornecedorDto?> ExecuteAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var unidadeNegocioId = ContextoBuFornecedor.Resolver(identity.GetRequired());
+        var fornecedor = await repository.ObterPorIdAsync(id, cancellationToken);
+        return fornecedor is not null && fornecedor.UnidadeNegocioId == unidadeNegocioId ? FornecedorMapper.ToDto(fornecedor) : null;
+    }
 }
 
 public sealed class PesquisarFornecedorUseCase(IFornecedorRepository repository, ICurrentIdentity identity) : IPesquisarFornecedorUseCase
 {
     public async Task<IReadOnlyList<FornecedorDto>> ExecuteAsync(string? termo, CancellationToken cancellationToken = default)
     {
-        var user = identity.GetRequired().UserId;
+        var unidadeNegocioId = ContextoBuFornecedor.Resolver(identity.GetRequired());
         var fornecedores = string.IsNullOrWhiteSpace(termo)
-            ? await repository.ListarAsync(user, cancellationToken)
-            : await repository.PesquisarAsync(termo, user, cancellationToken);
+            ? await repository.ListarAsync(unidadeNegocioId, cancellationToken)
+            : await repository.PesquisarAsync(termo, unidadeNegocioId, cancellationToken);
         return fornecedores.Select(FornecedorMapper.ToDto).ToArray();
     }
 }
 
 /// <summary>Pesquisa paginada, filtrável por status e ordenável de Fornecedores (O1.x, redesenho da tela
 /// de Fornecedores). Delega paginação/filtro/ordenação ao repositório no nível de IQueryable — nenhuma
-/// materialização acontece antes do Skip/Take.</summary>
+/// materialização acontece antes do Skip/Take. Onda 2: escopada pela Unidade de Negócio da sessão.</summary>
 public sealed class PesquisarFornecedorPaginadoUseCase(IFornecedorRepository repository, ICurrentIdentity identity) : IPesquisarFornecedorPaginadoUseCase
 {
     public async Task<FornecedorPesquisaPaginadaDto> ExecuteAsync(PesquisarFornecedorPaginadoParametros parametros, CancellationToken cancellationToken = default)
     {
-        var user = identity.GetRequired().UserId;
+        var unidadeNegocioId = ContextoBuFornecedor.Resolver(identity.GetRequired());
         var status = ParseStatus(parametros.Status);
         var (campo, descendente) = ParseSort(parametros.Sort);
         var page = parametros.Page < 1 ? 1 : parametros.Page;
         var pageSize = parametros.PageSize < 1 ? 20 : parametros.PageSize;
 
-        var resultado = await repository.PesquisarPaginadoAsync(user, parametros.Termo, status, campo, descendente, page, pageSize, cancellationToken);
+        var resultado = await repository.PesquisarPaginadoAsync(parametros.Termo, status, campo, descendente, page, pageSize, unidadeNegocioId, cancellationToken);
         return new FornecedorPesquisaPaginadaDto(resultado.Items.Select(FornecedorMapper.ToDto).ToArray(), resultado.TotalCount, resultado.Page, resultado.PageSize);
     }
 
@@ -312,7 +333,7 @@ internal static class FornecedorMapper
 {
     public static FornecedorDto ToDto(Fornecedor value) => new(value.Id, value.Nome, value.Cnpj, value.Categoria, value.Email,
         value.Telefone, value.Website, value.Cidade, value.Estado, value.Pais, value.Status, value.ScoreIA,
-        value.TemporaryUserId, value.CreatedAt, value.UpdatedAt, value.NomeFantasia, value.TipoPessoa, value.InscricaoEstadual,
+        value.CreatedAt, value.UpdatedAt, value.NomeFantasia, value.TipoPessoa, value.InscricaoEstadual,
         value.InscricaoMunicipal, value.Cep, value.Logradouro, value.Numero, value.Complemento, value.Bairro, value.CodigoMunicipio,
         value.Ddd, value.EmailFiscal, value.Banco, value.Agencia, value.Conta, value.DigitosConta, value.CondicaoPagamento,
         value.TipoFornecedor, value.SubtipoFornecedor, value.ContaContabil, value.RegimeFiscal, value.SimplesNacional,

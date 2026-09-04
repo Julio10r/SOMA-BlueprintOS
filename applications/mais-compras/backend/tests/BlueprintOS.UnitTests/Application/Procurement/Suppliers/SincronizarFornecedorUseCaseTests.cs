@@ -3,6 +3,7 @@ using BlueprintOS.Application.Identity.Models;
 using BlueprintOS.Application.Procurement.Suppliers;
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
 using BlueprintOS.Application.Procurement.Suppliers.Models;
+using BlueprintOS.Domain.Identity;
 using BlueprintOS.Domain.Procurement.Suppliers;
 using BlueprintOS.Infrastructure.Persistence;
 using BlueprintOS.Infrastructure.Persistence.Repositories;
@@ -13,6 +14,8 @@ namespace BlueprintOS.UnitTests.Application.Procurement.Suppliers;
 
 public sealed class SincronizarFornecedorUseCaseTests
 {
+    private static readonly UnidadeNegocio GrupoSomaTeste = new("Grupo Soma Teste", "bu-a");
+
     [Fact]
     public async Task Import_Should_Create_And_Reexecution_Should_Update_Without_Duplicate()
     {
@@ -40,7 +43,7 @@ public sealed class SincronizarFornecedorUseCaseTests
     {
         await using var context = NewContext(); var user = new FakeIdentity();
         var local = new Fornecedor(Guid.NewGuid(), "Fornecedor Ativo Localmente", Cnpj.Create("12345678000195"), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null,
-            user.UserId, DateTimeOffset.UtcNow, "BU-A", "SOMA_DESENV", "ERP-1");
+            DateTimeOffset.UtcNow, GrupoSomaTeste.Id, "BU-A", "SOMA_DESENV", "ERP-1");
         await new FornecedorRepository(context).AdicionarAsync(local);
         var adapter = new FakeAdapter { Current = new("ERP-1", "Fornecedor Ativo Localmente", "12345678000195", "São Paulo", "SP", "BR", Ativo: false) };
         var useCase = Create(context, user, adapter);
@@ -55,7 +58,7 @@ public sealed class SincronizarFornecedorUseCaseTests
     public async Task Export_Should_Create_Then_Update_Using_External_Key()
     {
         await using var context = NewContext(); var user = new FakeIdentity(); var adapter = new FakeAdapter();
-        var local = new Fornecedor(Guid.NewGuid(), "Teste B21", Cnpj.Create("98765432000198"), "Própria", "teste@example.invalid", null, null, "São Paulo", "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow);
+        var local = new Fornecedor(Guid.NewGuid(), "Teste B21", Cnpj.Create("98765432000198"), "Própria", "teste@example.invalid", null, null, "São Paulo", "SP", "BR", "Ativo", null, DateTimeOffset.UtcNow, GrupoSomaTeste.Id);
         await new FornecedorRepository(context).AdicionarAsync(local);
         var useCase = Create(context, user, adapter);
 
@@ -96,7 +99,7 @@ public sealed class SincronizarFornecedorUseCaseTests
     [Fact]
     public async Task Import_Should_Apply_ERP_When_ERP_Timestamp_Is_Newer()
     {
-        await using var context = NewContext(); var user = new FakeIdentity(); var local = new Fornecedor(Guid.NewGuid(), "Local", Cnpj.Create("12345678000195"), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow.AddMinutes(-5), "BU-A", "SOMA_DESENV", "ERP-1");
+        await using var context = NewContext(); var user = new FakeIdentity(); var local = new Fornecedor(Guid.NewGuid(), "Local", Cnpj.Create("12345678000195"), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null, DateTimeOffset.UtcNow.AddMinutes(-5), GrupoSomaTeste.Id, "BU-A", "SOMA_DESENV", "ERP-1");
         await new FornecedorRepository(context).AdicionarAsync(local);
         var adapter = new FakeAdapter { Current = new("ERP-1", "ERP Atualizado", "12345678000195", "São Paulo", "SP", "BR", true, DateTimeOffset.UtcNow.AddMinutes(5)) };
         var result = await Create(context, user, adapter).ExecuteAsync(new("BU-A", "SOMA_DESENV", "ERP-1", null, DirecaoSincronizacao.ErpParaMaisCompras, "newer"));
@@ -117,7 +120,8 @@ public sealed class SincronizarFornecedorUseCaseTests
         var stored = await context.Fornecedores.SingleAsync();
 
         Assert.Equal("Sincronizado", first.Status); Assert.Equal(first.FornecedorId, second.FornecedorId);
-        Assert.Equal(versionAfterImport, stored.Versao); Assert.Equal(canonical.NomeFantasia, stored.NomeFantasia); Assert.Equal(canonical.Logradouro, stored.Logradouro);
+        // B3 — Bloco 5A.9: NomeFantasia é persistido em UPPERCASE (decisão do Product Owner).
+        Assert.Equal(versionAfterImport, stored.Versao); Assert.Equal(canonical.NomeFantasia.ToUpperInvariant(), stored.NomeFantasia); Assert.Equal(canonical.Logradouro, stored.Logradouro);
         Assert.Equal(canonical.Numero, stored.Numero); Assert.Equal(canonical.Bairro, stored.Bairro); Assert.Equal(canonical.Ddd, stored.Ddd); Assert.Equal(canonical.EmailFiscal, stored.EmailFiscal);
         Assert.Equal(canonical.Banco, stored.Banco); Assert.Equal(canonical.Agencia, stored.Agencia); Assert.Equal(canonical.Conta, stored.Conta); Assert.Equal(canonical.CondicaoPagamento, stored.CondicaoPagamento);
         Assert.Equal(canonical.TipoFornecedor, stored.TipoFornecedor); Assert.Equal(canonical.RegimeFiscal, stored.RegimeFiscal); Assert.Equal(canonical.SimplesNacional, stored.SimplesNacional); Assert.Equal(canonical.HashDadosSincronizaveis, stored.HashDadosSincronizaveis);
@@ -160,20 +164,21 @@ public sealed class SincronizarFornecedorUseCaseTests
     public async Task Manual_Update_Should_Not_Change_NomeFantasia()
     {
         await using var context = NewContext(); var user = new FakeIdentity();
-        var supplier = new Fornecedor(Guid.NewGuid(), "Razão", DocumentoFiscal.Create("12345678909"), "PF", null, null, null, null, null, "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow);
+        var supplier = new Fornecedor(Guid.NewGuid(), "Razão", DocumentoFiscal.Create("12345678909"), "PF", null, null, null, null, null, "SP", "BR", "Ativo", null, DateTimeOffset.UtcNow, GrupoSomaTeste.Id);
         supplier.AplicarContratoCanonico(new("Razão", "Fantasia ERP", "12345678909", "PF", "BR", null, null, null, null, null, null, null, null, "SP", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, false, false, false, false, false, true, DateTimeOffset.UtcNow, "hash"), "ERP", DateTimeOffset.UtcNow);
         await new FornecedorRepository(context).AdicionarAsync(supplier);
 
         supplier.AplicarContratoCanonico(new("Razão Manual", "Fantasia Manual", "12345678909", "PF", "BR", null, null, null, null, null, null, null, null, "SP", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, false, false, false, false, false, true, DateTimeOffset.UtcNow, "hash2"), "MaisCompras", DateTimeOffset.UtcNow);
 
-        Assert.Equal("Fantasia ERP", supplier.NomeFantasia);
+        // B3 — Bloco 5A.9: NomeFantasia é persistido em UPPERCASE (decisão do Product Owner).
+        Assert.Equal("FANTASIA ERP", supplier.NomeFantasia);
         Assert.Equal("Razão Manual", supplier.RazaoSocial);
     }
 
     [Fact]
     public async Task Export_Inactivation_Should_Be_Idempotent_And_Audited()
     {
-        await using var context = NewContext(); var user = new FakeIdentity(); var local = new Fornecedor(Guid.NewGuid(), "Teste", Cnpj.Create("12345678000195"), null, null, null, null, null, "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow, "BU-A", "SOMA_DESENV", "ERP-1");
+        await using var context = NewContext(); var user = new FakeIdentity(); var local = new Fornecedor(Guid.NewGuid(), "Teste", Cnpj.Create("12345678000195"), null, null, null, null, null, "SP", "BR", "Ativo", null, DateTimeOffset.UtcNow, GrupoSomaTeste.Id, "BU-A", "SOMA_DESENV", "ERP-1");
         await new FornecedorRepository(context).AdicionarAsync(local); var adapter = new FakeAdapter { Current = new("ERP-1", "Teste", "12345678000195", null, "SP", "BR") };
         var useCase = Create(context, user, adapter); var dto = new SincronizarFornecedorDto("BU-A", "SOMA_DESENV", null, local.Id, DirecaoSincronizacao.MaisComprasParaErp, "inactive", OperacaoFornecedor.Inativar);
         var first = await useCase.ExecuteAsync(dto); var second = await useCase.ExecuteAsync(dto);
@@ -183,7 +188,7 @@ public sealed class SincronizarFornecedorUseCaseTests
     [Fact]
     public async Task Equal_Timestamp_With_Different_Data_Should_Preserve_MaisCompras()
     {
-        await using var context = NewContext(); var user = new FakeIdentity(); var timestamp = DateTimeOffset.UtcNow; var local = new Fornecedor(Guid.NewGuid(), "Local", Cnpj.Create("12345678000195"), null, null, null, null, null, "SP", "BR", "Ativo", null, user.UserId, timestamp, "BU-A", "SOMA_DESENV", "ERP-1");
+        await using var context = NewContext(); var user = new FakeIdentity(); var timestamp = DateTimeOffset.UtcNow; var local = new Fornecedor(Guid.NewGuid(), "Local", Cnpj.Create("12345678000195"), null, null, null, null, null, "SP", "BR", "Ativo", null, timestamp, GrupoSomaTeste.Id, "BU-A", "SOMA_DESENV", "ERP-1");
         await new FornecedorRepository(context).AdicionarAsync(local); var adapter = new FakeAdapter { Current = new("ERP-1", "ERP", "12345678000195", null, "SP", "BR", true, timestamp) };
         await Create(context, user, adapter).ExecuteAsync(new("BU-A", "SOMA_DESENV", "ERP-1", null, DirecaoSincronizacao.ErpParaMaisCompras, "tie"));
         Assert.Equal("Local", (await context.Fornecedores.SingleAsync()).Nome); Assert.Equal(0, adapter.UpdateCount);
@@ -206,16 +211,30 @@ public sealed class SincronizarFornecedorUseCaseTests
     }
 
     private static SincronizarFornecedorUseCase Create(BlueprintOSDbContext context, FakeIdentity identity, FakeAdapter adapter) =>
-        new(new FornecedorRepository(context), new FornecedorSincronizacaoRepository(context), new FakeResolver(adapter), identity);
+        new(new FornecedorRepository(context), new FornecedorSincronizacaoRepository(context), new FakeResolver(adapter), new FakeUnidadeNegocioRepository());
     private static async Task<SincronizacaoFornecedorResultado> ExecuteConcurrentAsync(string database, FakeIdentity identity, ConcurrentFakeAdapter adapter, Guid supplierId, string correlationId)
     {
         await using var context = NewContext(database);
-        var useCase = new SincronizarFornecedorUseCase(new FornecedorRepository(context), new FornecedorSincronizacaoRepository(context), new ConcurrentFakeResolver(adapter), identity);
+        var useCase = new SincronizarFornecedorUseCase(new FornecedorRepository(context), new FornecedorSincronizacaoRepository(context), new ConcurrentFakeResolver(adapter), new FakeUnidadeNegocioRepository());
         return await useCase.ExecuteAsync(new("BU-A", "SOMA_DESENV", null, supplierId, DirecaoSincronizacao.MaisComprasParaErp, correlationId));
+    }
+
+    /// <summary>Onda 2 (Multi-BU/Multi-ERP, 03/09/2026): resolve sempre "bu-a" (case-insensitive) para
+    /// <see cref="GrupoSomaTeste"/> — mesma Unidade de Negócio usada nos Fornecedores construídos neste
+    /// arquivo, provando a resolução real de BU a partir do dado cadastrado (nunca GUID hardcoded).</summary>
+    private sealed class FakeUnidadeNegocioRepository : IUnidadeNegocioRepository
+    {
+        public Task<UnidadeNegocio?> ObterPorIdAsync(Guid id, CancellationToken ct) => Task.FromResult(id == GrupoSomaTeste.Id ? GrupoSomaTeste : null);
+        public Task<UnidadeNegocio?> ObterPorSlugAsync(string slug, CancellationToken ct) => Task.FromResult(slug == GrupoSomaTeste.Slug ? GrupoSomaTeste : null);
+        public Task<bool> PossuiAdministradorSeniorAtivoAsync(Guid unidadeNegocioId, CancellationToken ct) => Task.FromResult(false);
+        public Task AdicionarAsync(UnidadeNegocio unidadeNegocio, CancellationToken ct) => Task.CompletedTask;
+        public Task<IReadOnlyList<UnidadeNegocio>> ListarTodasAsync(CancellationToken ct) => Task.FromResult<IReadOnlyList<UnidadeNegocio>>([GrupoSomaTeste]);
+        public Task<bool> ExisteComSlugAsync(string slug, Guid? excluirId, CancellationToken ct) => Task.FromResult(slug == GrupoSomaTeste.Slug);
+        public Task SalvarAlteracoesAsync(CancellationToken ct) => Task.CompletedTask;
     }
     private static BlueprintOSDbContext NewContext() => new(new DbContextOptionsBuilder<BlueprintOSDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
     private static BlueprintOSDbContext NewContext(string database) => new(new DbContextOptionsBuilder<BlueprintOSDbContext>().UseInMemoryDatabase(database).Options);
-    private static Fornecedor NewSupplier(FakeIdentity user, string name, string cnpj) => new(Guid.NewGuid(), name, Cnpj.Create(cnpj), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null, user.UserId, DateTimeOffset.UtcNow, "BU-A", "SOMA_DESENV", null);
+    private static Fornecedor NewSupplier(FakeIdentity user, string name, string cnpj) => new(Guid.NewGuid(), name, Cnpj.Create(cnpj), null, null, null, null, "São Paulo", "SP", "BR", "Ativo", null, DateTimeOffset.UtcNow, GrupoSomaTeste.Id, "BU-A", "SOMA_DESENV", null);
 
     private sealed class FakeIdentity : ICurrentIdentity
     { public Guid UserId { get; } = Guid.NewGuid(); public RequestIdentity GetRequired() => new(UserId, "Buyer"); }

@@ -13,6 +13,9 @@
 .LSOverride
 __MACOSX/
 
+# Local MCP config (contains live secrets — never commit)
+.mcp.json
+
 # Windows
 Thumbs.db
 Desktop.ini

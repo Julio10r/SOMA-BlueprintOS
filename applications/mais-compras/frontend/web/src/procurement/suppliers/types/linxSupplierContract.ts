@@ -51,6 +51,21 @@ export type Fornecedor = {
   mensagemErroSincronizacao?: string | null;
 };
 
+/**
+ * B3 — Bloco 5A.9: um vínculo Linx do Fornecedor (1 CNPJ/CPF = 1 Fornecedor, N vínculos — GAPs
+ * KALUNGA/PLATINUM). `dataParaTransferencia` ("mais recente") e `principal` são conceitos
+ * INDEPENDENTES — nunca tratar um como sinônimo do outro na UI.
+ */
+export type FornecedorLinxVinculo = {
+  id: string;
+  erpSistema: string;
+  codigoErp: string;
+  nomeClifor: string;
+  ativo: boolean;
+  principal: boolean;
+  dataParaTransferencia?: string | null;
+};
+
 /** Espelha Fornecedor.StatusSincronizacao (backend) — nunca inferido no cliente a partir de erpFornecedorId. */
 export type FornecedorStatusSincronizacao = "Pendente" | "Sincronizado" | "Falhou" | string;
 

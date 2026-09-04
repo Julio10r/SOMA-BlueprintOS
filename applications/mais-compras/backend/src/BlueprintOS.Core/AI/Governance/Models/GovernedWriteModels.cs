@@ -20,6 +20,14 @@ public enum GovernedExecutionMode
 {
     DryRun = 1,
     LiveExecution = 2,
+
+    /// <summary>A real, non-mutating bulk read of a pre-registered dataset (e.g. <c>linx.fornecedores.snapshot</c>).
+    /// Deliberately NOT a variant of <see cref="LiveExecution"/>: it never carries or requires a
+    /// <see cref="WriteVerificationProfile"/>, a <see cref="Recovery.RecoveryPackageReceipt"/>, or a
+    /// <see cref="PostWriteValidationRule"/> — those guarantees exist to protect against an unrecoverable
+    /// mutation, which a read cannot cause. Routing, ownership, policy decision, approval and auditing are
+    /// still fully enforced by the same <see cref="ToolGateway"/>.</summary>
+    LiveRead = 3,
 }
 
 public enum ToolGatewayStatus
@@ -35,6 +43,12 @@ public enum ToolGatewayStatus
     /// <summary>The live path was permitted and attempted, but the adapter reported failure. Never a silent
     /// success: callers must treat this as "state unknown until validated/rolled back".</summary>
     LiveExecutionFailed = 4,
+
+    /// <summary>A real bulk read ran and its adapter reported success.</summary>
+    LiveReadCompleted = 5,
+
+    /// <summary>The read path was permitted and attempted, but the adapter reported failure.</summary>
+    LiveReadFailed = 6,
 }
 
 public sealed record StructuredActionContext(
@@ -147,7 +161,9 @@ public sealed record ToolGatewayResult(
     bool LiveExecutionEnabled = false,
     bool DirectBypassAllowed = false,
     bool PrivilegeEscalationAllowed = false,
-    WriteExecutionResult? Execution = null);
+    WriteExecutionResult? Execution = null,
+    bool LiveReadEnabled = false,
+    ReadExecutionResult? ReadExecution = null);
 
 /// <summary>What a write execution adapter reports back after a real write.</summary>
 public sealed record WriteExecutionResult(
@@ -157,6 +173,18 @@ public sealed record WriteExecutionResult(
     IReadOnlyList<string> Reasons,
     string? ErrorMessage = null,
     string? ExternalIdentifier = null);
+
+/// <summary>What a read execution adapter reports back after a real bulk read. Deliberately has no
+/// after-state/rollback-shaped fields — a read has nothing to roll back — but does report enough for the
+/// audit trail required by B3/Bloco 5A.9 (rows read vs. written, isolation level actually used, duration).</summary>
+public sealed record ReadExecutionResult(
+    bool Succeeded,
+    long RowsRead,
+    long RowsWritten,
+    string IsolationLevelUsed,
+    TimeSpan Duration,
+    IReadOnlyList<string> Reasons,
+    string? ErrorMessage = null);
 
 public sealed record GovernanceAuditEvent(
     Guid Id,

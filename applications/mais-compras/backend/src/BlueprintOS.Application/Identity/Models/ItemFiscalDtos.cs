@@ -1,19 +1,28 @@
 namespace BlueprintOS.Application.Identity.Models;
 
-/// <summary>Projeção de leitura de um Item Fiscal (B3 — Bloco 3, Discovery homologado). As descrições de
+/// <summary>Projeção de leitura de um Item Fiscal (B3 — Bloco 3/5A, Discovery homologado). As descrições de
 /// Conta Contábil/Unidade de Medida são enriquecidas a partir da leitura combinada ERP+metadados locais
-/// (Blocos 1/2) — <c>null</c> quando o código de apoio, por qualquer motivo, deixou de existir/ficou
-/// inválido depois da criação/edição (nunca deveria acontecer em uso normal, já que a validação impede
-/// seleção inválida, mas a projeção não presume).</summary>
+/// (Blocos 1/2) — <c>null</c> quando o código de apoio está ausente (origem Linx incompleta) ou, para um
+/// código preenchido, deixou de existir/ficou inválido depois da criação/edição.
+///
+/// <c>Ativo</c> é situação CADASTRAL (nunca falsificada). <c>AptidaoOperacional</c> é um conceito
+/// DIFERENTE, computado em tempo de leitura (Bloco 5A, decisão do Product Owner): só é <c>true</c> quando
+/// Conta Contábil E Unidade de Medida estão preenchidas, existem e estão ativas — um Item Fiscal pode ser
+/// <c>Ativo=true</c> e <c>AptidaoOperacional=false</c> ao mesmo tempo (ex.: Item real do Linx sem Conta
+/// Contábil). <c>MotivosInaptidao</c> lista, em português, cada requisito não satisfeito — vazia quando
+/// <c>AptidaoOperacional</c> é <c>true</c>.</summary>
 public sealed record ItemFiscalDto(
     Guid Id,
     string Codigo,
     string Descricao,
-    string UnidadeMedidaCodigoErp,
+    string? UnidadeMedidaCodigoErp,
     string? UnidadeMedidaDescricao,
-    string ContaContabilCodigoErp,
+    string? ContaContabilCodigoErp,
     string? ContaContabilDescricao,
     bool Ativo,
+    string OrigemInformacao,
+    bool AptidaoOperacional,
+    IReadOnlyList<string> MotivosInaptidao,
     DateTimeOffset CriadoEm,
     DateTimeOffset AtualizadoEm);
 

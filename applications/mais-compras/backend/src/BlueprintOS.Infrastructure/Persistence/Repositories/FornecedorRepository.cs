@@ -46,30 +46,32 @@ public sealed class FornecedorRepository(BlueprintOSDbContext context) : IFornec
         }
         await context.SaveChangesAsync(cancellationToken);
     }
-    public Task<Fornecedor?> ObterPorIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default) =>
-        context.Fornecedores.SingleOrDefaultAsync(x => x.Id == id && x.TemporaryUserId == userId, cancellationToken);
-    public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid userId, CancellationToken cancellationToken = default) =>
-        context.Fornecedores.SingleOrDefaultAsync(x => x.Cnpj_Cpf == cnpj && x.TemporaryUserId == userId, cancellationToken);
-    public async Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string termo, Guid userId, CancellationToken cancellationToken = default) =>
-        await context.Fornecedores.AsNoTracking().Where(x => x.TemporaryUserId == userId &&
+    public Task<Fornecedor?> ObterPorIdAsync(Guid id, CancellationToken cancellationToken = default) =>
+        context.Fornecedores.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+    public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid unidadeNegocioId, CancellationToken cancellationToken = default) =>
+        context.Fornecedores.SingleOrDefaultAsync(x => x.Cnpj_Cpf == cnpj && x.UnidadeNegocioId == unidadeNegocioId, cancellationToken);
+    public Task<Fornecedor?> ObterPorErpFornecedorIdAsync(string erpFornecedorId, CancellationToken cancellationToken = default) =>
+        context.Fornecedores.SingleOrDefaultAsync(x => x.ErpFornecedorId == erpFornecedorId, cancellationToken);
+    public async Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string termo, Guid unidadeNegocioId, CancellationToken cancellationToken = default) =>
+        await context.Fornecedores.AsNoTracking().Where(x => x.UnidadeNegocioId == unidadeNegocioId &&
             (x.RazaoSocial.Contains(termo) || x.Cnpj_Cpf.Contains(termo))).OrderBy(x => x.RazaoSocial).ToListAsync(cancellationToken);
-    public async Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid userId, CancellationToken cancellationToken = default) =>
-        await context.Fornecedores.AsNoTracking().Where(x => x.TemporaryUserId == userId).OrderBy(x => x.RazaoSocial).ToListAsync(cancellationToken);
-    public Task<bool> ExisteAsync(string cnpj, CancellationToken cancellationToken = default) =>
-        context.Fornecedores.AnyAsync(x => x.Cnpj_Cpf == cnpj, cancellationToken);
-    public Task<Fornecedor?> ObterPorCnpjSemRastreamentoAsync(string cnpj, Guid userId, CancellationToken cancellationToken = default) =>
-        context.Fornecedores.AsNoTracking().SingleOrDefaultAsync(x => x.Cnpj_Cpf == cnpj && x.TemporaryUserId == userId, cancellationToken);
-    public Task<int> ContarAtivosAsync(Guid userId, CancellationToken cancellationToken = default) =>
-        context.Fornecedores.AsNoTracking().CountAsync(x => x.TemporaryUserId == userId && x.Status == "Ativo", cancellationToken);
+    public async Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid unidadeNegocioId, CancellationToken cancellationToken = default) =>
+        await context.Fornecedores.AsNoTracking().Where(x => x.UnidadeNegocioId == unidadeNegocioId).OrderBy(x => x.RazaoSocial).ToListAsync(cancellationToken);
+    public Task<bool> ExisteAsync(string cnpj, Guid unidadeNegocioId, CancellationToken cancellationToken = default) =>
+        context.Fornecedores.AnyAsync(x => x.Cnpj_Cpf == cnpj && x.UnidadeNegocioId == unidadeNegocioId, cancellationToken);
+    public Task<Fornecedor?> ObterPorCnpjSemRastreamentoAsync(string cnpj, Guid unidadeNegocioId, CancellationToken cancellationToken = default) =>
+        context.Fornecedores.AsNoTracking().SingleOrDefaultAsync(x => x.Cnpj_Cpf == cnpj && x.UnidadeNegocioId == unidadeNegocioId, cancellationToken);
+    public Task<int> ContarAtivosAsync(Guid unidadeNegocioId, CancellationToken cancellationToken = default) =>
+        context.Fornecedores.AsNoTracking().CountAsync(x => x.Status == "Ativo" && x.UnidadeNegocioId == unidadeNegocioId, cancellationToken);
 
-    public async Task<FornecedorPesquisaPaginadaResultado> PesquisarPaginadoAsync(Guid temporaryUserId, string? termo,
+    public async Task<FornecedorPesquisaPaginadaResultado> PesquisarPaginadoAsync(string? termo,
         FornecedorStatusFiltro status, FornecedorOrdenacaoCampo ordenarPor, bool ordenarDescendente,
-        int page, int pageSize, CancellationToken cancellationToken = default)
+        int page, int pageSize, Guid unidadeNegocioId, CancellationToken cancellationToken = default)
     {
         var pagina = page < 1 ? 1 : page;
         var tamanho = pageSize < 1 ? 20 : pageSize;
 
-        IQueryable<Fornecedor> query = context.Fornecedores.AsNoTracking().Where(x => x.TemporaryUserId == temporaryUserId);
+        IQueryable<Fornecedor> query = context.Fornecedores.AsNoTracking().Where(x => x.UnidadeNegocioId == unidadeNegocioId);
 
         if (!string.IsNullOrWhiteSpace(termo))
         {

@@ -12,12 +12,48 @@ namespace BlueprintOS.UnitTests.Application.Procurement.Suppliers;
 public sealed class FornecedorUseCasesTests
 {
     [Fact]
-    public async Task Cadastrar_Should_Create_Supplier_With_Current_Temporary_User()
+    public async Task Cadastrar_Should_Create_Corporate_Supplier()
     {
         var identity = new FakeIdentity(); var repository = new FakeRepository();
         var result = await CreateUseCase(repository, identity).ExecuteAsync(CreateDto());
-        Assert.Equal(identity.UserId, result.TemporaryUserId);
         Assert.Equal("12345678000195", result.Cnpj_Cpf);
+    }
+
+    /// <summary>B3 — Bloco 5A.9 (correção do resíduo arquitetural TemporaryUserId, decisão do Product
+    /// Owner): Fornecedor é um cadastro CORPORATIVO — nunca pertence a quem criou/sincronizou. Duas
+    /// identidades distintas cadastram um Fornecedor cada; qualquer consulta (aqui, sem nenhuma
+    /// identidade envolvida — a pesquisa não recebe mais um "dono" como filtro) enxerga os dois, e não
+    /// há duplicação por usuário.</summary>
+    [Fact]
+    public async Task Pesquisar_Should_Return_Supplier_Regardless_Of_Which_Identity_Created_It()
+    {
+        // Onda 2 (Multi-BU): "nenhum dono" continua verdadeiro DENTRO da mesma Unidade de Negócio — as
+        // duas identidades aqui pertencem à mesma BU (isolamento é por BU, não por usuário individual).
+        var identity = new FakeIdentity();
+        var repository = new FakeRepository();
+        await CreateUseCase(repository, identity).ExecuteAsync(CreateDto());
+        await CreateUseCase(repository, identity).ExecuteAsync(CreateDto() with { Cnpj_Cpf = "11444777000161" });
+
+        var resultado = await new PesquisarFornecedorUseCase(repository, identity).ExecuteAsync(null);
+
+        Assert.Equal(2, resultado.Count);
+        Assert.Equal(2, repository.Items.Select(x => x.Cnpj_Cpf).Distinct().Count()); // nenhuma duplicação
+    }
+
+    /// <summary>Visibilidade corporativa: um Fornecedor cadastrado por uma identidade é acessível a
+    /// qualquer consulta autorizada — a autorização é responsabilidade do RBAC na rota (fora deste use
+    /// case), nunca de um "dono" armazenado no registro.</summary>
+    [Fact]
+    public async Task ObterFornecedor_Should_Be_Visible_Regardless_Of_Its_Creator()
+    {
+        var identity = new FakeIdentity();
+        var repository = new FakeRepository();
+        var criado = await CreateUseCase(repository, identity).ExecuteAsync(CreateDto());
+
+        var encontrado = await new ObterFornecedorUseCase(repository, identity).ExecuteAsync(criado.Id);
+
+        Assert.NotNull(encontrado);
+        Assert.Equal(criado.Id, encontrado!.Id);
     }
 
     [Fact]
@@ -111,7 +147,7 @@ public sealed class FornecedorUseCasesTests
     {
         var repository = new FakeRepository { ExistingCnpj = "12345678000195" };
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => CreateUseCase(repository, new FakeIdentity()).ExecuteAsync(CreateDto()));
-        Assert.Equal("Já existe um fornecedor cadastrado com este CNPJ/CPF.", ex.Message);
+        Assert.Equal("Já existe um fornecedor cadastrado com este CNPJ/CPF nesta Unidade de Negócio.", ex.Message);
         Assert.DoesNotContain("already exists", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -178,7 +214,7 @@ public sealed class FornecedorUseCasesTests
         // converge para o registro já criado pela primeira em vez de falhar com 500 (decisão do PO).
         var identity = new FakeIdentity();
         var jaCriadoPelaOutraRequisicao = new Fornecedor(Guid.NewGuid(), "Empresa Ltda", Cnpj.Create("12345678000195"), null, null, null, null, null,
-            null, null, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow);
+            null, null, "Ativo", null, DateTimeOffset.UtcNow, identity.UnidadeNegocioId);
         var repository = new ConcurrentDuplicateFakeRepository(jaCriadoPelaOutraRequisicao);
 
         var result = await CreateUseCase(repository, identity).ExecuteAsync(CreateDto());
@@ -196,17 +232,18 @@ public sealed class FornecedorUseCasesTests
         public Task AdicionarAsync(Fornecedor fornecedor, CancellationToken ct = default) =>
             throw new DuplicateRecordException("Documento fiscal já foi cadastrado por outra requisição concorrente.");
         public Task AtualizarAsync(Fornecedor fornecedor, CancellationToken ct = default) => Task.CompletedTask;
-        public Task<Fornecedor?> ObterPorIdAsync(Guid id, Guid user, CancellationToken ct = default) => Task.FromResult<Fornecedor?>(null);
-        public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid user, CancellationToken ct = default) =>
-            Task.FromResult(cnpj == concorrente.Cnpj_Cpf && user == concorrente.TemporaryUserId ? concorrente : null);
-        public Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string termo, Guid user, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Fornecedor>>([]);
-        public Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid user, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Fornecedor>>([]);
-        public Task<bool> ExisteAsync(string cnpj, CancellationToken ct = default) => Task.FromResult(false);
-        public Task<Fornecedor?> ObterPorCnpjSemRastreamentoAsync(string cnpj, Guid user, CancellationToken ct = default) => ObterPorCnpjAsync(cnpj, user, ct);
-        public Task<int> ContarAtivosAsync(Guid user, CancellationToken ct = default) => Task.FromResult(0);
-        public Task<FornecedorPesquisaPaginadaResultado> PesquisarPaginadoAsync(Guid temporaryUserId, string? termo,
+        public Task<Fornecedor?> ObterPorIdAsync(Guid id, CancellationToken ct = default) => Task.FromResult<Fornecedor?>(null);
+        public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid unidadeNegocioId, CancellationToken ct = default) =>
+            Task.FromResult(cnpj == concorrente.Cnpj_Cpf ? concorrente : null);
+        public Task<Fornecedor?> ObterPorErpFornecedorIdAsync(string erpFornecedorId, CancellationToken ct = default) => Task.FromResult<Fornecedor?>(null);
+        public Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string termo, Guid unidadeNegocioId, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Fornecedor>>([]);
+        public Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid unidadeNegocioId, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Fornecedor>>([]);
+        public Task<bool> ExisteAsync(string cnpj, Guid unidadeNegocioId, CancellationToken ct = default) => Task.FromResult(false);
+        public Task<Fornecedor?> ObterPorCnpjSemRastreamentoAsync(string cnpj, Guid unidadeNegocioId, CancellationToken ct = default) => ObterPorCnpjAsync(cnpj, unidadeNegocioId, ct);
+        public Task<int> ContarAtivosAsync(Guid unidadeNegocioId, CancellationToken ct = default) => Task.FromResult(0);
+        public Task<FornecedorPesquisaPaginadaResultado> PesquisarPaginadoAsync(string? termo,
             FornecedorStatusFiltro status, FornecedorOrdenacaoCampo ordenarPor, bool ordenarDescendente,
-            int page, int pageSize, CancellationToken ct = default) =>
+            int page, int pageSize, Guid unidadeNegocioId, CancellationToken ct = default) =>
             Task.FromResult(new FornecedorPesquisaPaginadaResultado([], 0, page, pageSize));
     }
 
@@ -259,14 +296,20 @@ public sealed class FornecedorUseCasesTests
             .ExecuteAsync(CreateDto() with { NomeFantasia = nomeFantasia }));
     }
 
+    /// <summary>B3 — Bloco 5A.9: Fornecedor é corporativo — uma identidade diferente da que criou o
+    /// registro (nenhum "dono" é armazenado) ainda consegue atualizá-lo, contanto que a rota tenha
+    /// autorizado a operação via RBAC (fora deste use case). Nunca mais um 404 apenas por ter sido outra
+    /// sessão que criou o registro originalmente.</summary>
     [Fact]
-    public async Task Update_Should_Not_Expose_Supplier_From_Another_User()
+    public async Task Update_Should_Succeed_Regardless_Of_Which_Identity_Created_The_Supplier()
     {
         var repository = new FakeRepository();
-        var supplier = new Fornecedor(Guid.NewGuid(), "Empresa", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null, Guid.NewGuid(), DateTimeOffset.UtcNow);
+        var identity = new FakeIdentity();
+        var supplier = new Fornecedor(Guid.NewGuid(), "Empresa", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null, DateTimeOffset.UtcNow, identity.UnidadeNegocioId);
         repository.Items.Add(supplier);
-        var result = await CreateAtualizarUseCase(repository, new FakeIdentity()).ExecuteAsync(supplier.Id, new AtualizarFornecedorDto("Novo", null, null, null, null, null, null, null, null, null));
-        Assert.Null(result);
+        var result = await CreateAtualizarUseCase(repository, identity).ExecuteAsync(supplier.Id, new AtualizarFornecedorDto("Novo", null, null, null, null, null, null, null, null, null));
+        Assert.NotNull(result);
+        Assert.Equal("Novo", result!.Nome);
     }
 
     [Fact]
@@ -324,21 +367,18 @@ public sealed class FornecedorUseCasesTests
         // Reabertura por CNPJ (secao 6): confirmar a Review de um Fornecedor existente deve retentar a
         // integracao ERP (convergencia), e uma falha aqui tambem nao pode bloquear o UPDATE local.
         var repository = new FakeRepository();
-        var supplier = new Fornecedor(Guid.NewGuid(), "Empresa", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null,
-            Guid.NewGuid(), DateTimeOffset.UtcNow);
         var identity = new FakeIdentity();
+        var supplier = new Fornecedor(Guid.NewGuid(), "Empresa", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null,
+            DateTimeOffset.UtcNow, identity.UnidadeNegocioId);
         repository.Items.Add(supplier);
-        var supplierWithOwner = new Fornecedor(supplier.Id, "Empresa", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null,
-            identity.UserId, DateTimeOffset.UtcNow);
-        repository.Items.Clear(); repository.Items.Add(supplierWithOwner);
 
         var garantir = new FakeGarantirNoErpUseCase { Falha = new ErpFornecedorEscritaException(ErpFornecedorErro.Timeout, "Timeout ao integrar com o ERP.") };
         var result = await CreateAtualizarUseCase(repository, identity, garantir)
-            .ExecuteAsync(supplierWithOwner.Id, new AtualizarFornecedorDto("Empresa Atualizada", null, null, null, null, null, null, null, "Ativo", null));
+            .ExecuteAsync(supplier.Id, new AtualizarFornecedorDto("Empresa Atualizada", null, null, null, null, null, null, null, "Ativo", null));
 
         Assert.NotNull(result);
         Assert.Single(garantir.Chamadas);
-        Assert.Equal("Pendente", supplierWithOwner.StatusSincronizacao);
+        Assert.Equal("Pendente", supplier.StatusSincronizacao);
     }
 
     [Fact]
@@ -353,9 +393,10 @@ public sealed class FornecedorUseCasesTests
         // um adapter/use case de ERP como dependência — é estruturalmente incapaz de propagar ao ERP, não
         // apenas "não propaga por enquanto". O sentido inverso (Linx → +Compras) é coberto por
         // Import_Should_Reflect_Erp_Inactivation_Onto_Local_Fornecedor em SincronizarFornecedorUseCaseTests.
-        var identity = new FakeIdentity(); var repository = new FakeRepository();
+        var repository = new FakeRepository();
+        var identity = new FakeIdentity();
         var supplier = new Fornecedor(Guid.NewGuid(), "Empresa", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null,
-            identity.UserId, DateTimeOffset.UtcNow);
+            DateTimeOffset.UtcNow, identity.UnidadeNegocioId);
         repository.Items.Add(supplier);
 
         var result = await new InativarFornecedorUseCase(repository, identity).ExecuteAsync(supplier.Id);
@@ -368,8 +409,8 @@ public sealed class FornecedorUseCasesTests
     [Fact]
     public async Task Inativar_Should_Return_False_When_Supplier_Not_Found()
     {
-        var identity = new FakeIdentity(); var repository = new FakeRepository();
-        var result = await new InativarFornecedorUseCase(repository, identity).ExecuteAsync(Guid.NewGuid());
+        var repository = new FakeRepository();
+        var result = await new InativarFornecedorUseCase(repository, new FakeIdentity()).ExecuteAsync(Guid.NewGuid());
         Assert.False(result);
     }
 
@@ -378,9 +419,10 @@ public sealed class FornecedorUseCasesTests
     {
         // Rota semantica PATCH /fornecedores/{id}/status: precisa funcionar nos dois sentidos
         // (ativar e inativar), sempre via AlterarStatus, nunca removendo a linha (DR-18).
-        var identity = new FakeIdentity(); var repository = new FakeRepository();
+        var repository = new FakeRepository();
+        var identity = new FakeIdentity();
         var supplier = new Fornecedor(Guid.NewGuid(), "Empresa", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null,
-            identity.UserId, DateTimeOffset.UtcNow);
+            DateTimeOffset.UtcNow, identity.UnidadeNegocioId);
         repository.Items.Add(supplier);
         var useCase = new AlterarStatusFornecedorUseCase(repository, identity);
 
@@ -398,8 +440,8 @@ public sealed class FornecedorUseCasesTests
     [Fact]
     public async Task AlterarStatus_Should_Return_Null_When_Supplier_Not_Found()
     {
-        var identity = new FakeIdentity(); var repository = new FakeRepository();
-        var result = await new AlterarStatusFornecedorUseCase(repository, identity).ExecuteAsync(Guid.NewGuid(), true);
+        var repository = new FakeRepository();
+        var result = await new AlterarStatusFornecedorUseCase(repository, new FakeIdentity()).ExecuteAsync(Guid.NewGuid(), true);
         Assert.Null(result);
     }
 
@@ -410,7 +452,7 @@ public sealed class FornecedorUseCasesTests
         var cnpjsValidos = new[] { "12345678000195", "11444777000161" };
         for (var i = 0; i < 25; i++)
             repository.Items.Add(new Fornecedor(Guid.NewGuid(), $"Empresa {i:00}", Cnpj.Create(cnpjsValidos[i % cnpjsValidos.Length]),
-                null, null, null, null, null, null, null, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow));
+                null, null, null, null, null, null, null, "Ativo", null, DateTimeOffset.UtcNow, identity.UnidadeNegocioId));
         var useCase = new PesquisarFornecedorPaginadoUseCase(repository, identity);
 
         var pagina1 = await useCase.ExecuteAsync(new PesquisarFornecedorPaginadoParametros(null, null, null, Page: 1, PageSize: 10));
@@ -426,8 +468,8 @@ public sealed class FornecedorUseCasesTests
     public async Task PesquisarPaginado_Should_Filter_By_Status()
     {
         var identity = new FakeIdentity(); var repository = new FakeRepository();
-        var ativo = new Fornecedor(Guid.NewGuid(), "Ativa Ltda", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow);
-        var inativo = new Fornecedor(Guid.NewGuid(), "Inativa Ltda", Cnpj.Create("11444777000161"), null, null, null, null, null, null, null, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow);
+        var ativo = new Fornecedor(Guid.NewGuid(), "Ativa Ltda", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null, DateTimeOffset.UtcNow, identity.UnidadeNegocioId);
+        var inativo = new Fornecedor(Guid.NewGuid(), "Inativa Ltda", Cnpj.Create("11444777000161"), null, null, null, null, null, null, null, "Ativo", null, DateTimeOffset.UtcNow, identity.UnidadeNegocioId);
         inativo.AlterarStatus(false, DateTimeOffset.UtcNow, "MaisCompras");
         repository.Items.Add(ativo); repository.Items.Add(inativo);
         var useCase = new PesquisarFornecedorPaginadoUseCase(repository, identity);
@@ -448,8 +490,8 @@ public sealed class FornecedorUseCasesTests
     public async Task PesquisarPaginado_Should_Match_Partial_Name()
     {
         var identity = new FakeIdentity(); var repository = new FakeRepository();
-        repository.Items.Add(new Fornecedor(Guid.NewGuid(), "Alpha Suprimentos", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow));
-        repository.Items.Add(new Fornecedor(Guid.NewGuid(), "Beta Comercio", Cnpj.Create("11444777000161"), null, null, null, null, null, null, null, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow));
+        repository.Items.Add(new Fornecedor(Guid.NewGuid(), "Alpha Suprimentos", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null, DateTimeOffset.UtcNow, identity.UnidadeNegocioId));
+        repository.Items.Add(new Fornecedor(Guid.NewGuid(), "Beta Comercio", Cnpj.Create("11444777000161"), null, null, null, null, null, null, null, "Ativo", null, DateTimeOffset.UtcNow, identity.UnidadeNegocioId));
         var useCase = new PesquisarFornecedorPaginadoUseCase(repository, identity);
 
         var resultado = await useCase.ExecuteAsync(new PesquisarFornecedorPaginadoParametros("Alpha", null, null));
@@ -466,7 +508,7 @@ public sealed class FornecedorUseCasesTests
         // MensagemErroSincronizacao.
         var identity = new FakeIdentity(); var repository = new FakeRepository();
         var fornecedor = new Fornecedor(Guid.NewGuid(), "Gama Distribuidora", Cnpj.Create("12345678000195"), null, null, null,
-            null, null, null, null, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow);
+            null, null, null, null, "Ativo", null, DateTimeOffset.UtcNow, identity.UnidadeNegocioId);
         var agora = DateTimeOffset.UtcNow;
         fornecedor.RegistrarSincronizacao("Falhou", agora, "Timeout ao chamar o ERP.");
         repository.Items.Add(fornecedor);
@@ -484,7 +526,7 @@ public sealed class FornecedorUseCasesTests
     public async Task PesquisarPaginado_Should_Return_Zero_Results_When_No_Match()
     {
         var identity = new FakeIdentity(); var repository = new FakeRepository();
-        repository.Items.Add(new Fornecedor(Guid.NewGuid(), "Alpha Suprimentos", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null, identity.UserId, DateTimeOffset.UtcNow));
+        repository.Items.Add(new Fornecedor(Guid.NewGuid(), "Alpha Suprimentos", Cnpj.Create("12345678000195"), null, null, null, null, null, null, null, "Ativo", null, DateTimeOffset.UtcNow, identity.UnidadeNegocioId));
         var useCase = new PesquisarFornecedorPaginadoUseCase(repository, identity);
 
         var resultado = await useCase.ExecuteAsync(new PesquisarFornecedorPaginadoParametros("Inexistente", null, null));
@@ -506,10 +548,16 @@ public sealed class FornecedorUseCasesTests
     // não relacionado ao que está sendo testado.
     private static CadastrarFornecedorDto CreateDto() => new("Empresa Ltda", "12.345.678/0001-95", "Serviços Gerais", "contato@empresa.com.br", "+55 11999998888", null, "São Paulo", "SP", "BRASIL", "Ativo", null,
         NomeFantasia: "Empresa Fantasia", Cep: "01310-100", Logradouro: "Avenida Paulista", Numero: "1000", Bairro: "Bela Vista");
-    internal sealed class FakeIdentity : ICurrentIdentity { public Guid UserId { get; } = Guid.NewGuid(); public RequestIdentity GetRequired() => new(UserId, "Buyer"); }
+    internal sealed class FakeIdentity(Guid? unidadeNegocioId = null) : ICurrentIdentity
+    {
+        public Guid UserId { get; } = Guid.NewGuid();
+        public Guid UnidadeNegocioId { get; } = unidadeNegocioId ?? Guid.NewGuid();
+        public RequestIdentity GetRequired() => new(UserId, "Buyer", UnidadeNegocioId);
+    }
     internal sealed class FakeUnidadeNegocioRepository : IUnidadeNegocioRepository
     {
         public Task<UnidadeNegocio?> ObterPorIdAsync(Guid id, CancellationToken ct) => Task.FromResult<UnidadeNegocio?>(null);
+        public Task<UnidadeNegocio?> ObterPorSlugAsync(string slug, CancellationToken ct) => Task.FromResult<UnidadeNegocio?>(null);
         public Task<bool> PossuiAdministradorSeniorAtivoAsync(Guid unidadeNegocioId, CancellationToken ct) => Task.FromResult(false);
         public Task AdicionarAsync(UnidadeNegocio unidadeNegocio, CancellationToken ct) => Task.CompletedTask;
         public Task<IReadOnlyList<UnidadeNegocio>> ListarTodasAsync(CancellationToken ct) => Task.FromResult<IReadOnlyList<UnidadeNegocio>>([]);
@@ -558,18 +606,20 @@ public sealed class FornecedorUseCasesTests
         public List<Fornecedor> Items { get; } = []; public string? ExistingCnpj { get; set; }
         public Task AdicionarAsync(Fornecedor f, CancellationToken ct = default) { Items.Add(f); return Task.CompletedTask; }
         public Task AtualizarAsync(Fornecedor f, CancellationToken ct = default) => Task.CompletedTask;
-        public Task<Fornecedor?> ObterPorIdAsync(Guid id, Guid user, CancellationToken ct = default) => Task.FromResult(Items.SingleOrDefault(x => x.Id == id && x.TemporaryUserId == user));
-        public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid user, CancellationToken ct = default) => Task.FromResult(Items.SingleOrDefault(x => x.Cnpj_Cpf == cnpj && x.TemporaryUserId == user));
-        public Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string term, Guid user, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Fornecedor>>(Items.Where(x => x.TemporaryUserId == user).ToArray());
-        public Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid user, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Fornecedor>>(Items.Where(x => x.TemporaryUserId == user).ToArray());
-        public Task<bool> ExisteAsync(string cnpj, CancellationToken ct = default) => Task.FromResult(ExistingCnpj == cnpj || Items.Any(x => x.Cnpj_Cpf == cnpj));
-        public Task<Fornecedor?> ObterPorCnpjSemRastreamentoAsync(string cnpj, Guid user, CancellationToken ct = default) => ObterPorCnpjAsync(cnpj, user, ct);
-        public Task<int> ContarAtivosAsync(Guid user, CancellationToken ct = default) => Task.FromResult(Items.Count(x => x.TemporaryUserId == user && x.Status == "Ativo"));
-        public Task<FornecedorPesquisaPaginadaResultado> PesquisarPaginadoAsync(Guid temporaryUserId, string? termo,
+        public Task<Fornecedor?> ObterPorIdAsync(Guid id, CancellationToken ct = default) => Task.FromResult(Items.SingleOrDefault(x => x.Id == id));
+        public Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid unidadeNegocioId, CancellationToken ct = default) => Task.FromResult(Items.SingleOrDefault(x => x.Cnpj_Cpf == cnpj && x.UnidadeNegocioId == unidadeNegocioId));
+        public Task<Fornecedor?> ObterPorErpFornecedorIdAsync(string erpFornecedorId, CancellationToken ct = default) => Task.FromResult(Items.SingleOrDefault(x => x.ErpFornecedorId == erpFornecedorId));
+        public Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string term, Guid unidadeNegocioId, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Fornecedor>>(Items.Where(x => x.UnidadeNegocioId == unidadeNegocioId).ToArray());
+        public Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid unidadeNegocioId, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Fornecedor>>(Items.Where(x => x.UnidadeNegocioId == unidadeNegocioId).ToArray());
+        public Task<bool> ExisteAsync(string cnpj, Guid unidadeNegocioId, CancellationToken ct = default) => Task.FromResult(ExistingCnpj == cnpj || Items.Any(x => x.Cnpj_Cpf == cnpj && x.UnidadeNegocioId == unidadeNegocioId));
+        public Task<Fornecedor?> ObterPorCnpjSemRastreamentoAsync(string cnpj, Guid unidadeNegocioId, CancellationToken ct = default) => ObterPorCnpjAsync(cnpj, unidadeNegocioId, ct);
+        public Task<int> ContarAtivosAsync(Guid unidadeNegocioId, CancellationToken ct = default) => Task.FromResult(Items.Count(x => x.Status == "Ativo" && x.UnidadeNegocioId == unidadeNegocioId));
+        public Task<FornecedorPesquisaPaginadaResultado> PesquisarPaginadoAsync(string? termo,
             FornecedorStatusFiltro status, FornecedorOrdenacaoCampo ordenarPor, bool ordenarDescendente,
-            int page, int pageSize, CancellationToken ct = default)
+            int page, int pageSize, Guid unidadeNegocioId, CancellationToken ct = default)
         {
-            IEnumerable<Fornecedor> query = Items.Where(x => x.TemporaryUserId == temporaryUserId);
+            var itemsDaBu = Items.Where(x => x.UnidadeNegocioId == unidadeNegocioId).ToList();
+            IEnumerable<Fornecedor> query = itemsDaBu;
             if (!string.IsNullOrWhiteSpace(termo))
                 query = query.Where(x => x.RazaoSocial.Contains(termo, StringComparison.OrdinalIgnoreCase) || x.Cnpj_Cpf.Contains(termo));
             query = status switch

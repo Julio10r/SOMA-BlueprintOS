@@ -1758,3 +1758,18 @@ Os três achados P1 que bloqueavam o Gate foram resolvidos: **DR-06** (overflow 
 Nenhuma decisão do Product Owner foi necessária durante a execução. Regressão final: backend `dotnet test` 838/838 (13 integração + 825 unitários), `dotnet ef migrations has-pending-model-changes` sem pendências; frontend `npx tsc -b` limpo, `npm test` 145/145, `npm run build` aprovado. Smoke E2E via Chrome (dois rounds) validou navegação, RBAC visual, Feature Flags/Notificações/Indicadores/Agentes IA, modais, responsividade e o fluxo completo de consulta CNPJ, sem console/network errors.
 
 8 commits locais granulares (um por lote), nenhum push realizado. `.ai/dashboard/DASHBOARD_STATE.md` não foi tocado por esta frente. Validação Visual Linx e homologação manual definitiva (CRUD/E2E completo) permanecem pendentes do **Gate Manual Final do Product Owner** — não executado nem declarado nesta sessão.
+
+---
+
+## B3 — Item Fiscal: Discovery homologado, Blocos 1–4 concluídos/homologados (02/09/2026)
+
+Sprint executada em blocos pequenos e homologáveis individualmente, cada um com autorização explícita do Product Owner antes de começar (`applications/mais-compras/docs/product/B3-PlanoDeImplementacao.md`):
+
+- **Bloco 1 — Conta Contábil** (cadastro de apoio, leitura real de `CTB_CONTA_PLANO`) — Concluído/Homologado.
+- **Bloco 2 — Unidade de Medida** (cadastro de apoio, leitura real de `UNIDADES`, com exclusão de códigos vazios/só espaços — achado real do Linx) — Concluído/Homologado.
+- **Bloco 3 — Item Fiscal** (domínio local, CRUD completo, RBAC granular por ação) — Concluído/Homologado.
+- **Bloco 4 — Referências por Fornecedor** (DE/PARA local, base para XML NF-e/NFS-e futuro) — Concluído/Homologado.
+
+Testes finais: backend 1211 unitários + 25 integração (0 falhas); frontend 211/211 (31 arquivos). Build limpo (backend e frontend). Validação real end-to-end contra `MAISCOMPRAS` e dados reais do Linx. Nenhuma escrita no Linx em nenhum bloco. Commit publicado em `origin/main`: `c2365f5`.
+
+**Trabalho em andamento / próximo objetivo da sprint seguinte:** **Bloco 5A — pré-validação dos dados reais do Linx** (`CADASTRO_ITEM_FISCAL`, `ITEM_FISCAL_REF_FORNECEDOR`) antes de implementar a sincronização Linx → +Compras. Bloco 5A ainda **NÃO foi iniciado** — nenhuma implementação de sincronização foi codada nesta sprint.

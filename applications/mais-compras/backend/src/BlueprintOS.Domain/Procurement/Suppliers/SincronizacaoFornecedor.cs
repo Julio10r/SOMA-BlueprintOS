@@ -36,6 +36,15 @@ public sealed class SincronizacaoFornecedor
     public long TempoExecucaoMs { get; private set; }
     public IReadOnlyCollection<ErroSincronizacaoFornecedor> Erros => _erros;
 
+    /// <summary>B3 — Bloco 5A.9 (GAP KALUNGA): preenchido apenas quando <see cref="Status"/> resulta de
+    /// <see cref="AbortarPorFalhaFatal"/> ou <see cref="AbortarPorRecuperacaoAdministrativa"/> — nunca em
+    /// qualquer outro status.</summary>
+    public string? JustificativaEncerramento { get; private set; }
+
+    /// <summary>Identidade de quem executou a recuperação administrativa governada (nunca preenchido para
+    /// <see cref="AbortarPorFalhaFatal"/>, que é automático). Ver <see cref="AbortarPorRecuperacaoAdministrativa"/>.</summary>
+    public Guid? UsuarioRecuperacaoId { get; private set; }
+
     public void RegistrarConsultado() => TotalConsultado++;
     public void RegistrarIncluido() => TotalIncluido++;
     public void RegistrarAtualizado() => TotalAtualizado++;
@@ -71,6 +80,30 @@ public sealed class SincronizacaoFornecedor
     /// <summary>Execução em modo dry-run: percorreu e classificou os registros, mas não gravou nada em
     /// Fornecedores. Status distinto para não ser confundido com uma sincronização real em monitoramento.</summary>
     public void ConcluirDryRun(DateTimeOffset dataFim) => FinalizarComStatus(dataFim, "DryRunConcluido");
+
+    /// <summary>B3 — Bloco 5A.9 (GAP KALUNGA — causa raiz comprovada: falha fora do tratamento por
+    /// registro nunca finalizava a execução, deixando-a presa em `EmAndamento` para sempre). Chamado pelo
+    /// `try/catch` externo de <c>SincronizarFornecedoresErpUseCase.ExecuteAsync</c> em QUALQUER exceção não
+    /// tratada — garante que uma falha de infraestrutura nunca mais deixe o registro preso.</summary>
+    public void AbortarPorFalhaFatal(DateTimeOffset dataFim, Exception exception)
+    {
+        JustificativaEncerramento = Sanitizar($"Falha fatal fora do tratamento por registro: {exception.Message}", 1000);
+        FinalizarComStatus(dataFim, "AbortadoPorFalhaFatal");
+    }
+
+    /// <summary>B3 — Bloco 5A.9 (GAP KALUNGA): recuperação GOVERNADA de uma execução comprovadamente
+    /// abandonada (permanece `EmAndamento` sem nenhum processo real em curso) — nunca um UPDATE manual
+    /// direto no banco. Só deve ser chamado pelo caso de uso dedicado
+    /// (<c>IRecuperarSincronizacaoFornecedorAbandonadaUseCase</c>), que exige permissão administrativa e
+    /// justificativa obrigatória antes de invocar este método — a validação de que o Status é realmente
+    /// `EmAndamento` também é responsabilidade do caso de uso (aqui apenas se finaliza o agregado).</summary>
+    public void AbortarPorRecuperacaoAdministrativa(DateTimeOffset dataFim, string justificativa, Guid usuarioId)
+    {
+        if (string.IsNullOrWhiteSpace(justificativa)) throw new ArgumentException("Justificativa é obrigatória para recuperação administrativa.", nameof(justificativa));
+        JustificativaEncerramento = Sanitizar(justificativa, 1000);
+        UsuarioRecuperacaoId = usuarioId;
+        FinalizarComStatus(dataFim, "AbortadoRecuperacaoAdministrativa");
+    }
 
     private void FinalizarComStatus(DateTimeOffset dataFim, string status)
     {

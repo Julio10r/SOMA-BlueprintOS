@@ -30,11 +30,25 @@ public interface IFornecedorRepository
     /// DbContext, sem chamar SaveChangesAsync. Ver <see cref="AdicionarSemSalvarAsync"/>.</summary>
     Task AtualizarSemSalvarAsync(Fornecedor fornecedor, CancellationToken cancellationToken = default) =>
         AtualizarAsync(fornecedor, cancellationToken);
-    Task<Fornecedor?> ObterPorIdAsync(Guid id, Guid temporaryUserId, CancellationToken cancellationToken = default);
-    Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid temporaryUserId, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string termo, Guid temporaryUserId, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid temporaryUserId, CancellationToken cancellationToken = default);
-    Task<bool> ExisteAsync(string documentoFiscal, CancellationToken cancellationToken = default);
+    Task<Fornecedor?> ObterPorIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>Onda 2 (Multi-BU/Multi-ERP): identidade funcional real é (UnidadeNegocioId, Cnpj) — busca
+    /// sempre escopada pela Business Unit, nunca global. O mesmo CNPJ pode existir como Fornecedores
+    /// independentes em BUs diferentes.</summary>
+    Task<Fornecedor?> ObterPorCnpjAsync(string cnpj, Guid unidadeNegocioId, CancellationToken cancellationToken = default);
+
+    /// <summary>[LEGADO/COMPATIBILIDADE — B3 Bloco 5A.9] `Fornecedor.ErpFornecedorId` deixou de ser a
+    /// identidade ERP canônica com a introdução do modelo 1 CNPJ = 1 Fornecedor, N vínculos Linx
+    /// (<see cref="Domain.Procurement.Suppliers.FornecedorLinxVinculo"/>, GAPs KALUNGA/PLATINUM) — o campo
+    /// agora só espelha o vínculo Principal ATIVO atual, por compatibilidade com leitores existentes. NÃO
+    /// usar para resolver identidade Linx em novos relacionamentos (ex.: Referências de Item Fiscal, que
+    /// passaram a usar <see cref="IFornecedorLinxVinculoRepository.ObterPorErpSistemaECodigoAsync"/> —
+    /// resolve por QUALQUER vínculo conhecido, não só o Principal). Mantido apenas para não quebrar
+    /// consumidores existentes do campo legado; não remover sem antes confirmar ausência de uso.</summary>
+    Task<Fornecedor?> ObterPorErpFornecedorIdAsync(string erpFornecedorId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Fornecedor>> PesquisarAsync(string termo, Guid unidadeNegocioId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Fornecedor>> ListarAsync(Guid unidadeNegocioId, CancellationToken cancellationToken = default);
+    Task<bool> ExisteAsync(string documentoFiscal, Guid unidadeNegocioId, CancellationToken cancellationToken = default);
 
     /// <summary>Leitura sem rastreamento (AsNoTracking) usada quando o chamador só precisa classificar
     /// o registro (existe/não existe, houve alteração) e pode decidir depois — na mesma unit-of-work —
@@ -43,18 +57,18 @@ public interface IFornecedorRepository
     /// para verificação. Quando uma atualização é de fato necessária, <see cref="AtualizarAsync"/> anexa
     /// a entidade explicitamente (via <c>DbSet.Update</c>), então o fato de ter sido lida sem
     /// rastreamento não impede a escrita.</summary>
-    Task<Fornecedor?> ObterPorCnpjSemRastreamentoAsync(string cnpj, Guid temporaryUserId, CancellationToken cancellationToken = default);
+    Task<Fornecedor?> ObterPorCnpjSemRastreamentoAsync(string cnpj, Guid unidadeNegocioId, CancellationToken cancellationToken = default);
 
-    /// <summary>Total de Fornecedores com Status "Ativo" para o usuário/escopo informado. Usado pela
-    /// guarda de segurança de inativação em massa (SincronizarFornecedoresErpUseCase) como denominador
-    /// do percentual de inativação de uma execução.</summary>
-    Task<int> ContarAtivosAsync(Guid temporaryUserId, CancellationToken cancellationToken = default);
+    /// <summary>Total de Fornecedores corporativos com Status "Ativo". Usado pela guarda de segurança de
+    /// inativação em massa (SincronizarFornecedoresErpUseCase) como denominador do percentual de
+    /// inativação de uma execução.</summary>
+    Task<int> ContarAtivosAsync(Guid unidadeNegocioId, CancellationToken cancellationToken = default);
 
     /// <summary>Pesquisa paginada, filtrável por status e ordenável, aplicada inteiramente no nível do
     /// IQueryable (sem materializar antes de paginar). <paramref name="termo"/> casa contra CNPJ ou
     /// RazaoSocial/NomeFantasia (Contains, case-insensitive). <paramref name="ordenarDescendente"/>
     /// inverte a direção padrão (ascendente) do campo escolhido em <paramref name="ordenarPor"/>.</summary>
-    Task<FornecedorPesquisaPaginadaResultado> PesquisarPaginadoAsync(Guid temporaryUserId, string? termo,
+    Task<FornecedorPesquisaPaginadaResultado> PesquisarPaginadoAsync(string? termo,
         FornecedorStatusFiltro status, FornecedorOrdenacaoCampo ordenarPor, bool ordenarDescendente,
-        int page, int pageSize, CancellationToken cancellationToken = default);
+        int page, int pageSize, Guid unidadeNegocioId, CancellationToken cancellationToken = default);
 }

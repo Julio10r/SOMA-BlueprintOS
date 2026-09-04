@@ -119,7 +119,11 @@ public sealed class SomaFornecedorReader(IConfiguration configuration, ILogger<S
             HashDadosSincronizaveis: string.Empty);
 
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(dados with { HashDadosSincronizaveis = string.Empty }))));
-        return new(Convert.ToString(reader["ErpFornecedorId"])!.Trim(), "SOMA_DESENV", dados with { HashDadosSincronizaveis = hash }, ultimaAlteracao);
+        // B3 — Bloco 5A.9: CADASTRO_CLI_FOR.INATIVO é lido independentemente de FORNECEDORES.INATIVO
+        // (Dados.Ativo) — decisão do Product Owner de que CADASTRO_CLI_FOR é master; um vínculo inativo em
+        // qualquer uma das duas tabelas é inativo (ver FornecedorLinxVinculo.Ativo).
+        var inativoCadastroCliFor = Bool(reader, "InativoCadastroCliFor");
+        return new(Convert.ToString(reader["ErpFornecedorId"])!.Trim(), "SOMA_DESENV", dados with { HashDadosSincronizaveis = hash }, ultimaAlteracao, inativoCadastroCliFor);
     }
 
     private static string? Nullable(IDataRecord reader, string name) => reader[name] is DBNull ? null : Convert.ToString(reader[name])?.Trim();
@@ -159,7 +163,8 @@ public sealed class SomaFornecedorReader(IConfiguration configuration, ILogger<S
             "NULL AS Agencia", "NULL AS Conta", "NULL AS CondicaoPagamento", "NULL AS TipoFornecedor", "NULL AS SubtipoFornecedor",
             "NULL AS ContaContabil", "NULL AS RegimeFiscal", "NULL AS SimplesNacional", "NULL AS CategoriasFornecimento",
             "NULL AS ForneceMateriais", "NULL AS ForneceConsumo", "NULL AS ForneceServicos", "NULL AS ForneceProdutos",
-            "NULL AS Beneficiador", "NULL AS Licenciado", Select(InativoColumn, "Inativo"), Select(UltimaAlteracaoColumn, "UltimaAlteracao")
+            "NULL AS Beneficiador", "NULL AS Licenciado", Select(InativoColumn, "Inativo"), Select(UltimaAlteracaoColumn, "UltimaAlteracao"),
+            "NULL AS InativoCadastroCliFor"
         });
         private string SomaSelectList => string.Join(", ", new[]
         {
@@ -174,7 +179,10 @@ public sealed class SomaFornecedorReader(IConfiguration configuration, ILogger<S
             Select(Coalesce(C("TIPO_TRIBUTACAO"), ConvertString(C("INDICADOR_FISCAL_TERCEIRO"))), "RegimeFiscal"), Select(Case(C("ATIVIDADE_SIMPLES_NACIONAL"), "1", "0"), "SimplesNacional"),
             Select(C("ID_CLASIF_CLIFOR"), "CategoriasFornecimento"), Select(F("FORNECE_MATERIAIS"), "ForneceMateriais"), Select(F("FORNECE_MAT_CONSUMO"), "ForneceConsumo"),
             Select(F("FORNECE_OUTROS"), "ForneceServicos"), Select(F("FORNECE_PROD_ACAB"), "ForneceProdutos"), Select(F("BENEFICIADOR"), "Beneficiador"),
-            Select(F("LICENCIADO"), "Licenciado"), Select(F("INATIVO"), "Inativo"), SelectTimestamp()
+            Select(F("LICENCIADO"), "Licenciado"), Select(F("INATIVO"), "Inativo"), SelectTimestamp(),
+            // B3 — Bloco 5A.9 (decisão do Product Owner: CADASTRO_CLI_FOR é master) — coluna própria e
+            // real (comprovada Bloco 5A.8: 93.208 ativos/3.491 inativos, 2.763 divergências com FORNECEDORES).
+            Select(C("INATIVO"), "InativoCadastroCliFor")
         });
         private string SelectTimestamp() => UltimaAlteracaoColumn is null && CadastroUltimaAlteracaoColumn is null ? "NULL AS UltimaAlteracao" : $"COALESCE({(CadastroUltimaAlteracaoColumn is null ? "NULL" : $"c.{Q(CadastroUltimaAlteracaoColumn)}")}, {(UltimaAlteracaoColumn is null ? "NULL" : $"f.{Q(UltimaAlteracaoColumn)}")}) AS UltimaAlteracao";
         private string? C(string column) => cadastroColumns.Contains(column, StringComparer.OrdinalIgnoreCase) ? $"c.{Q(column)}" : null;

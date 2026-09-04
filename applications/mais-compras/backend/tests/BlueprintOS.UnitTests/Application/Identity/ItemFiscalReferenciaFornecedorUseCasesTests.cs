@@ -37,6 +37,14 @@ public sealed class ItemFiscalReferenciaFornecedorUseCasesTests
         }
 
         public Task SalvarAlteracoesAsync(CancellationToken ct) => Task.CompletedTask;
+
+        public Task<ItemFiscal?> ObterPorCodigoSemRastreamentoAsync(string codigo, CancellationToken ct) =>
+            Task.FromResult(Itens.SingleOrDefault(x => x.Codigo == codigo));
+
+        public Task<ItemFiscal?> ObterPorCodigoAsync(string codigo, CancellationToken ct) =>
+            Task.FromResult(Itens.SingleOrDefault(x => x.Codigo == codigo));
+
+        public Task<int> ContarAsync(CancellationToken ct) => Task.FromResult(Itens.Count);
     }
 
     private sealed class FakeReferenciaFornecedorRepository : IItemFiscalReferenciaFornecedorRepository
@@ -48,6 +56,9 @@ public sealed class ItemFiscalReferenciaFornecedorUseCasesTests
 
         public Task<ItemFiscalReferenciaFornecedor?> ObterPorIdAsync(Guid id, Guid itemFiscalId, CancellationToken ct) =>
             Task.FromResult(Referencias.SingleOrDefault(x => x.Id == id && x.ItemFiscalId == itemFiscalId));
+
+        public Task<ItemFiscalReferenciaFornecedor?> ObterPorItemEFornecedorAsync(Guid itemFiscalId, Guid fornecedorId, CancellationToken ct) =>
+            Task.FromResult(Referencias.SingleOrDefault(x => x.ItemFiscalId == itemFiscalId && x.FornecedorId == fornecedorId));
 
         public Task<bool> ExisteParaFornecedorNoItemAsync(Guid itemFiscalId, Guid fornecedorId, Guid? excluirId, CancellationToken ct) =>
             Task.FromResult(Referencias.Any(x => x.ItemFiscalId == itemFiscalId && x.FornecedorId == fornecedorId && x.Id != excluirId));
@@ -80,10 +91,10 @@ public sealed class ItemFiscalReferenciaFornecedorUseCasesTests
     }
 
     private static FornecedorDto FornecedorAtivo(Guid id, string nome) =>
-        new(id, nome, "12345678900", null, null, null, null, null, null, null, "Ativo", null, Guid.NewGuid(), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow);
+        new(id, nome, "12345678900", null, null, null, null, null, null, null, "Ativo", null, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow);
 
     private static FornecedorDto FornecedorInativo(Guid id, string nome) =>
-        new(id, nome, "12345678900", null, null, null, null, null, null, null, "Inativo", null, Guid.NewGuid(), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow);
+        new(id, nome, "12345678900", null, null, null, null, null, null, null, "Inativo", null, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow);
 
     private static (FakeItemFiscalRepository itens, FakeReferenciaFornecedorRepository referencias, FakeObterFornecedorUseCase fornecedores, ItemFiscal item) Cenario(
         params FornecedorDto[] fornecedoresCadastrados)

@@ -25,11 +25,15 @@ public sealed class CentroCustoMetadadoConfiguration : IEntityTypeConfiguration<
         builder.Property(x => x.CriadoEm).IsRequired();
         builder.Property(x => x.AtualizadoEm).IsRequired();
 
-        // Único GLOBALMENTE por CodigoErp (não só por Unidade de Negócio): é exatamente essa restrição que
-        // impede um mesmo código ERP de Centro de Custo ser ancorado a duas Unidades de Negócio diferentes,
-        // fechando o vetor de vínculo cross-BU descrito na dívida O1.6-L2.
-        builder.HasIndex(x => x.CodigoErp)
+        // Onda 2 (Multi-BU/Multi-ERP, 03/09/2026, decisão do Product Owner registrada em
+        // applications/mais-compras/docs/cadernos/Onda-2.md): único por (UnidadeNegocioId, CodigoErp), não
+        // mais globalmente — duas Unidades de Negócio podem ancorar o mesmo código ERP de Centro de Custo
+        // como metadados independentes (mesma normalização de ContaContabil/UnidadeMedida/FilialMetadado).
+        // A defesa anti-vínculo-cross-BU da dívida O1.6-L2 deixa de depender desta unicidade global — agora
+        // é feita inteiramente por CentroCustoVinculoValidator, que resolve/ancora sempre escopado pela
+        // UnidadeNegocioId da sessão (ver ObterPorCodigoErpAsync, nunca mais ObterPorCodigoErpGlobalAsync).
+        builder.HasIndex(x => new { x.UnidadeNegocioId, x.CodigoErp })
             .IsUnique()
-            .HasDatabaseName("IX_CentrosCustoMetadados_CodigoErp");
+            .HasDatabaseName("IX_CentrosCustoMetadados_UnidadeNegocioId_CodigoErp");
     }
 }

@@ -8,7 +8,7 @@ namespace BlueprintOS.Domain.Identity;
 ///
 /// Não existe linha aqui até a primeira edição/ativação local (ver <c>AtualizarMetadadoFilialUseCase</c>):
 /// uma Filial retornada pelo ERP sem metadado local é considerada Ativa por padrão na listagem.</summary>
-public sealed class FilialMetadado
+public sealed class FilialMetadado : ICadastroApoioMetadado
 {
     public Guid Id { get; private set; }
     public string CodigoErp { get; private set; }

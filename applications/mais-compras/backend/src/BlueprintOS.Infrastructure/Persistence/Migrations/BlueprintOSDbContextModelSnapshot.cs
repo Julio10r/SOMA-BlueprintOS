@@ -172,9 +172,9 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CodigoErp")
+                    b.HasIndex("UnidadeNegocioId", "CodigoErp")
                         .IsUnique()
-                        .HasDatabaseName("IX_CentrosCustoMetadados_CodigoErp");
+                        .HasDatabaseName("IX_CentrosCustoMetadados_UnidadeNegocioId_CodigoErp");
 
                     b.ToTable("CentrosCustoMetadados", (string)null);
                 });
@@ -370,9 +370,9 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CodigoErp")
+                    b.HasIndex("UnidadeNegocioId", "CodigoErp")
                         .IsUnique()
-                        .HasDatabaseName("IX_ContasContabeisMetadados_CodigoErp");
+                        .HasDatabaseName("IX_ContasContabeisMetadados_UnidadeNegocioId_CodigoErp");
 
                     b.ToTable("ContasContabeisMetadados", (string)null);
                 });
@@ -529,7 +529,6 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("ContaContabilCodigoErp")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -541,8 +540,20 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
-                    b.Property<string>("UnidadeMedidaCodigoErp")
+                    b.Property<string>("OrigemInformacao")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("MaisCompras");
+
+                    b.Property<DateTimeOffset?>("UltimaAlteracaoErp")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("UltimaAlteracaoLocalEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UnidadeMedidaCodigoErp")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -903,6 +914,195 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BlueprintOS.Domain.Identity.Raw.RawLinxCentroCustoRegistro", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoErp")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<string>("DescricaoErp")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<bool>("InativoErp")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UltimaAlteracao")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodigoErp");
+
+                    b.ToTable("RAW_LinxCentrosCustoSnapshot", (string)null);
+                });
+
+            modelBuilder.Entity("BlueprintOS.Domain.Identity.Raw.RawLinxContaContabilRegistro", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoErp")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("DescricaoErp")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<bool>("InativoErp")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UltimaAlteracao")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodigoErp");
+
+                    b.ToTable("RAW_LinxContasContabeisSnapshot", (string)null);
+                });
+
+            modelBuilder.Entity("BlueprintOS.Domain.Identity.Raw.RawLinxFilialRegistro", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoErp")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
+
+                    b.Property<string>("DescricaoErp")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool?>("InativoErp")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UltimaAlteracao")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodigoErp");
+
+                    b.ToTable("RAW_LinxFiliaisSnapshot", (string)null);
+                });
+
+            modelBuilder.Entity("BlueprintOS.Domain.Identity.Raw.RawLinxItemFiscalReferenciaFornecedorRegistro", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoItem")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("CodigoItemFornecedor")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
+
+                    b.Property<string>("ErpFornecedorId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("FornecedoresResolvidos")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RAW_LinxItensFiscaisReferenciasFornecedorSnapshot", (string)null);
+                });
+
+            modelBuilder.Entity("BlueprintOS.Domain.Identity.Raw.RawLinxItemFiscalRegistro", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoErp")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ContaContabilErp")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<bool>("InativoErp")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UltimaAlteracao")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("UnidadeErp")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodigoErp");
+
+                    b.ToTable("RAW_LinxItensFiscaisSnapshot", (string)null);
+                });
+
+            modelBuilder.Entity("BlueprintOS.Domain.Identity.Raw.RawLinxUnidadeMedidaRegistro", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoErp")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<string>("DescricaoErp")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<bool?>("InativoErp")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UltimaAlteracao")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodigoErp");
+
+                    b.ToTable("RAW_LinxUnidadesMedidaSnapshot", (string)null);
+                });
+
             modelBuilder.Entity("BlueprintOS.Domain.Identity.RegraOrcamentaria", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1084,9 +1284,9 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CodigoErp")
+                    b.HasIndex("UnidadeNegocioId", "CodigoErp")
                         .IsUnique()
-                        .HasDatabaseName("IX_UnidadesMedidaMetadados_CodigoErp");
+                        .HasDatabaseName("IX_UnidadesMedidaMetadados_UnidadeNegocioId_CodigoErp");
 
                     b.ToTable("UnidadesMedidaMetadados", (string)null);
                 });
@@ -1186,6 +1386,73 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                     b.HasIndex("PerfilId");
 
                     b.ToTable("UsuariosPerfis", (string)null);
+                });
+
+            modelBuilder.Entity("BlueprintOS.Domain.Integrations.Occurrences.IntegrationOccurrence", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("ContextoTecnico")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Dataset")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("ExecutionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset>("OcorridoEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("OriginRecordKey")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Stage")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<Guid>("UnidadeNegocioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExecutionId");
+
+                    b.HasIndex("UnidadeNegocioId", "Dataset", "Status");
+
+                    b.HasIndex("UnidadeNegocioId", "ExecutionId", "Dataset", "Stage", "Code", "OriginRecordKey")
+                        .IsUnique()
+                        .HasDatabaseName("IX_IntegrationOccurrences_Dedup")
+                        .HasFilter("[OriginRecordKey] IS NOT NULL");
+
+                    b.ToTable("IntegrationOccurrences", (string)null);
                 });
 
             modelBuilder.Entity("BlueprintOS.Domain.Knowledge.Linx.LinxKnowledgeEntry", b =>
@@ -1473,10 +1740,10 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ErpFornecedorId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ErpSistema")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Estado")
                         .HasMaxLength(100)
@@ -1563,7 +1830,7 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
-                    b.Property<Guid>("TemporaryUserId")
+                    b.Property<Guid?>("TemporaryUserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("TipoFornecedor")
@@ -1578,6 +1845,9 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("UltimaSincronizacaoEm")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<Guid>("UnidadeNegocioId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -1590,12 +1860,16 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Cnpj_Cpf")
-                        .IsUnique();
-
                     b.HasIndex("RazaoSocial");
 
-                    b.HasIndex("TemporaryUserId");
+                    b.HasIndex("UnidadeNegocioId", "Cnpj_Cpf")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Fornecedores_UnidadeNegocioId_Cnpj_Cpf");
+
+                    b.HasIndex("UnidadeNegocioId", "ErpSistema", "ErpFornecedorId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Fornecedores_UnidadeNegocioId_ErpSistema_ErpFornecedorId")
+                        .HasFilter("[ErpFornecedorId] IS NOT NULL");
 
                     b.ToTable("Fornecedores", (string)null);
                 });
@@ -1717,12 +1991,14 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
-                    b.Property<Guid>("TemporaryUserId")
+                    b.Property<Guid?>("TemporaryUserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TemporaryUserId", "DescobertoEm");
+                    b.HasIndex("CodigoItem");
+
+                    b.HasIndex("DescobertoEm");
 
                     b.ToTable("FornecedoresDescobertos", (string)null);
                 });
@@ -1849,6 +2125,68 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                     b.ToTable("FornecedoresEnriquecimentoAnalises", (string)null);
                 });
 
+            modelBuilder.Entity("BlueprintOS.Domain.Procurement.Suppliers.FornecedorLinxVinculo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("AtualizadoEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CodigoErp")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTimeOffset>("CriadoEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DataParaTransferencia")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ErpSistema")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<Guid>("FornecedorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("InativoCadastroCliFor")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("InativoFornecedores")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NomeClifor")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("Principal")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<Guid>("UnidadeNegocioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UnidadeNegocioId", "ErpSistema", "CodigoErp")
+                        .IsUnique()
+                        .HasDatabaseName("IX_FornecedorLinxVinculos_UnidadeNegocioId_ErpSistema_CodigoErp");
+
+                    b.HasIndex(new[] { "FornecedorId" }, "IX_FornecedorLinxVinculos_FornecedorId");
+
+                    b.HasIndex(new[] { "FornecedorId" }, "IX_FornecedorLinxVinculos_FornecedorId_PrincipalAtivo")
+                        .IsUnique()
+                        .HasFilter("[Principal] = 1 AND [InativoFornecedores] = 0 AND [InativoCadastroCliFor] = 0");
+
+                    b.ToTable("FornecedorLinxVinculos", (string)null);
+                });
+
             modelBuilder.Entity("BlueprintOS.Domain.Procurement.Suppliers.FornecedorSincronizacao", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1955,6 +2293,182 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                     b.ToTable("FornecedoresSincronizacoes", (string)null);
                 });
 
+            modelBuilder.Entity("BlueprintOS.Domain.Procurement.Suppliers.Raw.LinxDatasetLoadState", b =>
+                {
+                    b.Property<Guid>("UnidadeNegocioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Dataset")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid?>("BaselineExecucaoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("BaselineHomologadaEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("CargaFullInicialValidada")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IncrementalLiberado")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("UltimaExecucaoValidaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("UltimoWatermarkValido")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("UnidadeNegocioId", "Dataset");
+
+                    b.ToTable("LinxDatasetLoadState", (string)null);
+                });
+
+            modelBuilder.Entity("BlueprintOS.Domain.Procurement.Suppliers.Raw.RawLinxFornecedorDominioErpRegistro", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoErp")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("Descricao")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("TipoDominio")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UltimaAlteracao")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TipoDominio", "CodigoErp");
+
+                    b.ToTable("RAW_LinxFornecedorDominiosSnapshot", (string)null);
+                });
+
+            modelBuilder.Entity("BlueprintOS.Domain.Procurement.Suppliers.Raw.RawLinxFornecedorSnapshotExecucao", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Completa")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("ConcluidoEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Dataset")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Erro")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTimeOffset>("IniciadoEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("IsolamentoUtilizado")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<long>("LinhasGravadas")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("LinhasLidas")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Modo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ReconciliacaoStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTimeOffset?>("ReconciliadoEm")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("WatermarkFinal")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("WatermarkInicial")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Dataset", "IniciadoEm");
+
+                    b.HasIndex("Dataset", "Modo", "ReconciliacaoStatus");
+
+                    b.ToTable("RAW_LinxFornecedoresSnapshotExecucoes", (string)null);
+                });
+
+            modelBuilder.Entity("BlueprintOS.Domain.Procurement.Suppliers.Raw.RawLinxFornecedorSnapshotRegistro", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Clifor")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("CnpjCpf")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("CodigoFornecedor")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("InativoCadastroCliFor")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("InativoFornecedores")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NomeFantasia")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("RazaoSocial")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("TipoPessoa")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<DateTime?>("UltimaAlteracao")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CnpjCpf");
+
+                    b.ToTable("RAW_LinxFornecedoresSnapshot", (string)null);
+                });
+
             modelBuilder.Entity("BlueprintOS.Domain.Procurement.Suppliers.SincronizacaoFornecedor", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1972,6 +2486,10 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("DataInicio")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("JustificativaEncerramento")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<string>("SistemaOrigem")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -1979,8 +2497,8 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<long>("TempoExecucaoMs")
                         .HasColumnType("bigint");
@@ -2001,6 +2519,9 @@ namespace BlueprintOS.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.Property<Guid>("UnidadeNegocioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("UsuarioRecuperacaoId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");

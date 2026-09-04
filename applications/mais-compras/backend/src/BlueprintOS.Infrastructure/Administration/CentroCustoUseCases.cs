@@ -95,16 +95,10 @@ internal static class CentroCustoMetadadoResolver
         var local = await metadados.ObterPorCodigoErpAsync(codigo, unidadeNegocioId, ct);
         if (local is not null) return ErpMetadadoResultado<CentroCustoMetadado>.Ok(local);
 
-        // CentrosCustoMetadados.CodigoErp é globalmente único: um Centro de Custo só pode estar ancorado a
-        // UMA Unidade de Negócio por vez (mesma regra do vínculo Usuário×Centro de Custo, O1.6-L2).
-        var ancoraExistente = await metadados.ObterPorCodigoErpGlobalAsync(codigo, ct);
-        if (ancoraExistente is not null && ancoraExistente.UnidadeNegocioId != unidadeNegocioId)
-        {
-            return ErpMetadadoResultado<CentroCustoMetadado>.Erro(
-                ErpMetadadoFalha.AncoradoPorOutraUnidadeDeNegocio,
-                "Este Centro de Custo já está ancorado a outra Unidade de Negócio.");
-        }
-
+        // Onda 2 (Multi-BU/Multi-ERP, 03/09/2026, decisão do Product Owner): CentrosCustoMetadados.CodigoErp
+        // deixou de ser globalmente único — um mesmo código ERP pode estar ancorado, de forma independente,
+        // a mais de uma Unidade de Negócio (contextos independentes, nunca compartilhados). Criar aqui não
+        // corre mais risco de violar índice único de outra BU.
         local = new CentroCustoMetadado(codigo, unidadeNegocioId, agora);
         await metadados.AdicionarAsync(local, ct);
         return ErpMetadadoResultado<CentroCustoMetadado>.Ok(local);
@@ -137,18 +131,10 @@ public sealed class AtualizarMetadadoCentroCustoUseCase(
         var local = await metadados.ObterPorCodigoErpAsync(codigo, unidadeNegocioId, ct);
         if (local is null)
         {
-            // CentrosCustoMetadados.CodigoErp é globalmente único (ver CentroCustoMetadadoConfiguration):
-            // um Centro de Custo só pode estar ancorado a UMA Unidade de Negócio por vez (mesma regra do
-            // vínculo Usuário×Centro de Custo, O1.6-L2). Sem esta verificação, a criação abaixo violaria
-            // o índice único e vazaria um DbUpdateException não tratado para o cliente.
-            var ancoraExistente = await metadados.ObterPorCodigoErpGlobalAsync(codigo, ct);
-            if (ancoraExistente is not null && ancoraExistente.UnidadeNegocioId != unidadeNegocioId)
-            {
-                return ErpMetadadoResultado<CentroCustoDto>.Erro(
-                    ErpMetadadoFalha.AncoradoPorOutraUnidadeDeNegocio,
-                    "Este Centro de Custo já está ancorado a outra Unidade de Negócio.");
-            }
-
+            // Onda 2 (Multi-BU/Multi-ERP, 03/09/2026, decisão do Product Owner): CentrosCustoMetadados.CodigoErp
+            // deixou de ser globalmente único — um mesmo código ERP pode estar ancorado, de forma
+            // independente, a mais de uma Unidade de Negócio. Criar aqui não corre mais risco de violar
+            // índice único de outra BU.
             local = new CentroCustoMetadado(codigo, unidadeNegocioId, agora, input.DescricaoMaisCompras, input.AtivoNoMaisCompras);
             await metadados.AdicionarAsync(local, ct);
         }

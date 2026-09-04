@@ -9,9 +9,12 @@ using BlueprintOS.Api.Middleware;
 using BlueprintOS.Api.Negotiations;
 using BlueprintOS.Api.Suppliers;
 using BlueprintOS.Application.Identity.Contracts;
+using BlueprintOS.Application.Identity.Models;
 using BlueprintOS.Application.Procurement.Suppliers.Contracts;
+using BlueprintOS.Application.Procurement.Suppliers.Models;
 using BlueprintOS.Infrastructure.DependencyInjection;
 using BlueprintOS.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Data.SqlClient;
@@ -59,6 +62,16 @@ if (args.Length > 0 && args[0] == "investigate-linx-prog-op-ped")
     return await InvestigateLinxProgOpPedAsync(args);
 }
 
+if (args.Length > 0 && args[0] == "sincronizar-item-fiscal-erp")
+{
+    return await SincronizarItemFiscalErpAsync(args);
+}
+
+if (args.Length > 0 && args[0] == "fornecedor-vinculos")
+{
+    return await FornecedorVinculosAsync(args);
+}
+
 if (args.Length > 0 && args[0] == "governed-plan")
 {
     return await BlueprintOS.Api.Governance.GovernedPlanCliHandler.RunAsync(Console.In, Console.Out);
@@ -67,6 +80,36 @@ if (args.Length > 0 && args[0] == "governed-plan")
 if (args.Length > 0 && args[0] == "governed-execute")
 {
     return await BlueprintOS.Api.Governance.GovernedExecuteCliHandler.RunAsync(args, Console.In, Console.Out, BuildDatabaseConfiguration());
+}
+
+if (args.Length > 0 && args[0] == "linx-liveread")
+{
+    return await BlueprintOS.Api.Governance.GovernedLiveReadCliHandler.RunAsync(args, Console.Out, BuildDatabaseConfiguration());
+}
+
+if (args.Length > 0 && args[0] == "linx-refined")
+{
+    return await BlueprintOS.Api.Governance.RefinedFornecedorCliHandler.RunAsync(args, Console.Out, BuildDatabaseConfiguration());
+}
+
+if (args.Length > 0 && args[0] == "linx-cadastro-apoio")
+{
+    return await BlueprintOS.Api.Governance.CadastroApoioRefinedCliHandler.RunAsync(args, Console.Out, BuildDatabaseConfiguration());
+}
+
+if (args.Length > 0 && args[0] == "linx-fornecedor-dominios")
+{
+    return await BlueprintOS.Api.Governance.FornecedorDominioErpCliHandler.RunAsync(args, Console.Out, BuildDatabaseConfiguration());
+}
+
+if (args.Length > 0 && args[0] == "linx-itens-fiscais")
+{
+    return await BlueprintOS.Api.Governance.ItensFiscaisRefinedCliHandler.RunAsync(args, Console.Out, BuildDatabaseConfiguration());
+}
+
+if (args.Length > 0 && args[0] == "linx-itens-fiscais-ref-fornecedor")
+{
+    return await BlueprintOS.Api.Governance.ItensFiscaisReferenciasFornecedorRefinedCliHandler.RunAsync(args, Console.Out, BuildDatabaseConfiguration());
 }
 
 var builder = WebApplication.CreateBuilder(args);
@@ -259,6 +302,7 @@ app.MapContasContabeis();
 app.MapUnidadesMedida();
 app.MapItensFiscais();
 app.MapItemFiscalReferenciasFornecedor();
+app.MapItemFiscalSync();
 app.MapUnidadesAlocacao();
 app.MapMe();
 app.MapUnidadesNegocio();
@@ -386,6 +430,162 @@ static async Task<int> ValidateMaisComprasAsync()
     var result = await provider.GetRequiredService<B1ConnectivityValidator>().ValidateMaisComprasAsync();
     WriteConnectivityResult(result);
     return result.IsSuccess ? 0 : 1;
+}
+
+/// <summary>B3 — Bloco 5A: execução real controlada (5A.6) da sincronização Linx -> +Compras de Item
+/// Fiscal / Referências por Fornecedor, fora de um host HTTP — mesmo padrão de composição isolada de
+/// <c>ValidateMaisComprasAsync</c> (ServiceCollection + AddInfrastructure/AddIdentityAuthCore, sem
+/// ASP.NET). <see cref="BlueprintOS.Api.Identity.CliCurrentIdentity"/> resolve uma Unidade de Negócio REAL
+/// já existente em MAISCOMPRAS (nunca sintética) — nenhuma rota HTTP/RBAC é contornada, esta é uma via de
+/// execução operacional distinta, mesma natureza dos demais modos CLI deste arquivo (nenhum SQL de
+/// escrita direta: toda escrita passa pelos casos de uso reais registrados em DI).
+/// Uso: <c>dotnet run -- sincronizar-item-fiscal-erp [item-fiscal|referencias] [--dry-run] [--limite=N]</c>.</summary>
+static async Task<int> SincronizarItemFiscalErpAsync(string[] args)
+{
+    var modo = args.Skip(1).FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal)) ?? "item-fiscal";
+    var dryRun = args.Contains("--dry-run", StringComparer.Ordinal);
+    var limiteArg = args.FirstOrDefault(a => a.StartsWith("--limite=", StringComparison.Ordinal))?["--limite=".Length..];
+    var limite = int.TryParse(limiteArg, out var limiteParsed) ? limiteParsed : 0;
+
+    var configuration = BuildDatabaseConfiguration();
+    var services = new ServiceCollection();
+    services.AddInfrastructure(configuration);
+    services.AddIdentityAuthCore(configuration);
+#pragma warning disable ASP0000 // Isolated CLI composition root; no ASP.NET host is created.
+    await using var bootstrapProvider = services.BuildServiceProvider();
+#pragma warning restore ASP0000
+    Guid unidadeNegocioId;
+    await using (var scope = bootstrapProvider.CreateAsyncScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<BlueprintOSDbContext>();
+        var unidade = await db.Set<BlueprintOS.Domain.Identity.UnidadeNegocio>().Select(x => new { x.Id }).FirstOrDefaultAsync();
+        if (unidade is null)
+        {
+            Console.WriteLine("[ERRO] Nenhuma Unidade de Negócio real encontrada em MAISCOMPRAS — não é possível resolver a identidade da execução.");
+            return 1;
+        }
+        unidadeNegocioId = unidade.Id;
+    }
+
+    services.AddScoped<ICurrentIdentity>(_ => new BlueprintOS.Api.Identity.CliCurrentIdentity(unidadeNegocioId));
+#pragma warning disable ASP0000
+    await using var provider = services.BuildServiceProvider();
+#pragma warning restore ASP0000
+    await using var execucaoScope = provider.CreateAsyncScope();
+
+    Console.WriteLine($"[sincronizar-item-fiscal-erp] modo={modo} dryRun={dryRun} limite={(limite > 0 ? limite.ToString() : "sem teto")} unidadeNegocioId={unidadeNegocioId}");
+
+    if (modo == "referencias")
+    {
+        var useCase = execucaoScope.ServiceProvider.GetRequiredService<ISincronizarItemFiscalReferenciasFornecedorErpUseCase>();
+        var resumo = await useCase.ExecuteAsync(new SincronizarItemFiscalReferenciasFornecedorErpDto(limite, "cli-5a6", dryRun));
+        Console.WriteLine($"Status={resumo.Status} Consultados={resumo.Consultados} Incluidos={resumo.Incluidos} Atualizados={resumo.Atualizados} SemAlteracao={resumo.SemAlteracao} Erros={resumo.Erros} Conflitos={resumo.Conflitos.Count} DuracaoMs={resumo.DuracaoMs} PossivelmenteTruncado={resumo.PossivelmenteTruncado}");
+        foreach (var conflito in resumo.Conflitos)
+        {
+            Console.WriteLine($"  CONFLITO CodigoItem={conflito.CodigoItem} CodigoItemFornecedor={conflito.CodigoItemFornecedor} Motivo={conflito.Motivo}");
+        }
+    }
+    else
+    {
+        var useCase = execucaoScope.ServiceProvider.GetRequiredService<ISincronizarItensFiscaisErpUseCase>();
+        var resumo = await useCase.ExecuteAsync(new SincronizarItensFiscaisErpDto(limite, "cli-5a7", dryRun));
+        Console.WriteLine(
+            $"Status={resumo.Status} Consultados={resumo.Consultados} Incluidos={resumo.Incluidos} SemAlteracao={resumo.SemAlteracao} " +
+            $"AtualizadosLinxMaisNovo={resumo.AtualizadosLinxMaisNovo} PreservadosLocalMaisNovo={resumo.PreservadosLocalMaisNovo} " +
+            $"AtualizadosEmpateAdr0024={resumo.AtualizadosEmpateAdr0024} AtualizadosTimestampIndisponivelAdr0024={resumo.AtualizadosTimestampIndisponivelAdr0024} " +
+            $"Erros={resumo.Erros} Ocorrencias={resumo.Ocorrencias.Count} DuracaoMs={resumo.DuracaoMs} PossivelmenteTruncado={resumo.PossivelmenteTruncado}");
+        foreach (var ocorrencia in resumo.Ocorrencias.Take(50))
+        {
+            Console.WriteLine(
+                $"  LWW CodigoItem={ocorrencia.CodigoItem} DataTransferenciaLinx={ocorrencia.DataTransferenciaLinx:O} TimestampLocalRelevante={ocorrencia.TimestampLocalRelevante:O} " +
+                $"CamposDivergentes=[{string.Join(",", ocorrencia.CamposDivergentes)}] Decisao={ocorrencia.Decisao}");
+        }
+        if (resumo.Ocorrencias.Count > 50) Console.WriteLine($"  ... e mais {resumo.Ocorrencias.Count - 50} ocorrência(s).");
+    }
+
+    return 0;
+}
+
+/// <summary>B3 — Bloco 5A.9: execução real controlada do modelo de vínculos Linx de Fornecedor (1 CNPJ = 1
+/// Fornecedor, N vínculos — GAPs KALUNGA/PLATINUM). Mesmo padrão de composição isolada de CLI dos demais
+/// modos deste arquivo (nenhuma escrita direta em SQL: toda escrita passa pelos casos de uso reais
+/// registrados em DI).
+/// Uso:
+///   <c>dotnet run -- fornecedor-vinculos backfill [--dry-run]</c>
+///   <c>dotnet run -- fornecedor-vinculos sincronizar [--dry-run] [--limite=N] [--business-unit=X]</c>
+///   <c>dotnet run -- fornecedor-vinculos recuperar &lt;execucaoId&gt; &lt;justificativa...&gt;</c></summary>
+static async Task<int> FornecedorVinculosAsync(string[] args)
+{
+    var modo = args.Skip(1).FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal)) ?? "backfill";
+    var dryRun = args.Contains("--dry-run", StringComparer.Ordinal);
+    var limiteArg = args.FirstOrDefault(a => a.StartsWith("--limite=", StringComparison.Ordinal))?["--limite=".Length..];
+    var limite = int.TryParse(limiteArg, out var limiteParsed) ? limiteParsed : 0;
+    var businessUnit = args.FirstOrDefault(a => a.StartsWith("--business-unit=", StringComparison.Ordinal))?["--business-unit=".Length..] ?? "DEFAULT";
+
+    var configuration = BuildDatabaseConfiguration();
+    var services = new ServiceCollection();
+    services.AddInfrastructure(configuration);
+    services.AddIdentityAuthCore(configuration);
+#pragma warning disable ASP0000
+    await using var bootstrapProvider = services.BuildServiceProvider();
+#pragma warning restore ASP0000
+    Guid unidadeNegocioId;
+    await using (var scope = bootstrapProvider.CreateAsyncScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<BlueprintOSDbContext>();
+        var unidade = await db.Set<BlueprintOS.Domain.Identity.UnidadeNegocio>().Select(x => new { x.Id }).FirstOrDefaultAsync();
+        if (unidade is null)
+        {
+            Console.WriteLine("[ERRO] Nenhuma Unidade de Negócio real encontrada em MAISCOMPRAS — não é possível resolver a identidade da execução.");
+            return 1;
+        }
+        unidadeNegocioId = unidade.Id;
+    }
+
+    services.AddScoped<ICurrentIdentity>(_ => new BlueprintOS.Api.Identity.CliCurrentIdentity(unidadeNegocioId));
+#pragma warning disable ASP0000
+    await using var provider = services.BuildServiceProvider();
+#pragma warning restore ASP0000
+    await using var execucaoScope = provider.CreateAsyncScope();
+
+    Console.WriteLine($"[fornecedor-vinculos] modo={modo} dryRun={dryRun} unidadeNegocioId={unidadeNegocioId}");
+
+    if (modo == "backfill")
+    {
+        var useCase = execucaoScope.ServiceProvider.GetRequiredService<IBackfillFornecedorLinxVinculosUseCase>();
+        var resumo = await useCase.ExecuteAsync(new BackfillFornecedorLinxVinculosDto(dryRun));
+        Console.WriteLine(
+            $"Status={resumo.Status} FornecedoresComIdentidadeErpLegada={resumo.FornecedoresComIdentidadeErpLegada} " +
+            $"VinculosCriados={resumo.VinculosCriados} VinculosJaExistentes={resumo.VinculosJaExistentes} DuracaoMs={resumo.DuracaoMs}");
+    }
+    else if (modo == "recuperar")
+    {
+        var posicionais = args.Skip(1).Where(a => !a.StartsWith("--", StringComparison.Ordinal)).Skip(1).ToArray();
+        if (posicionais.Length < 2 || !Guid.TryParse(posicionais[0], out var execucaoId))
+        {
+            Console.WriteLine("[ERRO] Uso: fornecedor-vinculos recuperar <execucaoId> <justificativa...>");
+            return 1;
+        }
+        var justificativa = string.Join(' ', posicionais.Skip(1));
+        var useCase = execucaoScope.ServiceProvider.GetRequiredService<IRecuperarSincronizacaoFornecedorAbandonadaUseCase>();
+        var resumo = await useCase.ExecuteAsync(new RecuperarSincronizacaoFornecedorAbandonadaDto(execucaoId, justificativa));
+        Console.WriteLine($"ExecucaoId={resumo.ExecucaoId} StatusAnterior={resumo.StatusAnterior} StatusFinal={resumo.StatusFinal} RecuperadaEm={resumo.RecuperadaEm:O} UsuarioRecuperacaoId={resumo.UsuarioRecuperacaoId}");
+    }
+    else
+    {
+        var useCase = execucaoScope.ServiceProvider.GetRequiredService<ISincronizarFornecedoresErpUseCase>();
+        var resumo = await useCase.ExecuteAsync(new SincronizarFornecedoresErpDto(businessUnit, limite, "cli-5a9", dryRun));
+        Console.WriteLine(
+            $"ExecucaoId={resumo.ExecucaoId} Status={resumo.Status} Consultados={resumo.Consultados} Incluidos={resumo.Incluidos} " +
+            $"Atualizados={resumo.Atualizados} SemAlteracao={resumo.SemAlteracao} Erros={resumo.Erros} TotalInativados={resumo.TotalInativados} " +
+            $"DuracaoMs={resumo.DuracaoMs} PossivelmenteTruncado={resumo.PossivelmenteTruncado} Ocorrencias={resumo.OcorrenciasVinculos?.Count ?? 0}");
+        foreach (var ocorrencia in (resumo.OcorrenciasVinculos ?? []).Take(50))
+        {
+            Console.WriteLine($"  OCORRENCIA {ocorrencia}");
+        }
+    }
+
+    return 0;
 }
 
 static async Task<int> ValidateB1ConnectivityAsync()

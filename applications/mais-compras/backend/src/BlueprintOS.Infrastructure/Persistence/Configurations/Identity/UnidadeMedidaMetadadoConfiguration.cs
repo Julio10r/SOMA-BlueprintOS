@@ -19,11 +19,12 @@ public sealed class UnidadeMedidaMetadadoConfiguration : IEntityTypeConfiguratio
         builder.Property(x => x.CriadoEm).IsRequired();
         builder.Property(x => x.AtualizadoEm).IsRequired();
 
-        // Único GLOBALMENTE por CodigoErp (mesma decisão de ContaContabilMetadadoConfiguration/
-        // CentroCustoMetadadoConfiguration): Unidade de Medida é cadastro de apoio compartilhado entre
-        // Unidades de Negócio, não específico de uma BU.
-        builder.HasIndex(x => x.CodigoErp)
+        // Onda 2 (Multi-BU/Multi-ERP, 03/09/2026, decisão do Product Owner registrada em
+        // applications/mais-compras/docs/cadernos/Onda-2.md): único por (UnidadeNegocioId, CodigoErp), não
+        // mais globalmente — mesma normalização de ContaContabilMetadadoConfiguration/
+        // CentroCustoMetadadoConfiguration/FilialMetadadoConfiguration.
+        builder.HasIndex(x => new { x.UnidadeNegocioId, x.CodigoErp })
             .IsUnique()
-            .HasDatabaseName("IX_UnidadesMedidaMetadados_CodigoErp");
+            .HasDatabaseName("IX_UnidadesMedidaMetadados_UnidadeNegocioId_CodigoErp");
     }
 }

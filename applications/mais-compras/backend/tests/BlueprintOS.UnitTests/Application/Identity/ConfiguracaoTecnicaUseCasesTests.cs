@@ -36,6 +36,7 @@ public sealed class ConfiguracaoTecnicaUseCasesTests
         public List<UnidadeNegocio> All { get; } = [];
 
         public Task<UnidadeNegocio?> ObterPorIdAsync(Guid id, CancellationToken ct) => Task.FromResult(All.SingleOrDefault(x => x.Id == id));
+        public Task<UnidadeNegocio?> ObterPorSlugAsync(string slug, CancellationToken ct) => Task.FromResult(All.SingleOrDefault(x => x.Slug == slug));
         public Task<bool> PossuiAdministradorSeniorAtivoAsync(Guid unidadeNegocioId, CancellationToken ct) => Task.FromResult(false);
         public Task AdicionarAsync(UnidadeNegocio unidadeNegocio, CancellationToken ct) { All.Add(unidadeNegocio); return Task.CompletedTask; }
         public Task<IReadOnlyList<UnidadeNegocio>> ListarTodasAsync(CancellationToken ct) => Task.FromResult((IReadOnlyList<UnidadeNegocio>)All);

@@ -10,6 +10,11 @@ public interface IItemFiscalReferenciaFornecedorRepository
 
     Task<ItemFiscalReferenciaFornecedor?> ObterPorIdAsync(Guid id, Guid itemFiscalId, CancellationToken ct);
 
+    /// <summary>B3 — Bloco 5A: usado pela sincronização de Referências (`ADR-0024`: sem timestamp
+    /// confiável nesta tabela, Linx prevalece em divergência) para decidir entre criar uma referência nova
+    /// ou atualizar <see cref="ItemFiscalReferenciaFornecedor.CodigoItemFornecedor"/> de uma já existente.</summary>
+    Task<ItemFiscalReferenciaFornecedor?> ObterPorItemEFornecedorAsync(Guid itemFiscalId, Guid fornecedorId, CancellationToken ct);
+
     /// <summary>Comprovado em Linx (`KeyFieldList = FORNECEDOR, CODIGO_ITEM`): um Fornecedor tem no máximo
     /// uma referência por Item Fiscal.</summary>
     Task<bool> ExisteParaFornecedorNoItemAsync(Guid itemFiscalId, Guid fornecedorId, Guid? excluirId, CancellationToken ct);

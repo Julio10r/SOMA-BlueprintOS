@@ -18,8 +18,12 @@ public sealed class FornecedorDescobertoConfiguration : IEntityTypeConfiguration
         builder.Property(x => x.CodigoFornecedor).HasMaxLength(100);
         builder.Property(x => x.Score).HasPrecision(5, 2).IsRequired();
         builder.Property(x => x.Criterio).HasMaxLength(30).IsRequired();
-        builder.Property(x => x.TemporaryUserId).IsRequired();
+        // B3 — Bloco 5A.9 (mesma correção de TemporaryUserId aplicada a Fornecedor): descoberta é
+        // corporativa por CodigoItem, não pertence a um usuário. Coluna nullable só por compatibilidade
+        // histórica; índice de escopo por usuário removido.
+        builder.Property(x => x.TemporaryUserId);
         builder.Property(x => x.DescobertoEm).IsRequired();
-        builder.HasIndex(x => new { x.TemporaryUserId, x.DescobertoEm });
+        builder.HasIndex(x => x.DescobertoEm);
+        builder.HasIndex(x => x.CodigoItem);
     }
 }

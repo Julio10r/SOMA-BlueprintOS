@@ -11,7 +11,6 @@ public sealed class FornecedorSincronizacaoRepository(
         string businessUnit,
         string erpSistema,
         string erpFornecedorId,
-        Guid userId,
         CancellationToken cancellationToken = default)
     {
         return context.Fornecedores
@@ -19,8 +18,7 @@ public sealed class FornecedorSincronizacaoRepository(
                 fornecedor =>
                     fornecedor.BusinessUnit == businessUnit &&
                     fornecedor.ErpSistema == erpSistema &&
-                    fornecedor.ErpFornecedorId == erpFornecedorId &&
-                    fornecedor.TemporaryUserId == userId,
+                    fornecedor.ErpFornecedorId == erpFornecedorId,
                 cancellationToken);
     }
 

@@ -6,17 +6,37 @@ namespace BlueprintOS.Application.Identity;
 
 internal static class ItemFiscalProjection
 {
-    public static ItemFiscalDto Projetar(ItemFiscal item, ContaContabilDto? conta, UnidadeMedidaDto? unidade) => new(
-        item.Id,
-        item.Codigo,
-        item.Descricao,
-        item.UnidadeMedidaCodigoErp,
-        unidade?.DescricaoErp,
-        item.ContaContabilCodigoErp,
-        conta?.DescricaoErp,
-        item.Ativo,
-        item.CriadoEm,
-        item.AtualizadoEm);
+    /// <summary>Situação cadastral (<c>item.Ativo</c>) e aptidão operacional são conceitos independentes
+    /// (B3 — Bloco 5A, decisão do Product Owner): aptidão exige Conta Contábil E Unidade de Medida
+    /// preenchidas, existentes e ativas — nunca deriva de <c>item.Ativo</c>. Um item cadastralmente Ativo
+    /// mas incompleto (real no Linx: 144 sem Conta, 79 com Conta inativa, 2 sem Unidade, 2 com Unidade
+    /// inexistente) é representado como está, nunca corrigido/inventado nem re-classificado como Inativo.</summary>
+    public static ItemFiscalDto Projetar(ItemFiscal item, ContaContabilDto? conta, UnidadeMedidaDto? unidade)
+    {
+        var motivos = new List<string>();
+        if (string.IsNullOrWhiteSpace(item.ContaContabilCodigoErp)) motivos.Add("Conta Contábil não informada.");
+        else if (conta is null) motivos.Add("Conta Contábil não encontrada.");
+        else if (!conta.AtivoEfetivo) motivos.Add("Conta Contábil inativa.");
+
+        if (string.IsNullOrWhiteSpace(item.UnidadeMedidaCodigoErp)) motivos.Add("Unidade de Medida não informada.");
+        else if (unidade is null) motivos.Add("Unidade de Medida não encontrada.");
+        else if (!unidade.AtivoNoMaisCompras) motivos.Add("Unidade de Medida inativa.");
+
+        return new ItemFiscalDto(
+            item.Id,
+            item.Codigo,
+            item.Descricao,
+            item.UnidadeMedidaCodigoErp,
+            unidade?.DescricaoErp,
+            item.ContaContabilCodigoErp,
+            conta?.DescricaoErp,
+            item.Ativo,
+            item.OrigemInformacao.ToString(),
+            motivos.Count == 0,
+            motivos,
+            item.CriadoEm,
+            item.AtualizadoEm);
+    }
 }
 
 /// <summary>Validação compartilhada entre <see cref="CriarItemFiscalUseCase"/> e
@@ -70,8 +90,8 @@ public sealed class ListarItensFiscaisUseCase(
         return itens
             .Select(item => ItemFiscalProjection.Projetar(
                 item,
-                contas.GetValueOrDefault(item.ContaContabilCodigoErp),
-                unidades.GetValueOrDefault(item.UnidadeMedidaCodigoErp)))
+                item.ContaContabilCodigoErp is null ? null : contas.GetValueOrDefault(item.ContaContabilCodigoErp),
+                item.UnidadeMedidaCodigoErp is null ? null : unidades.GetValueOrDefault(item.UnidadeMedidaCodigoErp)))
             .ToArray();
     }
 }

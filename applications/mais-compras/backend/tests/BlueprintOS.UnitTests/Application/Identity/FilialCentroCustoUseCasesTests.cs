@@ -69,9 +69,6 @@ public sealed class FilialCentroCustoUseCasesTests
         public Task<CentroCustoMetadado?> ObterPorCodigoErpAsync(string codigoErp, Guid unidadeNegocioId, CancellationToken ct) =>
             Task.FromResult(Registros.SingleOrDefault(x => x.CodigoErp == codigoErp && x.UnidadeNegocioId == unidadeNegocioId));
 
-        public Task<CentroCustoMetadado?> ObterPorCodigoErpGlobalAsync(string codigoErp, CancellationToken ct) =>
-            Task.FromResult(Registros.FirstOrDefault(x => x.CodigoErp == codigoErp));
-
         public Task<CentroCustoMetadado?> ObterPorIdEUnidadeNegocioAsync(Guid id, Guid unidadeNegocioId, CancellationToken ct) =>
             Task.FromResult(Registros.SingleOrDefault(x => x.Id == id && x.UnidadeNegocioId == unidadeNegocioId));
 
@@ -203,8 +200,12 @@ public sealed class FilialCentroCustoUseCasesTests
         Assert.Equal(ErpMetadadoFalha.CodigoErpNaoEncontrado, resultado.Falha);
     }
 
+    /// <summary>Onda 2 (Multi-BU/Multi-ERP, 03/09/2026, decisão do Product Owner): um código já ancorado em
+    /// OUTRA Unidade de Negócio deixa de ser rejeitado — contextos independentes, cada BU ancora seu
+    /// próprio metadado local para o mesmo código ERP (substitui o teste anterior desta classe que esperava
+    /// rejeição).</summary>
     [Fact]
-    public async Task AtualizarMetadadoCentroCusto_Should_Reject_When_Anchored_By_Another_Business_Unit()
+    public async Task AtualizarMetadadoCentroCusto_Should_Anchor_Independently_When_Anchored_By_Another_Business_Unit()
     {
         var outraUnidade = Guid.NewGuid();
         var reader = new FakeCentroCustoErpReader();
@@ -213,11 +214,11 @@ public sealed class FilialCentroCustoUseCasesTests
         metadados.Registros.Add(new CentroCustoMetadado("CC-001", outraUnidade, DateTimeOffset.UtcNow));
         var useCase = new AtualizarMetadadoCentroCustoUseCase(reader, metadados, new FakeCentroCustoUnidadeAlocacaoRepositoryVazio(), new FakeUnidadeAlocacaoRepositoryVazio(), TimeProvider.System);
 
-        var resultado = await useCase.ExecuteAsync("CC-001", new CentroCustoMetadadoInput("Tentativa cross-BU", true), Bu, CancellationToken.None);
+        var resultado = await useCase.ExecuteAsync("CC-001", new CentroCustoMetadadoInput("Contexto Bu", true), Bu, CancellationToken.None);
 
-        Assert.False(resultado.Sucesso);
-        Assert.Equal(ErpMetadadoFalha.AncoradoPorOutraUnidadeDeNegocio, resultado.Falha);
-        Assert.Single(metadados.Registros);
+        Assert.True(resultado.Sucesso);
+        Assert.Single(metadados.Registros, x => x.CodigoErp == "CC-001" && x.UnidadeNegocioId == Bu);
+        Assert.Single(metadados.Registros, x => x.CodigoErp == "CC-001" && x.UnidadeNegocioId == outraUnidade);
     }
 
     // ---- O1.6-L2 — validador real (CentroCustoVinculoValidator) ----
@@ -249,8 +250,12 @@ public sealed class FilialCentroCustoUseCasesTests
         Assert.Equal(RbacFalha.CentroCustoInvalido, resultado.Falha);
     }
 
+    /// <summary>Onda 2 (Multi-BU/Multi-ERP, 03/09/2026, decisão do Product Owner): um código já ancorado em
+    /// OUTRA Unidade de Negócio deixa de ser rejeitado — contextos independentes. A BU da sessão valida
+    /// contra o ERP real e ancora seu próprio metadado, sem depender do metadado de outra BU (substitui o
+    /// teste anterior desta classe que esperava rejeição).</summary>
     [Fact]
-    public async Task CentroCustoVinculoValidator_Should_Reject_Code_Anchored_To_Another_UnidadeNegocio()
+    public async Task CentroCustoVinculoValidator_Should_Anchor_Independently_When_Code_Already_Anchored_To_Another_UnidadeNegocio()
     {
         var reader = new FakeCentroCustoErpReader();
         reader.CentrosCusto.Add(new CentroCustoErpDto("CC-001", "Compras Corporativo", null));
@@ -260,7 +265,8 @@ public sealed class FilialCentroCustoUseCasesTests
 
         var resultado = await validator.ValidarEAncorarAsync(["CC-001"], Bu, CancellationToken.None);
 
-        Assert.False(resultado.Sucesso);
-        Assert.Equal(RbacFalha.CentroCustoInvalido, resultado.Falha);
+        Assert.True(resultado.Sucesso);
+        Assert.Single(metadados.Registros, x => x.CodigoErp == "CC-001" && x.UnidadeNegocioId == Bu);
+        Assert.Single(metadados.Registros, x => x.CodigoErp == "CC-001" && x.UnidadeNegocioId == OutraBu);
     }
 }

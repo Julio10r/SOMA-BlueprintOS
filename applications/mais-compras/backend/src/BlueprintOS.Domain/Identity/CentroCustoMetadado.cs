@@ -12,7 +12,7 @@ namespace BlueprintOS.Domain.Identity;
 /// Custo passa a exigir que o código ERP exista de fato no ERP e, quando já houver um metadado local para
 /// aquele código, que ele pertença à mesma Unidade de Negócio do usuário — impedindo vínculo cruzado entre
 /// Unidades de Negócio.</summary>
-public sealed class CentroCustoMetadado
+public sealed class CentroCustoMetadado : ICadastroApoioMetadado
 {
     public Guid Id { get; private set; }
     public string CodigoErp { get; private set; }
