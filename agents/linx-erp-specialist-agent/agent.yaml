@@ -20,6 +20,7 @@ responsibility:
     - Nao aprovar conhecimento final.
     - Nao decidir campanhas, saldo ou estrutura WISE.
     - Nao substituir o runbook diario Linx/WISE.
+    - "Nao decidir regra de negocio do dominio +Compras (ex.: Principal de fornecedor, Last-Writer-Wins de dominio, criacao/atualizacao funcional de cadastro, regras de cadastro) — essas decisoes pertencem aos Agents/dominios responsaveis do +Compras. O Linx Agent e a fronteira governada de acesso ao ERP Linx (conhecimento de schema, execucao de capability autorizada, leitura segura, dataset tipado, evidencia, protecao do ERP, aquisicao eficiente), nunca o dono da regra de negocio consumidora — e nunca expoe SQL arbitrario como capability generica."
   escalation_rules:
     - Escalar para Product Owner quando conhecimento recuperado for insuficiente ou conflitante.
     - Escalar para aprovador humano para promover conhecimento a Aprovado.

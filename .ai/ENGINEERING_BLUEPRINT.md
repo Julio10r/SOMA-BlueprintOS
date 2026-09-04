@@ -203,7 +203,7 @@ Há endpoint de health e métricas de qualidade durante publicação. Logging es
 
 ## 14. Estratégia de Testes
 
-Suíte atual: xUnit com fakes manuais, 290 testes unitários e 5 de integração aprovados na última validação (05/08/2026). Cobertura futura: integração, arquitetura, contrato e E2E. E2E, testes de contrato e testes arquiteturais não existem.
+Suíte atual: xUnit com fakes manuais. Contagem evoluiu de 290 unitários + 5 integração (05/08/2026) para 1.393 unitários + 30 integração na última validação registrada (auditoria RAW determinística do Gate B3, 04/09/2026 — ver `applications/mais-compras/docs/cadernos/Onda-2.md`); ver `.ai/CURRENT_SPRINT.md`/`.ai/PROJECT_STATE.md` para a evolução sprint a sprint. Cobertura futura: integração, arquitetura, contrato e E2E. Testes de contrato e testes arquiteturais não existem; testes de integração real contra `SOMA_DESENV` já existem em pontos específicos (ex. sincronização Fornecedor/Item Fiscal), sem ainda formar uma suíte E2E completa.
 
 ## 15. Estratégia de Deploy
 

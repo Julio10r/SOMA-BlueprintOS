@@ -122,6 +122,31 @@ O que a Onda 2 fechou, que a Onda 1 deixava como planejado:
 
 A alteracao de `PRODUTOS.GRADE` de um produto para outro codigo de grade e apenas cadastral: ela **nao** realinha automaticamente os dados ja existentes em `COMPRAS_PRODUTO`. A escrita de PED usa quantidade final absoluta por posicao (nao delta, ver `agents/linx-database-specialist-agent/agent.yaml` para a diferenca de semantica entre os mecanismos PROG/OP/PED), entao a correcao acontece em uma unica operacao atomica dentro do `governed-execute run`. Isso e uma caracteristica do **mecanismo**, generalizavel a qualquer ajuste de grade PED futuro. Os numeros desta execucao especifica — 77 itens, 15.240 registros, posicoes 34-44 — sao **evidencia deste caso**, nao regra universal; nao assumir os mesmos numeros, posicoes ou volume em uma proxima execucao.
 
+## Principio Permanente — Agent != LLM
+
+Um Agent representa responsabilidade, autoridade, governanca, ownership, politicas e capabilities — nao e
+sinonimo de "chamada a um LLM". Uma capability de um Agent pode ser inteiramente deterministica (leitura/escrita
+governada, streaming, validacao, calculo); LLM e opcional e so entra quando a tarefa exige interpretacao/linguagem
+natural.
+
+Regra permanente: o caminho feliz (happy path) de uma integracao de alto volume deve preferencialmente executar
+com **zero inferencia de LLM** quando a tarefa for deterministica. Nunca fazer uma chamada de Agent/LLM por
+registro processado (nunca 1 chamada LLM por linha/registro de um lote).
+
+Fluxo de referencia aprovado:
+
+```text
+Orchestrator -> Business Unit Context -> ERP/Linx Agent -> Policy/Gateway -> capability deterministica -> RAW -> REFINED -> Domain Agent
+```
+
+Este principio ja tem mecanismo real comprovado: `GovernedExecutionMode.LiveRead` (capability
+`linx-dataset-snapshot-read`, `agents/linx-database-specialist-agent/agent.yaml`) executa streaming
+`SqlDataReader -> SqlBulkCopy` sem materializar em memoria e com **zero chamadas a `IAIRuntime` no caminho
+feliz**, comprovado por teste dedicado com um `IAIRuntime` fake que lanca excecao se for chamado
+(`ToolGatewayLiveReadTests`). O Tool Gateway autoriza a execucao uma unica vez por execucao de dataset, nunca uma
+vez por registro — mesma garantia ja provada do lado de escrita (`ToolGatewayLiveExecutionTests`,
+`ExecuteCallCount == 1`).
+
 ## Relacao com Agents Existentes
 
 - Agent Linx ERP e Agent Linx Banco tem capability real de escrita governada e persistida (`ped-grade-adjustment-write` / `soma-database-write-proposal`) via `governed-execute`, homologada e ja usada em producao. `LinxDatabaseSpecialistAgent` continua nao sendo um executor SQL arbitrario — toda escrita passa pelo Motor de Politicas, aprovacao, Recovery Package e Gateway.

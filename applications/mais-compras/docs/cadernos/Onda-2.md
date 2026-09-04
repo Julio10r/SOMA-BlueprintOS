@@ -6,6 +6,88 @@ Ver `README.md` nesta mesma pasta para o template e as regras de uso.
 
 ---
 
+### ENCERRAMENTO FORMAL DA ONDA 2
+
+- **Origem:** Encerramento documental da Onda 2, autorizado pelo Product Owner.
+- **Assunto:** Registro formal de que a Onda 2 (Multi-BU/Multi-ERP + B3/Item Fiscal) está tecnicamente
+  aprovada, commitada e publicada em `origin/main`.
+- **Tipo:** Governança
+- **Tratar em:** Somente documentação
+- **Status:** **CONCLUÍDA / APROVADA**
+- **Data técnica:** 04/09/2026
+- **Commit oficial:** `d8dac6ed82aa0cfaa2222b4c56b6288fbc241a77` — "feat: complete Onda 2 B3 integration and
+  multi-BU foundation" (`origin/main` sincronizado, 0 commits locais/remotos pendentes na data deste
+  encerramento).
+- **Resumo:** Este Caderno, do início ao fim, é o registro cronológico completo da rodada arquitetural
+  Multi-BU/Multi-ERP e do fechamento técnico do B3/Item Fiscal. O estado final aprovado é:
+  - **B3 (Item Fiscal — Blocos 1–4): APROVADO/HOMOLOGADO.** Discovery homologado; Bloco 1 (Conta Contábil),
+    Bloco 2 (Unidade de Medida), Bloco 3 (Item Fiscal, domínio local/CRUD/RBAC) e Bloco 4 (Referências por
+    Fornecedor) concluídos e homologados (ver `.ai/CURRENT_SPRINT.md`, "B3 — Item Fiscal", commit `c2365f5`).
+  - **Onda 2 (Multi-BU/Multi-ERP): tecnicamente pronta e aprovada.** Todas as decisões arquiteturais e GAPs
+    desta rodada estão registrados nas entradas acima (fronteira de dados por BU, integrações headless com
+    BusinessUnit explícita, normalização de Fornecedor/CNPJ, `IntegrationOccurrence`/`LinxDatasetLoadState`,
+    metadados de cadastro de apoio, classificação Multi-BU das entidades administrativas).
+  - **Multi-BU normalizado para o Grupo Soma:** as 4 migrations desta rodada
+    (`NormalizarMetadadosApoioPorUnidadeNegocioOnda2`, `NormalizarFornecedorPorUnidadeNegocioOnda2`,
+    `NormalizarIntegrationOccurrencePorUnidadeNegocioOnda2`, `NormalizarLinxDatasetLoadStatePorUnidadeNegocioOnda2`)
+    aplicadas com sucesso em `MAISCOMPRAS Development` (ver "Validação real em MAISCOMPRAS Development" acima)
+    — zero perda de dado, backfill 100% correto, `dotnet ef migrations has-pending-model-changes` sem
+    pendências.
+  - **Bateria final de certificação B3:** ver "Bateria final de certificação B3 (04/09/2026)" acima —
+    incremental normal PASS nos 5 datasets baselined; teste controlado real de ~101 Fornecedores em
+    SOMA_DESENV (detecção → aplicação → restauração → detecção → aplicação) PASS; idempotência PASS;
+    reconciliação de Fornecedor PASS (0 divergências); 2 defeitos reais encontrados e corrigidos (watermark
+    sem fuso do servidor Linx; não-determinismo de RAW duplicado).
+  - **Auditoria RAW determinística:** ver "GAP — auditoria RAW determinística" acima — todos os 5
+    consumidores RAW→REFINED do B3 auditados; os 4 que ainda não tinham desempate por "mais recente" foram
+    corrigidos (Cadastro de Apoio, Item Fiscal, Fornecedor Domínios, Item Fiscal Referência Fornecedor).
+  - **Testes:** evolução registrada nesta rodada de 1.380 unitários + 30 integração (bateria final B3) para
+    1.393 unitários + 30 integração (após a auditoria RAW determinística), todos aprovados, 0 falhas, sem
+    regressão. `dotnet build`/`dotnet ef migrations has-pending-model-changes`: limpos em todas as etapas.
+  - **Zero escrita Linx pelo pipeline 5A:** nenhum pipeline REFINED/LiveRead governado desta rodada escreveu
+    no ERP Linx — apenas leitura (RAW/REFINED/reconciliação). O teste controlado de ~101 registros alterou
+    dado real em `SOMA_DESENV` de forma deliberada e reversível (ver "Bateria final de certificação B3"
+    acima), com restauração confirmada 101/101 antes do encerramento — não é escrita do pipeline, é validação
+    controlada e auditada do próprio Gate.
+  - **Zero LLM no happy path:** os pipelines de sincronização/RAW/REFINED/reconciliação desta Onda são
+    determinísticos de ponta a ponta — nenhuma chamada a `IAIRuntime`/Agent/LLM no caminho de alto volume (ver
+    regra formalizada em "Agent ≠ LLM", `agents/AGENT_CONTRACT.md`/`agents/docs/AIGovernance.md`).
+  - **GAPs residuais:** classificados e **não bloqueadores** da Onda 2 — ver seção "Gaps Residuais" abaixo.
+- **Decisão:** Encerramento formal autorizado pelo Product Owner nesta rodada documental. Nenhum código,
+  migration, teste ou script foi alterado por este encerramento — apenas consolidação e fechamento do
+  registro já produzido pelas entradas técnicas deste Caderno.
+
+---
+
+### Gaps residuais da Onda 2 (não bloqueadores)
+
+- **Origem:** Consolidação do encerramento formal da Onda 2 (rodada documental).
+- **Assunto:** Lista única dos gaps reais que permanecem abertos ao final da Onda 2 — nenhum deles impede o
+  fechamento, todos têm gatilho explícito de quando devem ser tratados.
+- **Tipo:** Governança
+- **Tratar em:** Ver "Tratar em" individual de cada item.
+- **Status:** Registrado
+- **Resumo:**
+  1. **`IDatasetLoadGate`/`ToolGateway` (LiveRead governado) ainda não é Multi-BU-aware** — ver GAP residual 1
+     em "GAP — `DatasetLoadState`/`IntegrationOccurrence` sem dimensão de BU" acima. **Tratar em:** antes de
+     uma segunda BU real executar `linx.fornecedores.snapshot` por esse caminho.
+  2. **`RawLinxFornecedorSnapshotExecucao` ainda sem `UnidadeNegocioId`** — ver GAP residual 2 na mesma
+     entrada. **Tratar em:** antes do onboarding operacional de uma segunda BU no mesmo dataset.
+  3. **`ConfiguracaoErp` existe por BU, mas os `Soma*Readers` ainda não a consomem** — ver "GAP —
+     `ConfiguracaoErp` (O1.11) ainda não é consumida pelos leitores ERP reais" acima. Dívida arquitetural de
+     evolução Multi-ERP, sem prazo atrelado ao fechamento da Onda 2.
+  4. **Bloco 5B (+Compras → Linx) intencionalmente não iniciado** — depende de validação com especialista
+     Visual Linx; não bloqueou o B3 nem a Onda 2 (ver "Bloco 5B ... não bloqueia o fechamento funcional da
+     Onda 2" acima).
+  5. **Ressalva de Item Fiscal — criação ERP de Item Fiscal novo** comprovada por testes automatizados/código,
+     não por execução real end-to-end (ambiguidade observada na formatação `CodigoErp` RAW × domínio).
+     Registrada como ressalva, sem bloqueio retroativo do B3/Onda 2.
+
+  Nenhum destes 5 pontos é um bloqueador retroativo do Gate B3 ou do fechamento da Onda 2 — todos foram
+  avaliados pelo Product Owner e classificados como dívida a tratar no gatilho descrito, não antes.
+
+---
+
 ### Toda dado funcional do +Compras pertence a uma Unidade de Negócio
 
 - **Origem:** Rodada arquitetural Onda 2 — Multi-BU/Multi-ERP (03/09/2026).

@@ -12,11 +12,13 @@ Discovery **HOMOLOGADO pelo Product Owner** (01/09/2026 → 02/09/2026). Este pl
 | Bloco 2 — Unidade de Medida | **HOMOLOGADO** |
 | Bloco 3 — Item Fiscal | **HOMOLOGADO** |
 | Bloco 4 — Referências por Fornecedor | **HOMOLOGADO** |
-| Bloco 5A — Sincronização Linx → +Compras (leitura) | **NÃO INICIADO** — próximo ponto de retomada: pré-validação dos dados reais do Linx antes de implementar |
-| Bloco 5B — Escrita governada (+Compras → ERP) | **NÃO INICIADO** — bloqueado até validação dedicada (ver seção do bloco) |
-| Bloco 6 — RBAC completo, Gate Técnico e Homologação final | **NÃO INICIADO** |
+| Bloco 5A — Sincronização Linx → +Compras (leitura) | **CONCLUÍDO/CERTIFICADO (04/09/2026)** — implementado, auditado (auditoria RAW determinística) e certificado pela bateria final do Gate B3; ver `applications/mais-compras/docs/cadernos/Onda-2.md` |
+| Bloco 5B — Escrita governada (+Compras → ERP) | **NÃO INICIADO** — bloqueado até validação dedicada com especialista Visual Linx (ver seção do bloco); não bloqueia o Gate B3 nem o fechamento da Onda 2 |
+| Bloco 6 — RBAC completo, Gate Técnico e Homologação final | **CONCLUÍDO (04/09/2026)** — corresponde à bateria final de certificação B3 (teste controlado real de ~101 Fornecedores em `SOMA_DESENV`, idempotência, reconciliação, 0 divergências) |
 
 Blocos 1–4 implementados, testados (unitário, integração, RBAC, E2E real contra `MAISCOMPRAS`) e homologados nesta mesma sessão de trabalho — ver commit correspondente para o detalhamento técnico completo (migrations, arquivos, testes) e os relatórios de cada bloco na conversa de implementação.
+
+**Atualização de encerramento da Onda 2 (04/09/2026, sessão posterior — não reabre a homologação de 02/09/2026 acima):** o Bloco 5A foi de fato retomado e concluído, e o Gate B3 (Bloco 6) foi certificado, na rodada arquitetural Multi-BU/Multi-ERP que fechou a Onda 2. A tabela de status acima foi atualizada para refletir esse estado final; a seção "Próximo ponto de retomada — Bloco 5A" abaixo permanece como registro histórico do planejamento em 02/09/2026 (a pré-validação ali descrita foi de fato executada como parte da bateria final). Detalhe completo, incluindo os 2 defeitos reais encontrados e corrigidos durante a certificação e os GAPs residuais não bloqueadores, em `applications/mais-compras/docs/cadernos/Onda-2.md` ("ENCERRAMENTO FORMAL DA ONDA 2").
 
 Princípio geral de sequenciamento: cadastros de apoio (Conta Contábil, Unidade) antes do Item Fiscal (que depende deles); Item Fiscal local antes de sincronização com o Linx (que é o ponto de maior risco); leitura antes de escrita governada no Linx (mesma maturidade já aplicada a Fornecedores — B2.1 leitura/escrita simples → B2.9 Adapter Linx, bloqueado até validação dedicada).
 

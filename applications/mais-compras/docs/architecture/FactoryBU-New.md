@@ -5,6 +5,13 @@ governado**, não um framework de código pronto — este documento registra o c
 para que decisões de hoje não bloqueiem essa evolução; a implementação completa é escopo do Encerramento do
 Projeto (ver `applications/mais-compras/docs/cadernos/Encerramento-Projeto.md`).
 
+> **Encerramento formal da Onda 2 (04/09/2026).** Este documento foi revisado no encerramento documental da
+> Onda 2 (commit `d8dac6ed82aa0cfaa2222b4c56b6288fbc241a77`, `origin/main`) para refletir o estado final das
+> pré-condições arquiteturais que uma execução real de `FactoryBU.New` (segunda BU) vai encontrar — ver seção
+> "Pré-condições para a primeira execução real" abaixo, que substitui/atualiza a seção anterior sobre gaps
+> bloqueadores. Detalhe técnico completo em
+> `applications/mais-compras/docs/cadernos/Onda-2.md`.
+
 ## Por que isso existe
 
 Grupo Soma é hoje a única Unidade de Negócio operacional do +Compras, e Linx o único ERP integrado. O código
@@ -65,13 +72,41 @@ flowchart LR
 - Contratos canônicos (camada A) já são independentes de ERP por construção (Clean Architecture, ADR-0001).
 - `ConfiguracaoErp`/`UnidadeNegocio` (O1.11, ADR-0022) já modelam BU e ERP como conceitos configuráveis, não
   hardcoded.
-- Gaps abertos registrados em `MultiBU-MultiErp-Arquitetura.md` (Fornecedor/CNPJ por BU, `DatasetLoadState`/
-  `IntegrationOccurrence` sem dimensão de BU) são reconhecidos como bloqueadores de uma segunda BU real e
-  precisam de decisão do Product Owner antes da primeira execução real de `FactoryBU.New` — não antes disso.
+- `Usuario.Email` permanece único globalmente (pessoa, não BU) — uma nova BU não duplica usuários existentes;
+  hoje o modelo é single-BU-por-usuário, então a nova BU simplesmente ganha seus próprios usuários. O modelo
+  conceitual de N autorizações de BU por usuário é evolução futura, não uma pré-condição desta Factory (ver
+  `MultiBU-MultiErp-Arquitetura.md`, seção "Usuário é global").
+
+## Pré-condições para a primeira execução real (estado final da Onda 2)
+
+No início da Onda 2, dois gaps arquiteturais (Fornecedor/CNPJ por BU, `DatasetLoadState`/
+`IntegrationOccurrence` sem dimensão de BU) eram classificados como bloqueadores de uma segunda BU real. Ao
+final da mesma Onda 2, ambos foram **decididos e implementados** (migrations aplicadas e validadas em
+`MAISCOMPRAS Development` — ver `MultiBU-MultiErp-Arquitetura.md`, seção "Gaps — estado final da Onda 2", e
+`Onda-2.md`). O que permanece como pré-condição real para a **primeira execução operacional** de
+`FactoryBU.New` sobre um dataset Linx já existente (passo 2, Discovery, em diante) é mais estreito que antes:
+
+1. **`IDatasetLoadGate`/`ToolGateway` (LiveRead governado) ainda não é Multi-BU-aware.** Precisa ser tratado
+   antes que a nova BU execute o mesmo dataset por esse caminho governado.
+2. **`RawLinxFornecedorSnapshotExecucao` ainda sem `UnidadeNegocioId`.** Precisa ser tratado antes do
+   onboarding operacional de uma segunda BU no mesmo dataset — a resolução de "execução Full mais recente"
+   usada como baseline hoje não filtra por BU.
+3. **`ConfiguracaoErp` existe por BU, mas os `Soma*Readers` reais ainda não a consomem.** Só é bloqueador para
+   o passo 4 (Adapters/Configuração) quando a nova BU exigir uma configuração de conexão *diferente* da atual
+   (ex.: mesmo ERP Linx, banco/credenciais distintos) ou um ERP novo (ex.: SAP) — não é bloqueador para um
+   cenário hipotético em que a nova BU reaproveitasse a mesma conexão física já hardcoded hoje (o que, em si,
+   já seria uma violação do princípio desta Factory e não deveria ser feito).
+
+Nenhum dos 3 pontos acima bloqueia o fechamento da Onda 2 — são pré-condições específicas para quando uma
+segunda BU real de fato existir, não antes disso. Detalhe técnico completo de cada um em
+`MultiBU-MultiErp-Arquitetura.md`, seção "Gaps residuais da Onda 2 (não bloqueadores)", e em `Onda-2.md`.
 
 ## Ver também
 
-- `MultiBU-MultiErp-Arquitetura.md` — as três camadas conceituais que este processo instancia.
+- `MultiBU-MultiErp-Arquitetura.md` — as três camadas conceituais que este processo instancia, e o detalhe
+  completo das pré-condições/GAPs citados acima.
+- `applications/mais-compras/docs/cadernos/Onda-2.md` — registro cronológico e técnico completo do
+  encerramento da Onda 2, incluindo a implementação dos gaps que deixaram de bloquear esta Factory.
 - `applications/mais-compras/docs/cadernos/Encerramento-Projeto.md` — registro formal desta entrada e do
   Guia de Implantação futuro.
 - `CadFormFactory.md` — processo análogo já em uso para cadastros individuais (Fornecedores), referência de

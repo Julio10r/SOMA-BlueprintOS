@@ -13,7 +13,8 @@ porque dependem da existência de uma segunda Unidade de Negócio/ERP real para 
   rígido copiado cegamente para as próximas.
 - **Tipo:** Arquitetura
 - **Tratar em:** Encerramento do Projeto (framework completo); o contrato arquitetural mínimo já é
-  registrado nesta rodada em `applications/mais-compras/docs/architecture/FactoryBU-New.md`.
+  registrado nesta rodada em `applications/mais-compras/docs/architecture/FactoryBU-New.md` e nas três
+  camadas conceituais de `applications/mais-compras/docs/architecture/MultiBU-MultiErp-Arquitetura.md`.
 - **Status:** Em análise (contrato conceitual publicado; nenhuma implementação de código desta Factory
   nesta rodada, por instrução explícita do Product Owner).
 - **Resumo:** Nome conceitual provisório `FactoryBU.New("Reserva")`. Fluxo conceitual: BU de referência
@@ -43,3 +44,35 @@ porque dependem da existência de uma segunda Unidade de Negócio/ERP real para 
   RAW/REFINED/domain; testes; homologação do Product Owner; ativação. Ver
   `applications/mais-compras/docs/architecture/FactoryBU-New.md` para o contrato arquitetural que este guia
   operacionalizará.
+
+---
+
+### Dívidas transversais explicitamente adiadas para o Encerramento do Projeto (consolidação)
+
+- **Origem:** Encerramento documental da Onda 2 (04/09/2026).
+- **Assunto:** Lista consolidada, sem duplicar as duas entradas acima, dos itens que esta e outras rodadas
+  decidiram deliberadamente adiar para o Encerramento do Projeto — para que nenhum se perca entre Cadernos.
+- **Tipo:** Governança
+- **Tratar em:** Encerramento do Projeto.
+- **Status:** Registrado
+- **Resumo:**
+  1. **Revisão arquitetural final Multi-BU/Multi-ERP** — `MultiBU-MultiErp-Arquitetura.md` e
+     `FactoryBU-New.md` foram consolidados nesta rodada para refletir o estado final da Onda 2 (ver seção
+     própria de cada documento), mas uma revisão plena só é possível com uma segunda BU/ERP real em operação
+     — validação teórica atual, sem o teste de uma segunda BU.
+  2. **Revisão dos gaps residuais da Onda 2** (LiveRead/`ToolGateway` não Multi-BU-aware;
+     `RawLinxFornecedorSnapshotExecucao` sem `UnidadeNegocioId`; `ConfiguracaoErp` não consumida pelos
+     leitores ERP reais — ver `applications/mais-compras/docs/cadernos/Onda-2.md`, "Gaps residuais da Onda
+     2") — cada um já tem gatilho de quando tratar (antes de uma 2ª BU real usar o caminho específico); o
+     Encerramento do Projeto deve reavaliá-los à luz da experiência real do primeiro onboarding
+     (FactoryBU.New) antes de generalizar qualquer um como regra permanente.
+  3. **Revisão final do catálogo de Agents** (`agents/docs/AgentsCatalog.html`/`agents/docs/Agents.md`) —
+     mantido atualizado incrementalmente a cada mudança relevante (regra permanente já registrada em
+     `agents/docs/Agents.md`); uma revisão de consistência plena de ponta a ponta (todos os Agents, todas as
+     capabilities, linguagem uniforme) fica para o Encerramento do Projeto.
+  4. **Revisão final do Dashboard** — o Dashboard reflete incrementalmente cada execução do comando
+     `[atualizar dashboard]` (`.ai/dashboard/DASHBOARD_UPDATE_COMMAND.md`); uma auditoria final de
+     consistência entre todas as Ondas, metodologia de cálculo e Roadmap dos Produtos fica para o
+     Encerramento do Projeto.
+- **Decisão:** Registro de consolidação autorizado pelo Product Owner nesta rodada documental — nenhum dos 4
+  itens é executado agora; apenas garantido que não sejam esquecidos.

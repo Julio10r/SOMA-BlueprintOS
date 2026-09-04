@@ -12,8 +12,18 @@ tratada mais adiante.
 ## Arquivos
 
 - `Onda-1.md`, `Onda-2.md`, `Onda-3.md`, ... — um arquivo por onda do roadmap (`.ai/ROADMAP.md`/`BACKLOG.md`).
-- `Encerramento-Projeto.md` — itens que só fazem sentido resolver ao final do projeto (ex.: generalização
-  Multi-BU/Multi-ERP quando existir uma segunda Unidade de Negócio real).
+  Uma anotação é sempre registrada no arquivo da onda em que o achado/decisão **surgiu** — mesmo que o campo
+  `Tratar em` diga que ela só será endereçada mais adiante (próxima onda, onda específica, ou Encerramento do
+  Projeto). Não mover a entrada para o arquivo de destino quando "Tratar em" chegar; ela permanece no arquivo
+  de origem para preservar rastreabilidade histórica, apenas com `Status`/`Decisão` atualizados.
+- `Encerramento-Projeto.md` — itens que só fazem sentido resolver (ou só podem ser plenamente validados) ao
+  final do projeto (ex.: generalização Multi-BU/Multi-ERP quando existir uma segunda Unidade de Negócio
+  real). Consolida especificamente os itens transversais/finais que váRias ondas apontaram como "Tratar em:
+  Encerramento do projeto" — não é um resumo geral do projeto.
+
+O campo `Tratar em` do template abaixo é o que define **quando** agir sobre uma entrada — nunca quando ela
+foi descoberta nem em qual arquivo ela vive. Uma entrada pode nascer na Onda 2 e ter `Tratar em: Onda
+específica (nome)` ou `Encerramento do projeto`, permanecendo registrada em `Onda-2.md`.
 
 ## Template de entrada
 

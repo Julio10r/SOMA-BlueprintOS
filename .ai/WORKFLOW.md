@@ -456,6 +456,16 @@ Consolidada como estratégia oficial de desenvolvimento (ver `ROADMAP.md`): toda
 
 Nenhuma Onda do roadmap inicia sem aprovação formal do Gate da Onda anterior pelo Product Owner (Gates detalhados em `ROADMAP.md`).
 
+---
+
+# 18.3 Processo de Homologação por Onda
+
+Durante uma Onda, cada módulo é validado o suficiente para permitir avanço seguro — não é objetivo travar ou "superpolir" cada módulo isoladamente antes de existir o fluxo completo integrado. Isso não elimina os gates intermediários, que continuam existindo para impedir que um erro estrutural se propague para módulos seguintes.
+
+Sequência oficial: **VALIDAR PARA AVANÇAR → INTEGRAR → VALIDAR END-TO-END → HOMOLOGAR A ONDA.**
+
+A validação profunda de UX, regras de negócio, integrações, comportamento transversal e casos de uso ponta a ponta concentra-se principalmente na bateria/gate final da Onda, quando o fluxo completo já existe para ser testado de verdade — não antes, de forma isolada e prematura. Esta é uma estratégia deliberada para evitar otimização prematura e retrabalho, nunca uma desculpa para acumular dívida técnica: os gates intermediários seguem obrigatórios para tudo que já é conhecido e verificável naquele ponto.
+
 # 19. Definition of Done
 
 A Definition of Done canônica do projeto está definida em [context/definition-of-done.md](./context/definition-of-done.md).
